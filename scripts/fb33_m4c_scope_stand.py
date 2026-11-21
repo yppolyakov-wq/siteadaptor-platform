@@ -3,7 +3,9 @@
 Окно блока «Liste» с акциями типа «Räumung», вкладка «Wie anordnen»: селект «Ansicht gilt
 für» с подписью и подсказкой (цель ≥ 44 px), у «Liste» с товарами его нет. «Den ganzen Typ»
 → черновик (на сайте пока ничего), предпросмотр показывает оба блока типа лентой купонов;
-«Speichern» → вид у типа, оси у блока сняты; «Abbrechen» окна → как было. В Студии селекта
+«Speichern» → вид у типа, оси у блока сняты; «Abbrechen» окна → как было. У блока без своих
+осей поля нет — строка «folgt der Ansicht des Typs»; при «Den ganzen Typ» — видимое
+предупреждение; предупреждения экрана — жёлтым. В Студии селекта
 нет. Без JS: то же обычной формой с «Übernehmen».
 
 Запуск:
@@ -169,6 +171,9 @@ def run(b, w, h, lang, js=True):
     box = sel.bounding_box()
     check(box and box["height"] >= 44, f"цель ≥ 44 px ({box and round(box['height'])})")
     check(sel.input_value() == "", "по умолчанию «Nur diesen Block»")
+    option = sel.locator("option[value=type]").inner_text().strip()
+    check(option.endswith(f": {TYPE}"), f"имя типа в варианте ({option})")
+    check(pg.locator("#schema-l-scope-warn").count() == 0, "без выбора предупреждения нет")
     if js:
         pg.wait_for_function("!document.getAnimations().length")
     pg.screenshot(path=f"{OUT}/m4c_window_{tag}.png")
@@ -184,6 +189,27 @@ def run(b, w, h, lang, js=True):
         pg.wait_for_load_state()
     sel = pg.locator("select[name=f_scope]")
     check(sel.input_value() == "type", "выбор «Den ganzen Typ» держится в окне")
+    warn = pg.locator("#schema-l-scope-warn")
+    look = (
+        warn.evaluate(
+            "e => [getComputedStyle(e).backgroundColor, parseFloat(getComputedStyle(e).fontSize)]"
+        )
+        if warn.count()
+        else ["", 0]
+    )
+    check(
+        warn.count() == 1
+        and warn.is_visible()
+        and "schema-l-scope-warn" in (sel.get_attribute("aria-describedby") or "")
+        and look[1] >= 14
+        and look[0] not in ("rgba(0, 0, 0, 0)", "rgb(249, 250, 251)"),
+        f"предупреждение видно, не серое, связано с полем ({look})",
+    )
+    check(
+        pg.locator("[data-schema-inherit]").count() == 0
+        or "nur für diesen Block" not in pg.locator("[data-schema-inherit]").inner_text(),
+        "строка наследования не говорит «nur für diesen Block»",
+    )
     check(
         pg.locator("input[name=f_out][value=slider]").is_checked(),
         "оси блока в окне — как были (Slider)",
@@ -209,10 +235,21 @@ def run(b, w, h, lang, js=True):
     check(
         not {"out", "card", "scope"} & set(st["data"]), f"оси у блока сняты ({sorted(st['data'])})"
     )
-    window(pg, A1)
-    check(
-        pg.locator("select[name=f_scope]").input_value() == "", "после записи — «Nur diesen Block»"
-    )
+    # 4. блок без своих осей (второй блок типа и первый после записи): поля нет, строка-подсказка
+    for ref in (A1, A2):
+        window(pg, ref)
+        pg.wait_for_selector(root, timeout=15000)
+        note = pg.locator("[data-schema-scope-note]")
+        check(
+            pg.locator("select[name=f_scope]").count() == 0
+            and note.count() == 1
+            and note.is_visible()
+            and TYPE in note.inner_text(),
+            f"{ref}: без своих осей — поля нет, блок следует виду типа",
+        )
+    if js:
+        pg.wait_for_function("!document.getAnimations().length")
+    pg.screenshot(path=f"{OUT}/m4c_note_{tag}.png")
     check(not errs, "без JS-ошибок: " + "; ".join(errs[:2]))
     ctx.close()
 
@@ -247,6 +284,29 @@ def cancel(b, js=True):
     ctx.close()
 
 
+def warning(b):
+    """Предупреждение экрана — жёлтым (не «успехом»): «Abbrechen» окна без правок, без JS."""
+    print("— жёлтое сообщение")
+    reset()
+    for w, h in ((1440, 900), (390, 844)):
+        ctx = b.new_context(viewport={"width": w, "height": h}, java_script_enabled=False)
+        pg = ctx.new_page()
+        login(pg)
+        window(pg, A1)
+        pg.locator("form[data-window-actions] button[name=op][value=revert]").first.click()
+        pg.wait_for_load_state()
+        msg = pg.locator("[data-schema-messages] [role=status]").first
+        bg = msg.evaluate("e => getComputedStyle(e).backgroundColor") if msg.count() else ""
+        check(
+            msg.count() == 1
+            and msg.inner_text().strip().startswith("⚠")
+            and bg == "rgb(255, 251, 235)",
+            f"{w}: предупреждение жёлтым со знаком ⚠ ({bg})",
+        )
+        pg.screenshot(path=f"{OUT}/m4c_warning_{w}.png")
+        ctx.close()
+
+
 def studio(b):
     print("— Студия")
     reset()
@@ -279,6 +339,7 @@ with sync_playwright() as p:
             run(browser, width, height, language, js=False)
     cancel(browser)
     cancel(browser, js=False)
+    warning(browser)
     studio(browser)
     browser.close()
 print(f"\n{ok} ✓, {len(fail)} ✗")
