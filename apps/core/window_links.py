@@ -106,6 +106,32 @@ def _is_page_key(code: str, host: str, ref: str) -> bool:
     return key in {host, detail_parts.shared_host(host or ""), _type_code(code)} - {""}
 
 
+def whole_page(ref: str) -> bool:
+    """Строка самой страницы (★, «Seitentitel», «Kaufen», «Einstellungen der Seite»): у неё
+    нет своего места на витрине — превью окна показывает страницу целиком."""
+    from apps.tenants import siteconfig
+
+    return ref == siteconfig.MAIN_LIST_KEY or ref.startswith("__")
+
+
+def canvas_key(request, code: str, ref: str) -> str:
+    """FB-33 M3-7: ключ секции витрины (`data-sf-section`) для строки `ref` страницы `code` —
+    обратная к `_block_of` (якорь «Vorschau» окна). Строка самой страницы — обёртка страницы
+    (ключ хоста; "" — у главной её нет); раздел детали — `<страница>_<раздел>`
+    (`service_faq`); C-блок и секция — свой id/ключ. "" — начало страницы. Ничего не пишет."""
+    from apps.core import detail_parts
+
+    ref = clean_ref(ref)
+    if not ref:
+        return ""
+    base = detail_parts.shared_host(_host(request.tenant, code))
+    if whole_page(ref):
+        return clean_ref(base)
+    if base.endswith(DETAIL_SUFFIX) and ref in detail_parts.section_keys(base):
+        return clean_ref(base[: -len(DETAIL_SUFFIX)] + "_" + ref)
+    return ref
+
+
 def studio_settings_url(request, path: str, ref: str = "", tab: str = "") -> str:
     """⚙ Студии: адрес окна блока `ref` страницы канвы `path`. Без `ref` — схема страницы;
     ключ самой страницы — её настройки (`site_schema.settings_url`); строка общих блоков

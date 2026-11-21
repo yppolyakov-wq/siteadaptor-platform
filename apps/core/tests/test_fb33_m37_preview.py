@@ -90,7 +90,6 @@ def _home(req):
 # ───────────── L2: якорь кадра в обе стороны ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C1: window_links.canvas_key ещё нет")
 @pytest.mark.parametrize("case", CASES, ids=["|".join(c) for c in CASES])
 def test_canvas_key_maps_back_to_the_same_row(case):
     code, ref = case[0], case[1]
@@ -108,7 +107,6 @@ def test_canvas_key_maps_back_to_the_same_row(case):
     assert key == "" or window_links.REF_RE.fullmatch(key), key
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C1: window_links.canvas_key ещё нет")
 def test_canvas_key_of_a_detail_section_carries_the_page_prefix():
     b = _owner_browser()
     b.get("?seite=product")
@@ -120,7 +118,6 @@ def test_canvas_key_of_a_detail_section_carries_the_page_prefix():
     assert window_links.canvas_key(req, "home", "<x>") == ""  # мусор — начало страницы
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C1: контекста bw_preview ещё нет")
 def test_frame_src_shows_the_draft_with_the_block_anchor():
     b = _owner_browser()
     b.post(seite="home", ref="t1", op="update", panel_present="1", wopen=WOPEN, f_title="Neu7")
@@ -157,7 +154,6 @@ def test_no_preview_where_the_window_has_no_page_to_show(case):
     assert "data-bw-preview" not in html and "aufbau_preview.js" not in html
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C1: контекста bw_preview ещё нет")
 @pytest.mark.parametrize("case", WITH_PREVIEW, ids=["|".join(c) for c in WITH_PREVIEW])
 def test_preview_context_for_an_open_block_window(case):
     code, ref, extra = (*case, "")[:3]
@@ -173,7 +169,6 @@ def test_preview_context_for_an_open_block_window(case):
     assert pv["title"] and "data-bw-preview" in html
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C1: контекста bw_preview ещё нет")
 def test_preview_query_is_exactly_preview_and_aufbau():
     b = _owner_browser()
     _html, ctx = _ctx(b, "?seite=home&block=t1")
@@ -188,7 +183,6 @@ def test_no_preview_without_a_block_or_while_confirming_removal():
         assert "data-bw-preview" not in html and "aufbau_preview.js" not in html
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C1: шаблона data-bw-preview ещё нет")
 def test_template_sits_after_the_aufbau_script_and_escapes_values():
     b = _owner_browser()
     html, _ctx_ = _ctx(b, "?seite=home&block=t1")
@@ -268,7 +262,6 @@ def test_aufbau_js_gets_exactly_three_new_events():
     assert src.count("dispatchEvent(new CustomEvent(") == 4
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C1: тексты ещё не в .po")
 def test_preview_texts_are_translated():
     want = (
         "Vorschau der Seite „%(page)s“",

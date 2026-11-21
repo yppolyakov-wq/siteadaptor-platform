@@ -123,6 +123,24 @@ def _is_anfrage_ref(row: dict) -> bool:
     )
 
 
+def _block_preview(request, code: str, current, selected: dict) -> dict:
+    """FB-33 M3-7: «Vorschau» в окне блока — адрес кадра (черновик страницы
+    `?preview=1&aufbau=<код>`: только у члена с правом сайта, `page_settings.preview_raw`) и
+    якорь блока на витрине. Путь — тем же фильтром, что старт канвы Студии (только
+    внутренний путь витрины, не кабинет). Ничего не пишет."""
+    from apps.core import window_links
+    from apps.core.views import _safe_preview_page
+
+    path = _safe_preview_page(current.preview_url)
+    sep = "&" if "?" in path else "?"
+    return {
+        "src": f"{path}{sep}{urlencode({'preview': '1', 'aufbau': code})}",
+        "anchor": window_links.canvas_key(request, code, selected["ref"]),
+        "page": window_links.whole_page(selected["ref"]),
+        "title": _("Vorschau der Seite „%(page)s“") % {"page": current.label},
+    }
+
+
 @login_required
 def site_schema_view(request):
     from apps.core import aufbau_draft
@@ -609,6 +627,11 @@ def site_schema_view(request):
     window = block_window.tabs(
         selected, {"settings": settings, "design_rows": design_rows}, request.GET.get("tab", "")
     )
+    bw_preview = (
+        _block_preview(request, code, current, selected)
+        if selected and window and not confirm_remove and preview_url
+        else None
+    )
     return render(
         request,
         "tenant/site_schema.html",
@@ -619,6 +642,8 @@ def site_schema_view(request):
             "code": code,
             "preview_url": preview_url,
             "preview_query": urlencode(preview_query),
+            # FB-33 M3-7: «Vorschau» в окне блока — кадр черновика, прокрученный к блоку
+            "bw_preview": bw_preview,
             "blocks": blocks,
             "layout": layout,
             **_row_ops(layout, selected),

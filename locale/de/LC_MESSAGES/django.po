@@ -39915,6 +39915,13 @@ msgstr "Diesen Block finden Sie im Seitenaufbau nicht."
 msgid "fb33-stack-anchor-M3-7"
 msgstr "fb33-stack-anchor-M3-7"
 
+#, python-format
+msgid "Vorschau der Seite „%(page)s“"
+msgstr "Vorschau der Seite „%(page)s“"
+
+msgid "Dieser Block ist hier nicht zu sehen – die Vorschau zeigt den Seitenanfang."
+msgstr "Dieser Block ist hier nicht zu sehen – die Vorschau zeigt den Seitenanfang."
+
 #. FB-33 стопка: якорь среза M2i-34 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-34"
 msgstr "fb33-stack-anchor-M2i-34"

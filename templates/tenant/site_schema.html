@@ -272,5 +272,7 @@
   </aside>
 </div>
 <script src="{% static 'js/aufbau.js' %}" defer></script>
+{% if bw_preview %}<template data-bw-preview data-src="{{ bw_preview.src }}" data-anchor="{{ bw_preview.anchor }}"{% if bw_preview.page %} data-page{% endif %} data-title="{{ bw_preview.title }}" data-label="{% trans 'Vorschau' %}" data-missing="{% trans 'Dieser Block ist hier nicht zu sehen – die Vorschau zeigt den Seitenanfang.' %}"></template>
+<script src="{% static 'js/aufbau_preview.js' %}" defer></script>{% endif %}
 {% i18n_translate_ctx as page_tr %}{% if page_tr %}{% include "tenant/_i18n_translate_js.html" %}{% endif %}
 {% endblock %}
