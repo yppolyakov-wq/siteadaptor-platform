@@ -58,7 +58,7 @@ def frame_state(pg):
         const note = document.querySelector('.ui-bwin-pv-missing');
         return {loaded: d.readyState === 'complete', y: v.scrollY, ih: v.innerHeight,
           top: r && r.top, bottom: r && r.bottom, text: d.body.innerText,
-          missing: !!note && !note.hidden, title: f.title, tab: f.tabIndex,
+          missing: !!note && !note.hidden, hidden: f.parentElement.getAttribute('aria-hidden'), title: f.hasAttribute('title'), tab: f.tabIndex,
           sandbox: f.getAttribute('sandbox'), src: f.getAttribute('src'),
           scripts: d.defaultView.__m37probe === undefined,
           forms: [...d.forms].length} }""",
@@ -101,8 +101,11 @@ def desktop(pg, w):
     )
     check(not st["missing"], "пометки «не видно» нет")
     check(
-        st["sandbox"] == "allow-same-origin" and st["tab"] == -1 and st["title"],
-        f"sandbox без скриптов, tabindex=-1, title ({st['sandbox']}, {st['tab']}, {st['title']!r})",
+        st["sandbox"] == "allow-same-origin"
+        and st["tab"] == -1
+        and st["hidden"] == "true"
+        and not st["title"],
+        f"sandbox без скриптов, tabindex=-1, область aria-hidden, без title ({st})"[:160],
     )
     check("preview=1" in st["src"] and "aufbau=home" in st["src"], f"адрес черновика ({st['src']})")
     geo = pg.evaluate(
@@ -191,11 +194,18 @@ def desktop(pg, w):
     )
     pg.locator(f"{PV} button[aria-controls]").click()
     wait_frame(pg)
-    # Esc закрывает окно — кадра нет
+    # клик в кадр: фокус возвращается на кнопку, Esc закрывает окно — кадра нет
+    fb = pg.locator(FRAME).bounding_box()
+    pg.mouse.click(fb["x"] + fb["width"] / 2, fb["y"] + fb["height"] / 2)
+    pg.wait_for_timeout(200)
+    back = pg.evaluate(
+        "() => { const a = document.activeElement; return [a.tagName, a.getAttribute('aria-controls')]; }"
+    )
+    check(back == ["BUTTON", "bw-preview-area"], f"клик в кадр: фокус снова на «Vorschau» ({back})")
     pg.keyboard.press("Escape")
     pg.wait_for_url(lambda u: "block=" not in u, timeout=20000)
     pg.wait_for_load_state()
-    check(pg.locator("iframe.ui-bwin-pv-frame").count() == 0, "Esc: окно и кадр ушли")
+    check(pg.locator("iframe.ui-bwin-pv-frame").count() == 0, "клик в кадр → Esc: окно и кадр ушли")
     # разделы детали товара: «Ähnliche» (якоря на витрине нет → пометка), «Kaufen» (обёртка)
     for ref, missing in (("related", True), ("__kauf", False)):
         pg.goto(U + f"/dashboard/site/aufbau/?seite=product&block={ref}")
@@ -252,6 +262,24 @@ def phone(pg, w):
     )
 
 
+def short(b):
+    """Низкий экран (телефон боком, 844×390): область свёрнута по умолчанию."""
+    ctx = b.new_context(viewport={"width": 844, "height": 390})
+    pg = login(ctx)
+    pg.goto(U + f"/dashboard/site/aufbau/?seite=home&block={REF}&tab=texte")
+    pg.evaluate("() => { try { sessionStorage.clear(); } catch (e) {} }")
+    pg.reload()
+    pg.wait_for_selector(PV, timeout=10000)
+    btn = pg.locator(f"{PV} button[aria-controls]")
+    check(btn.get_attribute("aria-expanded") == "false", "844×390: «Vorschau» свёрнута")
+    btn.click()
+    wait_frame(pg)
+    h = pg.evaluate("(sel) => document.querySelector(sel).parentElement.clientHeight", FRAME)
+    check(h <= 390 * 0.3 + 1, f"844×390: кадр не выше 30dvh ({h})")
+    pg.screenshot(path=f"{OUT}/m37_short_844.png")
+    ctx.close()
+
+
 def nojs(b):
     for w, h in ((1440, 900), (390, 844)):
         ctx = b.new_context(viewport={"width": w, "height": h}, java_script_enabled=False)
@@ -286,6 +314,7 @@ with sync_playwright() as p:
         (desktop if w > 500 else phone)(pg, w)
         check(not errors, f"{w}: без ошибок скриптов ({errors[:2]})")
         ctx.close()
+    short(b)
     nojs(b)
     b.close()
 print(f"{ok} ✓, {len(fail)} ✗")
