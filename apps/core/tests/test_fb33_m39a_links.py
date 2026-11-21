@@ -16,8 +16,6 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
-#: замок до кода: поведения ещё нет
-_TODO = pytest.mark.xfail(strict=True, reason="FB-33 M3-9a: замок до кода")
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +36,6 @@ def _rows(tenant):
 # --- №1: превью «Alle Kategorien» -------------------------------------------------------
 
 
-@_TODO
 def test_all_categories_preview_opens_the_category_page():
     Category.objects.create(name="Brot", slug="brot", is_active=True)
     row = _rows(_tenant())["category"]
@@ -54,7 +51,6 @@ def test_all_categories_preview_is_empty_without_categories():
 # --- №2: «Team» только у бизнеса с командой ---------------------------------------------
 
 
-@_TODO
 def test_team_page_is_offered_only_with_a_team():
     bare = _tenant()
     assert not page_settings.type_active(bare, "team")
@@ -81,7 +77,6 @@ def test_versand_is_offered_with_orders():
     assert site_schema.resolve(tenant, "text@versand")[1] == "versand"
 
 
-@_TODO
 def test_versand_is_not_offered_without_orders():
     tenant = _tenant(disabled_modules=["orders"])
     assert not tenant.is_module_active("orders")
@@ -97,7 +92,7 @@ def test_versand_is_not_offered_without_orders():
 # --- №8: «Sets & Menüs» без наборов — не строка, каким бы ни был summaries ------------
 
 
-@pytest.mark.parametrize("summaries", [True, pytest.param(False, marks=_TODO)])
+@pytest.mark.parametrize("summaries", [True, False])
 def test_sets_row_only_with_combos(summaries):
     config = siteconfig.normalize(_tenant().site_config)
     keys = [b["key"] for b in site_schema.blocks_for(config, "catalog", summaries=summaries)]
@@ -110,9 +105,7 @@ def test_sets_row_only_with_combos(summaries):
 # --- №7: «Button-Lösung» переведён, цитата кнопки § 312j — нет -------------------------
 
 
-@pytest.mark.parametrize(
-    "lang", [pytest.param("ru", marks=_TODO), pytest.param("uk", marks=_TODO), "en", "tr"]
-)
+@pytest.mark.parametrize("lang", ["ru", "uk", "en", "tr"])
 def test_button_loesung_is_translated(lang):
     po = polib.pofile(str(ROOT / "locale" / lang / "LC_MESSAGES" / "django.po"))
     entries = [e for e in po if "(Button-Lösung)" in e.msgid and not e.obsolete]
@@ -133,7 +126,6 @@ def test_button_loesung_is_translated(lang):
 # --- №5: акция на 390 px — колонки сетки сжимаются до экрана ---------------------------
 
 
-@_TODO
 @pytest.mark.parametrize("col", ["media", "info"])
 def test_promo_detail_columns_can_shrink(col):
     """Стенд (hotel, ru, 390): ссылка «Gilt für» с обрезаемым названием (`truncate` —

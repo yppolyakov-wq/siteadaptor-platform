@@ -831,7 +831,7 @@ def _broken(kind: str) -> str:
         page = page.replace('aria-label="Разделы блока" ', "").replace(">Расположение<", "><")
     elif kind == "german":
         page = page.replace(">Готово<", ">Speichern und schließen<")  # видимая кнопка
-    elif kind == "legal":  # «Button-Lösung» — ✗ (переведём), цитата кнопки § 312j — нет
+    elif kind == "legal":  # «Button-Lösung» — ✗ (в ru/uk переведено, M3-9a), цитата § 312j — нет
         page = page.replace(">Готово<", ">кнопка «Zahlungspflichtig bestellen» (Button-Lösung)<")
     elif kind == "err404":  # страница ошибки: только код ответа, без целей/скролла/языка
         page = page.replace("<main>", '<main><div style="width:800px">Seite nicht gefunden</div>')

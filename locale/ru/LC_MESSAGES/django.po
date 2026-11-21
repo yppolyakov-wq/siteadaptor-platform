@@ -40058,15 +40058,15 @@ msgstr "Здесь отправляется необязывающий запр�
 
 #. FB-33 M3-6
 msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern. Texte und Felder können Sie anpassen."
-msgstr "Сводка заказа, итоговая цена и кнопка «Zahlungspflichtig bestellen» должны стоять прямо друг под другом — этого требует § 312j BGB (Button-Lösung). Поэтому блок нельзя переставить, скрыть или изменить по ширине. Тексты и поля можно настроить."
+msgstr "Сводка заказа, итоговая цена и кнопка «Zahlungspflichtig bestellen» должны стоять прямо друг под другом — этого требует § 312j BGB («правило кнопки»). Поэтому блок нельзя переставить, скрыть или изменить по ширине. Тексты и поля можно настроить."
 
 #. FB-33 M3-6
 msgid "Bei kostenpflichtigen Buchungen muss der Button „Zahlungspflichtig buchen“ heißen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt sich dieser Block nicht verschieben, ausblenden oder in der Breite ändern."
-msgstr "При платном бронировании кнопка должна называться «Zahlungspflichtig buchen» — этого требует § 312j BGB (Button-Lösung). Поэтому блок нельзя переставить, скрыть или изменить по ширине."
+msgstr "При платном бронировании кнопка должна называться «Zahlungspflichtig buchen» — этого требует § 312j BGB («правило кнопки»). Поэтому блок нельзя переставить, скрыть или изменить по ширине."
 
 #. FB-33 M3-6
 msgid "Der Kauf wird im Warenkorb mit dem Button „Zahlungspflichtig bestellen“ abgeschlossen — so verlangt es § 312j BGB (Button-Lösung). Dieser Block hat deshalb einen festen Platz: Er lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
-msgstr "Покупка завершается в корзине кнопкой «Zahlungspflichtig bestellen» — этого требует § 312j BGB (Button-Lösung). Поэтому у блока постоянное место: его нельзя переставить, скрыть или изменить по ширине."
+msgstr "Покупка завершается в корзине кнопкой «Zahlungspflichtig bestellen» — этого требует § 312j BGB («правило кнопки»). Поэтому у блока постоянное место: его нельзя переставить, скрыть или изменить по ширине."
 
 #. FB-33 M3-6
 msgid "Beschriftung des Buchungs-Buttons"
@@ -40177,7 +40177,7 @@ msgstr "Этот блок здесь не виден – предпросмот�
 
 #. FB-33 M2i-34: плашка § 312j у итога корзины — без обещания «Felder»
 msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern."
-msgstr "Сводка заказа, итоговая цена и кнопка «Zahlungspflichtig bestellen» должны стоять прямо друг под другом — этого требует § 312j BGB (Button-Lösung). Поэтому блок нельзя переставить, скрыть или изменить по ширине."
+msgstr "Сводка заказа, итоговая цена и кнопка «Zahlungspflichtig bestellen» должны стоять прямо друг под другом — этого требует § 312j BGB («правило кнопки»). Поэтому блок нельзя переставить, скрыть или изменить по ширине."
 
 msgid "öffnet das Blockfenster"
 msgstr "открывает окно блока"
