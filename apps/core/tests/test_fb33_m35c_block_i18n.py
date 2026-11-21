@@ -46,7 +46,6 @@ def _page(cfg, home=True, host=""):
     return {**aufbau_draft._saved_state(cfg, home, host), "home": home, "host": host}
 
 
-@pytest.mark.xfail(strict=True, reason="M3-5c C1: block_i18n ещё нет")
 def test_saved_translations_by_block_id():
     cfg = _cfg()
     i = _idx(cfg, "t2")
@@ -58,7 +57,6 @@ def test_saved_translations_by_block_id():
     assert _bi().german(cfg, page, "t2") == {"title": "Zwei", "body": "B"}
 
 
-@pytest.mark.xfail(strict=True, reason="M3-5c C1: block_i18n ещё нет")
 def test_apply_writes_and_removes_block_translations():
     cfg = _cfg()
     draft = {**_page(cfg), "btr": {"t2": {"ru": {"title": "Два", "body": ""}}}}
@@ -70,7 +68,6 @@ def test_apply_writes_and_removes_block_translations():
     assert "i18n" not in cfg or "ru" not in cfg["i18n"]  # пустые узлы не хранятся
 
 
-@pytest.mark.xfail(strict=True, reason="M3-5c C1: block_i18n ещё нет")
 def test_apply_title_next_and_tiles():
     from apps.tenants import siteconfig
 
@@ -86,7 +83,7 @@ def test_apply_title_next_and_tiles():
 
     cfg = _cfg()
     row = next(r for r in cfg["sections"] if r.get("id") == "ql")
-    row["data"] = {"set": "visit", "labels": {next(iter(_tile_keys())): "Meine"}}
+    row["data"] = {"set": "aktionsmarkt", "labels": {next(iter(_tile_keys())): "Meine"}}
     key = next(iter(_tile_keys()))
     other = list(_tile_keys())[1]
     draft = {**_page(cfg), "btr": {"ql": {"ru": {f"label.{key}": "Моя", f"label.{other}": "X"}}}}
@@ -98,10 +95,9 @@ def test_apply_title_next_and_tiles():
 def _tile_keys():
     from apps.core import hero_tiles
 
-    return hero_tiles.tile_keys("visit")
+    return hero_tiles.tile_keys("aktionsmarkt")
 
 
-@pytest.mark.xfail(strict=True, reason="M3-5c C1: explicit ещё нет")
 def test_faq_put_explicit_follows_the_question_and_survives_german_edit():
     from apps.core import faq_content
 
@@ -122,10 +118,9 @@ def test_faq_put_explicit_follows_the_question_and_survives_german_edit():
     assert cfg2["i18n"]["ru"]["faq"] == [{"q": "А?"}]
     # "" — снять перевод
     faq_content.put(cfg2, [{"q": "A?", "a": "1"}], [0], explicit={"ru": {0: {"q": ""}}})
-    assert "faq" not in cfg2["i18n"]["ru"]
+    assert "faq" not in ((cfg2.get("i18n") or {}).get("ru") or {})
 
 
-@pytest.mark.xfail(strict=True, reason="M3-5c C1: explicit ещё нет")
 def test_object_faq_put_explicit():
     from types import SimpleNamespace
 

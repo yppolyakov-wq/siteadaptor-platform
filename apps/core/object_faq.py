@@ -246,12 +246,19 @@ def clean_input(rows, kind: str, notes: list | None = None) -> tuple[list[dict],
     return out, src
 
 
-def remapped(old: list[dict], old_overlays: dict, new: list[dict], src=None, by_text=False):
-    """Переводы после правки `old` → `new`: {язык: список} (пустые языки — без ключа)."""
+def remapped(
+    old: list[dict], old_overlays: dict, new: list[dict], src=None, by_text=False, explicit=None
+):
+    """Переводы после правки `old` → `new`: {язык: список} (пустые языки — без ключа).
+    FB-33 M3-5c: `explicit` — переводы окна блока ({язык: {src: {q|a: текст}}}) поверх (при
+    сопоставлении по тексту — нет: индексы источника ничего не значат)."""
     mapping = faq_content.mapping(old, new, src, by_text)
+    explicit = faq_content._explicit(explicit, by_text)
     out = {}
-    for loc, tr in (old_overlays or {}).items():
+    for loc in [*(old_overlays or {}), *[x for x in explicit if x not in (old_overlays or {})]]:
+        tr = (old_overlays or {}).get(loc)
         moved = faq_content.remap_overlay(old, new, mapping, tr)
+        moved = faq_content.apply_explicit(moved, mapping, explicit.get(loc))
         if moved:
             out[loc] = moved
     return out
@@ -265,13 +272,15 @@ def put(
     base_fp: str | None = None,
     per_locale: dict | None = None,
     tenant=None,
+    explicit: dict | None = None,
 ) -> list[str]:
     """ЕДИНСТВЕННЫЙ писатель своих вопросов объекта (без `save`): база и переводы.
 
     `src[j]` — индекс вопроса j в СОХРАНЁННОМ списке (None — новый); `base_fp` — отпечаток
     списка, от которого считаны индексы: не совпал (или `src` нет) — переводы по тексту
     вопроса. `per_locale` — переводы, введённые в форме объекта явно ({язык: список}, по
-    новым позициям; языки вне формы не трогаются) — тогда сопоставления нет. Возвращает
+    новым позициям; языки вне формы не трогаются) — тогда сопоставления нет. FB-33 M3-5c:
+    `explicit` — переводы окна блока по индексу источника (`remapped`). Возвращает
     изменённые поля модели (для `update_fields`)."""
     k = KINDS[kind]
     old = items(obj, kind)
@@ -302,15 +311,18 @@ def put(
         if apply_seq_overlay(obj, "faq_i18n", per_locale, tenant):
             changed.append("faq_i18n")
         return changed
-    moved = remapped(old, overlays(obj, kind), new, src, by_text)
+    moved = remapped(old, overlays(obj, kind), new, src, by_text, explicit)
     _put_base(obj, kind, new, changed)
     if k.details:
         raw = getattr(obj, "details_i18n", None)
         before = raw if isinstance(raw, dict) else {}
         after = copy.deepcopy(before)
+        for loc in moved:  # M3-5c: перевод окна на язык, которого у объекта ещё не было
+            if not isinstance(after.get(loc), dict):
+                after[loc] = {}
         for loc in list(after):
             node = after[loc]
-            if not isinstance(node, dict) or "faq" not in node:
+            if not isinstance(node, dict) or "faq" not in node and loc not in moved:
                 continue
             if loc in moved:
                 node["faq"] = moved[loc]
@@ -806,13 +818,21 @@ def put_shown(config: dict, draft: dict) -> None:
     pending = draft.get("ofaq") or {}
     if obj is None or pending.get("obj") not in (None, obj.pk.hex):
         return
+    from apps.core import block_i18n
+
     old = items(obj, kind)
-    new = clean_items(pending.get("items"))
-    by_text = draft.get("ofaq_base") != faq_content.fingerprint(old)
+    if "ofaq" in draft:
+        new = clean_items(pending.get("items"))
+        src = pending.get("src")
+        by_text = draft.get("ofaq_base") != faq_content.fingerprint(old)
+    else:  # FB-33 M3-5c: правка только переводов своих вопросов
+        new, src, by_text = old, list(range(len(old))), False
     drafts = dict(config.get(DRAFT_KEY) or {})
     drafts[obj.pk.hex] = {
         "items": new,
-        "i18n": remapped(old, overlays(obj, kind), new, pending.get("src"), by_text),
+        "i18n": remapped(
+            old, overlays(obj, kind), new, src, by_text, block_i18n.explicit(draft, "ofaq")
+        ),
     }
     config[DRAFT_KEY] = drafts
 
@@ -832,12 +852,13 @@ def snapshot(proto: dict, source: dict, item) -> None:
 def commit(locked, kind: str, draft: dict | None, user, notes: list | None, force: bool):
     """«Speichern»: свои вопросы черновика — в объект, заблокированный `_lock_object`
     (одна блокировка с разделами объекта). Возвращает изменённые поля модели."""
-    from apps.core import site_schema
+    from apps.core import block_i18n, site_schema
 
-    if not draft or not isinstance(draft.get("ofaq"), dict):
+    tr = block_i18n.explicit(draft or {}, "ofaq")  # FB-33 M3-5c: переводы из окна блока
+    if not draft or not (isinstance(draft.get("ofaq"), dict) or tr):
         return []
-    pending = draft["ofaq"]
-    if pending.get("obj") not in (None, locked.pk.hex):
+    pending = draft.get("ofaq") if isinstance(draft.get("ofaq"), dict) else None
+    if pending is not None and pending.get("obj") not in (None, locked.pk.hex):
         logger.warning("object_faq: draft of another object ignored (%s)", kind)
         return []
     if not any(is_row(draft, it) for it in draft.get("items") or ()):
@@ -847,11 +868,19 @@ def commit(locked, kind: str, draft: dict | None, user, notes: list | None, forc
         return []
     if not _allowed(user, kind):
         raise site_schema.SchemaError("ofaq_rights")
+    if pending is None:  # только переводы: вопросы — сохранённые, по своим местам
+        saved = items(locked, kind)
+        return put(locked, kind, saved, list(range(len(saved))), explicit=tr)
     moved = draft.get("ofaq_base") != fingerprint(locked, kind)
     if moved and not force:
         raise site_schema.SchemaError("ofaq_conflict")
     fields = put(
-        locked, kind, pending.get("items") or [], pending.get("src"), draft.get("ofaq_base")
+        locked,
+        kind,
+        pending.get("items") or [],
+        pending.get("src"),
+        draft.get("ofaq_base"),
+        explicit=tr,
     )
     if moved and notes is not None:
         notes.append(forced_note())

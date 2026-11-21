@@ -153,13 +153,17 @@ def _mapping(old: list[dict], new: list[dict], src, by_text: bool) -> list:
     return out
 
 
-def put(config: dict, items, src=None, base_fp: str | None = None) -> None:
+def put(
+    config: dict, items, src=None, base_fp: str | None = None, explicit: dict | None = None
+) -> None:
     """Записать вопросы `items` ([{q, a}]) в базу и переставить переводы по `src`.
 
     `src[j]` — индекс вопроса j в СОХРАНЁННОМ списке (None — новый вопрос). `base_fp` —
     отпечаток списка, от которого считаны индексы: не совпал с сохранённым (или `src` нет) —
     сопоставление по тексту вопроса. Перевод поля, чей немецкий текст изменился, снимается.
-    Мутирует `config`."""
+    FB-33 M3-5c: `explicit` — переводы, введённые в окне блока ({язык: {src: {q|a: текст}}},
+    "" — снять), ложатся поверх (ключ — индекс источника; при сопоставлении по тексту индексы
+    ничего не значат — не применяются, в лог). Мутирует `config`."""
     old = base_items(config)
     new = [{"q": _s(i.get("q")), "a": _s(i.get("a"))} for i in items or () if _s(i.get("q"))]
     by_text = base_fp is not None and base_fp != fingerprint(old)
@@ -175,18 +179,68 @@ def put(config: dict, items, src=None, base_fp: str | None = None) -> None:
         )
     mapping = _mapping(old, new, src, by_text)
     config["faq"] = new
+    explicit = _explicit(explicit, by_text)
     overlay = config.get("i18n")
     if not isinstance(overlay, dict):
-        return
+        if not explicit:
+            return
+        overlay = config["i18n"] = {}
+    for loc in explicit:
+        if not isinstance(overlay.get(loc), dict):
+            overlay[loc] = {}
     for loc in list(overlay):
         node = overlay[loc]
-        if not isinstance(node, dict) or "faq" not in node:
+        if not isinstance(node, dict) or ("faq" not in node and loc not in explicit):
             continue
-        moved = remap_overlay(old, new, mapping, node["faq"])
+        moved = remap_overlay(old, new, mapping, node.get("faq"))
+        moved = apply_explicit(moved, mapping, explicit.get(loc))
         if moved:
             node["faq"] = moved
         else:
-            node.pop("faq")
+            node.pop("faq", None)
+            if not node and loc in explicit:
+                overlay.pop(loc)
+    if explicit and not overlay:
+        config.pop("i18n", None)
+
+
+def _explicit(explicit, by_text: bool) -> dict:
+    """FB-33 M3-5c: переводы окна — только языков платформы (сопоставление по тексту — нет)."""
+    if not isinstance(explicit, dict) or not explicit:
+        return {}
+    if by_text:
+        logger.warning("faq_content: window translations not applied (questions changed)")
+        return {}
+    from apps.tenants import siteconfig
+
+    allowed = siteconfig.overlay_locales()
+    return {loc: v for loc, v in explicit.items() if loc in allowed and isinstance(v, dict)}
+
+
+def apply_explicit(moved: list, mapping: list, per_src) -> list:
+    """FB-33 M3-5c: переводы одного языка, введённые в окне (`per_src` — {src: {q|a: текст}},
+    "" — снять), поверх переставленных `moved` (`mapping[j]` — src нового вопроса j). Общий
+    для общего FAQ и своих вопросов объекта; хвост без переводов не хранится."""
+    if not isinstance(per_src, dict) or not per_src:
+        return moved
+    out = [dict(e) for e in moved]
+    for j, s in enumerate(mapping):
+        typed = per_src.get(s) if s is not None else None
+        if not isinstance(typed, dict):
+            continue
+        while len(out) <= j:
+            out.append({})
+        for field in FIELDS:
+            if field not in typed:
+                continue
+            text = _s(typed[field])
+            if text:
+                out[j][field] = text
+            else:
+                out[j].pop(field, None)
+    while out and not out[-1]:
+        out.pop()
+    return out
 
 
 def mapping(old: list[dict], new: list[dict], src=None, by_text: bool = False) -> list:
@@ -266,7 +320,10 @@ def apply_ops(items: list[dict], src: list, post, notes: list | None = None, inf
     разбор ввода с лимитами (FB-33 M2b-2b: свои вопросы объекта — лимиты вида)."""
     # стопка 2: кнопка вкладки без скриптов (`zu_tab`) — тоже кнопка формы: набранный новый
     # вопрос не теряется при переходе (со скриптами кнопок вкладок у формы нет)
-    pressed = any(post.get(k) is not None for k in ("faq_add", "faq_move", "faq_remove", "zu_tab"))
+    pressed = any(
+        post.get(k) is not None
+        for k in ("faq_add", "faq_move", "faq_remove", "zu_tab", "f_sprache")  # M3-5c: язык
+    )
     rows, orphan = [], False
     for i, item in enumerate(items):
         q = post.get(f"faq_{i}_q")
