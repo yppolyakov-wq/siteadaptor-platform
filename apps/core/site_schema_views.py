@@ -135,9 +135,8 @@ def _block_preview(request, code: str, current, selected: dict) -> dict:
     sep = "&" if "?" in path else "?"
     return {
         "src": f"{path}{sep}{urlencode({'preview': '1', 'aufbau': code})}",
-        "anchor": window_links.canvas_key(request, code, selected["ref"]),
+        "anchor": window_links.canvas_key(request, code, selected["ref"], host=current.host),
         "page": window_links.whole_page(selected["ref"]),
-        "title": _("Vorschau der Seite „%(page)s“") % {"page": current.label},
     }
 
 

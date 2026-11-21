@@ -40179,10 +40179,6 @@ msgstr "Этот блок не найден в «Структуре страни
 msgid "fb33-stack-anchor-M3-7"
 msgstr "fb33-stack-anchor-M3-7"
 
-#, python-format
-msgid "Vorschau der Seite „%(page)s“"
-msgstr "Предпросмотр страницы «%(page)s»"
-
 msgid "Dieser Block ist hier nicht zu sehen – die Vorschau zeigt den Seitenanfang."
 msgstr "Этот блок здесь не виден – предпросмотр показывает начало страницы."
 

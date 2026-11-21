@@ -106,25 +106,42 @@ def _is_page_key(code: str, host: str, ref: str) -> bool:
     return key in {host, detail_parts.shared_host(host or ""), _type_code(code)} - {""}
 
 
-def whole_page(ref: str) -> bool:
-    """Строка самой страницы (★, «Seitentitel», «Kaufen», «Einstellungen der Seite»): у неё
-    нет своего места на витрине — превью окна показывает страницу целиком."""
+def whole_page_refs() -> frozenset[str]:
+    """Строки самой страницы — ключи из их единых мест: ★ основной список, «Einstellungen der
+    Seite», «Seitentitel», «Kaufen»."""
+    from apps.core import detail_parts, page_title, site_schema
     from apps.tenants import siteconfig
 
-    return ref == siteconfig.MAIN_LIST_KEY or ref.startswith("__")
+    return frozenset(
+        {
+            siteconfig.MAIN_LIST_KEY,
+            site_schema.PAGE_REF,
+            page_title.TITLE_REF,
+            detail_parts.KAUF_REF,
+        }
+    )
 
 
-def canvas_key(request, code: str, ref: str) -> str:
+def whole_page(ref: str) -> bool:
+    """Строка самой страницы: у неё нет своего места на витрине — превью окна показывает
+    страницу целиком."""
+    return ref in whole_page_refs()
+
+
+def canvas_key(request, code: str, ref: str, host: str | None = None) -> str:
     """FB-33 M3-7: ключ секции витрины (`data-sf-section`) для строки `ref` страницы `code` —
     обратная к `_block_of` (якорь «Vorschau» окна). Строка самой страницы — обёртка страницы
     (ключ хоста; "" — у главной её нет); раздел детали — `<страница>_<раздел>`
-    (`service_faq`); C-блок и секция — свой id/ключ. "" — начало страницы. Ничего не пишет."""
+    (`service_faq`); C-блок и секция — свой id/ключ. "" — начало страницы. `host` — уже
+    известный хост страницы (иначе — `site_schema.resolve`). Ничего не пишет."""
     from apps.core import detail_parts
 
     ref = clean_ref(ref)
     if not ref:
         return ""
-    base = detail_parts.shared_host(_host(request.tenant, code))
+    if host is None:
+        host = _host(request.tenant, code)
+    base = detail_parts.shared_host(host or "")
     if whole_page(ref):
         return clean_ref(base)
     if base.endswith(DETAIL_SUFFIX) and ref in detail_parts.section_keys(base):
