@@ -5,7 +5,14 @@ application_fee=0). Подтверждение оплаты ставит веб�
 (apps.billing.webhooks → mark_order_paid), кросс-схемно через schema_context.
 """
 
+import logging
+
 from apps.billing import connect
+
+logger = logging.getLogger(__name__)
+
+#: RFC 5321: адрес длиннее 254 знаков не доставляется (и не влезает в EmailField).
+PAYER_EMAIL_MAX = 254
 
 
 def available_methods(tenant, *, customer_type=None, shipping=None) -> list[str]:
@@ -49,9 +56,60 @@ def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> s
     )
 
 
-def mark_order_paid(*, tenant_schema: str, order_id: str, payment_intent: str = "") -> bool:
+def _clean_payer_email(raw) -> str:
+    """FB-33 M2i-7: адрес плательщика из Stripe — строка, без управляющих знаков, ≤ 254,
+    валидный по `validate_email`; иначе пусто. Адрес пишет отправитель — не верим."""
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+
+    if not isinstance(raw, str):
+        return ""
+    email = raw.strip()
+    if not email or len(email) > PAYER_EMAIL_MAX or any(ord(ch) < 32 for ch in email):
+        return ""
+    try:
+        validate_email(email)
+    except ValidationError:
+        return ""
+    return email
+
+
+def _adopt_payer_email(order, raw) -> bool:
+    """FB-33 M2i-7 (решение владельца): заказ оформлен без e-mail — адрес плательщика из
+    оплаченной сессии Stripe пишется клиенту заказа, только если у того адреса нет. Клиента
+    не меняем и не ищем по адресу (заказ не перепривязывается), аккаунт не заводим.
+    True — адрес записан сейчас (дальше письма заказа, которых без адреса не было)."""
+    from django.db import transaction
+
+    from apps.promotions.models import Customer
+
+    if raw is None or not order.customer_id:
+        return False
+    email = _clean_payer_email(raw)
+    if not email:
+        if raw:  # адрес в лог не пишем (PII) — только факт
+            logger.warning("order %s: payer email from Stripe rejected — not stored", order.pk)
+        return False
+    with transaction.atomic():
+        customer = Customer.objects.select_for_update().filter(pk=order.customer_id).first()
+        if customer is None or customer.email:
+            return False
+        customer.email = email
+        customer.save(update_fields=["email", "updated_at"])
+    order.customer = customer
+    return True
+
+
+def mark_order_paid(
+    *, tenant_schema: str, order_id: str, payment_intent: str = "", payer_email=None
+) -> bool:
     """Вебхук: заказ оплачен → payment_state=paid + авто-confirm (new→confirmed).
-    Кросс-схемно, идемпотентно."""
+    Кросс-схемно, идемпотентно.
+
+    FB-33 M2i-7: `payer_email` — `customer_details.email` оплаченной сессии. Заказу без
+    адреса он становится адресом клиента, и письма «принят» (у нового заказа) и
+    «подтверждён» уходят на него — ровно по разу (dedupe_key письма). Выключенный канал и
+    отписка уважаются внутри `enqueue_order_email`."""
     from django_tenants.utils import schema_context
 
     from apps.core.fsm import IllegalTransition
@@ -85,9 +143,20 @@ def mark_order_paid(*, tenant_schema: str, order_id: str, payment_intent: str = 
 
                 folio.record_online("order", order, intent=payment_intent)
             order.save(update_fields=fields)
+        adopted = _adopt_payer_email(order, payer_email)
+        if adopted and order.status == Order.STATUS_NEW:
+            from .notifications import enqueue_order_email
+
+            # письма при оформлении ушли без адреса — «принят» догоняем до «подтверждён»
+            enqueue_order_email(order, "created")
         if order.status == Order.STATUS_NEW:
             try:
                 OrderSM().apply(order, Order.STATUS_CONFIRMED)
             except IllegalTransition:
                 pass
+        elif adopted and order.status == Order.STATUS_CONFIRMED:
+            from .notifications import enqueue_order_email
+
+            # владелец подтвердил до оплаты, когда писать было некуда (повтор — дедуп)
+            enqueue_order_email(order, "confirmed")
     return True

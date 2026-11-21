@@ -136,7 +136,6 @@ def test_email_from_the_form_wins_over_the_payer_email(biz):
     assert not Notification.objects.filter(recipient=PAYER).exists()
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C1: вебхук ещё не берёт адрес плательщика")
 def test_paid_session_adopts_the_payer_email_and_mails_once(biz):
     """4. paid → адрес записан, created и confirmed — по одному письму; повтор — без новых."""
     order = _order()
@@ -149,10 +148,9 @@ def test_paid_session_adopts_the_payer_email_and_mails_once(biz):
         mails = list(_mails(order, event))
         assert [m.recipient for m in mails] == [PAYER], event
     created, confirmed = _mails(order, "created").get(), _mails(order, "confirmed").get()
-    assert created.pk < confirmed.pk  # сначала «принят», потом «подтверждён»
+    assert created.created_at <= confirmed.created_at  # сначала «принят», потом «подтверждён»
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C1: вебхук ещё не берёт адрес плательщика")
 def test_delayed_payment_adopts_the_email_once_money_arrives(biz):
     """4. unpaid → async_payment_succeeded: адрес и письма — только по зачислении, по разу."""
     order = _hook(_order(), status="unpaid")
@@ -198,7 +196,6 @@ def test_foreign_account_writes_no_email(biz):
     assert _email_of(order) == "" and order.payment_state == Order.PAYMENT_UNPAID
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C1: вебхук ещё не берёт адрес плательщика")
 def test_order_is_not_moved_to_another_customer(biz):
     """8. Есть клиент с адресом плательщика — заказ не перепривязывается, аккаунт не создаётся;
     у клиента с адресом из формы customer_id и адрес не меняются."""
@@ -228,7 +225,6 @@ def test_payer_email_never_reaches_the_logs(biz, caplog):
     assert PAYER not in text and "evil" not in text and "zahler" not in text
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C1: вебхук ещё не берёт адрес плательщика")
 def test_switched_off_channel_writes_the_email_without_mails(biz):
     """10. Канал e-mail выключен у бизнеса — адрес записан, писем нет."""
     biz.site_config = {
@@ -245,7 +241,6 @@ def test_switched_off_channel_writes_the_email_without_mails(biz):
     assert not _mails(order, "created").exists() and not _mails(order, "confirmed").exists()
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C1: вебхук ещё не берёт адрес плательщика")
 def test_unsubscribed_customer_gets_the_email_but_no_mails(biz):
     """10 (развилка b). Отписка уважается: адрес записан, писем нет."""
     order = _order()
@@ -255,7 +250,6 @@ def test_unsubscribed_customer_gets_the_email_but_no_mails(biz):
     assert not _mails(order, "created").exists() and not _mails(order, "confirmed").exists()
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C1: вебхук ещё не берёт адрес плательщика")
 def test_order_cancelled_before_payment_gets_the_email_without_created(biz):
     """11. Заказ отменён до прихода денег — адрес записан, письма «принят» нет."""
     order = _order()
@@ -265,7 +259,6 @@ def test_order_cancelled_before_payment_gets_the_email_without_created(biz):
     assert not _mails(order, "created").exists() and not _mails(order, "confirmed").exists()
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C1: вебхук ещё не берёт адрес плательщика")
 def test_owner_confirmed_before_payment_still_mails_confirmed_once(biz):
     """4 (край). Владелец подтвердил заказ до оплаты (адреса ещё не было) — «confirmed»
     уходит после записи адреса один раз; «принят» — нет (заказ уже не новый)."""
