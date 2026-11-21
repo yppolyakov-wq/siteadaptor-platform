@@ -403,7 +403,7 @@ def test_felder_neighbour_after_remove_and_messages(_tenant_urls):
 
 def test_felder_enter_default_and_add_label(_tenant_urls):
     """Ревью a11y п.9: первая submit-кнопка формы «Felder» по дереву — sr-only «Übernehmen»
-    (Enter), aria-hidden; «+ Frage» — с именем «Frage hinzufügen»."""
+    (Enter), вне Tab и без aria-hidden (FB-33 M2i-34); «+ Frage» — с именем «Frage hinzufügen»."""
     b = _felder(("de",))
     with translation.override("de"):
         html = b.get("?seite=anfrage&block=form&tab=felder")
@@ -414,7 +414,7 @@ def test_felder_enter_default_and_add_label(_tenant_urls):
     ]
     first = re.search(r"<button\b[^>]*>", form).group(0)
     assert 'name="f_commit_new"' in first and 'class="sr-only"' in first
-    assert 'aria-hidden="true"' in first and 'tabindex="-1"' in first
+    assert "aria-hidden" not in first and 'tabindex="-1"' in first
     assert re.search(r'<button name="f_do" value="add"[^>]*aria-label="Frage hinzufügen"', form)
 
 

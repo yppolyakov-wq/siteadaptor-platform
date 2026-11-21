@@ -75,8 +75,7 @@ def panel(host: str, ref: str, config: dict | None = None) -> dict | None:
         text = _(
             "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen "
             "direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb "
-            "lässt er sich nicht verschieben, ausblenden oder in der Breite ändern. Texte und "
-            "Felder können Sie anpassen."
+            "lässt er sich nicht verschieben, ausblenden oder in der Breite ändern."
         )
     elif kind == "booking":
         text = _(

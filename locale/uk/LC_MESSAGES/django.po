@@ -40170,6 +40170,10 @@ msgstr "fb33-stack-anchor-M3-7"
 msgid "fb33-stack-anchor-M2i-34"
 msgstr "fb33-stack-anchor-M2i-34"
 
+#. FB-33 M2i-34: плашка § 312j у итога корзины — без обещания «Felder»
+msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "Підсумок замовлення, загальна ціна й кнопка «Zahlungspflichtig bestellen» мають стояти безпосередньо одне під одним — цього вимагає § 312j BGB (Button-Lösung). Тому блок не можна переставити, приховати чи змінити за шириною."
+
 #. FB-33 стопка: якорь среза M4b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M4b"
 msgstr "fb33-stack-anchor-M4b"

@@ -111,17 +111,12 @@ def test_money_code_does_not_know_the_forms(path):
     assert not re.search(r"\bform_(spec|answers)\b", text), path
 
 
-TODO_C1 = pytest.mark.xfail(strict=True, reason="FB-33 M2i-34 C1")
-
-
-@TODO_C1
 def test_order_plaque_does_not_promise_editable_fields():
     """Решение владельца: окна «Felder» у корзины ещё нет — плашка этого не обещает."""
     text = (ROOT / "apps/core/legal_buttons.py").read_text(encoding="utf-8")
     assert "Felder können Sie anpassen" not in text
 
 
-@TODO_C1
 def test_hidden_commit_button_of_felder_is_not_aria_hidden():
     """Невидимая «Übernehmen» (Enter в поле): sr-only и вне Tab, но не aria-hidden —
     скрытая от чтецов кнопка по умолчанию формы — нарушение (как у плашек M3-5c)."""
