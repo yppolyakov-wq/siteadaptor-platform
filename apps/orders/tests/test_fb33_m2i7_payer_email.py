@@ -258,7 +258,6 @@ def test_order_cancelled_before_payment_gets_the_email_without_created(biz):
     assert not _mails(order, "created").exists() and not _mails(order, "confirmed").exists()
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
 @pytest.mark.parametrize("path", [["confirmed"], ["confirmed", "ready"]])
 def test_owner_moved_the_order_before_payment_mails_created_and_current_once(biz, path):
     """Ревью M2i-7 (п.2): владелец подтвердил (или подготовил) заказ до оплаты, когда адреса
@@ -274,7 +273,6 @@ def test_owner_moved_the_order_before_payment_mails_created_and_current_once(biz
         assert not _mails(order, "confirmed").exists()
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
 def test_mail_failure_after_adopting_is_healed_by_the_webhook_retry(biz, monkeypatch):
     """Ревью M2i-7 (п.1, HIGH): адрес записан, а постановка письма упала — повтор вебхука
     (Stripe повторит: ключ дедупа события снимается при сбое) шлёт письма ровно по разу."""
@@ -289,8 +287,8 @@ def test_mail_failure_after_adopting_is_healed_by_the_webhook_retry(biz, monkeyp
             raise RuntimeError("smtp-queue down")
         return real(order, event, *a, **kw)
 
+    order = _order()  # письма оформления — настоящие (адреса ещё нет)
     monkeypatch.setattr(notifications, "enqueue_order_email", flaky)
-    order = _order()
     with pytest.raises(RuntimeError):
         _hook(order)
     assert _email_of(order) == PAYER and not _mails(order, "created").exists()
@@ -299,7 +297,6 @@ def test_mail_failure_after_adopting_is_healed_by_the_webhook_retry(biz, monkeyp
     assert _mails(order, "created").count() == 1 and _mails(order, "confirmed").count() == 1
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
 @pytest.mark.parametrize(
     "details, reason",
     [(None, "no_payer_email"), ({"email": ""}, "no_payer_email"), ({"email": "x"}, "rejected")],
@@ -322,7 +319,6 @@ def test_paid_without_contact_is_logged_and_flagged_on_the_card(biz, caplog, det
     assert "data-paid-no-email" not in resp.content.decode()
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
 def test_skipped_customer_mail_is_logged_with_a_reason(biz, caplog):
     """Ревью M2i-7 (п.4): письмо клиенту не ушло — info-лог с причиной, без адреса."""
     from apps.orders.notifications import enqueue_order_email
@@ -337,7 +333,6 @@ def test_skipped_customer_mail_is_logged_with_a_reason(biz, caplog):
     assert "no_email" in text and "unsubscribed" in text and PAYER not in text
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
 def test_payer_address_unsubscribed_elsewhere_gets_no_mails(biz):
     """Ревью M2i-7 (п.5, развилка b): адрес отписан у другого клиента — адрес записан, писем
     нет (отписка — от адреса, не от записи клиента)."""

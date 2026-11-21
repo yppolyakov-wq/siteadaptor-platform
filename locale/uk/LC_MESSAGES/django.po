@@ -40202,6 +40202,10 @@ msgstr "fb33-stack-anchor-M2i-7"
 msgid "Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung."
 msgstr "Підтвердження надішлемо на адресу електронної пошти, вказану під час оплати."
 
+#: templates/orders/order_detail.html
+msgid "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet"
+msgstr "Оплачено — немає адреси електронної пошти, підтвердження не надіслано"
+
 #. FB-33 стопка: якорь среза M3-9 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-9"
 msgstr "fb33-stack-anchor-M3-9"

@@ -74,30 +74,48 @@ def _clean_payer_email(raw) -> str:
     return email
 
 
-def _adopt_payer_email(order, raw) -> bool:
+#: Статусы, в которых письма заказа уже не догоняют (отменён / возвращён).
+_CLOSED = ("cancelled", "returned")
+
+
+def _adopt_payer_email(order, raw) -> str:
     """FB-33 M2i-7 (решение владельца): заказ оформлен без e-mail — адрес плательщика из
     оплаченной сессии Stripe пишется клиенту заказа, только если у того адреса нет. Клиента
     не меняем и не ищем по адресу (заказ не перепривязывается), аккаунт не заводим.
-    True — адрес записан сейчас (дальше письма заказа, которых без адреса не было)."""
+
+    Возвращает причину для лога: "adopted" — записан сейчас; "same" — у клиента уже этот
+    адрес (повтор вебхука после сбоя писем — письма догоняем снова, дедуп защищает);
+    "own" — у клиента свой адрес; "no_payer_email" / "rejected" — адреса нет / негоден.
+    Ревью (п.5): адрес отписан у другого клиента — отписка от адреса, переносим флаг."""
     from django.db import transaction
 
     from apps.promotions.models import Customer
 
-    if raw is None or not order.customer_id:
-        return False
     email = _clean_payer_email(raw)
     if not email:
-        if raw:  # адрес в лог не пишем (PII) — только факт
-            logger.warning("order %s: payer email from Stripe rejected — not stored", order.pk)
-        return False
+        return "rejected" if isinstance(raw, str) and raw.strip() else "no_payer_email"
+    if not order.customer_id:
+        return "no_customer"
     with transaction.atomic():
         customer = Customer.objects.select_for_update().filter(pk=order.customer_id).first()
-        if customer is None or customer.email:
-            return False
+        if customer is None:
+            return "no_customer"
+        if customer.email:
+            order.customer = customer
+            return "same" if customer.email.lower() == email.lower() else "own"
         customer.email = email
-        customer.save(update_fields=["email", "updated_at"])
+        fields = ["email", "updated_at"]
+        if (
+            not customer.unsubscribed
+            and Customer.objects.filter(email__iexact=email, unsubscribed=True)
+            .exclude(pk=customer.pk)
+            .exists()
+        ):
+            customer.unsubscribed = True
+            fields.append("unsubscribed")
+        customer.save(update_fields=fields)
     order.customer = customer
-    return True
+    return "adopted"
 
 
 def mark_order_paid(
@@ -107,8 +125,8 @@ def mark_order_paid(
     Кросс-схемно, идемпотентно.
 
     FB-33 M2i-7: `payer_email` — `customer_details.email` оплаченной сессии. Заказу без
-    адреса он становится адресом клиента, и письма «принят» (у нового заказа) и
-    «подтверждён» уходят на него — ровно по разу (dedupe_key письма). Выключенный канал и
+    адреса он становится адресом клиента, и письма «принят» и текущего статуса уходят на
+    него — ровно по разу (dedupe_key письма), у незакрытого заказа. Выключенный канал и
     отписка уважаются внутри `enqueue_order_email`."""
     from django_tenants.utils import schema_context
 
@@ -143,20 +161,30 @@ def mark_order_paid(
 
                 folio.record_online("order", order, intent=payment_intent)
             order.save(update_fields=fields)
-        adopted = _adopt_payer_email(order, payer_email)
-        if adopted and order.status == Order.STATUS_NEW:
+        # FB-33 M2i-7: письма, не ушедшие без адреса, — после записи адреса И на повторе
+        # вебхука (ревью п.1: сбой постановки после записи иначе терял их навсегда).
+        # «created» — до авто-confirm (порядок писем); затем письмо текущего статуса
+        # (ревью п.2). Дубли гасит dedupe_key `order:{id}:{event}:customer`.
+        adopt = _adopt_payer_email(order, payer_email)
+        catch_up = adopt in ("adopted", "same") and order.status not in _CLOSED
+        if catch_up:
             from .notifications import enqueue_order_email
 
-            # письма при оформлении ушли без адреса — «принят» догоняем до «подтверждён»
             enqueue_order_email(order, "created")
         if order.status == Order.STATUS_NEW:
             try:
                 OrderSM().apply(order, Order.STATUS_CONFIRMED)
             except IllegalTransition:
                 pass
-        elif adopted and order.status == Order.STATUS_CONFIRMED:
+        if catch_up and order.status != Order.STATUS_NEW:
             from .notifications import enqueue_order_email
 
-            # владелец подтвердил до оплаты, когда писать было некуда (повтор — дедуп)
-            enqueue_order_email(order, "confirmed")
+            enqueue_order_email(order, order.status)
+        if order.payment_state == Order.PAYMENT_PAID and not getattr(order.customer, "email", ""):
+            # ревью п.3: деньги есть, писать некуда — владелец видит пометку в карточке
+            logger.warning(
+                "order %s: paid online without a contact email (%s) — confirmation not sent",
+                order.pk,
+                adopt,
+            )
     return True
