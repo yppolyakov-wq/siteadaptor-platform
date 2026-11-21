@@ -31,11 +31,6 @@ def _site(mode=None, labels=None, custom=None):
     return {"form_fields": form_spec.normalize_all(raw)}
 
 
-#: C2 ещё нет — поведение будущего (strict: ожил раньше — замок снять)
-TODO_C2 = pytest.mark.xfail(strict=True, reason="FB-33 M2i-34 C2")
-
-
-@TODO_C2
 @pytest.mark.parametrize("lang", ["de", "ru"])
 def test_checkout_labels_are_the_storefront_labels(lang):
     """Те же msgid, что рисует корзина (`storefront/cart.html`)."""
@@ -71,7 +66,6 @@ def test_required_fields_and_questions_are_checked():
     assert form_spec.missing(site, "checkout", post) == []
 
 
-@TODO_C2
 def test_stripe_keeps_email_at_least_optional():
     site = _site({"email": "off"})
     assert not form_spec.view(site, "checkout")["email"].on
@@ -80,7 +74,6 @@ def test_stripe_keeps_email_at_least_optional():
     assert form_spec.view(req, "checkout", stripe=True)["email"].req
 
 
-@TODO_C2
 def test_table_order_does_not_ask_for_contacts():
     site = _site({"email": "req", "phone": "req", "note": "req"})
     shown = form_spec.view(site, "checkout", table=True)
@@ -91,7 +84,6 @@ def test_table_order_does_not_ask_for_contacts():
     )
 
 
-@TODO_C2
 def test_required_email_must_be_an_email():
     site = _site({"email": "req"})
     assert form_spec.missing(site, "checkout", {"email": "kein-email"}) == ["email"]

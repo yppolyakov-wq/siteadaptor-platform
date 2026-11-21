@@ -74,16 +74,17 @@ FORMS: dict[str, tuple[Field, ...]] = {
         Field("phone", _("Phone")),
         Field("photos", _("Photos (optional, up to 5)"), _("Photos (up to 5)")),
     ),
-    # корзина — заготовка M2i-3 (режимы полей оформления): пока без потребителя; имя
-    # закреплено (у столика его заменяет номер стола)
+    # корзина (FB-33 M2i-34): подписи — те же, что рисует витрина (`storefront/cart.html`);
+    # имя закреплено (у столика его заменяет номер стола)
     "checkout": (
         Field("name", _("Name"), default=REQ, pinned=True),
         Field("email", _("Email")),
         Field("phone", _("Phone")),
-        Field("note", _("Note")),
+        Field("note", _("Note (optional)"), _("Note")),
     ),
 }
-#: способ связи в заявке: хотя бы одно из полей спрашивается (оба «нет» нельзя)
+#: способ связи в заявке: хотя бы одно из полей спрашивается (оба «нет» нельзя); у корзины
+#: оба «нет» можно (обязательно только имя), у заказа за столиком их не спрашивают вовсе
 CONTACT = ("email", "phone")
 #: полоса заявки на главной сама рисует событийные поля, имя и e-mail; остальные обязательные
 #: она дорисовывает — до `BAND_EXTRA_MAX`, больше (или фото) — кнопка на /anfrage/ (решение)
@@ -244,12 +245,26 @@ def _shown_question(q: dict, loc: str) -> dict:
     return out
 
 
-def view(site, form: str, locale=None) -> dict:
+def _checkout_mode(key: str, mode: str, *, stripe: bool, table: bool) -> str:
+    """FB-33 M2i-34: режим поля корзины по обстоятельствам заказа. У столика контакты не
+    спрашиваются (гостя находят по номеру стола); при доступной онлайн-оплате e-mail не
+    выключается — туда уходят подтверждение и квитанция (обязательность при выборе Stripe
+    проверяет вьюха, как в M2i-3a)."""
+    if key in CONTACT and table:
+        return OFF
+    if key == "email" and stripe and mode == OFF:
+        return OPT
+    return mode
+
+
+def view(site, form: str, locale=None, *, stripe: bool = False, table: bool = False) -> dict:
     """Что рисует форма: {ключ: FieldView} + свои вопросы (`custom`) + сводка для полосы
     заявки (`band_extra`, `band_custom`, `band_full`) и `any_event`.
 
     FB-33 M2i-5b: подписи — на языке показа (`shown_locale`): перевод → своя немецкая подпись
-    → подпись по умолчанию (gettext). На основном языке переводы не читаются."""
+    → подпись по умолчанию (gettext). На основном языке переводы не читаются.
+    FB-33 M2i-34: у корзины (`checkout`) `stripe` — бизнес предлагает онлайн-оплату, `table` —
+    заказ за столиком (`_checkout_mode`)."""
     loc = shown_locale(locale)
     entry = (site.get("form_fields") or {}).get(form) or {}
     labels = entry.get("labels") or {}
@@ -259,6 +274,8 @@ def view(site, form: str, locale=None) -> dict:
         mode = mode_of(site, form, field.key)
         if field.key == "event_type" and not (site.get("anfrage") or {}).get("event_types"):
             mode = OFF  # выбор без вариантов владельца не рисуется и не обязателен
+        if form == "checkout":
+            mode = _checkout_mode(field.key, mode, stripe=stripe, table=table)
         default = field.req_label if mode == REQ and field.req_label is not None else field.label
         label = (labels_tr.get(field.key) or {}).get(loc) or labels.get(field.key) or str(default)
         out[field.key] = FieldView(mode, label)
@@ -290,14 +307,27 @@ def _filled(post, key) -> str:
     return form_answers.clean_text(post.get(key) or "", 10_000)
 
 
-def missing(site, form: str, post, files=None) -> list[str]:
+def _valid_email(raw: str) -> bool:
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+
+    try:
+        validate_email(raw)
+    except ValidationError:
+        return False
+    return True
+
+
+def missing(site, form: str, post, files=None, *, table: bool = False) -> list[str]:
     """Обязательные включённые поля без значения (проверка сервера — POST в обход формы).
     Значение проверяется так же, как его разберёт вьюха (битая дата = нет значения). У заявки
-    ещё и способ связи: хотя бы один из включённых e-mail/телефон (`CONTACT_MISSING`)."""
+    ещё и способ связи: хотя бы один из включённых e-mail/телефон (`CONTACT_MISSING`).
+    FB-33 M2i-34: у корзины обязательный e-mail — настоящий адрес (на него уходит
+    подтверждение); `table` — заказ за столиком (контакты не спрашиваются)."""
     from datetime import date
 
     out = []
-    shown = view(site, form)
+    shown = view(site, form, table=table)
     for field in fields_of(form):
         f = shown[field.key]
         if not f.req or field.pinned:
@@ -318,6 +348,8 @@ def missing(site, form: str, post, files=None) -> list[str]:
                 ok = False
         elif field.key == "event_type" and raw:
             ok = raw in ((site.get("anfrage") or {}).get("event_types") or [])
+        elif field.key == "email" and raw and form == "checkout":
+            ok = _valid_email(raw)
         if not ok:
             out.append(field.key)
     qs = questions(site, form)
@@ -328,11 +360,11 @@ def missing(site, form: str, post, files=None) -> list[str]:
     return out
 
 
-def missing_labels(site, form: str, keys) -> str:
+def missing_labels(site, form: str, keys, *, table: bool = False) -> str:
     """Подписи незаполненных полей для сообщения («Phone, Details»)."""
     from django.utils.translation import gettext
 
-    shown = view(site, form)
+    shown = view(site, form, table=table)
     custom = {q["id"]: q["label"] for q in shown["custom"]}
     names = []
     for k in keys:
