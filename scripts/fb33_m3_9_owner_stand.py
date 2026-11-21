@@ -243,14 +243,16 @@ class Report:
         self.fail: list[str] = []
         self.sigs: dict[str, list] = {}  # подпись дефекта → [число, первый пример]
         self.notes: dict[str, int] = {}
+        self.codes: list[str] = []  # коды проверок, давших ✗ (замок сверяет их, не текст)
 
-    def check(self, cond, label, quiet=True, sigs=None):
+    def check(self, cond, label, quiet=True, sigs=None, code="other"):
         if cond:
             self.ok += 1
             if not quiet:
                 print("  ✓ " + label)
             return True
         self.fail.append(label)
+        self.codes.append(code)
         new = False
         for sig in sigs or [label]:
             seen = self.sigs.setdefault(sig, [0, label])
@@ -354,7 +356,7 @@ class Content:
         return text
 
 
-def german(text: str, content: Content | None) -> list[str]:
+def german(text: str, content: Content | None, rep: Report | None = None) -> list[str]:
     """Немецкие слова интерфейса в тексте ru (с контекстом строки)."""
     text = _SOURCE_LIST.sub(" ", text)  # до данных: «Без» может оказаться словом содержимого
     text = _LEGAL_QUOTE.sub(" ", text)
@@ -405,20 +407,24 @@ _PANEL_JS = """() => {
 def check_window_nojs(rep, pg, tag, want_tab=""):
     """Окно блока без JS: панель с заголовком, подписанные вкладки, открыта запрошенная."""
     info = pg.evaluate(_PANEL_JS)
-    rep.check(info["panel"] and info["title"], f"{tag}: панель блока с заголовком")
+    rep.check(info["panel"] and info["title"], f"{tag}: панель блока с заголовком", code="panel")
     if len(info["keys"]) > 1:
         rep.check(
             info["nav"] and info["navLabel"] and not info["unnamed"],
             f"{tag}: вкладки — nav[aria-label] и подписи ({info['navLabel']!r}, "
             f"без подписи {info['unnamed']})",
+            code="tabs_label",
         )
         rep.check(
             info["sections"] == len(info["keys"]),
             f"{tag}: у каждой вкладки свой раздел ({info['sections']}/{len(info['keys'])})",
+            code="tabs_sections",
         )
     if want_tab:
         rep.check(
-            info["active"] == want_tab, f"{tag}: открыта вкладка {want_tab} ({info['active']})"
+            info["active"] == want_tab,
+            f"{tag}: открыта вкладка {want_tab} ({info['active']})",
+            code="tab_active",
         )
     return info["keys"]
 
@@ -430,7 +436,11 @@ _WANTS_WINDOW = "!!document.querySelector('[data-schema-panel] button[value=\"wi
 def check_window_js(rep, pg, tag):
     info = pg.evaluate(_DIALOG_JS)
     good = info["dialog"] and info["open"] and info["modal"] and info["title"]
-    rep.check(good, f"{tag}: <dialog> открыт модально, заголовок по aria-labelledby ({info})")
+    rep.check(
+        good,
+        f"{tag}: <dialog> открыт модально, заголовок по aria-labelledby ({info})",
+        code="dialog",
+    )
     if info.get("ntabs", 0) > 1:
         rep.check(
             info["list"]
@@ -439,8 +449,21 @@ def check_window_js(rep, pg, tag):
             and info["selected"] == 1
             and info["controls"],
             f"{tag}: tablist[aria-label] · tab с подписью · tabpanel ({info})",
+            code="tablist",
         )
     return info.get("keys") or []
+
+
+def click_tab(rep, pg, key, tag, code=""):
+    """С JS вкладка открывается щелчком (APG): после щелчка видна её панель."""
+    pg.click(f"dialog.ui-bwin [role=tab][data-window-tab-link={key}]", timeout=5000)
+    settle(pg, True, rep)
+    return rep.check(
+        pg.locator(f"dialog.ui-bwin [data-window-tab={key}]").is_visible(),
+        f"{tag}: панель вкладки видна после щелчка",
+        sigs=[f"окно js: вкладка {key} не открылась щелчком ({_num_free(code)})"],
+        code="tab_click",
+    )
 
 
 def _num_free(item: str) -> str:
@@ -449,37 +472,45 @@ def _num_free(item: str) -> str:
 
 def check_common(rep, pg, tag, status, errs, scope, minimum, lang, content, kind=""):
     """Общие проверки страницы; `kind` — где (окно/экран/витрина) для подписи дефекта."""
-    rep.check(status is not None and status < 500, f"{tag}: ответ без 5xx ({status})")
+    where = _num_free(tag.split(" ", 4)[-1])
+    rep.check(
+        status is not None and status < 500, f"{tag}: ответ без 5xx ({status})", code="status5xx"
+    )
     rep.check(
         status is not None and status < 400,
         f"{tag}: ответ не 4xx ({status})",
-        sigs=[f"{kind} ответ {status} {_num_free(tag.split(' ', 4)[-1])}"],
+        sigs=[f"{kind} ответ {status} {where}"],
+        code="status4xx",
     )
     over = overflow(pg)
     width = pg.evaluate("window.innerWidth")
     rep.check(
         over <= 0,
         f"{tag}: без горизонтального скролла ({over}px)",
-        sigs=[f"{kind} {width}: гор. скролл {_num_free(tag.split(' ', 4)[-1])}"],
+        sigs=[f"{kind} {width}: гор. скролл {where}"],
+        code="overflow",
     )
     small = targets(pg, scope, minimum)
     rep.check(
         not small,
         f"{tag}: цели ≥ {minimum}px ({len(small)}: {small[:3]})",
         sigs=[f"{kind} цель < {minimum}: {_num_free(x)}" for x in small],
+        code="target",
     )
     if lang == "ru":
-        de = german(visible_text(pg, scope), content)
+        de = german(visible_text(pg, scope), content, rep)
         rep.check(
             not de,
             f"{tag}: нет немецких строк в ru ({len(de)}: {de[:3]})",
             sigs=[f"{kind} ru: «{x.split(' ‹')[0]}» ‹{x.split(' ‹', 1)[1][:50]}" for x in de],
+            code="german",
         )
     if errs is not None:
         rep.check(
             not errs,
             f"{tag}: без ошибок JS ({errs[:2]})",
             sigs=[f"{kind} JS: {e[:80]}" for e in errs],
+            code="jserror",
         )
         errs.clear()
 
@@ -495,7 +526,7 @@ def login(pg, url, slug):
     pg.wait_for_load_state()
 
 
-def settle(pg, js):
+def settle(pg, js, rep: Report | None = None):
     """С JS: сеть затихла и закончились конечные анимации (открытие окна — 160 мс);
     бесконечные (слайдер, бегущая строка витрины) не ждём. Таймаут — не сбой стенда."""
     if not js:
@@ -603,13 +634,7 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
         for key in keys[1:] if js else keys:
             ttag = f"{tag} tab={key}"
             if js:  # вкладка — щелчком (APG); проверки — по видимой панели
-                pg.click(f"dialog.ui-bwin [role=tab][data-window-tab-link={key}]", timeout=5000)
-                settle(pg, js)
-                rep.check(
-                    pg.locator(f"dialog.ui-bwin [data-window-tab={key}]").is_visible(),
-                    f"{ttag}: панель вкладки видна после щелчка",
-                    sigs=[f"окно js: вкладка {key} не открылась щелчком ({code})"],
-                )
+                click_tab(rep, pg, key, ttag, code)
                 status = 200
             else:  # без JS — адрес `?tab=`
                 resp = pg.goto(f"{wurl}&tab={key}")
@@ -711,18 +736,23 @@ def _walk_all(rep, slugs, data, passes, out_dir):
 
 # --- замок стенда: сломанные страницы обязаны дать ✗ --------------------------------------
 
-_OK_PAGE = """<!doctype html><html lang="ru"><meta name=viewport content="width=device-width">
-<body style="margin:0;font:16px sans-serif"><main>
+_HEAD = '<!doctype html><html lang="ru"><meta name=viewport content="width=device-width">'
+_BTN44 = "display:inline-flex;box-sizing:border-box;height:44px;padding:0 12px"
+_OK_PAGE = (
+    _HEAD
+    + """<body style="margin:0;font:16px sans-serif"><main>
 <aside data-schema-panel aria-labelledby="schema-panel-title"><h2 id="schema-panel-title">Баннер</h2>
 <nav aria-label="Разделы блока" data-window-tabs><ul>
-<li><a href="?tab=was" data-window-tab-link="was" aria-current="page"
- style="display:inline-flex;min-height:44px;padding:0 12px">Что</a></li>
-<li><a href="?tab=wie" data-window-tab-link="wie"
- style="display:inline-flex;min-height:44px;padding:0 12px">Расположение</a></li></ul></nav>
+<li><a href="?tab=was" data-window-tab-link="was" aria-current="page" style="BTN">Что</a></li>
+<li><a href="?tab=wie" data-window-tab-link="wie" style="BTN">Расположение</a></li></ul></nav>
 <section data-window-tab="was"><p>Заголовок «Bäckerei Sonnenfeld» — <a href="#">ссылка</a></p>
-<button style="min-height:44px;min-width:44px">Готово</button></section>
-<section data-window-tab="wie" hidden><button style="min-height:44px">Сохранить</button></section>
-</aside></main></body></html>"""
+<p>Наш девиз: Speichern Sie Zeit beim Bäcker</p><p>Поле «Details» для заметок</p>
+<button style="BTN">Готово</button><button style="BTN;width:20px">×</button></section>
+<section data-window-tab="wie" hidden><button style="BTN">Сохранить</button></section>
+</aside></main></body></html>""".replace("BTN", _BTN44)
+)
+#: данные бизнеса чистой страницы: «Speichern» внутри них — не интерфейс
+_SELF_CONTENT = ["Bäckerei Sonnenfeld", "Наш девиз: Speichern Sie Zeit beim Bäcker"]
 
 
 def _broken(kind: str) -> str:
@@ -730,90 +760,127 @@ def _broken(kind: str) -> str:
     if kind == "wide":
         page = page.replace("<main>", '<main><div style="width:800px">широкая полоса</div>')
     elif kind == "small":
-        page = page.replace("min-height:44px;min-width:44px", "height:20px")
+        page = page.replace(f'"{_BTN44}">Готово', f'"{_BTN44.replace("44px", "20px")}">Готово')
+    elif kind == "h43":  # граница: 43 px — ✗, 44 px (чистая) — ✓
+        page = page.replace(f'"{_BTN44}">Готово', f'"{_BTN44.replace("44px", "43px")}">Готово')
     elif kind == "unlabeled":
         page = page.replace('aria-label="Разделы блока" ', "").replace(">Расположение<", "><")
     elif kind == "german":
         page = page.replace(">Готово<", ">Speichern und schließen<")  # видимая кнопка
+    elif kind == "legal":  # «Button-Lösung» — ✗ (переведём), цитата кнопки § 312j — нет
+        page = page.replace(">Готово<", ">кнопка «Zahlungspflichtig bestellen» (Button-Lösung)<")
+    elif kind == "err404":  # страница ошибки: только код ответа, без целей/скролла/языка
+        page = page.replace("<main>", '<main><div style="width:800px">Seite nicht gefunden</div>')
     return page
 
 
-def _selftest_dialog_page(broken: bool) -> str:
-    lb = "" if broken else ' aria-labelledby="t"'
+#: страница «витрины» (порог 24): ссылка в строке текста внутри div — исключение Inline
+_PAGE24 = (
+    _HEAD + '<body style="margin:0;font:14px sans-serif"><main><div>Читайте наши '
+    '<a href="#">§1</a>,<a href="#">§2</a> перед заказом.</div>'  # плотные, но в тексте
+    '<a href="#" style="display:inline-block;height:30px;width:30px">→</a></main></body>'
+)
+#: две узкие цели вплотную: круги Ø24 пересекаются — исключение Spacing не спасает
+_PAGE24_BAD = _PAGE24.replace(
+    '<a href="#" style="display:inline-block;height:30px;width:30px">→</a>',
+    '<a href="#" style="display:inline-block;height:30px;width:12px">←</a>'
+    '<a href="#" style="display:inline-block;height:30px;width:12px">→</a>',
+)
+
+
+def _dialog_page(kind: str = "") -> str:
+    lb = "" if kind == "unlabeled" else ' aria-labelledby="t"'
+    name_b = "" if kind == "unlabeled" else "Вид"
+    # вкладка, которая не переключается: щелчок ничего не делает
+    script = (
+        "document.querySelector('dialog').showModal();"
+        + (
+            ""
+            if kind == "stuck"
+            else "document.querySelectorAll('[role=tab]').forEach(t => t.onclick = () => {"
+            "document.querySelectorAll('[role=tabpanel]').forEach(p => p.hidden = "
+            "p.id !== t.getAttribute('aria-controls'));"
+            "document.querySelectorAll('[role=tab]').forEach(o => o.setAttribute("
+            "'aria-selected', o === t));});"
+        )
+        + ("throw new Error('selftest-boom');" if kind == "throw" else "")
+    )
     return (
         f'<!doctype html><body><dialog class="ui-bwin"{lb}><h2 id="t">Баннер</h2>'
         '<div role="tablist" aria-label="Разделы"><button role="tab" id="a" aria-selected="true" '
-        'aria-controls="pa" data-window-tab-link="was">Что</button><button role="tab" id="b" '
-        'aria-selected="false" aria-controls="pb" data-window-tab-link="wie">'
-        f"{'' if broken else 'Вид'}</button></div>"
-        '<div role="tabpanel" id="pa" aria-labelledby="a">1</div>'
-        '<div role="tabpanel" id="pb" aria-labelledby="b" hidden>2</div></dialog>'
-        "<script>document.querySelector('dialog').showModal()</script></body>"
+        'aria-controls="pa" data-window-tab-link="was" style="height:44px">Что</button>'
+        '<button role="tab" id="b" aria-selected="false" aria-controls="pb" '
+        f'data-window-tab-link="wie" style="height:44px">{name_b}</button></div>'
+        '<div role="tabpanel" id="pa" aria-labelledby="a" data-window-tab="was">1</div>'
+        '<div role="tabpanel" id="pb" aria-labelledby="b" data-window-tab="wie" hidden>2</div>'
+        f"</dialog><script>{script}</script></body>"
     )
 
 
+#: случай → (код ответа, страница, режим, ожидаемые коды ✗ — ровно эти)
+SELFTEST = {
+    "/ok": (200, _OK_PAGE, "win", set()),
+    "/err500": (500, _OK_PAGE, "win", {"status5xx"}),
+    "/err404": (404, _broken("err404"), "win", {"status4xx"}),
+    "/wide": (200, _broken("wide"), "win", {"overflow"}),
+    "/small": (200, _broken("small"), "win", {"target"}),
+    "/h43": (200, _broken("h43"), "win", {"target"}),
+    "/unlabeled": (200, _broken("unlabeled"), "win", {"tabs_label"}),
+    "/german": (200, _broken("german"), "win", {"german"}),
+    "/legal": (200, _broken("legal"), "win", {"german"}),
+    "/page24": (200, _PAGE24, "page", set()),
+    "/page24-bad": (200, _PAGE24_BAD, "page", {"target"}),
+    "/dlg-ok": (200, _dialog_page(), "js", set()),
+    "/dlg-bad": (200, _dialog_page("unlabeled"), "js", {"dialog", "tablist"}),
+    "/dlg-stuck": (200, _dialog_page("stuck"), "js", {"tab_click"}),
+    "/dlg-throw": (200, _dialog_page("throw"), "js", {"jserror"}),
+}
+
+
 def selftest():
-    """Каждый сломанный случай даёт ✗ ровно той проверкой, которая его ловит; чистая — ✓."""
+    """Каждый случай даёт ✗ ровно теми проверками (по коду), что в `SELFTEST`; чистые — ✓."""
     from playwright.sync_api import sync_playwright
 
-    pages = {
-        "/ok": (200, _OK_PAGE),
-        "/err500": (500, _OK_PAGE),
-        "/wide": (200, _broken("wide")),
-        "/small": (200, _broken("small")),
-        "/unlabeled": (200, _broken("unlabeled")),
-        "/german": (200, _broken("german")),
-        "/dlg-ok": (200, _selftest_dialog_page(False)),
-        "/dlg-bad": (200, _selftest_dialog_page(True)),
-    }
-    content = Content(["Bäckerei Sonnenfeld"])
-    lock, caught = Report(), Report()
+    content = Content(_SELF_CONTENT)
+    lock = Report()
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=CHROME)
         ctx = browser.new_context(viewport={"width": 390, "height": 844})
 
         def serve(route):
             path = "/" + route.request.url.split("/", 3)[3].split("?")[0]
-            status, body = pages.get(path, (404, "nope"))
+            status, body = SELFTEST.get(path, (404, "nope", "", set()))[:2]
             route.fulfill(status=status, body=body, content_type="text/html; charset=utf-8")
 
         ctx.route("http://selftest.local/**", serve)
-        pg = ctx.new_page()
-        scope = "[data-schema-panel]"
-
-        def run(path):
+        for path, (_status, _body, mode, want) in SELFTEST.items():
+            pg = ctx.new_page()
+            errs: list[str] = []
+            pg.on("pageerror", lambda e, errs=errs: errs.append(str(e)[:160]))
             rep = Report()
+            print(f"— {path} (ожидается {sorted(want) or '✓'})")
             resp = pg.goto("http://selftest.local" + path)
-            check_window_nojs(rep, pg, path)
-            check_common(rep, pg, path, resp.status, None, scope, WIN_MIN, "ru", content)
-            return rep.fail
-
-        print("— чистая страница (ожидается ✓)")
-        lock.check(not run("/ok"), "чистая страница — без ✗", quiet=False)
-        for path, marker in (
-            ("/err500", "5xx"),
-            ("/wide", "скролла"),
-            ("/small", "цели"),
-            ("/unlabeled", "подписи"),
-            ("/german", "немецких"),
-        ):
-            print(f"— сломанный случай {path} (ожидается ✗)")
-            fails = run(path)
-            caught.check(bool(fails), f"{path}: стенд дал ✗", quiet=False)
-            lock.check(
-                any(marker in f for f in fails), f"{path}: ✗ именно проверкой «{marker}»", False
-            )
-        for path, bad in (("/dlg-ok", False), ("/dlg-bad", True)):
-            print(f"— окно с JS {path} (ожидается {'✗' if bad else '✓'})")
-            rep = Report()
-            pg.goto("http://selftest.local" + path)
-            check_window_js(rep, pg, path)
-            lock.check(bool(rep.fail) == bad, f"{path}: проверка <dialog>/вкладок", quiet=False)
+            settle(pg, True, rep)
+            if mode == "win":
+                check_window_nojs(rep, pg, path)
+                check_common(
+                    rep, pg, path, resp.status, None, "[data-schema-panel]", WIN_MIN, "ru", content
+                )
+            elif mode == "page":
+                check_common(rep, pg, path, resp.status, None, "body", PAGE_MIN, "ru", content)
+            else:
+                keys = check_window_js(rep, pg, path)
+                check_common(
+                    rep, pg, path, resp.status, errs, "dialog.ui-bwin", WIN_MIN, "ru", content
+                )
+                for key in keys[1:]:
+                    click_tab(rep, pg, key, f"{path} tab={key}")
+            got = set(rep.codes)
+            lock.check(got == want, f"{path}: коды ✗ {sorted(got)} = {sorted(want)}", quiet=False)
+            pg.close()
         browser.close()
-    print(
-        f"\nзамок: {lock.ok} ✓, {len(lock.fail)} ✗ (сломанных пойманы: {caught.ok}/{caught.ok + len(caught.fail)})"
-    )
-    sys.exit(1 if lock.fail or caught.fail else 0)
+    print(f"\nзамок: {lock.ok} ✓, {len(lock.fail)} ✗ (случаев {len(SELFTEST)})")
+    sys.exit(1 if lock.fail else 0)
 
 
 def main():
