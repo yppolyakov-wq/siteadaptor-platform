@@ -182,7 +182,6 @@ def test_window_links_refs_keep_the_page_row_where_it_is():
 # ───────────── L3: правило — только в site_schema ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="M5b-1 C3: правило ещё в стенде владельца")
 def test_rule_lives_only_in_site_schema():
     callers = (
         "apps/core/site_schema_views.py",

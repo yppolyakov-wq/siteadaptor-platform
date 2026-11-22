@@ -6,7 +6,7 @@
 (`type_groups`: главная, направления, каждая категория, группа акций, каждая текстовая
 страница), по первому объекту каждого вида — строку «Nur diese Seite» (`object_row`), и блоки
 каждой строки (`blocks_for` + строка «Einstellungen der Seite», где она есть —
-`page_window.pseudo_row`). Вкладки окна — из разметки самого окна (`data-window-tab-link`),
+`site_schema.page_row_ref`). Вкладки окна — из разметки самого окна (`data-window-tab-link`),
 каждая открывается адресом `?tab=` (без JS) и щелчком по вкладке (с JS). Плюс витрина хоста
 каждой строки (`PageRow.preview_url`).
 
@@ -178,15 +178,8 @@ for slug in SLUGS:
         # общий блок в схеме одного объекта (R8) — пунктиром, только чтение, окна нет
         refs = [b["ref"] for b in blocks if not b.get("shared")]
         keys = {b["ref"]: b["key"] for b in blocks}
-        # дубль правила вьюхи site_schema_views ~:556–579 (вынести в приложение — отложено)
-        # строка «Einstellungen der Seite» — по правилу экрана (site_schema_views: настройки
-        # или «Design» у типа есть, а ★-строки и строки-носителя нет)
-        try:
-            has = bool(site_schema.setting_codes(t, r.code) or site_schema.design_codes(t, r.code))
-        except site_schema.SchemaError:
-            has = False
-        carrier = site_schema.settings_carrier(r.code)
-        if has and not any(b["main"] or b["ref"] == carrier for b in blocks):
+        # строка «Einstellungen der Seite» — единым правилом экрана (FB-33 M5b-1)
+        if site_schema.page_row_ref(t, r.code, blocks) == site_schema.PAGE_REF:
             refs.append(site_schema.PAGE_REF)
         pages.append({"code": r.code, "label": str(r.label), "preview": r.preview_url,
                       "refs": refs, "keys": keys})
