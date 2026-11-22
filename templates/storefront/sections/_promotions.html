@@ -12,7 +12,7 @@
   <span class="ml-auto flex items-center gap-3">
     {% comment %}DL-13 C4: секция показывает первые N (лимит Studio, дефолт 9) —
     ссылка «Alle Aktionen» ведёт на полную страницу (ключ show_all, как у products).{% endcomment %}
-    {% section_show_all site 'promotions' as sa %}{% if sa %}<a href="{{ more_url }}" class="text-sm font-medium text-indigo-600 hover:underline whitespace-nowrap" data-promo-viewall>{% trans "Alle Aktionen" %} →</a>{% endif %}
+    {% section_show_all site 'promotions' as sa %}{% if sa %}<a href="{{ more_url }}" class="inline-flex min-h-[24px] items-center text-sm font-medium text-indigo-600 hover:underline whitespace-nowrap" data-promo-viewall>{% trans "Alle Aktionen" %} →</a>{% endif %}
     {% include "storefront/_grid_view.html" with grid_key="promotions" %}
   </span>
 </div>

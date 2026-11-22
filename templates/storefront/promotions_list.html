@@ -147,7 +147,7 @@ show_listing_toolbar). Строка остаётся только над тем,
         {% if out.mode == "slider" %}
         <h2 class="text-lg font-bold mb-3 flex items-baseline justify-between gap-3"><span>{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></span>
-          {% if more_url %}<a href="{{ more_url }}" class="text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a>{% endif %}</h2>
+          {% if more_url %}<a href="{{ more_url }}" class="inline-flex min-h-[24px] items-center text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a>{% endif %}</h2>
         {% else %}
         <h2 class="text-lg font-bold mb-3">{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>

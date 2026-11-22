@@ -5,7 +5,7 @@
   <div class="flex items-center justify-between mb-4">
     {% section_title site 'tours' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.tours">{% if st %}{{ st }}{% else %}{% trans "Our tours" %}{% endif %}</h2>
-    {% section_show_all site 'tours' as sa %}{% if sa %}<a href="{{ more_url }}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+    {% section_show_all site 'tours' as sa %}{% if sa %}<a href="{{ more_url }}" class="inline-flex min-h-[24px] items-center text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
     {% include "storefront/_grid_view.html" with grid_key="tours" %}
   </div>
   {% section_intro site 'tours' as si %}

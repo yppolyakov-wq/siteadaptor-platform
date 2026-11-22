@@ -7,7 +7,7 @@
 <div class="max-w-2xl mx-auto">
   <div class="flex items-center justify-between mb-6">
     {% page_title "event_calendar" as pt %}<h1 class="text-2xl font-bold{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.event_calendar.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Retreat calendar" %}{% endif %}</h1>
-    <a href="{% url 'storefront-events-ical-feed' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Subscribe (iCal)" %}</a>
+    <a href="{% url 'storefront-events-ical-feed' %}" class="inline-flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline">📅 {% trans "Subscribe (iCal)" %}</a>
   </div>{% if pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.event_calendar.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}
 
   {% if groups %}

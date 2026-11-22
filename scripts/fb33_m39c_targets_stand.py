@@ -5,8 +5,9 @@
 вкладка окна (адрес `?tab=`); у видимых `button`, `summary`, `select`, `[role=tab]` панели
 `[data-schema-panel]` меряется высота. Без JS это колонка-панель, с JS — `<dialog>`.
 
-Часть «витрина» (демо-киты магазин, ресторан, салон, отель, ретрит): главная и страницы,
-найденные по ссылкам (товар, акция, запись, номер, событие, корзина); меряются цели из списка
+Часть «витрина» (`ptx` с подвалом в колонках и демо-киты магазин, ресторан, салон, отель,
+ретрит): главная и страницы, найденные по ссылкам (товар, акция, запись, номер, событие,
+корзина); меряются цели из списка
 `TARGETS` (подвал, «Alle anzeigen →», стрелки дня и месяца, «+ Mehr hinzufügen», «Herunterladen»,
 «📅», «💬», точки слайдера — только с JS) и ширина страницы (`scrollWidth`).
 
@@ -16,6 +17,7 @@
     DB_NAME=platform_m39c_stand uv run python manage.py seed_demo_tenants \\
         --kit shop restaurant friseur hotel retreat
     DB_NAME=platform_m39c_stand uv run python scripts/fb33_m3_9_owner_stand.py --setup
+    DB_NAME=platform_m39c_stand uv run python scripts/fb33_m39c_targets_stand.py --setup
     DB_NAME=platform_m39c_stand uv run python manage.py runserver 0.0.0.0:8047 \\
         --settings=config.settings.stand --noreload
     STAND_URL=http://ptx.siteadaptor.de:8047 uv run --no-project --with playwright \\
@@ -24,11 +26,14 @@
 
 Гонять ДО правки и после: «до» — ✗ на прежних 40 px и 16–20 px, «после» — «N ✓, 0 ✗».
 В конце — таблицы «цель → наименьший размер» по каждому сочетанию размера, языка и режима.
+`--setup` (только стенд-БД, `DB_NAME=…_stand`) даёт `ptx` подвал в две колонки, телефон и e-mail.
 """
 
 from __future__ import annotations
 
+import os
 import re
+import subprocess
 import sys
 from urllib.parse import parse_qs, quote, urlparse
 
@@ -40,26 +45,28 @@ AUFBAU = "/dashboard/site/aufbau/"
 #: страницы «Seitenaufbau» тенанта ptx: главная, корзина и заявка (вкладка «Felder»), товар
 #: (Karte, «Ähnliche»), каталог (Wie anordnen), текстовая (Texte)
 WINDOW_PAGES = ("home", "cart", "anfrage", "product", "catalog", "text")
-#: кит → поддомен (`seed_demo_tenants`: kit.subdomain или «<kit>-demo»)
+#: бизнес → поддомен: `ptx` и демо-киты (`seed_demo_tenants`: kit.subdomain или «<kit>-demo»)
 KITS = {
+    "ptx": "ptx",
     "shop": "shop",
     "restaurant": "restaurant-demo",
     "friseur": "friseur",
     "hotel": "hotel",
     "retreat": "retreat",
 }
-#: страницы кита: путь или `(путь-откуда, шаблон ссылки)` — первая ссылка страницы по шаблону
+#: страницы бизнеса: путь или `(путь-откуда, шаблон ссылки)` — первая ссылка страницы по шаблону
 KIT_PAGES = {
+    "ptx": ["/", "/warenkorb/"],
     "shop": [
         "/",
         "/warenkorb/",
         "/sortiment/",
-        ("/sortiment/", r"^/sortiment/[0-9a-f-]{36}/"),
+        ("/sortiment/", r"^/sortiment/[a-z0-9-]+/[a-z0-9-]+/$"),
         "/aktionen/",
         ("/aktionen/", r"^/p/[0-9a-f-]{36}/$"),
     ],
     "restaurant": ["/", "/warenkorb/", "/aktionen/", ("/aktionen/", r"^/p/[0-9a-f-]{36}/$")],
-    "friseur": ["/", "/termin/", ("/termin/", r"^/termin/leistung/[0-9a-f-]{36}/")],
+    "friseur": ["/", "/termin/", ("/termin/", r"^/leistung/[0-9a-f-]{36}/$")],
     "hotel": ["/", "/unterkunft/", ("/unterkunft/", r"^/unterkunft/[0-9a-f-]{36}/")],
     "retreat": [
         "/",
@@ -117,6 +124,31 @@ _TARGETS_JS = """(specs) => {
   }
   return out;
 }"""
+
+#: подвал в колонках и контакты у `ptx` (у демо-китов подвал без колонок)
+SETUP = """
+from apps.core.pagecache import bump_storefront_cache
+from apps.tenants import siteconfig
+from apps.tenants.models import Tenant
+t = Tenant.objects.get(schema_name="ptx")
+cfg = dict(t.site_config or {})
+cfg["menus"] = {**(cfg.get("menus") or {}), "footer": {"columns": [
+    {"label": "Shop", "items": [
+        {"label": "Sortiment", "type": "url", "target": "/sortiment/"},
+        {"label": "Aktionen", "type": "url", "target": "/aktionen/"},
+        {"label": "Warenkorb", "type": "url", "target": "/warenkorb/"}]},
+    {"label": "Service", "items": [
+        {"label": "Nachricht schreiben", "type": "url", "target": "/nachricht/"},
+        {"label": "Newsletter", "type": "url", "target": "/newsletter/"}]},
+]}}
+t.site_config = siteconfig.normalize(cfg)
+t.contact_phone = "+49 2129 123456"
+t.contact_email = "hallo@ptx.test"
+t.address = t.address or "Markt 1, 42781 Haan"
+t.save(update_fields=["site_config", "contact_phone", "contact_email", "address"])
+bump_storefront_cache(t.schema_name)
+print("READY", len(t.site_config["menus"]["footer"]["columns"]), t.public_phone)
+"""
 
 _HREFS_JS = "() => [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href'))"
 
@@ -247,23 +279,23 @@ def storefront_part(rep, table, browser, out, w, h, lang, js):
             where = f"{kit}{path}"
             if not rep.check(resp.status < 400, f"{combo} {where}: {resp.status}", code="status"):
                 continue
-            small = []
             for name, found in pg.evaluate(_TARGETS_JS, TARGETS).items():
+                small = []
                 for t in found:
                     seen.add(name)
                     table.add(name, combo, (t["h"], t["w"]), where)
                     if t["h"] < PAGE_MIN - 0.5 or t["w"] < PAGE_MIN - 0.5:
-                        small.append(f"{name} «{t['text']}» {t['w']:g}×{t['h']:g}")
-            rep.check(
-                not small,
-                f"{combo} {where}: цели ≥ {PAGE_MIN} px ({small[:3]})",
-                sigs=[s.split(" «")[0] for s in small] or None,
-                code="page24",
-                quiet=True,
-            )
+                        small.append(f"«{t['text']}» {t['w']:g}×{t['h']:g}")
+                if found:
+                    rep.check(
+                        not small,
+                        f"{combo} {where}: {name} ≥ {PAGE_MIN} px ({small[:3]})",
+                        sigs=f"{name} < {PAGE_MIN} px",
+                        code="page24",
+                    )
             over = sl.overflow(pg)
             rep.check(over <= 0, f"{combo} {where}: без гор. скролла ({over}px)", code="overflow")
-            if path == "/" and kit in ("shop", "friseur"):
+            if path == "/" and kit in ("ptx", "shop"):
                 sl.shot(pg, out, f"m39c_home_{kit}_{w}_{lang}_{_mode(js)}", full=True)
         rep.check(not pg.js_errors, f"{combo} {kit}: без ошибок JS ({pg.js_errors[:2]})", code="js")
         pg.context.close()
@@ -276,6 +308,17 @@ def storefront_part(rep, table, browser, out, w, h, lang, js):
 
 def main():
     argv = sys.argv[1:]
+    if argv[:1] == ["--setup"]:
+        if not os.environ.get("DB_NAME", "").endswith("_stand"):
+            sys.exit("--setup пишет в БД: только стенд-БД (DB_NAME=…_stand)")
+        done = subprocess.run(
+            [sys.executable, "manage.py", "shell", "--settings=config.settings.stand", "-c", SETUP],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        print((done.stdout + done.stderr)[-400:])
+        sys.exit(done.returncode)
     if not argv or argv[0].startswith("--"):
         sys.exit(__doc__)
     out = argv[0]

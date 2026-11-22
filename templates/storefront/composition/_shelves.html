@@ -15,7 +15,7 @@
 {% for sh in shelves %}
 <section class="mb-8" data-shelf="{{ sh.slug }}">
   <h2 class="text-lg md:text-xl font-bold mb-3 flex items-baseline justify-between gap-3"><span>{{ sh.label }} <span class="text-sm font-normal text-gray-400">· {{ sh.total }}</span></span>
-    {% if sh.more %}<a href="{{ sh.url }}" class="text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a>{% endif %}</h2>
+    {% if sh.more %}<a href="{{ sh.url }}" class="inline-flex min-h-[24px] items-center text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a>{% endif %}</h2>
   <div class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
     {% for p in sh.items %}<div class="w-56 shrink-0 flex [&>div]:w-full">{% include item_template %}</div>{% endfor %}
   </div>

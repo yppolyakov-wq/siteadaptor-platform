@@ -850,12 +850,15 @@ input[type="datetime-local"] {
   .sf-slider-arrow { display: flex; }
   .sf-slider:hover .sf-slider-arrow:not(:disabled), .sf-slider:focus-within .sf-slider-arrow:not(:disabled) { opacity: 1; }
 }
-.sf-slider-dots { display: flex; justify-content: center; gap: .375rem; margin-top: .25rem; }
+/* FB-33 M3-9c: точка — кнопка 24×24 (WCAG 2.2 2.5.8), видимая точка 8 px рисуется в её центре;
+   зазор между кнопками и отступ сверху сняты — кнопки стоят вплотную. */
+.sf-slider-dots { display: flex; justify-content: center; }
 .sf-slider-single .sf-slider-dots, .sf-slider-single .sf-slider-arrow { display: none; }
-.sf-slider-dot { width: .5rem; height: .5rem; border-radius: 9999px; background: #d1d5db; border: 0; padding: 0; cursor: pointer; }
-.sf-slider-dot.is-on { background: var(--accent, #111827); }
+.sf-slider-dot { width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; background: transparent; border: 0; padding: 0; cursor: pointer; }
+.sf-slider-dot::before { content: ""; width: .5rem; height: .5rem; border-radius: 9999px; background: #d1d5db; }
+.sf-slider-dot.is-on::before { background: var(--accent, #111827); }
 .dark .sf-slider-arrow { background: #1f2937; color: #f9fafb; border-color: #374151; }
-.dark .sf-slider-dot { background: #4b5563; }
+.dark .sf-slider-dot::before { background: #4b5563; }
 /* DL-16.4 P2: листание фото на карточке товара ([data-card-imgs]) — стрелки при наведении,
    точки поверх фото, свайп нативный (JS). */
 [data-card-imgs] .sf-cimg-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 1.75rem; height: 1.75rem; border-radius: 9999px; background: rgba(255,255,255,.92); color: #111827; border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.18); font-size: 1.1rem; line-height: 1; display: none; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity .15s; z-index: 20; }
@@ -1778,6 +1781,9 @@ input[type="datetime-local"] {
   .ui-bwin-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
   /* цели касания в окне — не ниже 44 px (ссылки внутри строки текста — исключение WCAG 2.5.8) */
   .ui-bwin :is(button, summary, select, [role="tab"]) { min-height: 2.75rem; }
+  /* FB-33 M3-9c: без скриптов окна нет — те же цели в самой панели блока (aside#schema-panel
+     в «Seitenaufbau»); свой класс высоты у элемента (min-h-[…]) по-прежнему сильнее */
+  [data-schema-panel] :is(button, summary, select, [role="tab"]) { min-height: 2.75rem; }
   .ui-bwin [role="tablist"] { display: flex; flex-wrap: wrap; gap: 0.25rem; }
   /* фокус на панели вкладки виден (в разметке у секции focus:outline-none) */
   .ui-bwin [role="tabpanel"]:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; }

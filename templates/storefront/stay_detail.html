@@ -49,7 +49,7 @@
     {% endif %}
     {% if unit.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=unit.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
     {% if storefront_inbox_enabled %}
-      <a href="{% url 'storefront-message' %}?kind=stay&id={{ unit.pk }}&label={{ unit.name|urlencode }}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question" %}</a>
+      <a href="{% url 'storefront-message' %}?kind=stay&id={{ unit.pk }}&label={{ unit.name|urlencode }}" class="inline-flex min-h-[24px] items-center mt-2 text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question" %}</a>
     {% endif %}
   </div>
 

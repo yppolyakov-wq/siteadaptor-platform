@@ -14,7 +14,7 @@
     ml-auto партиала внутри justify-between съедал всё свободное место, и
     «Alle anzeigen» прилипала к заголовку.{% endcomment %}
     <span class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-      {% url 'storefront-products' as products_url %}{% builtin_all_url section_row products_url as all_url %}{% section_show_all site 'products' as sa %}{% if sa %}<a href="{{ all_url }}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+      {% url 'storefront-products' as products_url %}{% builtin_all_url section_row products_url as all_url %}{% section_show_all site 'products' as sa %}{% if sa %}<a href="{{ all_url }}" class="inline-flex min-h-[24px] items-center text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
       {% if section_row.style|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="products" %}{% else %}{% include "storefront/_price_view_toggle.html" with pl_style=section_row.style plv_key="products" %}{% endif %}
     </span>
   </div>

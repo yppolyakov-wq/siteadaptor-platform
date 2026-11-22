@@ -219,6 +219,9 @@ def test_month_arrows_are_24px_targets():
 SOURCE_LINKS = [
     ("_service_slots_box.html", "prev_day|date"),
     ("_service_slots_box.html", "next_day|date"),
+    ("_booking_slots_box.html", "prev_day|date"),
+    ("_booking_slots_box.html", "next_day|date"),
+    ("sections/_promotions.html", '{% trans "Alle Aktionen" %} →'),
     ("cart.html", '{% trans "Add more" %}'),
     ("event_index.html", '{% trans "Calendar" %}'),
     ("event_calendar.html", '{% trans "Subscribe (iCal)" %}'),

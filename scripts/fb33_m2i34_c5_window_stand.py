@@ -132,8 +132,7 @@ def part_info(pg, scope):
         """(sel) => { const f = document.querySelector(sel);
           if (!f) return null;
           const small = [...f.querySelectorAll('label, button:not(.sr-only), summary')]
-            .filter(e => e.offsetParent && !e.matches('[data-schema-apply]')
-                    && e.getBoundingClientRect().height < 43.5
+            .filter(e => e.offsetParent && e.getBoundingClientRect().height < 43.5
                     && (e.querySelector('input[type=radio],input[type=checkbox]')
                         || e.tagName !== 'LABEL'))
             .map(e => e.textContent.trim().slice(0, 30));
@@ -193,7 +192,7 @@ def window_flow(pg, tag, lang, js):
     if lang == "ru":
         left = [g for g in GERMAN if g in info["text"]]
         check(not left, f"{tag}: нет немецких строк ({left})")
-    # «Übernehmen» (без скриптов) — прежняя кнопка вкладки, общая с заявкой (M2i-5): см. notes
+    # M3-9c: «Übernehmen» без скриптов тоже 44 px (правило панели в app.css) — без исключений
     check(not info["small"], f"{tag}: цели ≥ 44 px ({info['small'][:4]})")
     check(info["sw"] <= info["iw"], f"{tag}: без горизонтальной прокрутки")
     pg.screenshot(path=f"{OUT}/c5_felder_{tag}.png", full_page=not js)

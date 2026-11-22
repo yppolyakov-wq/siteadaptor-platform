@@ -58,7 +58,7 @@
 <section class="mb-8 rounded-2xl bg-gray-50 p-4 md:p-5" data-category-sets>
   <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
     <h2 class="text-lg md:text-xl font-bold">{{ combos_title }}</h2>
-    <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+    <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="inline-flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
   </div>
   {% include "storefront/_combo_grid.html" with combos=category_combos %}
 </section>
@@ -321,7 +321,7 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 <section data-reveal class="mb-8">
   <div class="flex items-end justify-between mb-3">
     <h2 class="text-lg md:text-xl font-bold">{{ combos_teaser_icon }} {{ combos_title }}</h2>
-    <a href="{% url 'storefront-combos' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+    <a href="{% url 'storefront-combos' %}" class="inline-flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
   </div>
   {% include "storefront/_combo_grid.html" with combos=combos_teaser %}
 </section>
@@ -333,7 +333,7 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
   <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
     <h2 class="text-lg md:text-xl font-bold">{{ combos_title }}</h2>
     <div class="flex items-center gap-3">
-      <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+      <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="inline-flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
     </div>
   </div>
   {% include "storefront/_combo_grid.html" with combos=category_combos %}

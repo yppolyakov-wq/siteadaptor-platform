@@ -34,7 +34,7 @@
         <a href="#buchen" class="block text-center bg-indigo-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-indigo-700">{% trans "Reserve a spot" %}</a>
       {% endif %}
       {% if storefront_inbox_enabled %}
-        <a href="{% url 'storefront-message' %}?kind=event&id={{ event.pk }}&label={{ event.title_text|urlencode }}" class="block text-center text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question" %}</a>
+        <a href="{% url 'storefront-message' %}?kind=event&id={{ event.pk }}&label={{ event.title_text|urlencode }}" class="flex min-h-[24px] items-center justify-center text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question" %}</a>
       {% endif %}
     </div>
 {% endwith %}{% endblock %}

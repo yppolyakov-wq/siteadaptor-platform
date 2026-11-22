@@ -351,8 +351,8 @@
         {% for col in storefront_footer_menu %}
         <details class="min-w-0 col-span-2 sm:col-span-1 border-b border-gray-100 sm:border-0 group" data-footer-acc open>
           <summary class="flex items-center justify-between gap-2 cursor-pointer list-none py-2 sm:py-0 sm:mb-2 sm:cursor-default text-base font-semibold text-gray-800 [&::-webkit-details-marker]:hidden">{% if col.label %}{{ col.label }}{% else %}{% trans "Links" %}{% endif %}<span class="sm:hidden text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span></summary>
-          <ul class="space-y-1.5 pb-3 sm:pb-0">
-            {% for link in col.items %}<li><a href="{{ link.url }}" class="text-gray-600 hover:text-gray-900 hover:underline inline-flex items-center gap-1.5">{% include "storefront/menu/_icon.html" with node=link %}{{ link.label }}</a></li>{% endfor %}
+          <ul class="space-y-0.5 pb-3 sm:pb-0">
+            {% for link in col.items %}<li><a href="{{ link.url }}" class="text-gray-600 hover:text-gray-900 hover:underline inline-flex min-h-[24px] items-center gap-1.5">{% include "storefront/menu/_icon.html" with node=link %}{{ link.label }}</a></li>{% endfor %}
           </ul>
         </details>
         {% endfor %}
@@ -361,10 +361,10 @@
           <summary class="flex items-center justify-between gap-2 cursor-pointer list-none py-2 sm:py-0 sm:mb-2 sm:cursor-default text-base font-semibold text-gray-800 [&::-webkit-details-marker]:hidden">{% trans "Kontakt" %}<span class="sm:hidden text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span></summary>
           <div class="space-y-1.5 pb-3 sm:pb-0">
           {% if request.tenant.address %}<p>{{ request.tenant.address }}</p>{% endif %}
-          {% if request.tenant.public_phone %}<p><a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
-          {% if request.tenant.public_email %}<p><a href="mailto:{{ request.tenant.public_email }}" class="hover:underline break-all">{{ request.tenant.public_email }}</a></p>{% endif %}
+          {% if request.tenant.public_phone %}<p><a href="tel:{{ request.tenant.public_phone }}" class="inline-flex min-h-[24px] items-center hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
+          {% if request.tenant.public_email %}<p><a href="mailto:{{ request.tenant.public_email }}" class="inline-flex min-h-[24px] items-center hover:underline break-all">{{ request.tenant.public_email }}</a></p>{% endif %}
           {% if request.tenant.opening_hours %}<p class="whitespace-pre-line">{{ request.tenant.opening_hours_localized }}</p>{% else %}{% for line in request.tenant.opening_hours_week %}<p>{{ line }}</p>{% endfor %}{% endif %}
-          {% if request.tenant.map_url %}<p><a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a></p>{% endif %}
+          {% if request.tenant.map_url %}<p><a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="inline-flex min-h-[24px] items-center hover:underline">🗺 {% trans "Map" %}</a></p>{% endif %}
           </div>
         </details>
         {% endif %}
@@ -387,27 +387,27 @@
       {% if storefront_footer_text or request.GET.preview == '1' %}<p class="text-sm text-gray-600 whitespace-pre-line max-w-2xl" data-edit="footer_text">{{ storefront_footer_text }}</p>{% endif %}
       {% if request.tenant %}
         {% if not storefront_footer_menu %}
-        <div class="flex flex-wrap gap-x-6 gap-y-1">
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-0">
           {% if request.tenant.address %}<span>📍 {{ request.tenant.address }}</span>{% endif %}
-          {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">📞 {{ request.tenant.public_phone }}</a>{% endif %}
-          {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a>{% endif %}
+          {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="inline-flex min-h-[24px] items-center hover:underline">📞 {{ request.tenant.public_phone }}</a>{% endif %}
+          {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="inline-flex min-h-[24px] items-center hover:underline">🗺 {% trans "Map" %}</a>{% endif %}
         </div>
         {% if request.tenant.opening_hours %}<div class="whitespace-pre-line text-gray-400">🕒 {{ request.tenant.opening_hours_localized }}</div>{% endif %}
         {% endif %}
         {# GK-9: соцпрофили бизнеса — иконки-ряд (пусто → ничего) #}
         {% include "storefront/_social_icons.html" with links=request.tenant.social_links %}
       {% endif %}
-      <div class="flex flex-wrap gap-x-4 gap-y-1 text-gray-400 pt-1 border-t border-gray-100">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-0 text-gray-400 pt-1 border-t border-gray-100">
         <span>© {% now "Y" %} {{ request.tenant.name|default:"" }}</span>
-        <a href="{% url 'storefront-impressum' %}" class="hover:underline">{% trans "Imprint" %}</a>
-        <a href="{% url 'storefront-privacy' %}" class="hover:underline">{% trans "Privacy" %}</a>
-        <a href="{% url 'storefront-withdrawal' %}" class="hover:underline">{% trans "Cancellation" %}</a>
-        {% shipping_note as ship_note %}{% if ship_note %}<a href="{% url 'storefront-shipping' %}" class="hover:underline">{% trans "Versand & Lieferung" %}</a>{% endif %}
-        {% agb_present as agb_on %}{% if agb_on %}<a href="{% url 'storefront-agb' %}" class="hover:underline">{% trans "AGB" %}</a>{% endif %}
-        <a href="{% url 'storefront-newsletter' %}" class="hover:underline">{% trans "Newsletter" %}</a>
-        {% house_rules_present as hr %}{% if hr %}<a href="{% url 'storefront-hausordnung' %}" class="hover:underline">{% trans "House rules" %}</a>{% endif %}
-        {% gift_link_active as gift_on %}{% if gift_on %}<a href="{% url 'storefront-gutschein' %}" class="hover:underline">🎁 {% trans "Gift voucher" %}</a>{% endif %}
-        {% city_portal_link as cp %}{% if cp %}<a href="{{ cp.url }}" class="hover:underline" data-city-portal-link>🏙 {% blocktrans with city=cp.city %}Auch im Stadtportal {{ city }}{% endblocktrans %}</a>{% endif %}
+        <a href="{% url 'storefront-impressum' %}" class="inline-flex min-h-[24px] items-center hover:underline">{% trans "Imprint" %}</a>
+        <a href="{% url 'storefront-privacy' %}" class="inline-flex min-h-[24px] items-center hover:underline">{% trans "Privacy" %}</a>
+        <a href="{% url 'storefront-withdrawal' %}" class="inline-flex min-h-[24px] items-center hover:underline">{% trans "Cancellation" %}</a>
+        {% shipping_note as ship_note %}{% if ship_note %}<a href="{% url 'storefront-shipping' %}" class="inline-flex min-h-[24px] items-center hover:underline">{% trans "Versand & Lieferung" %}</a>{% endif %}
+        {% agb_present as agb_on %}{% if agb_on %}<a href="{% url 'storefront-agb' %}" class="inline-flex min-h-[24px] items-center hover:underline">{% trans "AGB" %}</a>{% endif %}
+        <a href="{% url 'storefront-newsletter' %}" class="inline-flex min-h-[24px] items-center hover:underline">{% trans "Newsletter" %}</a>
+        {% house_rules_present as hr %}{% if hr %}<a href="{% url 'storefront-hausordnung' %}" class="inline-flex min-h-[24px] items-center hover:underline">{% trans "House rules" %}</a>{% endif %}
+        {% gift_link_active as gift_on %}{% if gift_on %}<a href="{% url 'storefront-gutschein' %}" class="inline-flex min-h-[24px] items-center hover:underline">🎁 {% trans "Gift voucher" %}</a>{% endif %}
+        {% city_portal_link as cp %}{% if cp %}<a href="{{ cp.url }}" class="inline-flex min-h-[24px] items-center hover:underline" data-city-portal-link>🏙 {% blocktrans with city=cp.city %}Auch im Stadtportal {{ city }}{% endblocktrans %}</a>{% endif %}
       </div>
     </div>
   </footer>
