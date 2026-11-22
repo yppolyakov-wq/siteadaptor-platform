@@ -293,6 +293,20 @@ def storefront_part(rep, table, browser, out, w, h, lang, js):
                         sigs=f"{name} < {PAGE_MIN} px",
                         code="page24",
                     )
+            if js and pg.locator(".sf-slider-dot").count() > 1:
+                # ревью a11y: точка в фокусе переживает прокрутку (раньше точки пересоздавались)
+                dot = pg.locator(".sf-slider:not(.sf-slider-single) .sf-slider-dot").nth(1)
+                if dot.count() and dot.is_visible():
+                    dot.focus()
+                    pg.keyboard.press("Enter")
+                    pg.wait_for_timeout(900)
+                    kept = pg.evaluate(
+                        "document.activeElement && document.activeElement.classList"
+                        ".contains('sf-slider-dot')"
+                    )
+                    rep.check(kept, f"{combo} {where}: фокус остаётся на точке", code="dotfocus")
+                    cur = pg.locator(".sf-slider-dot[aria-current='true']").count()
+                    rep.check(cur >= 1, f"{combo} {where}: aria-current у точки", code="dotcur")
             over = sl.overflow(pg)
             rep.check(over <= 0, f"{combo} {where}: без гор. скролла ({over}px)", code="overflow")
             if path == "/" and kit in ("ptx", "shop"):

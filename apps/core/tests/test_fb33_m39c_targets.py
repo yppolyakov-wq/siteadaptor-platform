@@ -89,6 +89,33 @@ def test_slider_dot_is_a_24px_target_with_an_8px_dot():
     assert "var(--accent" in _rule(".sf-slider-dot.is-on::before")
 
 
+@pytest.mark.xfail(strict=True, reason="ревью a11y стопки 8 — до правки")
+def test_slider_dots_are_updated_in_place_and_marked_current():
+    """Ревью a11y стопки 8: точки пересоздавались на каждый `scroll` — точка в фокусе исчезала,
+    фокус падал в body (2.4.3). Теперь кнопки пересоздаются только при смене числа страниц,
+    активная отмечена `aria-current`. Поведение (фокус после Enter) мерит стенд."""
+    js = (ROOT / "templates/storefront/_slider_script.html").read_text(encoding="utf-8")
+    body = js[js.index("function renderDots()") : js.index("function go(")]
+    assert "dots.children.length !== n" in body
+    assert body.index("dots.children.length !== n") < body.index('dots.innerHTML = ""')
+    assert "aria-current" in body
+
+
+@pytest.mark.xfail(strict=True, reason="ревью a11y стопки 8 — до правки")
+def test_dark_theme_keeps_the_active_dot_accented():
+    assert ".dark .sf-slider-dot:not(.is-on)::before" in CSS
+    assert ".dark .sf-slider-dot::before" not in CSS
+
+
+@pytest.mark.xfail(strict=True, reason="ревью a11y стопки 8 — до правки")
+def test_panel_rule_covers_link_buttons_and_says_it_wins_over_utilities():
+    """Ревью a11y: правило панели (0,2,0) сильнее утилиты `min-h-[…]` (0,1,0) — комментарий
+    говорил обратное; ссылка-кнопка «Abbrechen» (`a.ui-btn`) оставалась 40 px."""
+    for scope in (".ui-bwin", "[data-schema-panel]"):
+        assert f'{scope} :is(button, summary, select, [role="tab"], a.ui-btn)' in CSS
+    assert "по-прежнему сильнее" not in CSS
+
+
 # --- №6: ссылки витрины -------------------------------------------------------------------
 
 
