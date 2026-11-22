@@ -21,3 +21,16 @@ MIDDLEWARE = [m for m in MIDDLEWARE if "debug_toolbar" not in m]  # noqa: F405
 # Стенд хранит медиа на диске (development) — раздаёт их сам, даже если в окружении
 # задан ключ S3 (иначе картинки на стенде отдают 404).
 SERVE_MEDIA = True
+
+# FB-33 M5a: `handler404` Django зовёт только при DEBUG=False (иначе — отладочная 404), поэтому
+# стенд страницы 404 поднимает сервер с `STAND_DEBUG=0` (и `runserver --insecure` — статика).
+# Без переменной стенд прежний (DEBUG=True) — остальным стендам ничего не меняется.
+import os as _os  # noqa: E402
+
+if _os.environ.get("STAND_DEBUG") == "0":
+    DEBUG = False
+    # без DEBUG манифестное хранилище статики требует `collectstatic` — стенду хватает простого
+    STORAGES = {  # noqa: F405
+        **STORAGES,  # noqa: F405
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
