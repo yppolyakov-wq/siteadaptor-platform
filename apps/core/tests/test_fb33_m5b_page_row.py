@@ -14,6 +14,7 @@ L5 строка `__page` открыта ⇒ окно (выбранная стр�
 L6 `block=__page` у страницы без настроек — «Block wählen» (детерминированный код, не skip).
 """
 
+import ast
 import copy
 import inspect
 import re
@@ -241,25 +242,75 @@ def test_window_links_refs_keep_the_page_row_where_it_is():
 # ───────────── L3: правило — только в site_schema ─────────────
 
 
-def test_rule_lives_only_in_site_schema():
-    callers = (
-        "apps/core/site_schema_views.py",
-        "apps/core/page_window.py",
-        "apps/core/window_links.py",
-        "scripts/fb33_m3_9_owner_stand.py",
+#: L3 (ревью M5b-1): кто может звать функции правила и писать литерал `"__page"`. Решение
+#: «какая строка несёт настройки» — только `site_schema`; `aufbau_draft` берёт `setting_codes`
+#: как сам список настроек (снимок окна, проверка `set_setting`), строку — у `page_row_ref`.
+RULE_ALLOWED = {
+    "settings_carrier": {"apps/core/site_schema.py"},
+    "setting_codes": {"apps/core/site_schema.py", "apps/core/aufbau_draft.py"},
+    "design_codes": {"apps/core/site_schema.py"},
+    "__page": {"apps/core/site_schema.py"},
+}
+
+
+#: стенды держат код приложения строкой (`manage.py shell -c`) — AST её не видит, там — текстом
+RULE_TEXT = re.compile(r"\b(settings_carrier|setting_codes|design_codes)\(|[\"'](__page)[\"']")
+
+
+def _rule_uses(rel: str, src: str) -> set[str]:
+    """Имена правила, которые файл зовёт (`f(` / `x.f(`), и литерал `"__page"` (любые кавычки)."""
+    found = set()
+    if rel.startswith("scripts/"):
+        found |= {a or b for a, b in RULE_TEXT.findall(src)}
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.Call):
+            func = node.func
+            name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
+            if name in RULE_ALLOWED:
+                found.add(name)
+        elif isinstance(node, ast.Constant) and node.value == PAGE:
+            found.add("__page")
+    return found
+
+
+def _sources():
+    for path in [*ROOT.glob("apps/**/*.py"), *ROOT.glob("scripts/*.py")]:
+        rel = path.relative_to(ROOT).as_posix()
+        if "/tests/" in rel or "/migrations/" in rel:
+            continue
+        yield rel, path.read_text()
+
+
+def rule_violations(sources) -> list[str]:
+    return sorted(
+        f"{rel}: {name}"
+        for rel, src in sources
+        for name in _rule_uses(rel, src)
+        if rel not in RULE_ALLOWED[name]
     )
-    for rel in callers:
-        src = (ROOT / rel).read_text()
-        for name in ("settings_carrier(", "setting_codes(", "design_codes("):
-            assert name not in src, f"{rel}: {name} — правило `__page` повторено"
-    assert '"__page"' not in (ROOT / "apps/core/block_window.py").read_text()
-    # ревью M5b-1: окно черновика решает «чьи настройки» тем же правилом (`setting_codes` там —
-    # сам список настроек строки, не решение)
-    assert "settings_carrier(" not in (ROOT / "apps/core/aufbau_draft.py").read_text()
+
+
+def test_rule_lives_only_in_site_schema():
+    assert rule_violations(_sources()) == [], "правило строки `__page` повторено"
     tpl = (ROOT / "templates/tenant/site_schema.html").read_text()
     assert "elif page_row.active" not in tpl, "недостижимая ветка панели без окна"
     # ревью M5b-1: открытая строка `__page` — всегда выбранная строка (L5), второе условие мертво
     assert "selected or page_row.active" not in tpl
+
+
+def test_rule_scanner_sees_both_quotes_and_calls():
+    """Сканер L3 не может молчать: обе кавычки и оба вида вызова."""
+    src = "a = '__page'\nb = \"__page\"\nsite_schema.settings_carrier(c)\nsetting_codes(t, c)\n"
+    assert rule_violations([("apps/core/x.py", src)]) == [
+        "apps/core/x.py: __page",
+        "apps/core/x.py: setting_codes",
+        "apps/core/x.py: settings_carrier",
+    ]
+    shell = 'CODE = """\nhas = site_schema.design_codes(t, code)\nref = "__page"\n"""\n'
+    assert rule_violations([("scripts/x_stand.py", shell)]) == [
+        "scripts/x_stand.py: __page",
+        "scripts/x_stand.py: design_codes",
+    ], "код приложения строкой в стенде"
 
 
 # ───────────── L4: запросов не больше, чем до среза ─────────────
