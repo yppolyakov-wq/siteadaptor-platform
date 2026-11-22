@@ -37533,9 +37533,6 @@ msgstr "Остальные поля подстроятся после «Прим
 msgid "Einstellungen der Seite"
 msgstr "Настройки страницы"
 
-msgid "Darstellung, Kartenform, Textbreite"
-msgstr "Вид, форма карточки, ширина текста"
-
 msgid "gilt für alle Seiten"
 msgstr "действует на всех страницах"
 msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
@@ -40279,3 +40276,7 @@ msgstr "Вид списка – в блоке «%(name)s» › Как распо
 #, python-format
 msgid "Wie die Liste aussieht: in %(where)s"
 msgstr "Как выглядит список: в %(where)s"
+
+# FB-33 M5b-2 W2: главный список — обычная строка, плашка «Hauptliste» в окне
+msgid "Die Hauptliste lässt sich nicht ausblenden oder entfernen."
+msgstr "Основной список нельзя скрыть или удалить."

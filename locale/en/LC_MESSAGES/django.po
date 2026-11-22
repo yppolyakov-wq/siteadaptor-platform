@@ -37194,9 +37194,6 @@ msgstr "The other fields adapt after “Apply”."
 msgid "Einstellungen der Seite"
 msgstr "Page settings"
 
-msgid "Darstellung, Kartenform, Textbreite"
-msgstr "Display, card shape, text width"
-
 msgid "gilt für alle Seiten"
 msgstr "applies to all pages"
 msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
@@ -39928,3 +39925,7 @@ msgstr "List display – in the block “%(name)s” › Layout"
 #, python-format
 msgid "Wie die Liste aussieht: in %(where)s"
 msgstr "How the list looks: in %(where)s"
+
+# FB-33 M5b-2 W2: главный список — обычная строка, плашка «Hauptliste» в окне
+msgid "Die Hauptliste lässt sich nicht ausblenden oder entfernen."
+msgstr "The main list cannot be hidden or removed."

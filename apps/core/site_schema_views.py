@@ -145,9 +145,7 @@ def _old_title_link(request, tenant, code: str) -> str:
     закладка, письмо, Студия до деплоя) — адрес окна ★-строки на вкладке «Seite»; вид
     «Telefon», токен окна и язык переводов остаются, подтверждение удаления и раскрытая
     настройка — нет. У страницы без ★-строки — страница без блока. "" — ссылка не старая."""
-    from apps.core import page_title
-
-    if request.method != "GET" or request.GET.get("block") != page_title.TITLE_REF:
+    if request.method != "GET" or not site_schema.is_title_alias(request.GET.get("block")):
         return ""
     keep = {k: v for k, v in _keep(request.GET).items() if k in ("ansicht", "wopen", "sprache")}
     if site_schema.page_row_ref(tenant, code) != site_schema.PAGE_REF:
@@ -485,6 +483,7 @@ def site_schema_view(request):
     draft_info = aufbau_draft.info(request, saved, code)
     blocks = site_schema.blocks_for(config, code, host=current.host if current else None)
     host = (current.host if current else "") or ""
+    site_schema.name_main_rows(blocks, host, tenant)  # FB-33 M5b-2: «Menü-Pakete» у гастро
     # FB-27 V3 / FB-33 M5b-1 / M5b-2 (V4): настройки типа живут в ★-строке страницы
     # («Seitentitel und Seite» / «Einstellungen der Seite»), на главной — в строке «Banner»:
     # одно правило, флаг носителя — до выбора строки
@@ -619,8 +618,8 @@ def site_schema_view(request):
         # FB-33 M2i-5: полоса заявки главной и блок «Anfrage» — поля правятся в окне формы
         # страницы «Anfrage» (одна настройка на все места формы, без дубля)
         selected["form_link"] = site_schema.form_window_url()
-    # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
-    # основного списка — на строке «Einstellungen der Seite» (`page_ref` выше).
+    # FB-27 R4 / FB-33 M5b-2: настройки типа страницы — на ★-строке страницы (`page_ref`
+    # выше), у главной — на строке «Banner».
     page_row, settings, design_rows = None, [], []
     if page_ref == site_schema.PAGE_REF:
         star = page_window.pseudo_row(page_ref, page_ref, host, config)

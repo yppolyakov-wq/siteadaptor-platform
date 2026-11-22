@@ -131,7 +131,7 @@ def list_links(selected, blocks: list[dict], page_ref: str, host: str) -> None:
         return
     if is_page_row(selected) and main_has_view(main):
         selected["list_link"] = {
-            "name": str(main.get("label") or "").removeprefix("★ "),
+            "name": str(main.get("label") or ""),
             "ref": main["ref"],
             "tab": "wie",
         }

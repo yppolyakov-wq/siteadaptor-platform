@@ -32,8 +32,6 @@ from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замки до кода (strict xfail): снимаются кодом W2
-TODO = pytest.mark.xfail(strict=True, reason="FB-33 M5b-2 W2: до кода")
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 LANGS = ("de", "en", "ru", "tr", "uk")
@@ -93,7 +91,6 @@ def _row(html: str, ref: str) -> tuple[str, str]:
 # ───────────── имя главного списка ─────────────
 
 
-@TODO
 def test_main_list_name_is_source_label():
     """A-M3: имя = `source_label` источника хоста; свои — только Team/Galerie/Merkzettel/
     Lookbook; оракул покрывает ровно `MAIN_LIST_HOSTS`; хосты категории и группы акций — по
@@ -115,7 +112,6 @@ def test_main_list_name_is_source_label():
         assert site_schema.main_list_name("combos", _tenant("online_shop")) == "Sets & Pakete"
 
 
-@TODO
 def test_main_row_label_in_screen_gastro():
     """«Menü-Pakete» у гастро — подпись ставит вьюха (у `blocks_for` тенанта нет)."""
     html = Browser(_tenant("restaurant")).get("?seite=combos")
@@ -123,13 +119,14 @@ def test_main_row_label_in_screen_gastro():
     assert ">Menü-Pakete</span>" in inner
 
 
-@TODO
 @pytest.mark.parametrize(("bt", "code", "name"), [
     ("friseur", "services", "Leistungen"),
     ("online_shop", "catalog", "Produkte"),
     ("online_shop", "promos", "Aktionen"),
     ("hotel", "stays", "Zimmer"),
-    ("friseur", "team", "Team"),
+    ("friseur", "gallery", "Fotos"),
+    ("online_shop", "wishlist", "Merkzettel"),
+    ("friseur", "reviews", "Bewertungen"),
 ])  # fmt: skip
 def test_main_row_is_plain_row(bt, code, name):
     """Y-L5: имя без ★ и без «Hauptliste»; сводка «Hauptliste[ · <вид>]»; покраски индиго нет
@@ -146,7 +143,6 @@ def test_main_row_is_plain_row(bt, code, name):
     assert "border-gray-500 bg-white" in tag
 
 
-@TODO
 def test_main_row_summary_names_current_view():
     """Вид — из уже заполненных `mainview` (второго списка видов нет)."""
     tenant = _tenant("online_shop")
@@ -162,7 +158,6 @@ def test_main_row_summary_names_current_view():
     assert next(b for b in services if b.get("main"))["summary"] == "Hauptliste"
 
 
-@TODO
 def test_no_star_literal_in_row_labels():
     """Ни одна подпись строки схемы не несёт ★ (★ есть только у строки страницы `__page`,
     в шаблоне, скрытой от чтения); в коде подписей нет литерала «★ »."""
@@ -181,7 +176,6 @@ def test_no_star_literal_in_row_labels():
 # ───────────── окно главного списка: плашка «Hauptliste» ─────────────
 
 
-@TODO
 @pytest.mark.parametrize(("bt", "code"), [("friseur", "services"), ("online_shop", "catalog")])
 def test_main_row_badge_text(bt, code):
     """Y-M4: видимая плашка «Hauptliste» текстом и причина «нельзя скрыть»; у других строк и у
@@ -197,7 +191,6 @@ def test_main_row_badge_text(bt, code):
     assert "Die Hauptliste lässt sich" not in page
 
 
-@TODO
 def test_star_row_labels_ru():
     """Имена и плашка — переводы по ключу (свежие `.mo`), тенант de+ru."""
     tenant = _tenant(locales=["de", "ru"])
@@ -218,7 +211,6 @@ def _po(lang):
     return polib.pofile(str(ROOT / "locale" / lang / "LC_MESSAGES" / "django.po"))
 
 
-@TODO
 @pytest.mark.parametrize("lang", LANGS)
 def test_new_msgids_in_all_po(lang):
     po = _po(lang)
@@ -231,7 +223,6 @@ def test_new_msgids_in_all_po(lang):
             assert entry.msgstr != msgid, (lang, msgid)
 
 
-@TODO
 def test_m5b2_dead_code():
     """№4: `title_row` снят; `TITLE_REF` читают только псевдоним (`site_schema.page_ref`,
     переименование ключей старой сессии `aufbau_draft._rename_legacy_title`), его определение
@@ -248,7 +239,7 @@ def test_m5b2_dead_code():
         if "tests" in path.parts or "migrations" in path.parts:
             continue
         text = path.read_text(encoding="utf-8")
-        assert "title_row(" not in text, path
+        assert not re.search(r"\btitle_row\(", text), path
         assert not re.search(r"\bdef title_row\b", text), path
         if "TITLE_REF" in text:
             seen.add(path.relative_to(ROOT).as_posix())

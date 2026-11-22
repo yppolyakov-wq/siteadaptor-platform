@@ -826,7 +826,7 @@ def _window_has_title(host: str, ref: str) -> bool:
     после слияния) ★-строка страницы с заголовком."""
     from apps.core import page_title
 
-    if ref == site_schema.TITLE_REF:
+    if site_schema.is_title_alias(ref):
         return True
     return ref == site_schema.PAGE_REF and host in page_title.HEAD_HOSTS
 
@@ -1042,7 +1042,7 @@ def op(
     elif _m36_edit(host, ref, op_name, fields):
         # FB-33 M3-6: SEO страницы, вид категории, «Wo zeigen», закреплённые правовые строки
         ref = _m36_op(request, config, draft, code, host, saved, op_name, ref, fields, notes)
-    elif asked == site_schema.TITLE_REF:
+    elif site_schema.is_title_alias(asked):
         # FB-33 M2d: «Seitentitel» — не строка `page_blocks`: тексты и вид — в черновике
         ref = site_schema.title_op(host, draft, op_name, fields)
     elif site_schema.is_next_edit(host, ref, op_name):

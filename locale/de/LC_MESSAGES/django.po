@@ -37281,9 +37281,6 @@ msgstr "Die weiteren Felder passen sich nach „Übernehmen“ an."
 msgid "Einstellungen der Seite"
 msgstr "Einstellungen der Seite"
 
-msgid "Darstellung, Kartenform, Textbreite"
-msgstr "Darstellung, Kartenform, Textbreite"
-
 msgid "gilt für alle Seiten"
 msgstr "gilt für alle Seiten"
 msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
@@ -40015,3 +40012,7 @@ msgstr "Darstellung der Liste – im Block „%(name)s“ › Wie anordnen"
 #, python-format
 msgid "Wie die Liste aussieht: in %(where)s"
 msgstr "Wie die Liste aussieht: in %(where)s"
+
+# FB-33 M5b-2 W2: главный список — обычная строка, плашка «Hauptliste» в окне
+msgid "Die Hauptliste lässt sich nicht ausblenden oder entfernen."
+msgstr "Die Hauptliste lässt sich nicht ausblenden oder entfernen."

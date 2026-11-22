@@ -1,7 +1,7 @@
 """FB-25: «Website › Seitenaufbau» — схема блоков каждого типа страницы витрины.
 
 Чтение: типы страниц реестра Студии (`studio_pages.PAGE_TYPES`), у каждого — список блоков
-(главная — `sections`, прочие — `page_blocks[<хост>]` с маркером «★ Hauptliste»).
+(главная — `sections`, прочие — `page_blocks[<хост>]` с маркером основного списка `main`).
 Правка (FB-25b, решение владельца 2026-11-07): показать/скрыть, выше/ниже, удалить, добавить
 блок. Пишет ТОЛЬКО `sections` или один хост `page_blocks` (targeted-write W9-3) под
 блокировкой строки тенанта; переводы C-блоков выравниваются по личности блока
@@ -1238,7 +1238,6 @@ def blocks_for(
         else:
             items = siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host))
     out = []
-    main_label = _("Hauptliste")  # не внутри f-строки: xgettext её не извлекает
     names = width_names()
     for item in items:
         key = item.get("key", "")
@@ -1249,7 +1248,8 @@ def blocks_for(
             {
                 "ref": item.get("id") or key,
                 "key": key,
-                "label": f"★ {main_label}"
+                # FB-33 M5b-2: главный список — по содержимому (`main_list_name`)
+                "label": main_list_name(host)
                 if main
                 else _detail_label(host, item) or _sections_label(key),
                 "enabled": True if main else bool(item.get("enabled", True)),
@@ -1309,6 +1309,8 @@ def blocks_for(
         ):
             # FB-31 P3: страницы акций — те же плитки вида у закреплённых строк и ★
             out[-1].update(_part_view_panel(config, host, item, main))
+        if main:
+            out[-1]["summary"] = main_list_summary(out[-1])
     from apps.core import detail_parts as _dp
 
     if _dp.has_kauf(host or ""):  # FB-32 S4/S6a: у корзины и текстовых страниц покупки нет
@@ -1576,25 +1578,71 @@ def title_hint_at(host: str, blocks: list[dict]) -> int | None:
     return at if any(b.get("enabled") for b in blocks[:at]) else None
 
 
-def title_row(config: dict, host: str) -> dict:
-    """Строка схемы «Seitentitel» (до FB-33 M5b-2): неподвижная, не скрывается; поля — тексты
-    и вид. В схеме её больше нет (W2 снимает функцию)."""
-    from apps.core import page_title
+#: FB-33 M5b-2 (решение владельца 2026-11-22): источник блока «Liste» той же сущности, что
+#: главный список хоста, — там, где хост не совпадает с ключом встроенного списка
+#: (`siteconfig.BUILTIN_LIST_SOURCES`). Имя берёт `list_blocks.source_label`.
+_MAIN_LIST_SOURCES = {
+    "catalog": "products",
+    "category": "products",
+    "promos": "promotions",
+    "promo_group": "promotions",
+    "combos": "combos",
+    "reviews": "reviews",
+}
+#: У этих списков блока «Liste» своей сущности нет — своё имя.
+_MAIN_LIST_OWN_NAMES = {
+    "team": gettext_lazy("Team"),
+    "gallery": gettext_lazy("Fotos"),
+    "wishlist": gettext_lazy("Merkzettel"),
+    "lookbook": gettext_lazy("Looks"),
+}
 
-    entry = page_title.clean_one((config.get("page_titles") or {}).get(host))
-    return {
-        "ref": TITLE_REF,
-        "key": "page_title",
-        "label": str(_("Seitentitel")),
-        "enabled": True,
-        "main": False,
-        "cblock": False,
-        "fixed": True,
-        "pinned": True,
-        "style_only": False,
-        "summary": entry.get("title") or str(_("Standard")),
-        "fields": title_fields(config, host),
-    }
+
+def _main_list_host(host: str) -> str:
+    """Хост категории и группы акций — по префиксу (`catalog:<slug>`, `promo_group:<md5>`)."""
+    from apps.tenants import siteconfig
+
+    if host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
+        return "category"
+    if siteconfig.is_promo_group_host(host):
+        return "promo_group"
+    return host
+
+
+def main_list_name(host, tenant=None) -> str:
+    """FB-33 M5b-2: имя главного списка страницы `host` — как у блока «Liste» той же сущности
+    (`list_blocks.source_label`: «Leistungen», «Blog», «Produkte»…), у наборов — по типу
+    бизнеса `tenant` («Menü-Pakete» у гастро; без тенанта — общее имя). Своего списка имён
+    нет; у Team, Galerie, Merkzettel, Lookbook источника «Liste» нет — своё имя. "" — у
+    страницы основного списка нет."""
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    if not isinstance(host, str) or not siteconfig.has_main_list(host):
+        return ""
+    base = _main_list_host(host)
+    if base in _MAIN_LIST_OWN_NAMES:
+        return str(_MAIN_LIST_OWN_NAMES[base])
+    source = _MAIN_LIST_SOURCES.get(base) or siteconfig.BUILTIN_LIST_SOURCES.get(base, "")
+    return list_blocks.source_label(source, tenant) if source else ""
+
+
+def main_list_summary(row: dict) -> str:
+    """Сводка строки главного списка: «Hauptliste» и текущий вид из уже заполненных плиток
+    вида (`mainview`; второго списка видов нет). Разделитель — в сводке, не в имени."""
+    view = row.get("mainview") or {}
+    current = next(
+        (str(lab) for v, lab, *_rest in view.get("choices") or () if v == view.get("value")), ""
+    )
+    return f"{_('Hauptliste')} · {current}" if current else str(_("Hauptliste"))
+
+
+def name_main_rows(blocks: list[dict], host, tenant) -> None:
+    """Имя главного списка с учётом типа бизнеса (наборы у гастро): у `blocks_for` тенанта
+    нет — вьюха и Студия зовут это после неё."""
+    for b in blocks:
+        if b.get("main") and not b.get("cblock") and b.get("ref") != PAGE_REF:
+            b["label"] = main_list_name(host, tenant) or b.get("label", "")
 
 
 #: FB-33 M2h-5: «Was passiert jetzt» подтверждения — свой текст правится на строке раздела
@@ -1756,6 +1804,12 @@ def page_ref(ref: str) -> str:
     return PAGE_REF if ref == TITLE_REF else ref
 
 
+def is_title_alias(ref) -> bool:
+    """Старый ref строки «Seitentitel» (`__title`), который читается как ★-строка страницы
+    (`page_ref`): правка, окно и ссылки идут в её окно, на вкладку «Seite»."""
+    return isinstance(ref, str) and page_ref(ref) != ref
+
+
 def is_page_title_edit(ref: str, fields) -> bool:
     """FB-33 M5b-2: правка «Seitentitel» на ★-строке страницы — по присланным полям заголовка
     (`TITLE_FIELDS`; SEO окна — `seo_*`). Пишет её тот же `title_op`, чужой хост — отказ."""
@@ -1767,16 +1821,14 @@ def is_page_title_edit(ref: str, fields) -> bool:
 
 
 def is_title_row(selected: dict | None, host: str | None = None) -> bool:
-    """FB-33 M5b-2: строка окна несёт поля «Seitentitel» — старая строка `__title` (ключ
-    `page_title`) или ★-строка `PAGE_REF` с полями заголовка на странице из
-    `page_title.HEAD_HOSTS` (`host=None` — хост не проверяется: поля заголовка строке даёт
-    только такая страница). Один предикат для потолков ввода и пунктов «Ausrichtung»."""
+    """FB-33 M5b-2: строка окна несёт поля «Seitentitel» — ★-строка `PAGE_REF` с полями
+    заголовка на странице из `page_title.HEAD_HOSTS` (`host=None` — хост не проверяется: поля
+    заголовка строке даёт только такая страница; строки «Seitentitel» в схеме больше нет).
+    Один предикат для потолков ввода и пунктов «Ausrichtung»."""
     from apps.core import page_title
 
     if not selected or selected.get("cblock"):
         return False
-    if selected.get("key") == "page_title":
-        return True
     return (
         selected.get("ref") == PAGE_REF
         and (host is None or host in page_title.HEAD_HOSTS)
@@ -2578,10 +2630,7 @@ def _catalog_view_panel(config: dict, host: str, item: dict, main: bool) -> dict
     parts = catalog_parts.effective(rows_cfg, host, code=_catalog_code(config, host))
     if main:
         value = parts.products if parts.products in MAIN_VIEW_CHOICES else "raster"
-        return {
-            "label": f"★ {_('Produkte')}",
-            "mainview": {"value": value, "choices": MAIN_VIEW_LABELS},
-        }
+        return {"mainview": {"value": value, "choices": MAIN_VIEW_LABELS}}
     key = item.get("key")
     if key in PART_VIEW_CHOICES:
         label, choices = PART_VIEW_CHOICES[key]
@@ -2826,7 +2875,6 @@ def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
         parts = pp.effective(surface, config, host, code=_promo_code(config, host))
     if main and surface.name == "promo_group":
         return {
-            "label": f"★ {_('Aktionen')}",
             "mainview": {
                 "value": parts.view or "raster",
                 "choices": PROMO_GROUP_MAIN_CHOICES,
@@ -2837,7 +2885,6 @@ def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
         if surface.name != "promos":
             return {}
         return {
-            "label": f"★ {_('Aktionen')}",
             "mainview": {
                 "value": parts.view or "raster",
                 "choices": PROMO_MAIN_CHOICES,
@@ -2903,9 +2950,7 @@ def _section_view_panel(config: dict, host: str, main: bool) -> dict:
     ) + tuple(
         (v, siteconfig.SECTION_STYLE_LABELS.get(v, v), "", "") for v in surface.axis("view").values
     )
-    label = _("Team") if host == "team" else _("Fotos")
     return {
-        "label": f"★ {label}",
         # шаблона Студии у этих страниц нет — подсказка про «Seitenvorlage» не нужна
         "mainview": {
             "value": value,
@@ -3962,7 +4007,7 @@ def apply(
     _pt, host, home = resolve(tenant, code)
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
-    if ref == TITLE_REF or is_page_title_edit(ref, fields):
+    if is_title_alias(ref) or is_page_title_edit(ref, fields):
         from apps.core import aufbau_draft
 
         draft = {"title": (config.get("page_titles") or {}).get(host) or {}}

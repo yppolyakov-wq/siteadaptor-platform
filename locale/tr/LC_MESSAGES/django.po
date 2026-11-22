@@ -37340,9 +37340,6 @@ msgstr "Diğer alanlar “Uygula”dan sonra uyum sağlar."
 msgid "Einstellungen der Seite"
 msgstr "Sayfa ayarları"
 
-msgid "Darstellung, Kartenform, Textbreite"
-msgstr "Görünüm, kart biçimi, metin genişliği"
-
 msgid "gilt für alle Seiten"
 msgstr "tüm sayfalar için geçerlidir"
 msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
@@ -40074,3 +40071,7 @@ msgstr "Liste görünümü – „%(name)s“ bloğunda › Düzen"
 #, python-format
 msgid "Wie die Liste aussieht: in %(where)s"
 msgstr "Listenin görünümü: %(where)s içinde"
+
+# FB-33 M5b-2 W2: главный список — обычная строка, плашка «Hauptliste» в окне
+msgid "Die Hauptliste lässt sich nicht ausblenden oder entfernen."
+msgstr "Ana liste gizlenemez veya kaldırılamaz."
