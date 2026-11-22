@@ -15,6 +15,17 @@
 
 ## 1. Открыто сейчас (сводка на 2026-11-13)
 
+### Решения владельца стопки 8 (2026-11-22)
+Решено (FB-33, стопка 8 M5a / M2i-6 / M3-9c, владелец 2026-11-22):
+- **Состав стопки 8:** M5a + M2i-6 + M3-9c («делай по рекомендации»).
+- **Пресет корзины (M2i-6):** только режимы полей и подпись заметки, без своих вопросов; bakery / cafe / restaurant / butcher — телефон «Pflicht», «Allergien / Wünsche»; существующие бизнесы не трогаем.
+- **«Suche» на 404:** поле поиска там, где у витрины есть адрес поиска; у остальных — плитки разделов и кнопка на главную.
+- **M5 разбит:** M5a (сделан) → M5b слияние ★-строк и вынос правила `__page` → M5c схема M0-0 → M5d обход типов и блоки без окна.
+По рекомендации плана — подтвердить (стопка 8):
+- «Liste» и блоки-формы на 404 запрещены.
+- `/media/`, `/static/` и закрытая (неопубликованная) витрина получают простую 404.
+- Нетронутый пресет корзины уходит вместе с типом бизнеса; правленный владельцем остаётся.
+
 ### Решения владельца стопки 7 (2026-11-21, по рекомендации плана — подтвердить)
 - Срок автоотмены брошенных онлайн-заказов без e-mail — 24 ч (`ORDERS_ABANDONED_HOURS`, общий для всех бизнесов). Принято по рекомендации.
 - Телефон заказ не держит: заказ с телефоном, но без e-mail, отменяется так же (напоминание уходит только по e-mail).
@@ -191,6 +202,7 @@ LLM-режим Finder, SSE для чата.
 
 ## 2. Ops владельцу (сводка; выполнено ли — не подтверждено, если не сказано иначе)
 
+- FB-33 стопка 8 (2026-11-22): миграций нет — обычный `git pull origin main && ./scripts/deploy.sh single`; пересев демо не нужен. Неизвестные адреса витрин отвечают страницей с блоками (код 404 прежний).
 - FB-33 стопка 7 (2026-11-21): миграций нет. Деплой — `git pull origin main && ./scripts/deploy.sh single` (первый раз — уже новым сценарием; одной командой без pull — старым, см. `fb33-next-2026-11-20.md` §2). Новая настройка `ORDERS_ABANDONED_HOURS` (по умолчанию 24). Первый проход после деплоя отменит висящие неоплаченные онлайн-заказы без e-mail старше срока — ожидаемо. Новая beat-задача: перезапуск worker/beat делает `deploy.sh`. Деплой и пересев демо ждут друг друга через блокировку до 15 мин (`OPS_LOCK_TIMEOUT`).
 - FB-33 стопка 4 (2026-11-21): миграций нет — обычный `deploy.sh single`.
 - FB-33 стопка 3 (2026-11-20): миграции `catalog/0046_fb33_product_faq`, `stays/0049_fb33_unit_faq`
@@ -505,6 +517,16 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
   (`overlay/_put_form`, `_snapshot`, `commit`, `form_state(form=)`). Новая форма с вкладкой — одна строка здесь и поля в `form_spec.FORMS`.
 - `apps/core/checkout_window.py` `hints()` (FB-33 C5) — подсказки вкладки корзины: `email` (при Stripe, под полем `ff-email-pay-hint`), `table` (признак — модуль `orders`). Второго списка подсказок не заводить.
 
+- `apps/core/not_found_page.py` (FB-33 M5a) — хост блоков `not_found`: `HOST`, `DEFAULT_ROWS` (умолчание «Suche» `nf-search` + «Beliebt» `nf-popular` — постоянные id; подписи через gettext при показе), `FORM_BLOCKS` (блоки-формы на 404 запрещены).
+
+- `apps/core/not_found_views.storefront_404` (FB-33 M5a) — `handler404` витрины (`config/urls_tenant.py`); три рубежа: страница с блоками → простая `templates/404.html` → ответ без шаблона. Страница с блоками — только открытой витрине для посетителя (GET/HEAD, без `HX-Request`, вне кабинета, `/media/`, `/static/`); код 404, `noindex`, без canonical и JSON-LD, по умолчанию без cookie; одна запись error на бизнес за 10 минут.
+
+- `hero_tiles.BLOCK_LINK_SETS` / `menu_tiles` / `link_set_options` (FB-33 M5a) — набор «Hauptmenü» (`MENU_SET`) у блока «Schnellzugriff»; `menu_tiles` — верхний уровень `storefront_menu` контекста (до 8, второй `resolve_menu` не звать); `link_set_options` — варианты окна.
+
+- `block_catalog.offered_on` (FB-33 M5a) — где блок предлагается в «+ Block» (`LibraryEntry.only`); блок «Suche» — только на хосте `not_found`.
+
+- `form_spec.apply_preset` (FB-33 M2i-6) — кнопка «Branchen-Vorlage laden» корзины; запись только через `form_spec.put`, в окне — через черновик.
+
 ### apps/tenants
 
 - `apps/tenants/archetype_pages.py` — контент Branchen-страниц.
@@ -527,6 +549,10 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 - `apps/tenants/sitetemplates.py` — `LOOK_FAMILIES`, `ARCHETYPE_LOOK_ACCENTS`, `apply_look`/`looks_for`, общая `_apply`-база (ST-1)
 - `apps/tenants/templatetags/siteui.py::sf_grid_attrs` — единственное место правила «раскладка владельца сильнее литерала» (LAY-7).
 - apps/tenants/tests/test_demo_menus.py — замок «меню кита как данные»; apps/core/tests/test_nav_reachability.py — достижимость экранов.
+
+- `siteconfig.banned_blocks(host)` (FB-33 M5a) — один вопрос «какие блоки запрещены на хосте» для normalize, показа и «+ Block»; `FORMLESS_HOSTS` — блоки-формы (подтверждение; на 404 — ещё и «Liste»).
+
+- `siteconfig.KEEP_EMPTY_HOSTS` / `page_rows` (FB-33 M5a) — пустой ключ `page_blocks["not_found"]` хранится («задано пусто» ≠ «не задано»); `page_rows` считает умолчание (ключа нет → «Suche» + «Beliebt»), витрина читает через неё же.
 
 ### apps/catalog
 
@@ -608,9 +634,11 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 
 ### apps/jobs
 
-- `apps/jobs/anfrage_presets.py` `preset_for(business_type, form="anfrage")` (FB-33 C5) — пресеты формы заявки; для корзины (`form="checkout"`) — {} (место под M2i-6).
+- `apps/jobs/anfrage_presets.py` `preset_for(business_type, form="anfrage")` (FB-33 C5; стопка 8 — реестр на обе формы, см. ниже) — пресеты формы заявки; для корзины (`form="checkout"`) — {} (место под M2i-6).
 - apps/jobs/services.py (`commit_stock`/`release_stock`) — резерв склада из сметы.
 - apps/jobs/totals.py (`quote_totals`) — итоги сметы для карточки/PDF/публичной страницы/счёта.
+
+- `apps/jobs/anfrage_presets.PRESETS` / `preset_for(business_type, form, locales)` / `with_default(..., previous_type=)` (FB-33 M2i-6) — один реестр пресетов полей заявки и корзины (bakery, butcher, cafe, restaurant); кладётся при создании бизнеса и смене типа только при отсутствующем ключе `form_fields.checkout`; нетронутый пресет прежнего типа уходит с типом.
 
 ### apps/finance
 
@@ -696,10 +724,16 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 - `scripts/i18n_gap.py` — CI-гейт покрытия .po (I18N-9)
 - scripts/i18n_untranslated.py + locale/i18n-untranslated-baseline.json, scripts/i18n_status.py, .claude/hooks/i18n-watch.sh, .githooks/pre-commit — сторож непереведённого.
 
+- `scripts/fb33_m5a_404_stand.py` (FB-33 M5a) — стенд страницы 404 через `standlib` (1440/390, de/ru, с JS и без); сервер — с `STAND_DEBUG=0` (`config/settings/stand.py`); при DEBUG=True `handler404` не вызывается.
+
+- `scripts/fb33_m39c_targets_stand.py` (FB-33 M3-9c) — стенд целей касания: окно (кнопки панели без JS ≥ 44 px) и витрина (цели ≥ 24 px).
+
 ### static
 
 - `static/demo/photos/SOURCES.md` — провенанс демо-фото.
 - `static/js/aufbau_preview.js` (FB-33 M3-7) — ЕДИНСТВЕННЫЙ строитель кадра «Vorschau» в окне блока; слушает `aufbau:window-open`, `aufbau:window-close`, `aufbau:saved` из `aufbau.js` (второго слушателя не заводить).
+
+- `static/src/app.css` — правило панели блока без JS (FB-33 M3-9c): `[data-schema-panel] :is(button, summary, select, [role="tab"], a.ui-btn)` — не ниже 44 px; единственное место размера кнопок окна без скриптов, шаблоны `_bw_*` не трогаем.
 
 ### templates
 

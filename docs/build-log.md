@@ -24646,6 +24646,37 @@ security/silent-failure): тупик в двусторонних прятках,
 - Миграций в стопке нет. Гейт срезов: ruff, `i18n_quickcheck`, `template_comments`, `bash -n scripts/deploy.sh`; полный прогон — только CI (правило владельца 2026-11-21).
 - Деплой — `git pull origin main && ./scripts/deploy.sh single` (первый раз — уже новым сценарием). Ops — `fb33-next-2026-11-20.md` §2.
 
+### 2026-11-22 — FB-33 M5a: страница 404 витрины с блоками (хост `not_found`)
+- Срез от main `e128b83` в ветке `claude/vigilant-davinci-9yhp1e`. Замки до кода — `apps/core/tests/test_fb33_m5a_not_found.py`; план и ревью плана (planner, R1–R8) — `docs/fb33-stack8-plan-2026-11-22.md`, §4.
+- `apps/core/not_found_page.py` — хост блоков `not_found`: умолчание «Suche» (`nf-search`) и «Beliebt» (`nf-popular`) с постоянными id, подписи — через gettext при показе, текста в данных нет. Ключа `page_blocks["not_found"]` нет → умолчание; ключ пуст → пусто (пустой ключ хранится: `siteconfig.KEEP_EMPTY_HOSTS`, умолчание считает `siteconfig.page_rows`). Блоки-формы и «Liste» на 404 запрещены — один вопрос `siteconfig.banned_blocks(host)` для normalize, показа и «+ Block»; `FORMLESS_HOSTS`.
+- Блок «Suche» `site_search` — GET-форма на адрес поиска витрины; поле показывается там, где адрес поиска есть, у остальных — плитки разделов и кнопка на главную. В «+ Block» блок предлагается только на хосте 404 (`block_catalog.offered_on`). Набор «Hauptmenü» у блока «Schnellzugriff» — `hero_tiles.BLOCK_LINK_SETS`; плитки — верхний уровень `storefront_menu` контекста (`menu_tiles`, до 8, второй `resolve_menu` не звать); варианты окна — `hero_tiles.link_set_options`.
+- `config/urls_tenant.py`: `handler404` = `apps/core/not_found_views.py::storefront_404`. Три рубежа: страница с блоками → простая `templates/404.html` → ответ без шаблона. Страница с блоками — только посетителю открытой витрины (тенант есть, схема не `public`, не портал, GET/HEAD, без `HX-Request`, вне кабинета, `/media/` и `/static/`); иначе прежняя страница. Код 404, `noindex`, без canonical и JSON-LD (в `_base.html` появился `{% block localbusiness %}`), страница по умолчанию cookie не ставит и с любыми блоками сессию не пишет. Одна запись error на бизнес за 10 минут, без сырого пути.
+- Тип страницы «Seite nicht gefunden» (группа «Sonstiges») — в «Seitenaufbau»; превью `storefront-404-vorschau` (`/seite-nicht-gefunden/vorschau/`), только команде. Миграций нет, `SEEDER_VERSION` 24 без изменений.
+- Ревью: planner (план), django-reviewer, security-reviewer, seo-specialist, silent-failure-hunter. Правки ревью в срезе: третий рубеж (ответ без шаблона), проверка витрины под защитой, одна запись лога на бизнес, «Liste» на 404 запрещён, ориентир поиска назван, один robots-тег у демо, эталон окна 404.
+- Стенд `scripts/fb33_m5a_404_stand.py` (standlib, 1440/390, de/ru, с JS и без): 275 ✓ / 0 ✗. Сервер — с `STAND_DEBUG=0` (при DEBUG=True `handler404` не вызывается). После правок ревью стенд повторён на собранной стопке полностью — 275 ✓ / 0 ✗.
+
+### 2026-11-22 — FB-33 M2i-6: пресет полей корзины по типу бизнеса
+- Один реестр `apps/jobs/anfrage_presets.PRESETS` для заявки и корзины (снят `if form != "anfrage"`). bakery, butcher, cafe, restaurant: телефон «Pflicht», подпись заметки «Allergien / Wünsche» с переводом на языки бизнеса (`labels_i18n`). Остальные типы пресета не получают.
+- `anfrage_presets.preset_for(business_type, form, locales)`, `with_default(..., previous_type=)`; `form_spec.apply_preset` — кнопка «Branchen-Vorlage laden» корзины; в окне — через черновик («Abbrechen» откатывает); запись только через `form_spec.put`.
+- Создание бизнеса (`tenants/services.py`) и смена типа (`core/setup_steps.py`) кладут пресет только при ОТСУТСТВУЮЩЕМ ключе `form_fields.checkout` (пустой ключ — «задано», не трогаем). Нетронутый пресет прежнего типа уходит вместе с типом; правленный владельцем остаётся. Существующие бизнесы не трогаются, переноса нет.
+- Заказ к столику (`?tisch=`) проходит без телефона. Замок `test_fb33_m2i34_c5_window.py::test_1c_presets_for_checkout_are_empty` перевёрнут осознанно; стыковой замок — `apps/core/tests/test_fb33_m2i6_checkout_preset.py`.
+- Ревью: django-reviewer, silent-failure-hunter. Правка ревью — нетронутый пресет уходит с типом (`previous_type`), докстринг про пустой ключ.
+
+### 2026-11-22 — FB-33 M3-9c: цели касания (№4 кнопки окна без JS, №6 мелкие цели витрины)
+- №4: кнопки панели блока без JS — 44 px одним правилом CSS на обёртке панели (`static/src/app.css`: `[data-schema-panel] :is(button, summary, select, [role="tab"], a.ui-btn)`). Шаблоны `_bw_*` и эталоны окна не тронуты; исключение кнопки «Felder» из стенда C5 снято.
+- №6: цели витрины ≥ 24 px — подвал (`_base.html`), «Alle anzeigen →» и другие ссылки «… →» (секции главной, `_shelves.html`, `promotions_list.html`, `_service_slots_box.html`), стрелки дня и месяца (`_booking_calendar.html`), «+ Mehr hinzufügen» (`cart.html`), «Herunterladen», «📅 Kalender», «💬 …». Точка слайдера — кнопка 24×24 с точкой 8 px (`sf-slider-dot`); точки фото карточки (`<i>`) — не цель, не трогаем.
+- Точки слайдера обновляются на месте (фокус не теряется) и несут `aria-current`; активная точка видна и в тёмной теме.
+- Эталоны витрины пересняты: 126 файлов, 11 наборов; в диффе — только классы минимальной цели.
+- Замки `apps/core/tests/test_fb33_m39c_targets.py`; стенд `scripts/fb33_m39c_targets_stand.py`: окно 0 ✗; витрина 1070 ✓ / 0 ✗. Ревью: a11y-architect (правки — точки слайдера, фокус, тёмная тема).
+
+### 2026-11-22 — FB-33: сборка стопки 8 (M5a → M2i-6 → M3-9c)
+- Три среза от main `e128b83` в ветке `claude/vigilant-davinci-9yhp1e`. Верхушка: `("cart","form")` и `("not_found","nf-popular")` в матрице окна M3-0 (`test_fb33_m3_window_before.py::CASES`), эталоны окна пересняты (тип «Seite nicht gefunden» в выборе «Seitentyp»; набор «Hauptmenü» у плиток), якоря срезов сняты из `.po`.
+- Миграций нет, `SEEDER_VERSION` 24 не менялся. Деплой — `git pull origin main && ./scripts/deploy.sh single`; пересев демо не нужен.
+- Видимое для посетителя: неизвестные адреса витрин отвечают страницей с блоками (код 404 прежний); новые гастро-бизнесы стартуют с телефоном в корзине; существующие не меняются.
+- Решения владельца 2026-11-22 — `project-memory.md` §1. M5 разбит: M5a сделан → M5b → M5c → M5d.
+- Недоиграно: полный обход владельца (`scripts/fb33_m3_9_owner_stand.py`) на верхушке не гонялся; стенд целей `fb33_m39c_targets_stand.py` после правок ревью повторён только частью «витрина» на 390 / de (283 ✓ / 0 ✗), стенд окна `fb33_m3_window_stand.py` на верхушке не гонялся; бизнес без адреса поиска в браузере не открывался; Firefox и Safari руками не проверялись.
+
+
 ## 2026-11-21 — T-13 стопка A: единый гейт, проектные скиллы, чистка правил ECC (без миграций, код приложения не тронут)
 
 - **T-13.0** — копия общих правил ECC (`.claude/rules/ecc/`, 16 файлов) снята: каталог правил 29 → 8,4 КБ на каждую
