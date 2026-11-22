@@ -228,6 +228,20 @@ _SEARCH_ROUTES = {
     "stays": "storefront-unterkunft",
     "events": "storefront-events",
 }
+#: FB-33 M5a-2: листинги, чья выдача по `?q=` вне индекса (`noindex,follow`, без canonical) —
+#: производные от реестра поиска шапки плюс «Nur Aktionen» и категория (решение владельца)
+SEARCH_NOINDEX_ROUTES = frozenset(_SEARCH_ROUTES.values()) | {
+    "storefront-aktionen",
+    "storefront-category",
+}
+
+
+def _search_noindex(request) -> bool:
+    """Выдача поиска листинга: маршрут из `SEARCH_NOINDEX_ROUTES` и непустой `?q=`."""
+    rm = getattr(request, "resolver_match", None)
+    if getattr(rm, "url_name", None) not in SEARCH_NOINDEX_ROUTES:
+        return False
+    return bool((request.GET.get("q") or "").strip())
 
 
 def _primary_search_module(tenant) -> str | None:
@@ -624,6 +638,8 @@ def modules_nav(request):
         "storefront_nav_cta": storefront_nav_cta,
         # DS-6: поиск в шапке ("" = иконки нет).
         "storefront_search_url": storefront_search_url,
+        # M5a-2: выдача поиска по `?q=` — `noindex,follow` без canonical (`_base.html`)
+        "storefront_search_noindex": _search_noindex(request),
         # DS-7b: активна ли продажа (orders) — при ней цены в меню скрывать
         # нельзя (PAngV), тумблер menu_show_prices игнорируется рендером.
         "storefront_orders_active": modules.is_module_active(tenant, "orders"),

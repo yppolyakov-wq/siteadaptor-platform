@@ -42,8 +42,6 @@ LISTING_ROUTES = (
     "storefront-events",
 )
 ROBOTS = re.compile(r'<meta name="robots"')
-#: замок нового поведения — красный до коммита, который его даёт (снимается там же)
-XFAIL = pytest.mark.xfail(strict=True, reason="M5a-2: поведение — в коммите кода")
 
 
 @pytest.fixture(autouse=True)
@@ -466,7 +464,6 @@ def _listing_html(tenant, route, params=None):
     return _listing(tenant, route, params, **kw)
 
 
-@XFAIL
 def test_noindex_routes_derive_from_search_registry():
     from apps.core import context
 
@@ -483,7 +480,6 @@ def test_noindex_routes_derive_from_search_registry():
         assert 'request.GET.get("q")' in inspect.getsource(func), name
 
 
-@XFAIL
 @pytest.mark.parametrize("route", LISTING_ROUTES)
 def test_search_query_marks_listing_noindex(route):
     _resp, html = _listing_html(_tenant(), route, {"q": "brot"})
@@ -493,7 +489,7 @@ def test_search_query_marks_listing_noindex(route):
 
 @pytest.mark.parametrize(
     "params",
-    [{}, {"q": " "}, pytest.param({"q": "%20"}, marks=XFAIL), {"cursor": "abc"}, {"sort": "name"}],
+    [{}, {"q": " "}, {"q": "%20"}, {"cursor": "abc"}, {"sort": "name"}],
     ids=["plain", "blank", "pct", "cursor", "sort"],
 )
 def test_listing_without_q_unchanged(params):
@@ -511,7 +507,6 @@ def test_aktionen_page_without_q_unchanged():
     assert not ROBOTS.findall(html) and 'rel="canonical"' in html
 
 
-@XFAIL
 @pytest.mark.parametrize(
     "route,params",
     [
@@ -530,7 +525,6 @@ def test_demo_with_q_has_one_robots_tag(route):
     assert len(ROBOTS.findall(html)) == 1
 
 
-@XFAIL
 def test_search_query_has_noindex_and_no_canonical():
     """Находка seo-specialist M-2: noindex + canonical на чистый листинг — смешанный сигнал."""
     tenant = _tenant()

@@ -271,13 +271,18 @@ def localbusiness_jsonld(context):
 def canonical_link(context):
     """T-8.25: canonical витрины — ОСНОВНОЙ адрес (свой домен, иначе поддомен) + путь.
 
-    Без query: фильтры/сорт/язык не плодят «разные» страницы для поисковика.
+    Без query: фильтры/сорт/язык не плодят «разные» страницы для поисковика. На выдаче поиска
+    (`storefront_search_noindex`) canonical нет.
     """
     from django.utils.html import escape
 
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
     if tenant is None or getattr(tenant, "schema_name", "public") == "public":
+        return ""
+    # FB-33 M5a-2: выдача поиска (`?q=`) вне индекса — canonical на чистый листинг рядом с
+    # `noindex` был бы смешанным сигналом (находка seo-specialist по плану)
+    if context.get("storefront_search_noindex"):
         return ""
     from apps.tenants.hosts import public_base_url
 
