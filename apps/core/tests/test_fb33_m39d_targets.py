@@ -34,8 +34,6 @@ DOT_BUTTON = {"inline-flex", "w-6", "h-6", "items-center", "justify-center", "ro
 #: видимая точка внутри кнопки — 8 px
 DOT_MARK = {"w-2", "h-2", "rounded-full"}
 _BUTTON = re.compile(r"<button\b([^>]*)>(.*?)</button>", re.S)
-#: замки до кода (снимаются коммитом, который даёт поведение)
-TODO_WIN = pytest.mark.xfail(strict=True, reason="M3-9d: окно и стенд — следующим коммитом")
 _SPAN = re.compile(r'<span aria-hidden="true" class="([^"]*)"></span>')
 
 
@@ -196,7 +194,6 @@ def test_category_edit_pencil_is_a_24px_square():
     assert "aria-label=\"{% trans 'Edit category' %}\"" in attrs  # имя не «✎»
 
 
-@TODO_WIN
 def test_schema_pick_buttons_are_44px_squares():
     src = (ROOT / "templates" / "tenant" / "_schema_pick.html").read_text(encoding="utf-8")
     buttons = re.findall(r"<button\b[^>]*name=\"pick_op\"[^>]*>", src)

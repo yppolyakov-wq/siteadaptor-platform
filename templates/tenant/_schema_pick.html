@@ -9,9 +9,9 @@
     {% for e in pick.entries %}
     <li class="flex items-center gap-1 rounded-lg border px-2 py-1 {% if e.live %}border-gray-300{% else %}border-amber-400 bg-amber-50{% endif %}" data-schema-pick-item="{{ e.pk }}">
       <span class="flex-1 min-w-0 text-sm break-words">{{ forloop.counter }}. {{ e.label|default:"—" }}{% if not e.live %} <span class="block text-xs text-amber-900">{% trans "nicht mehr verfügbar – erscheint nicht auf der Website" %}</span>{% endif %}</span>
-      {% if not forloop.first %}<button type="submit" form="schema-pick-form" name="pick_op" value="up:{{ e.pk }}" class="min-h-[32px] min-w-[32px] rounded border border-gray-400 text-sm" aria-label="{% trans 'Nach oben' %}: {{ e.label }}">↑</button>{% endif %}
-      {% if not forloop.last %}<button type="submit" form="schema-pick-form" name="pick_op" value="down:{{ e.pk }}" class="min-h-[32px] min-w-[32px] rounded border border-gray-400 text-sm" aria-label="{% trans 'Nach unten' %}: {{ e.label }}">↓</button>{% endif %}
-      <button type="submit" form="schema-pick-form" name="pick_op" value="remove:{{ e.pk }}" class="min-h-[32px] min-w-[32px] rounded border border-gray-400 text-sm text-red-700" aria-label="{% trans 'Entfernen' %}: {{ e.label }}">✕</button>
+      {% if not forloop.first %}<button type="submit" form="schema-pick-form" name="pick_op" value="up:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-400 text-sm" aria-label="{% trans 'Nach oben' %}: {{ e.label }}">↑</button>{% endif %}
+      {% if not forloop.last %}<button type="submit" form="schema-pick-form" name="pick_op" value="down:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-400 text-sm" aria-label="{% trans 'Nach unten' %}: {{ e.label }}">↓</button>{% endif %}
+      <button type="submit" form="schema-pick-form" name="pick_op" value="remove:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-400 text-sm text-red-700" aria-label="{% trans 'Entfernen' %}: {{ e.label }}">✕</button>
     </li>
     {% endfor %}
   </ol>
@@ -30,7 +30,7 @@
     {% for o in pick.offers %}
     <li class="flex items-center gap-2 rounded-lg border border-gray-200 px-2 py-1">
       <span class="flex-1 min-w-0 text-sm break-words">{{ o.label }}</span>
-      <button type="submit" form="schema-pick-form" name="pick_op" value="add:{{ o.pk }}" class="min-h-[32px] rounded border border-gray-400 px-2 text-sm" aria-label="{% trans 'Hinzufügen' %}: {{ o.label }}">＋</button>
+      <button type="submit" form="schema-pick-form" name="pick_op" value="add:{{ o.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-400 px-2 text-sm" aria-label="{% trans 'Hinzufügen' %}: {{ o.label }}">＋</button>
     </li>
     {% empty %}
     <li class="text-xs text-gray-600">{% trans "Nichts gefunden." %}</li>
@@ -38,6 +38,6 @@
   </ul>
   {% endif %}
   {% if pick.entries %}
-  <button type="submit" form="schema-pick-form" name="pick_op" value="clear:" class="text-sm text-indigo-700 underline min-h-[32px]">{% trans "Zur Regel zurück" %}</button>
+  <button type="submit" form="schema-pick-form" name="pick_op" value="clear:" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 underline">{% trans "Zur Regel zurück" %}</button>
   {% endif %}
 </div>
