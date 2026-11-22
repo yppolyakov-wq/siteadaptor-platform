@@ -3774,6 +3774,37 @@ REPLACED_BY_BLOCKS = {
 PAGE_REF = "__page"
 
 
+def page_row_ref(tenant, code: str, blocks: list[dict] | None = None) -> str:
+    """FB-33 M5b-1: единое правило «где живут настройки типа страницы `code`» — ref строки:
+    ★ основной список, иначе строка-носитель (`SETTINGS_CARRIERS`, у главной «Banner»), иначе
+    псевдо-строка `PAGE_REF`; "" — настроек типа и «Design» у страницы нет (объект, мусор,
+    «Bestätigung»). Экран, окно, ⚙ Студии и стенды берут ответ отсюда, правило не повторяют.
+
+    `blocks` — строки схемы (`blocks_for`); без них — по хосту типа (★ у `MAIN_LIST_HOSTS`).
+    `tenant=None` — настройки не проверяются (адрес настроек типа, `settings_url`)."""
+    from apps.tenants import siteconfig
+
+    if tenant is not None:
+        try:
+            has = bool(setting_codes(tenant, code)) or bool(design_codes(tenant, code))
+        except SchemaError:
+            has = False
+        if not has:
+            return ""
+    carrier = settings_carrier(code)
+    if blocks is None:
+        pt = _page_type(code)
+        if pt is None:
+            return ""
+        if _host(pt) in siteconfig.MAIN_LIST_HOSTS:
+            return siteconfig.MAIN_LIST_KEY
+        return carrier or PAGE_REF
+    main = next((b["ref"] for b in blocks if b.get("main")), "")
+    if main:
+        return main
+    return carrier if carrier and any(b["ref"] == carrier for b in blocks) else PAGE_REF
+
+
 def settings_groups(tenant, code: str, config: dict, row: str = "") -> list[dict]:
     """Настройки строки `code` по значениям `config` (черновик): [{label, settings}].
     Первая группа — сам тип (без заголовка), дальше типы без своей строки. `row` — строка

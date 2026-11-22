@@ -128,7 +128,7 @@ def test_screen_row_follows_the_view_rule(bt):
     assert kinds == {"page", "carrier", "none"}, "все три исхода правила встречаются"
 
 
-@pytest.mark.xfail(strict=True, reason="M5b-1 C1: site_schema.page_row_ref")
+@pytest.mark.xfail(strict=True, reason="M5b-1 C2: window_links._refs — по правилу экрана")
 @pytest.mark.parametrize("bt", TYPES)
 def test_page_row_ref_is_the_view_rule(bt):
     tenant = _tenant(bt)
@@ -147,7 +147,6 @@ def test_page_row_ref_is_the_view_rule(bt):
             assert static == want, (bt, row.code)
 
 
-@pytest.mark.xfail(strict=True, reason="M5b-1 C1: site_schema.page_row_ref")
 def test_page_row_ref_edges():
     tenant = _tenant()
     saved = siteconfig.normalize(tenant.site_config)
