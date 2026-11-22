@@ -1723,7 +1723,43 @@ def title_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
     if current.get("align", "") not in page_title.ALIGNS:
         raise SchemaError("fields")
     draft["title"] = page_title.clean_one(current)
-    return TITLE_REF
+    # FB-33 M5b-2: после слияния окно заголовка — ★-строка страницы (W0 — прежний ref)
+    return PAGE_REF if page_title.ON_PAGE_ROW else TITLE_REF
+
+
+def page_ref(ref: str) -> str:
+    """FB-33 M5b-2: ref старой строки «Seitentitel» (`__title`: закладка, открытое окно,
+    сессия до деплоя) — псевдоним ★-строки страницы `PAGE_REF`; остальное как есть. Сравнение
+    точное: `__title_x` — не псевдоним."""
+    return PAGE_REF if ref == TITLE_REF else ref
+
+
+def is_page_title_edit(ref: str, fields) -> bool:
+    """FB-33 M5b-2: правка «Seitentitel» на ★-строке страницы — по присланным полям заголовка
+    (`TITLE_FIELDS`; SEO окна — `seo_*`). Пишет её тот же `title_op`, чужой хост — отказ."""
+    return (
+        ref == PAGE_REF
+        and isinstance(fields, dict)
+        and any(name in fields for name in TITLE_FIELDS)
+    )
+
+
+def is_title_row(selected: dict | None, host: str | None = None) -> bool:
+    """FB-33 M5b-2: строка окна несёт поля «Seitentitel» — старая строка `__title` (ключ
+    `page_title`) или ★-строка `PAGE_REF` с полями заголовка на странице из
+    `page_title.HEAD_HOSTS` (`host=None` — хост не проверяется: поля заголовка строке даёт
+    только такая страница). Один предикат для потолков ввода и пунктов «Ausrichtung»."""
+    from apps.core import page_title
+
+    if not selected or selected.get("cblock"):
+        return False
+    if selected.get("key") == "page_title":
+        return True
+    return (
+        selected.get("ref") == PAGE_REF
+        and (host is None or host in page_title.HEAD_HOSTS)
+        and any(f.get("name") in TITLE_FIELDS for f in selected.get("fields") or ())
+    )
 
 
 #: FB-33 M2b: секции главной, вид которых выбирается в панели (раньше — только в Студии).
@@ -1797,7 +1833,7 @@ def fill_options(block: dict, host: str) -> None:
                 ("compact", _("Eine Zeile, ohne Karte")),
             ]
         }
-    elif key == "page_title":
+    elif is_title_row(block, host):
         options = {"align": [("", _("Links")), ("center", _("Zentriert"))]}
     elif key == "quick_links":
         from apps.core.hero_tiles import link_set_options
@@ -3901,7 +3937,7 @@ def apply(
     _pt, host, home = resolve(tenant, code)
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
-    if ref == TITLE_REF:
+    if ref == TITLE_REF or is_page_title_edit(ref, fields):
         from apps.core import aufbau_draft
 
         draft = {"title": (config.get("page_titles") or {}).get(host) or {}}

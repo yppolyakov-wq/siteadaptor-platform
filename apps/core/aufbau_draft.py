@@ -150,7 +150,53 @@ def _raw(request, code: str) -> dict | None:
     draft = _all(request).get(code)
     if not isinstance(draft, dict) or not isinstance(draft.get("items"), list):
         return None
-    return None if _expired(draft) else draft
+    if _expired(draft):
+        return None
+    _rename_legacy_title(request, code, draft)
+    return draft
+
+
+def _request_token(request) -> str:
+    """Токен открытия окна из запроса (правка окна — POST, открытие окна — GET)."""
+    for source in (getattr(request, "POST", None), getattr(request, "GET", None)):
+        token = clean_token(source.get("wopen")) if source is not None else ""
+        if token:
+            return token
+    return ""
+
+
+def _rename_legacy_title(request, code: str, draft: dict) -> None:
+    """FB-33 M5b-2: черновик сессии до слияния ★-строк — снимок окна «Seitentitel» и его
+    переводы лежат под `__title`; один раз переименовываются в `__page` (в шести функциях
+    `block_i18n` и в окне псевдонимов нет). У формы до слияния бывают оба снимка (окна
+    «Einstellungen der Seite» и «Seitentitel»): остаётся тот, чей токен прислан; без токена
+    выбрать нечем — оба ждут своего окна. Только при `page_title.ON_PAGE_ROW` (W1)."""
+    from apps.core import page_title
+
+    old, new = page_title.TITLE_REF, site_schema.PAGE_REF
+    if not page_title.ON_PAGE_ROW:
+        return
+    renamed = []
+    window = draft.get(WINDOW_KEY)
+    if isinstance(window, dict) and old in window:
+        token = _request_token(request) if new in window else ""
+        if new not in window or (window.get(old) or {}).get("wopen") == token:
+            window[new] = window.pop(old)
+            renamed.append(WINDOW_KEY)
+        elif token and (window.get(new) or {}).get("wopen") == token:
+            window.pop(old)
+            renamed.append(WINDOW_KEY)
+    for key in _block_i18n().DRAFT_KEYS:
+        part = draft.get(key)
+        if isinstance(part, dict) and old in part:
+            value = part.pop(old)
+            part.setdefault(new, value)  # под `__page` переводов заголовка до W1 не бывало
+            renamed.append(key)
+    if renamed:
+        logger.info("aufbau draft %s: legacy keys __title -> __page (%s)", code, ", ".join(renamed))
+        session = getattr(request, "session", None)
+        if session is not None:
+            session.modified = True
 
 
 def get(request, code: str) -> dict | None:
@@ -739,7 +785,7 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         "base": source.get("base"),
         "wopen": token,
     }
-    if ref == site_schema.TITLE_REF:
+    if _window_has_title(host, ref):
         proto["title"] = ["title" in source, copy.deepcopy(source.get("title"))]
     if host == confirmation_page.HOST and ref == site_schema.NEXT_REF:
         proto["next"] = ["next" in source, source.get("next")]
@@ -775,6 +821,23 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
     while len(window) > WINDOW_MAX:
         window.pop(next(iter(window)))
     draft[WINDOW_KEY] = window
+
+
+def _window_has_title(host: str, ref: str) -> bool:
+    """Окно строки `ref` несёт поля «Seitentitel»: старая строка `__title` или (FB-33 M5b-2,
+    после слияния) ★-строка страницы с заголовком."""
+    from apps.core import page_title
+
+    if ref == site_schema.TITLE_REF:
+        return True
+    return ref == site_schema.PAGE_REF and page_title.ON_PAGE_ROW and host in page_title.HEAD_HOSTS
+
+
+def _alias(ref: str) -> str:
+    """FB-33 M5b-2: ref окна после слияния ★-строк (`__title` → `__page`; W0 — как есть)."""
+    from apps.core import page_title
+
+    return site_schema.page_ref(ref) if page_title.ON_PAGE_ROW else ref
 
 
 def _drop_snapshot(draft: dict, ref: str) -> None:
@@ -888,6 +951,7 @@ def cancel(request, tenant, code: str, ref: str, token: str = "") -> str:
     from apps.tenants import siteconfig
 
     _pt, host, home = site_schema.resolve(tenant, code)
+    ref = _alias(ref)
     if _raw(request, code) is None:
         return CANCEL_NOTHING
     config = siteconfig.normalize(tenant.site_config)
@@ -932,6 +996,7 @@ def op(
     from apps.tenants import siteconfig
 
     _pt, host, home = site_schema.resolve(tenant, code)
+    asked, ref = ref, _alias(ref)  # FB-33 M5b-2: до снимка окна и переводов
     config = siteconfig.normalize(tenant.site_config)
     saved = _saved_state(config, home, host)
     draft, existed = _working_draft(request, code, saved, home, host)
@@ -974,10 +1039,14 @@ def op(
         draft["items"] = site_schema.category_items(config, host, draft["items"], op_name)
         draft.pop(WINDOW_KEY, None)  # строки заменены целиком — их снимки больше не годятся
         ref = ""
+    elif site_schema.is_page_title_edit(ref, fields):
+        # FB-33 M5b-2: «Seitentitel» на ★-строке страницы — тот же писатель, что у `__title`
+        # (раньше `_m36_edit`: SEO окна — поля `seo_*`, не заголовка)
+        ref = site_schema.title_op(host, draft, op_name, fields)
     elif _m36_edit(host, ref, op_name, fields):
         # FB-33 M3-6: SEO страницы, вид категории, «Wo zeigen», закреплённые правовые строки
         ref = _m36_op(request, config, draft, code, host, saved, op_name, ref, fields, notes)
-    elif ref == site_schema.TITLE_REF:
+    elif asked == site_schema.TITLE_REF:
         # FB-33 M2d: «Seitentitel» — не строка `page_blocks`: тексты и вид — в черновике
         ref = site_schema.title_op(host, draft, op_name, fields)
     elif site_schema.is_next_edit(host, ref, op_name):

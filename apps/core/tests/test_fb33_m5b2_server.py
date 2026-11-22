@@ -27,8 +27,6 @@ from apps.tenants import siteconfig
 from apps.tenants.models import Tenant
 
 pytestmark = pytest.mark.django_db
-#: замок до кода (снимается реализацией W0)
-TODO_W0 = pytest.mark.xfail(strict=True, reason="FB-33 M5b-2 W0: поведения ещё нет")
 
 WOPEN = "openW0a"
 OTHER = "openW0b"
@@ -82,7 +80,6 @@ def _title_row_page(fields=True):
 # ───────────── псевдоним и маршрут правки ─────────────
 
 
-@TODO_W0
 def test_page_ref_alias_exact():
     assert site_schema.page_ref(page_title.TITLE_REF) == site_schema.PAGE_REF
     for ref in (site_schema.PAGE_REF, "__title_x", "x__title", "", "main", "page_title"):
@@ -93,7 +90,6 @@ def test_page_ref_alias_exact():
     assert site_schema.is_page_title_edit(site_schema.PAGE_REF, {"align": ""})
 
 
-@TODO_W0
 def test_title_on_page_ref_goes_through_title_op(monkeypatch):
     calls = []
     real = site_schema.title_op
@@ -178,7 +174,6 @@ def test_page_titles_writers_unchanged():
 # ───────────── один предикат строки заголовка: потолки и «Ausrichtung» ─────────────
 
 
-@TODO_W0
 def test_page_ref_title_caps():
     caps = {"title": page_title.TITLE_MAX, "intro": page_title.INTRO_MAX}
     assert block_window.field_caps(_title_row_page()) == caps
@@ -201,7 +196,6 @@ def test_page_ref_title_caps():
     )
 
 
-@TODO_W0
 def test_page_ref_title_align_options():
     for row in (_title_row_page(), site_schema.title_row(siteconfig.normalize({}), CODE)):
         site_schema.fill_options(row, "anfrage")
@@ -215,7 +209,6 @@ def test_page_ref_title_align_options():
 # ───────────── Студия ─────────────
 
 
-@TODO_W0
 def test_studio_open_title_alias(monkeypatch):
     from apps.core import window_links
 
@@ -233,7 +226,6 @@ def test_studio_open_title_alias(monkeypatch):
 # ───────────── W0 невидим: ключи окна и переводов — прежние ─────────────
 
 
-@TODO_W0
 def test_w0_keeps_title_window_keys():
     assert page_title.ON_PAGE_ROW is False
     b = Browser(_shop())
@@ -264,7 +256,6 @@ def _old_title_draft(tenant, title="Neu"):
     return b
 
 
-@TODO_W0
 @pytest.mark.parametrize("ref", (page_title.TITLE_REF, site_schema.PAGE_REF))
 def test_legacy_window_title_snapshot_reverts(monkeypatch, ref):
     b = _old_title_draft(_shop())
@@ -274,7 +265,6 @@ def test_legacy_window_title_snapshot_reverts(monkeypatch, ref):
     assert _drafts(b) == {}
 
 
-@TODO_W0
 def test_legacy_btr_title_saves(monkeypatch):
     b = _old_title_draft(_shop())
     monkeypatch.setattr(page_title, "ON_PAGE_ROW", True)
@@ -285,7 +275,6 @@ def test_legacy_btr_title_saves(monkeypatch):
     assert saved["i18n"]["en"]["page_titles"][CODE] == {"title": "Deals"}
 
 
-@TODO_W0
 def test_legacy_keys_logged(monkeypatch, caplog):
     b = _old_title_draft(_shop())
     monkeypatch.setattr(page_title, "ON_PAGE_ROW", True)
@@ -299,7 +288,6 @@ def test_legacy_keys_logged(monkeypatch, caplog):
         assert set(draft[key]) == {site_schema.PAGE_REF}, key
 
 
-@TODO_W0
 def test_open_draft_before_deploy_not_conflict(monkeypatch):
     """Перевод заголовка уже сохранён: отпечаток `btr_base["__title"]` равен отпечатку
     `__page` после слияния — «Speichern» не видит чужой правки."""
@@ -313,7 +301,6 @@ def test_open_draft_before_deploy_not_conflict(monkeypatch):
     assert saved["i18n"]["ru"]["page_titles"][CODE] == {"title": "Акции"}
 
 
-@TODO_W0
 def test_bases_title_equals_page(merged):
     tenant = _shop_with_ru_title()
     cfg = siteconfig.normalize(tenant.site_config)
@@ -327,7 +314,6 @@ def test_bases_title_equals_page(merged):
     assert block_i18n.kinds({"host": "cart", "items": []}, site_schema.PAGE_REF) == ()
 
 
-@TODO_W0
 def test_two_snapshots_pick_by_token(monkeypatch):
     """У формы до слияния — два окна: «Einstellungen der Seite» (`__page`) и «Seitentitel»
     (`__title`). После слияния остаётся снимок того окна, чей токен прислан."""
@@ -364,7 +350,6 @@ def test_two_snapshots_pick_by_token(monkeypatch):
     assert set(_drafts(b)[CODE]["btr"]) == {site_schema.PAGE_REF}
 
 
-@TODO_W0
 def test_merged_title_window_writes_new_keys_only(merged):
     b = Browser(_shop())
     _resp, _msgs = _post(b, seite=CODE, ref=site_schema.PAGE_REF, op="update", panel_present="1",

@@ -225,12 +225,13 @@ def field_caps(selected: dict | None) -> dict[str, int]:
     """Потолки ввода полей формы «fields» выбранной строки (тот же источник, что у записи:
     `siteconfig.CBLOCK_INPUT_CAPS`, «Seitentitel» — `page_title`, «Was passiert jetzt» —
     `confirmation_page`)."""
+    from apps.core import site_schema
     from apps.tenants import siteconfig
 
     if not selected:
         return {}
     key = selected.get("key") or ""
-    if key == "page_title" and not selected.get("cblock"):
+    if site_schema.is_title_row(selected):  # FB-33 M5b-2: и ★-строка с полями заголовка
         from apps.core import page_title
 
         return {"title": page_title.TITLE_MAX, "intro": page_title.INTRO_MAX}

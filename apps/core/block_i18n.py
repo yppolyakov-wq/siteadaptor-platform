@@ -77,7 +77,9 @@ def kinds(page: dict, ref: str) -> tuple[str, ...]:
     from apps.core import aufbau_draft, confirmation_page, object_faq, page_title, site_schema
 
     host = str(page.get("host") or "")
-    if ref == site_schema.TITLE_REF:
+    if ref == site_schema.TITLE_REF or (ref == site_schema.PAGE_REF and page_title.ON_PAGE_ROW):
+        # FB-33 M5b-2: после слияния переводы заголовка — в окне ★-строки страницы; отпечаток
+        # тот же, что у прежнего `__title` (открытые до деплоя черновики — без конфликта)
         return ("title",) if host in page_title.HEAD_HOSTS else ()
     if ref == site_schema.NEXT_REF:
         return ("next",) if host == confirmation_page.HOST else ()

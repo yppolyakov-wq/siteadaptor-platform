@@ -86,11 +86,14 @@ def _type_code(code: str) -> str:
 
 def _block_of(request, code: str, host: str, ref: str) -> str:
     """Строка схемы для ключа секции канвы ("" — такой строки нет)."""
-    from apps.core import detail_parts
+    from apps.core import detail_parts, site_schema
 
     refs = _refs(request, code, host)
     if ref in refs:  # точное совпадение раньше снятия префикса: строка `service_x` ≠ раздел `x`
         return ref
+    alias = site_schema.page_ref(ref)  # FB-33 M5b-2: старая ссылка «Seitentitel» → ★-строка
+    if alias != ref and alias in refs:
+        return alias
     base = detail_parts.shared_host(host or "")
     if base.endswith(DETAIL_SUFFIX):  # раздел детали: `service_faq` → `faq`
         prefix = base[: -len(DETAIL_SUFFIX)] + "_"
