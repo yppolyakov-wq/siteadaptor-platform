@@ -430,27 +430,63 @@ def test_section_404_has_no_archetype_cover():
     assert "data-not-found" in html and "Obloshka-M5A2" not in html
 
 
+#: типы бизнеса для замка независимости тела 404 от маршрута (ревью django M2 по диффу)
+ROUTE_TYPES = ("bakery", "hotel", "friseur", "restaurant", "online_shop")
+#: значение-заглушка для конвертеров пути при сборке адреса маршрута
+_DUMMY = {"slug": "x-m5a2", "str": "x-m5a2", "path": "x/m5a2", "int": 1, "uuid": uuid.UUID(int=7)}
+
+
+def _storefront_paths():
+    """Адрес каждого маршрута `storefront-*` витрины (заглушки вместо параметров)."""
+    from django.urls import URLPattern, URLResolver, get_resolver
+
+    def walk(patterns, ns=""):
+        for p in patterns:
+            if isinstance(p, URLResolver):
+                yield from walk(p.url_patterns, ns)
+            elif isinstance(p, URLPattern) and (p.name or "").startswith("storefront-"):
+                yield p
+
+    seen = {}
+    for p in walk(get_resolver("config.urls_tenant").url_patterns):
+        conv = getattr(p.pattern, "converters", {}) or {}
+        kwargs = {}
+        for name, c in conv.items():
+            kind = type(c).__name__.replace("Converter", "").lower()
+            kwargs[name] = _DUMMY.get(kind, "x-m5a2")
+        try:
+            seen.setdefault(p.name, reverse(p.name, kwargs=kwargs))
+        except Exception:  # noqa: BLE001 — маршрут с особым конвертером: пропуск
+            continue
+    return seen
+
+
+def test_storefront_route_sweep_covers_the_listings():
+    """Сам обход не пуст: среди адресов — листинги и детальные."""
+    names = set(_storefront_paths())
+    assert len(names) > 40
+    assert {"storefront-products", "storefront-category", "storefront-termin"} <= names
+
+
 @pytest.mark.parametrize("lang", ["de", "en"])
-def test_404_body_is_route_independent(lang):
-    """Ревью безопасности H1: `seo_meta` по `resolver_match` (процессор `seo`) и прочие
-    процессоры не делают тело записи зависимым от адреса: неразрешённый путь и `Http404`
-    из вьюх разных маршрутов — байт-в-байт одно тело."""
-    tenant = _tenant()
+@pytest.mark.parametrize("btype", ROUTE_TYPES)
+def test_404_body_is_route_independent(lang, btype):
+    """Ревью безопасности H1 и django M2: процессоры по `resolver_match` (`seo` → `seo_meta`,
+    обложка раздела, флаг поиска, тип страницы Студии) не делают тело записи зависимым от
+    адреса: неразрешённый путь и `Http404` из КАЖДОГО маршрута `storefront-*` — байт-в-байт
+    одно тело, у пяти типов бизнеса."""
+    tenant = _tenant(business_type=btype)
     plain = _nf(_req(tenant, lang=lang)).content
-    paths = (
-        "/termin/",
-        "/sortiment/",
-        "/sortiment/gibt-es-nicht-m5a2/",
-        "/aktionen/",
-        "/veranstaltung/",
-        "/unterkunft/",
-        "/entdecken-m5a2/",
-    )
-    for path in paths:
+    differ = []
+    for name, path in _storefront_paths().items():
         req = _req(tenant, path, lang=lang)
-        req.resolver_match = resolve(path) if not path.startswith("/entdecken") else None
-        body = _nf(req).content
-        assert body == plain, path
+        req.resolver_match = resolve(path)
+        if _nf(req).content != plain:
+            differ.append(name)
+    req = _req(tenant, "/entdecken-m5a2/", lang=lang)  # процессоры портала по пути
+    if _nf(req).content != plain:
+        differ.append("/entdecken")
+    assert not differ, differ
 
 
 def test_other_pages_keep_their_language_links():
