@@ -708,3 +708,27 @@ def test_every_public_view_reading_q_is_noindexed():
     assert found, "обход не нашёл ни одной вьюхи с ?q= — сломан сам замок"
     missing = found - context.SEARCH_NOINDEX_ROUTES - set(SEARCH_NOINDEX_EXEMPT)
     assert not missing, f"читают ?q=, но не вне индекса при поиске: {sorted(missing)}"
+
+
+def test_seitenaufbau_publication_resets_404_cache(
+    cached, renders, django_capture_on_commit_callbacks
+):
+    """Ревью django 3 по диффу: настоящий путь публикации блоков хоста `not_found` (черновик
+    «Seitenaufbau» → «Speichern») сбрасывает запись 404: прогрев → публикация → битый адрес
+    показывает новое."""
+    from apps.core.tests.test_fb27_r2_draft import Browser
+    from apps.tenants.models import Tenant
+
+    b = Browser(_tenant())
+    host = _host()
+
+    def page():
+        return _nf(_req(Tenant.objects.get(pk=b.tenant.pk), "/alt-m5a2/", host=host)).content
+
+    assert b"data-block-site-search" in page()
+    assert b"data-block-site-search" in page() and len(renders) == 1  # из кэша
+    with django_capture_on_commit_callbacks(execute=True):
+        b.post(seite="not_found", op="toggle", ref="nf-search")
+        b.post(seite="not_found", op="save")
+    assert b"data-block-site-search" not in page()
+    assert len(renders) == 2
