@@ -258,6 +258,8 @@ def test_rule_lives_only_in_site_schema():
     assert "settings_carrier(" not in (ROOT / "apps/core/aufbau_draft.py").read_text()
     tpl = (ROOT / "templates/tenant/site_schema.html").read_text()
     assert "elif page_row.active" not in tpl, "недостижимая ветка панели без окна"
+    # ревью M5b-1: открытая строка `__page` — всегда выбранная строка (L5), второе условие мертво
+    assert "selected or page_row.active" not in tpl
 
 
 # ───────────── L4: запросов не больше, чем до среза ─────────────
