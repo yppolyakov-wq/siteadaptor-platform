@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import copy
+import functools
 import logging
 import uuid
 from dataclasses import dataclass
@@ -3768,16 +3769,29 @@ REPLACED_BY_BLOCKS = {
 PAGE_REF = "__page"
 
 
+@functools.lru_cache(maxsize=64)
+def _default_rows(type_code: str) -> tuple[dict, ...]:
+    """Строки типа страницы у бизнеса без своих настроек — только `ref` и `main` (без
+    запросов: наборов нет). Для `page_row_ref` без строк бизнеса."""
+    from apps.tenants import siteconfig
+
+    config = siteconfig.normalize({})
+    return tuple(
+        {"ref": b["ref"], "main": bool(b.get("main"))}
+        for b in blocks_for(config, type_code, summaries=False, has_combos=False)
+    )
+
+
 def page_row_ref(tenant, code: str, blocks: list[dict] | None = None) -> str:
     """FB-33 M5b-1: единое правило «где живут настройки типа страницы `code`» — ref строки:
     ★ основной список, иначе строка-носитель (`SETTINGS_CARRIERS`, у главной «Banner»), иначе
     псевдо-строка `PAGE_REF`; "" — настроек типа и «Design» у страницы нет (объект, мусор,
     «Bestätigung»). Экран, окно, ⚙ Студии и стенды берут ответ отсюда, правило не повторяют.
 
-    `blocks` — строки схемы (`blocks_for`); без них — по хосту типа (★ у `MAIN_LIST_HOSTS`).
+    `blocks` — строки схемы (`blocks_for`); без них — строки типа по умолчанию
+    (`_default_rows`): ★ и «Banner» `normalize` материализует у любого бизнеса, поэтому ответ
+    тот же, что по его строкам (замок `test_settings_url_leads_to_an_existing_row`).
     `tenant=None` — настройки не проверяются (адрес настроек типа, `settings_url`)."""
-    from apps.tenants import siteconfig
-
     if tenant is not None:
         try:
             has = bool(setting_codes(tenant, code)) or bool(design_codes(tenant, code))
@@ -3790,9 +3804,7 @@ def page_row_ref(tenant, code: str, blocks: list[dict] | None = None) -> str:
         pt = _page_type(code)
         if pt is None:
             return ""
-        if _host(pt) in siteconfig.MAIN_LIST_HOSTS:
-            return siteconfig.MAIN_LIST_KEY
-        return carrier or PAGE_REF
+        blocks = _default_rows(pt.code)
     main = next((b["ref"] for b in blocks if b.get("main")), "")
     if main:
         return main

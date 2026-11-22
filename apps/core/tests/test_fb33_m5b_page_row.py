@@ -15,9 +15,11 @@ L6 `block=__page` у страницы без настроек — «Block wähle
 """
 
 import copy
+import inspect
 import re
 from pathlib import Path
 from types import SimpleNamespace
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from django.contrib.messages.middleware import MessageMiddleware
@@ -176,6 +178,43 @@ def test_window_snapshot_settings_follow_the_rule(bt):
                 continue
             got = aufbau_draft._window_setting_codes(tenant, row.code, ref)
             assert got == (codes if ref == want else []), (bt, row.code, ref, want)
+
+
+#: ревью M5b-1: бизнес, в чьём сохранённом виде нет ни «Banner» на главной, ни ★ у каталога
+BARE = {
+    "sections": [{"key": "about", "enabled": True}],
+    "page_blocks": {"catalog": [{"key": "text", "id": "b1", "enabled": True, "data": {}}]},
+}
+
+
+@pytest.mark.parametrize("bt", TYPES)
+@pytest.mark.parametrize("config", [None, BARE], ids=["demo", "bare"])
+def test_settings_url_leads_to_an_existing_row(bt, config):
+    """Ревью M5b-1: «ändern →» (`settings_url`, без тенанта) ведёт на строку, которая есть у
+    бизнеса: без строк правило берёт строки типа по умолчанию, а ★ и «Banner» `normalize`
+    материализует всегда — ответ тот же, что по строкам бизнеса."""
+    tenant = _tenant(bt, config)
+    saved, rows = _rows(tenant)
+    for row in rows:
+        if site_schema.is_object_code(row.code):
+            continue
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None)
+        want = site_schema.page_row_ref(tenant, row.code, blocks)
+        if not want:
+            continue
+        assert site_schema.page_row_ref(None, row.code) == want, (bt, row.code)
+        query = parse_qs(urlsplit(site_schema.settings_url(row.code.split("@", 1)[0])).query)
+        seite, block = query["seite"][0], query["block"][0]
+        refs = {b["ref"] for b in site_schema.blocks_for(saved, seite)}
+        if site_schema.page_row_ref(tenant, seite, site_schema.blocks_for(saved, seite)) == PAGE:
+            refs.add(PAGE)
+        assert block in refs, (bt, row.code, seite, block)
+
+
+def test_page_row_ref_has_one_path_over_rows():
+    """Ревью M5b-1: без строк — не отдельный список хостов, а то же правило по строкам типа."""
+    src = inspect.getsource(site_schema.page_row_ref)
+    assert "MAIN_LIST_HOSTS" not in src and "MAIN_LIST_KEY" not in src
 
 
 def test_garbage_seite_opens_home_without_window():
