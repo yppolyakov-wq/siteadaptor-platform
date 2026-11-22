@@ -18,7 +18,8 @@ import pytest
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 SCRIPTS = ROOT / "scripts"
 
-#: стенды до каркаса (38 на 2026-11-21). НЕ дополнять: новый стенд импортирует `standlib`.
+#: стенды до каркаса (38 на 2026-11-21 + `fb33_m4c_scope_stand.py`: стопка 7 FB-33 написала его
+#: параллельно, до прихода каркаса в main). НЕ дополнять: новый стенд импортирует `standlib`.
 LEGACY_STANDS = frozenset(
     """
     ais5_translate_stand.py ais7_text_draft_stand.py assistant_a0_stand.py
@@ -29,13 +30,13 @@ LEGACY_STANDS = frozenset(
     fb33_m2i34_cart_stand.py fb33_m2i5b_i18n_stand.py fb33_m2i5c_translate_stand.py
     fb33_m35b_stand.py fb33_m35c_i18n_stand.py fb33_m37_preview_stand.py fb33_m3_3_stand.py
     fb33_m3_3d_text_source_stand.py fb33_m3_4_karte_stand.py fb33_m3_5a_texte_stand.py
-    fb33_m3_6_stand.py fb33_m3_9_owner_stand.py fb33_m3_window_stand.py
+    fb33_m3_6_stand.py fb33_m3_9_owner_stand.py fb33_m3_window_stand.py fb33_m4c_scope_stand.py
     fb33_m4_studio_settings_stand.py fb33_m4b_studio_dupes_stand.py studio_boundary_stand.py
     text_pages_stand.py wizard_v4_e2e_stand.py wizard_v4_photo_stand.py
     wizard_v4_pruefen_stand.py wizard_v4_stand.py
     """.split()
 )
-LEGACY_MAX = 38
+LEGACY_MAX = 39
 
 _USES = re.compile(r"^\s*(?:import standlib\b|from standlib import\b)", re.M)
 
