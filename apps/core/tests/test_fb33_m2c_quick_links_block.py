@@ -76,7 +76,8 @@ def test_panel_offers_the_link_sets():
     block = {"key": "quick_links", "fields": site_schema.panel_fields({"key": "quick_links"})}
     site_schema.fill_options(block, "")
     values = [v for v, _lab in block["fields"][0]["options"]]
-    assert values == ["", *hero_tiles.QUICK_LINK_SETS]
+    # FB-33 M5a: наборы реестра и «Hauptmenü» (плитки — пункты меню витрины)
+    assert values == ["", *hero_tiles.BLOCK_LINK_SETS]
 
 
 def test_studio_save_keeps_the_chosen_set():

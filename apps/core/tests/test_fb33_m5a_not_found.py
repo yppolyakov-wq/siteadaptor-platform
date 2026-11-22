@@ -245,6 +245,7 @@ def test_menu_set_has_no_tile_keys_and_keeps_only_the_set():
     assert hero_tiles.clean_data(data) == {"set": "menu"}
     panel = hero_tiles.panel({"set": "menu"})
     assert panel["rows"] == [] and "menu" in dict(panel["options"])
+    assert [k for k, _lab in hero_tiles.link_set_options()] == list(hero_tiles.BLOCK_LINK_SETS)
     assert hero_tiles.update_data({"set": "menu"}, {"set": "menu", "show_x": "1"}) == {
         "set": "menu"
     }

@@ -1799,12 +1799,12 @@ def fill_options(block: dict, host: str) -> None:
     elif key == "page_title":
         options = {"align": [("", _("Links")), ("center", _("Zentriert"))]}
     elif key == "quick_links":
-        from apps.core.hero_tiles import BLOCK_LINK_SETS, QUICK_LINK_LABELS
+        from apps.core.hero_tiles import link_set_options
 
         options = {
             "set": [
                 ("", _("Bitte wählen")),
-                *((k, str(QUICK_LINK_LABELS[k])) for k in BLOCK_LINK_SETS),
+                *link_set_options(),
             ]
         }
         block["style_only"] = True

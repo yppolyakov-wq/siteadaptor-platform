@@ -426,8 +426,18 @@ QUICK_LINK_LABELS = {
     "aktionsmarkt": _("Aktionen"),
     "touren": _("Tours"),
     "retreat": _("Veranstalter / Events"),
-    MENU_SET: _("Hauptmenü"),
 }
+#: FB-33 M5a: подпись набора «menu» в окне блока (у наборов реестра — тип бизнеса)
+MENU_SET_LABEL = _("Hauptmenü")
+
+
+def link_set_options() -> list[tuple[str, str]]:
+    """Наборы, которые предлагает окно блока «Schnellzugriff»: (ключ, подпись) — наборы
+    реестра и «Hauptmenü»."""
+    return [
+        *((k, str(QUICK_LINK_LABELS[k])) for k in QUICK_LINK_SETS),
+        (MENU_SET, str(MENU_SET_LABEL)),
+    ]
 
 
 def menu_tiles(menu) -> list[dict]:
@@ -677,7 +687,7 @@ def panel(data: dict) -> dict:
         "set": link_set,
         "options": [
             ("", gettext("Bitte wählen")),
-            *((k, str(QUICK_LINK_LABELS[k])) for k in BLOCK_LINK_SETS),
+            *link_set_options(),
         ],
         "rows": rows,
         "max": LABEL_MAX,
