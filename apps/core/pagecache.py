@@ -22,6 +22,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.http.request import split_domain_port
+from django.utils import translation
 from django.utils.cache import patch_vary_headers
 
 logger = logging.getLogger(__name__)
@@ -30,8 +31,9 @@ logger = logging.getLogger(__name__)
 NOT_FOUND_CACHE_TTL = 60
 #: не чаще одной записи журнала о сбое кэша 404 за столько секунд на процесс
 NOT_FOUND_WARN_EVERY = 300
-#: когда процесс в последний раз писал о сбое кэша 404 (time.monotonic), None — ещё не писал
-_nf_warned_at: float | None = None
+#: когда процесс в последний раз писал о сбое кэша 404 (time.monotonic) — окно на операцию
+#: (`prepare`, `get`, `set`): отказ записи не прячется за отказом чтения
+_nf_warned_at: dict[str, float] = {}
 
 
 def _sf_version(schema: str) -> int:
@@ -94,15 +96,17 @@ def not_found_ttl() -> int:
     return max(0, min(getattr(settings, "PUBLIC_PAGE_CACHE_TTL", 0), NOT_FOUND_CACHE_TTL))
 
 
-def _warn_not_found_cache(exc: Exception) -> None:
-    """Сбой Redis на 404 — страница отдаётся, в журнал WARNING не чаще окна на процесс:
-    битые адреса шлют боты, запись на каждый залила бы журнал."""
-    global _nf_warned_at
+def _warn_not_found_cache(op: str, exc: Exception) -> None:
+    """Сбой кэша на 404 — страница отдаётся, в журнал WARNING со стеком не чаще окна на
+    процесс и операцию: битые адреса шлют боты, запись на каждый залила бы журнал."""
     now = time.monotonic()
-    if _nf_warned_at is not None and now - _nf_warned_at < NOT_FOUND_WARN_EVERY:
+    last = _nf_warned_at.get(op)
+    if last is not None and now - last < NOT_FOUND_WARN_EVERY:
         return
-    _nf_warned_at = now
-    logger.warning("storefront 404 cache unavailable, page rendered: %s", type(exc).__name__)
+    _nf_warned_at[op] = now
+    logger.warning(
+        "storefront 404 cache %s failed, page rendered: %s", op, type(exc).__name__, exc_info=exc
+    )
 
 
 def cached_not_found(request, render):
@@ -120,7 +124,7 @@ def cached_not_found(request, render):
     try:
         key = _nf_lookup_key(request)
     except Exception as exc:  # noqa: BLE001 — слой кэша не роняет страницу
-        _warn_not_found_cache(exc)
+        _warn_not_found_cache("prepare", exc)
         key = None
     if key is None:
         return render()
@@ -128,7 +132,7 @@ def cached_not_found(request, render):
         hit = cache.get(key)
         cached = _unpack(hit, status=404) if hit is not None else None
     except Exception as exc:  # noqa: BLE001 — кэш недоступен: рисуем страницу
-        _warn_not_found_cache(exc)
+        _warn_not_found_cache("get", exc)
         cached = None
     if cached is not None:
         return cached
@@ -137,7 +141,7 @@ def cached_not_found(request, render):
         if request.method == "GET" and _cacheable(request, response, status=404):
             cache.set(key, _pack(response), not_found_ttl())
     except Exception as exc:  # noqa: BLE001
-        _warn_not_found_cache(exc)
+        _warn_not_found_cache("set", exc)
     return response
 
 
@@ -158,7 +162,9 @@ def _nf_lookup_key(request) -> str | None:
     host = _cache_host(request)
     if not host:
         return None
-    return _nf_key(schema, getattr(request, "LANGUAGE_CODE", "de"), host)
+    # язык ключа — тот, на котором страница рисуется (активный), а не атрибут запроса
+    lang = translation.get_language() or getattr(request, "LANGUAGE_CODE", "") or "de"
+    return _nf_key(schema, lang, host)
 
 
 def _cacheable(request, response, status: int = 200) -> bool:

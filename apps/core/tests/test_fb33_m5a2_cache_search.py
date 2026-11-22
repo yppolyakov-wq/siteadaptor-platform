@@ -325,7 +325,7 @@ def test_404_cache_failure_serves_page_and_warns(cached, renders, monkeypatch, c
         raise ConnectionError("redis down")
 
     tenant = _tenant()
-    monkeypatch.setattr(pagecache, "_nf_warned_at", None)
+    monkeypatch.setattr(pagecache, "_nf_warned_at", {})
     monkeypatch.setattr(cache, "get", boom)
     monkeypatch.setattr(cache, "set", boom)
     with caplog.at_level(logging.WARNING):
@@ -336,7 +336,9 @@ def test_404_cache_failure_serves_page_and_warns(cached, renders, monkeypatch, c
     assert b"data-not-found" in first.content and b"data-not-found" in second.content
     assert len(renders) == 2
     warns = [r for r in caplog.records if r.name == "apps.core.pagecache"]
-    assert len(warns) == 1 and warns[0].levelno == logging.WARNING  # порог по времени
+    # окна раздельные: чтение и запись — по одной записи за окно, со стеком (ревью LOW 6)
+    assert [w.levelno for w in warns] == [logging.WARNING, logging.WARNING]
+    assert all(w.exc_info for w in warns)
     assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
 
 
@@ -349,7 +351,7 @@ def test_cache_layer_failure_serves_page_and_warns(cached, renders, monkeypatch,
     def boom(*a, **kw):
         raise RuntimeError("cache layer")
 
-    monkeypatch.setattr(pagecache, "_nf_warned_at", None)
+    monkeypatch.setattr(pagecache, "_nf_warned_at", {})
     monkeypatch.setattr(pagecache, broken, boom)
     with caplog.at_level(logging.WARNING):
         resp = _nf(_req(_tenant()))
@@ -359,6 +361,19 @@ def test_cache_layer_failure_serves_page_and_warns(cached, renders, monkeypatch,
         logging.WARNING
     ]
     assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+
+def test_404_cache_key_language_is_the_active_one(cached, renders):
+    """Ревью LOW 6: язык ключа — активный язык рендера (`translation.get_language()`), а не
+    атрибут запроса: при расхождении запись не уносит тело одного языка под ключ другого."""
+    from django.core.cache import cache
+
+    tenant, host = _tenant(), _host()
+    req = _req(tenant, host=host, lang="de")
+    with translation.override("en"):
+        _views().storefront_404(req, Http404())
+    assert cache.get(pagecache._nf_key(tenant.schema_name, "en", host)) is not None
+    assert cache.get(pagecache._nf_key(tenant.schema_name, "de", host)) is None
 
 
 def test_legacy_410_does_not_leak_into_cache(cached):
@@ -544,19 +559,23 @@ def test_search_query_marks_listing_noindex(route):
     assert '<meta name="robots" content="noindex,follow">' in html
 
 
+@pytest.mark.parametrize("route", ["storefront-products", "storefront-category"])
 @pytest.mark.parametrize(
     "params",
-    [{}, {"q": " "}, {"q": "%20"}, {"cursor": "abc"}, {"sort": "name"}],
-    ids=["plain", "blank", "pct", "cursor", "sort"],
+    [{}, {"q": " "}, {"q": " \t "}, {"cursor": "abc"}, {"seite": "2"}, {"sort": "name"}],
+    ids=["plain", "space", "whitespace", "cursor", "seite", "sort"],
 )
-def test_listing_without_q_unchanged(params):
-    _resp, html = _listing_html(_tenant(), "storefront-products", params)
-    if params.get("q") == "%20":
-        # «%20» строкой — не пробел: это непустой запрос, страница вне индекса
-        assert '<meta name="robots"' in html
-        return
+def test_listing_without_q_unchanged(route, params):
+    """Пустой после strip `q`, пагинация и сорт — страница в индексе и с canonical."""
+    _resp, html = _listing_html(_tenant(), route, params)
     assert not ROBOTS.findall(html)
     assert 'rel="canonical"' in html
+
+
+def test_literal_percent_twenty_query_is_a_search():
+    """`?q=%2520` (текст «%20», не пробел) — непустой запрос: выдача вне индекса."""
+    _resp, html = _listing_html(_tenant(), "storefront-products", {"q": "%20"})
+    assert '<meta name="robots" content="noindex,follow">' in html
 
 
 def test_aktionen_page_without_q_unchanged():
@@ -653,7 +672,12 @@ def test_full_stack_two_broken_addresses_render_once(cached, page_calls):
     domain = DomainFactory(tenant=tenant, domain=f"{tenant.slug}.siteadaptor.de")
     client = Client(HTTP_HOST=domain.domain)
     paths = ("/eins-m5a2-stack/", "/zwei/m5a2-stack/", "/sortiment/keine-kategorie-m5a2/")
-    responses = [client.get(path, secure=True) for path in paths]
+    try:
+        responses = [client.get(path, secure=True) for path in paths]
+    finally:
+        # TenantMainMiddleware оставляет соединение на схеме тенанта — следующий тест
+        # создавал бы тенанта «вне public»
+        connections["default"].set_schema_to_public()
     for resp in responses:
         assert resp.status_code == 404 and b"data-not-found" in resp.content
         assert not resp.cookies, list(resp.cookies)
