@@ -125,14 +125,15 @@
     <ul class="space-y-2" data-schema-blocks>
       <li class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">
         <span>{% trans "Kopfzeile & Menü" %}</span>
-        {% if 'site-menu'|can_open:request %}<a href="{% url 'site-menu' %}" class="inline-flex items-center min-h-[24px] text-indigo-700 hover:underline">{% trans "Menü bearbeiten" %}</a>{% endif %}
+        {% if 'site-menu'|can_open:request %}<a href="{% url 'site-menu' %}" class="inline-flex items-center min-h-[24px] text-indigo-700 underline hover:no-underline">{% trans "Menü bearbeiten" %}</a>{% endif %}
       </li>
       {% if page_row %}
+      {% comment %}FB-33 M5b-2 (макет V4, a11y Y-H3): ★-строка страницы — первой, неподвижна (без ручки и «⋯»); ★ скрыт от чтения, после названия — «feste Position».{% endcomment %}
       <li><a href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel"
              class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] {% if page_row.active %}border-2 border-indigo-700 bg-white{% else %}border-indigo-400 bg-indigo-50{% endif %}"
              data-schema-block="{{ page_row.ref }}"{% if page_row.active %} aria-current="true"{% endif %}>
-          <span class="font-medium">{% trans "Einstellungen der Seite" %}</span>
-          <span class="block text-xs text-gray-600">{% trans "Darstellung, Kartenform, Textbreite" %}</span>
+          <span class="font-medium"><span aria-hidden="true">★</span> {{ page_row.label }}</span><span class="sr-only">, {% trans "feste Position" %}</span>
+          {% if page_row.summary %}<span class="block text-xs text-gray-600 break-words">{{ page_row.summary }}</span>{% else %}<span class="block text-xs text-gray-600">{% trans "Darstellung, Kartenform, Textbreite" %}</span>{% endif %}
       </a></li>
       {% endif %}
       {% for line in layout.lines %}{% with row=line.blocks %}
@@ -159,6 +160,10 @@
         <li class="hidden md:flex min-w-[6rem] flex-1 items-center justify-center rounded-xl border-2 border-dashed border-indigo-400 px-2 text-center text-xs font-semibold text-indigo-800" aria-hidden="true" data-schema-slot="{{ line.slot.ref }}">{% blocktrans with w=line.slot.label %}Hierher ziehen – bis {{ w }}{% endblocktrans %}</li>
         {% endif %}
       </ul></li>{% endwith %}
+      {% if title_hint and forloop.counter0 == title_hint.after %}
+      {% comment %}FB-33 M5b-2 (макет V4, a11y Y-H1/Y-H2): здесь на странице заголовок — только подсказка (не строка: не выбирается, не двигается); ссылка открывает окно ★-строки на вкладке «Seite».{% endcomment %}
+      <li class="flex flex-wrap items-center gap-x-1 rounded-xl border border-dashed border-gray-400 bg-gray-50 px-3 text-sm text-gray-700" data-schema-title-hint>{% trans "Überschrift der Seite" %} <span aria-hidden="true">·</span> <a href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}&amp;tab=seite{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 underline hover:no-underline">{% blocktrans with where=title_hint.where %}in {{ where }} bearbeiten{% endblocktrans %}</a></li>
+      {% endif %}
       {% empty %}
       <li class="text-sm ui-muted">{% trans "Noch keine eigenen Blöcke auf dieser Seite." %}</li>
       {% endfor %}

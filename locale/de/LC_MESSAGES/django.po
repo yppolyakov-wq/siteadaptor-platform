@@ -39990,3 +39990,28 @@ msgstr "Allergien / Wünsche"
 
 msgid "fb33-stack-anchor-m5b2"
 msgstr "fb33-stack-anchor-m5b2"
+
+# FB-33 M5b-2 W1: ★-строка страницы «Seitentitel und Seite», метка заголовка, окно «Seite»
+msgid "Seitentitel und Seite"
+msgstr "Seitentitel und Seite"
+
+msgid "Titel = Name des Eintrags"
+msgstr "Titel = Name des Eintrags"
+
+msgid "Überschrift der Seite"
+msgstr "Überschrift der Seite"
+
+msgid "Einstellungen dieser Seitenart"
+msgstr "Einstellungen dieser Seitenart"
+
+#, python-format
+msgid "in %(where)s bearbeiten"
+msgstr "in %(where)s bearbeiten"
+
+#, python-format
+msgid "Darstellung der Liste – im Block „%(name)s“ › Wie anordnen"
+msgstr "Darstellung der Liste – im Block „%(name)s“ › Wie anordnen"
+
+#, python-format
+msgid "Wie die Liste aussieht: in %(where)s"
+msgstr "Wie die Liste aussieht: in %(where)s"

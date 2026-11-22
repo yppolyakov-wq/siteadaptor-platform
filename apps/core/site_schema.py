@@ -1335,27 +1335,8 @@ def blocks_for(
                 "summary": "",
             },
         )
-    from apps.core import page_title as _pt_mod
-
-    if host in _pt_mod.HEAD_HOSTS:
-        # FB-33 M2d: «Seitentitel» там, где страница рисует H1: первым, либо (свои блоки
-        # «сверху» стоят над H1 — снимки M2d-0) перед основным списком/разделом
-        anchors = set(_dp.section_keys(host)) if _dp.module_of(host) else set()
-        # фото-шапка страницы («page_head») стоит над заголовком — строка идёт после неё
-        at = next(
-            (i + 1 for i, b in enumerate(out) if b["key"] == "page_head" and not b.get("cblock")),
-            0,
-        )
-        if host not in _pt_mod.H1_FIRST:
-            at = next(
-                (
-                    i
-                    for i, b in enumerate(out)
-                    if b.get("main") or (not b.get("cblock") and b["key"] in anchors)
-                ),
-                len(out),
-            )
-        out.insert(at, title_row(config, host))
+    # FB-33 M5b-2: строки «Seitentitel» больше нет — поля заголовка в окне ★-строки страницы,
+    # место заголовка на экране — серая метка (`title_hint_at`, вне строк схемы)
     if host == _CONFIRM_HOST:
         _confirm_next_row(config, out)
     if form_of(host):
@@ -1547,8 +1528,57 @@ def panel_fields(item: dict) -> list[dict]:
 TITLE_FIELDS = ("title", "intro", "align")
 
 
+def title_fields(config: dict, host: str) -> list[dict]:
+    """Поля «Seitentitel» страницы `host` (тексты и вид; значения — из `config`, черновика).
+    FB-33 M5b-2: их несёт окно ★-строки страницы (`page_window.pseudo_row`)."""
+    from apps.core import page_title
+
+    entry = page_title.clean_one((config.get("page_titles") or {}).get(host))
+    return [
+        {"name": "title", "label": str(_("Überschrift")), "kind": "line",
+         "value": entry.get("title", "")},
+        {"name": "intro", "label": str(_("Einleitung")), "kind": "area",
+         "value": entry.get("intro", "")},
+        {"name": "align", "label": str(_("Ausrichtung")), "kind": "select",
+         "value": entry.get("align", "")},
+    ]  # fmt: skip
+
+
+def title_hint_at(host: str, blocks: list[dict]) -> int | None:
+    """FB-33 M5b-2 (макет V4): где на странице заголовок — индекс в строках `blocks`, перед
+    которым стоит H1, если над ним есть включённый блок; иначе None (метки нет: «Ohne „Fotos
+    der Seite“ steht die Überschrift ganz oben»). Списки: H1 первым, под фото-шапкой
+    `page_head`; формы: свои блоки «сверху» стоят над H1 — перед разделом формы (снимки
+    M2d-0). Метка — только показ: в строки схемы, ряды и цели `move` не входит."""
+    from apps.core import detail_parts, page_title
+
+    if host not in page_title.HEAD_HOSTS:
+        return None
+    if host in page_title.H1_FIRST:
+        at = next(
+            (
+                i + 1
+                for i, b in enumerate(blocks)
+                if b["key"] == "page_head" and not b.get("cblock") and b.get("enabled")
+            ),
+            None,
+        )
+        return at
+    anchors = set(detail_parts.section_keys(host)) if detail_parts.module_of(host) else set()
+    at = next(
+        (
+            i
+            for i, b in enumerate(blocks)
+            if b.get("main") or (not b.get("cblock") and b["key"] in anchors)
+        ),
+        len(blocks),
+    )
+    return at if any(b.get("enabled") for b in blocks[:at]) else None
+
+
 def title_row(config: dict, host: str) -> dict:
-    """Строка схемы «Seitentitel»: неподвижная, не скрывается; поля — тексты и вид."""
+    """Строка схемы «Seitentitel» (до FB-33 M5b-2): неподвижная, не скрывается; поля — тексты
+    и вид. В схеме её больше нет (W2 снимает функцию)."""
     from apps.core import page_title
 
     entry = page_title.clean_one((config.get("page_titles") or {}).get(host))
@@ -1563,15 +1593,8 @@ def title_row(config: dict, host: str) -> dict:
         "pinned": True,
         "style_only": False,
         "summary": entry.get("title") or str(_("Standard")),
-        "fields": [
-            {"name": "title", "label": str(_("Überschrift")), "kind": "line",
-             "value": entry.get("title", "")},
-            {"name": "intro", "label": str(_("Einleitung")), "kind": "area",
-             "value": entry.get("intro", "")},
-            {"name": "align", "label": str(_("Ausrichtung")), "kind": "select",
-             "value": entry.get("align", "")},
-        ],
-    }  # fmt: skip
+        "fields": title_fields(config, host),
+    }
 
 
 #: FB-33 M2h-5: «Was passiert jetzt» подтверждения — свой текст правится на строке раздела
@@ -1723,8 +1746,7 @@ def title_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
     if current.get("align", "") not in page_title.ALIGNS:
         raise SchemaError("fields")
     draft["title"] = page_title.clean_one(current)
-    # FB-33 M5b-2: после слияния окно заголовка — ★-строка страницы (W0 — прежний ref)
-    return PAGE_REF if page_title.ON_PAGE_ROW else TITLE_REF
+    return PAGE_REF  # FB-33 M5b-2: окно заголовка — ★-строка страницы
 
 
 def page_ref(ref: str) -> str:
@@ -3819,34 +3841,37 @@ def _default_rows(type_code: str) -> tuple[dict, ...]:
 
 
 def page_row_ref(tenant, code: str, blocks: list[dict] | None = None) -> str:
-    """FB-33 M5b-1: единое правило «где живут настройки типа страницы `code`» — ref строки:
-    ★ основной список, иначе строка-носитель (`SETTINGS_CARRIERS`, у главной «Banner»), иначе
-    псевдо-строка `PAGE_REF`; "" — настроек типа и «Design» у страницы нет (объект, мусор,
-    «Bestätigung»). Экран, окно, ⚙ Студии и стенды берут ответ отсюда, правило не повторяют.
+    """FB-33 M5b-1 / M5b-2 (V4, владелец 2026-11-22): единое правило «где живут настройки типа
+    страницы `code`» — ref строки: у главной строка-носитель (`SETTINGS_CARRIERS`, «Banner»),
+    у любой другой страницы с настройками типа, «Design» или своим заголовком
+    (`page_title.HEAD_HOSTS`) — ★-строка `PAGE_REF` («Seitentitel und Seite»); "" — такой
+    строки нет (объект, мусор, «Bestätigung»). ★ основной список больше не носитель. Экран,
+    окно, ⚙ Студии и стенды берут ответ отсюда, правило не повторяют.
 
     `blocks` — строки схемы (`blocks_for`); без них — строки типа по умолчанию
-    (`_default_rows`): ★ и «Banner» `normalize` материализует у любого бизнеса, поэтому ответ
-    тот же, что по его строкам (замок `test_settings_url_leads_to_an_existing_row`).
+    (`_default_rows`): «Banner» `normalize` материализует у любого бизнеса, поэтому ответ тот
+    же, что по его строкам (замок `test_settings_url_leads_to_an_existing_row`).
     `tenant=None` — настройки не проверяются (адрес настроек типа, `settings_url`)."""
+    from apps.core import page_title
+
     if tenant is not None:
         try:
             has = bool(setting_codes(tenant, code)) or bool(design_codes(tenant, code))
         except SchemaError:
             # мусорный код страницы (адрес, закладка): строки нет — как у экрана, но видно в логе
             logger.debug("page row: page %r not resolved — no settings row", code)
-            has = False
-        if not has:
             return ""
+        if not has and host_for(code) not in page_title.HEAD_HOSTS:
+            return ""
+    pt = _page_type(code)
+    if pt is None:
+        return ""
     carrier = settings_carrier(code)
+    if not carrier:
+        return PAGE_REF
     if blocks is None:
-        pt = _page_type(code)
-        if pt is None:
-            return ""
         blocks = _default_rows(pt.code)
-    main = next((b["ref"] for b in blocks if b.get("main")), "")
-    if main:
-        return main
-    return carrier if carrier and any(b["ref"] == carrier for b in blocks) else PAGE_REF
+    return carrier if any(b["ref"] == carrier for b in blocks) else PAGE_REF
 
 
 def settings_groups(tenant, code: str, config: dict, row: str = "") -> list[dict]:

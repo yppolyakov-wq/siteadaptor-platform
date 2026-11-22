@@ -170,12 +170,10 @@ def _rename_legacy_title(request, code: str, draft: dict) -> None:
     переводы лежат под `__title`; один раз переименовываются в `__page` (в шести функциях
     `block_i18n` и в окне псевдонимов нет). У формы до слияния бывают оба снимка (окна
     «Einstellungen der Seite» и «Seitentitel»): остаётся тот, чей токен прислан; без токена
-    выбрать нечем — оба ждут своего окна. Только при `page_title.ON_PAGE_ROW` (W1)."""
+    выбрать нечем — оба ждут своего окна."""
     from apps.core import page_title
 
     old, new = page_title.TITLE_REF, site_schema.PAGE_REF
-    if not page_title.ON_PAGE_ROW:
-        return
     renamed = []
     window = draft.get(WINDOW_KEY)
     if isinstance(window, dict) and old in window:
@@ -830,14 +828,12 @@ def _window_has_title(host: str, ref: str) -> bool:
 
     if ref == site_schema.TITLE_REF:
         return True
-    return ref == site_schema.PAGE_REF and page_title.ON_PAGE_ROW and host in page_title.HEAD_HOSTS
+    return ref == site_schema.PAGE_REF and host in page_title.HEAD_HOSTS
 
 
 def _alias(ref: str) -> str:
-    """FB-33 M5b-2: ref окна после слияния ★-строк (`__title` → `__page`; W0 — как есть)."""
-    from apps.core import page_title
-
-    return site_schema.page_ref(ref) if page_title.ON_PAGE_ROW else ref
+    """FB-33 M5b-2: ref окна после слияния ★-строк (`__title` → `__page`)."""
+    return site_schema.page_ref(ref)
 
 
 def _drop_snapshot(draft: dict, ref: str) -> None:

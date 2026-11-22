@@ -289,12 +289,12 @@ def list_view(config: dict, selected: dict) -> dict | None:
             source_key = data.get("source") or siteconfig.LIST_SOURCE_DEFAULT
             page = _layout_page(list_blocks.page_layout_key(source_key))
             if page is not None:
-                from django.urls import reverse
-                from django.utils.http import urlencode
+                from apps.core import site_schema, window_links
 
                 source = str(_("Wie auf der Seite „%(page)s“") % {"page": page.label})
-                query = urlencode({"seite": page.code, "block": "main", "tab": "seite"})
-                link = f"{reverse('site-schema')}?{query}#schema-panel"
+                # FB-33 M5b-2: настройки типа — на строке по единому правилу (★-строка «Seite»)
+                block = site_schema.page_row_ref(None, page.code)
+                link = window_links.block_window_url(page.code, block, "seite")
         elif frm == "type":
             source = str(_("Wie bei diesem Aktionstyp"))
         return {

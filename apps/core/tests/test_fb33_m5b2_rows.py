@@ -28,8 +28,6 @@ from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замок до кода (снимается реализацией W1)
-TODO_W1 = pytest.mark.xfail(strict=True, reason="FB-33 M5b-2 W1: поведения ещё нет")
 
 PAGE = site_schema.PAGE_REF
 TITLE = page_title.TITLE_REF
@@ -86,7 +84,6 @@ def _oracle_v4(tenant, code: str, blocks: list[dict]) -> str:
 # ───────────── правило V4 ─────────────
 
 
-@TODO_W1
 @pytest.mark.parametrize("bt", TYPES)
 def test_page_row_ref_follows_v4(bt):
     tenant = _tenant(bt)
@@ -102,7 +99,6 @@ def test_page_row_ref_follows_v4(bt):
         assert (PAGE in _blocks_attr(html)) == (want == PAGE), (bt, row.code)
 
 
-@TODO_W1
 def test_static_rule_has_page_row_on_list_pages():
     """Адрес настроек типа (без тенанта): у списков и форм — ★-строка, у главной — «Banner»."""
     for code in ("catalog", "services", "promos", "text", "product", "contact"):
@@ -111,9 +107,9 @@ def test_static_rule_has_page_row_on_list_pages():
 
 
 @pytest.mark.parametrize(("bt", "code"), [
-    pytest.param("online_shop", "catalog", marks=TODO_W1),
-    pytest.param("friseur", "services", marks=TODO_W1),
-    pytest.param("friseur", "contact", marks=TODO_W1),
+    ("online_shop", "catalog"),
+    ("friseur", "services"),
+    ("friseur", "contact"),
     ("online_shop", "product"),  # было и до W1
 ])  # fmt: skip
 def test_star_row_first_on_list_pages(bt, code):
@@ -126,7 +122,6 @@ def test_star_row_first_on_list_pages(bt, code):
     assert "Kopfzeile & Menü" in _map(html)[first : _map(html).index(f'"{PAGE}"')]
 
 
-@TODO_W1
 def test_star_row_markup():
     """Y-H3: ★-строка — ссылка в `li`, ≥ 44 px; ★ скрыт от чтения, после названия sr «, feste
     Position»; сводка внутри ссылки; без ручки, «⋯» и `data-schema-pinned`."""
@@ -145,13 +140,12 @@ def test_star_row_markup():
 
 
 @pytest.mark.parametrize(("bt", "code", "label", "summary"), [
-    pytest.param("friseur", "services", "Seitentitel und Seite", "Standard", marks=TODO_W1),
-    pytest.param("friseur", "contact", "Seitentitel und Seite", "Standard", marks=TODO_W1),
-    pytest.param("online_shop", "catalog", "Einstellungen der Seite", None, marks=TODO_W1),
-    pytest.param("online_shop", "lookbook", "Einstellungen der Seite", None, marks=TODO_W1),
-    pytest.param("online_shop", "promo_group", "Einstellungen der Seite", None, marks=TODO_W1),
-    pytest.param("online_shop", "product", "Einstellungen der Seite", "Titel = Name des Eintrags",
-                 marks=TODO_W1),
+    ("friseur", "services", "Seitentitel und Seite", "Standard"),
+    ("friseur", "contact", "Seitentitel und Seite", "Standard"),
+    ("online_shop", "catalog", "Einstellungen der Seite", None),
+    ("online_shop", "lookbook", "Einstellungen der Seite", None),
+    ("online_shop", "promo_group", "Einstellungen der Seite", None),
+    ("online_shop", "product", "Einstellungen der Seite", "Titel = Name des Eintrags"),
     ("online_shop", "text", "Einstellungen der Seite", None),  # было и до W1
 ])  # fmt: skip
 def test_star_row_labels(bt, code, label, summary):
@@ -162,7 +156,6 @@ def test_star_row_labels(bt, code, label, summary):
         assert f">{summary}</span>" in m.group(1), code
 
 
-@TODO_W1
 def test_star_row_summary_is_own_title_in_quotes():
     tenant = _tenant(config={"page_titles": {"services": {"title": "Unsere Leistungen"}}})
     html = Browser(tenant).get("?seite=services")
@@ -178,7 +171,6 @@ def _hint(html: str) -> str:
     return m.group(0) if m else ""
 
 
-@TODO_W1
 def test_hint_after_page_head_on_lists():
     html = Browser(_tenant()).get("?seite=services")
     hint = _hint(html)
@@ -188,7 +180,6 @@ def test_hint_after_page_head_on_lists():
     assert cols.index("data-schema-title-hint") < cols.index('data-schema-block="groups"')
 
 
-@TODO_W1
 def test_no_hint_without_block_above():
     """Макет: «Ohne „Fotos der Seite“ steht die Überschrift ganz oben — dann gibt es keinen
     Hinweis.» Скрытая фото-шапка — тоже без метки; форма без блока сверху — без метки."""
@@ -205,7 +196,6 @@ def test_no_hint_without_block_above():
     assert not _hint(Browser(_tenant("online_shop")).get("?seite=catalog")), "нет заголовка"
 
 
-@TODO_W1
 def test_hint_on_form_with_block_above():
     cfg = {"page_blocks": {"message": [
         {"key": "text", "id": "t1", "enabled": True, "data": {"title": "So läuft es ab"}},
@@ -218,7 +208,6 @@ def test_hint_on_form_with_block_above():
     assert cols.index("data-schema-title-hint") < cols.index('data-schema-block="form"')
 
 
-@TODO_W1
 def test_hint_markup_is_not_a_row():
     """Y-H2: метка — не строка: нет `data-schema-block/-drag/-pinned/aria-current`; одна ссылка
     ≥ 44 px на окно ★-строки, вкладка «Seite»."""
@@ -232,7 +221,6 @@ def test_hint_markup_is_not_a_row():
     assert "min-h-[44px]" in re.search(r"<a [^>]*>", hint).group(0)
 
 
-@TODO_W1
 def test_hint_link_underlined():
     """Y-H1 (WCAG 1.4.1): ссылка метки и «Menü bearbeiten» подчёркнуты."""
     html = Browser(_tenant()).get("?seite=services")
@@ -251,7 +239,6 @@ def _seen(html: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html)).strip()
 
 
-@TODO_W1
 def test_hint_link_name_contains_visible_text():
     """Y-H1 (WCAG 2.5.3): видимое «in ★ bearbeiten» — слова видимого текста входят в доступное
     имя по порядку; ★ скрыт; имя называет окно «Seitentitel und Seite»."""
@@ -265,7 +252,6 @@ def test_hint_link_name_contains_visible_text():
     assert '<span aria-hidden="true">★</span>' in link
 
 
-@TODO_W1
 def test_hint_not_in_blocks():
     """Y-H2 / A-M4: метки нет в строках `blocks_for` (7 вызывающих, стенд владельца) — она
     считается функцией `title_hint_at` и вставляется только в разметку экрана."""
@@ -309,7 +295,6 @@ def test_move_neighbors_skip_star():
 # ───────────── старые ссылки `?block=__title` ─────────────
 
 
-@TODO_W1
 @pytest.mark.parametrize(("bt", "code", "page"), [
     ("friseur", "services", True),
     ("friseur", "contact", True),
@@ -341,7 +326,6 @@ def test_old_title_link_redirects(bt, code, page):
         assert query == {"ansicht": ["telefon"]}
 
 
-@TODO_W1
 def test_old_title_post_lands_on_page_row():
     """Открытое до деплоя окно «Seitentitel» шлёт `ref=__title` — правка идёт тем же писателем,
     возврат — на окно ★-строки."""

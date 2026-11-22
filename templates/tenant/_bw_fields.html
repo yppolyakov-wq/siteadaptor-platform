@@ -7,7 +7,8 @@
   {% include "tenant/_schema_keep.html" %}
   <input type="hidden" name="ref" value="{{ selected.ref }}">
   <input type="hidden" name="panel_present" value="1">
-  <input type="hidden" name="op_default" value="update">{% with fl=selected.field_langs %}{% if fl.part == "fields" %}
+  <input type="hidden" name="op_default" value="update">{% if selected.with_title %}
+  {% comment %}FB-33 M5b-2 (макет M5bWindow, a11y Y-M2): поля заголовка ★-строки — группой «Überschrift der Seite» на вкладке «Seite».{% endcomment %}<fieldset class="space-y-3"><legend class="text-sm font-bold text-gray-900">{% trans "Überschrift der Seite" %}</legend>{% endif %}{% with fl=selected.field_langs %}{% if fl.part == "fields" %}
   {% comment %}FB-33 M3-5c: переводы текстов блока — кнопки языка (общий партиал), поля всех языков в DOM, имя только у выбранного; кнопка языка применяет форму (op — скрытым полем), Enter — «Übernehmen» (первая кнопка формы).{% endcomment %}<input type="hidden" name="op" value="update"><button name="op" value="update" class="sr-only" tabindex="-1">{% trans "Übernehmen" %}</button>
   {% include "tenant/_bw_langs.html" with locales=fl.locales title_id=fl.title_id hint_id=fl.hint_id after_tpl="tenant/_bw_tr_note.html" %}{% endif %}{% endwith %}
   {% for f in selected.fields %}{% if f.tiles %}{% include "tenant/_view_tiles.html" with tiles=f.tiles legend=f.label src=f.thumb_src name=f.name uid=f.name %}{% else %}
@@ -26,9 +27,9 @@
     {% if m.example or m.max_hint %}<p id="schema-f-{{ f.name }}-max" class="mt-1 text-xs text-gray-700">{{ m.example }}{% if m.example and m.max_hint %} {% endif %}{{ m.max_hint }}</p>{% endif %}{% for t in f.translations %}
     {% include "tenant/_bw_tr.html" with what=f.label %}{% endfor %}
   </div>{% endwith %}
-  {% endif %}{% endfor %}
+  {% endif %}{% endfor %}{% if selected.with_title %}</fieldset>{% endif %}
   {% if selected.field_langs.part == "fields" %}{% elif multi_lang and not selected.source_url and not selected.style_only %}<p class="text-xs text-gray-600">{% trans "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite." %}</p>{% if studio_url %}<p class="text-sm"><a href="{{ studio_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-translate>{% trans "Übersetzungen auf der Seite bearbeiten" %} →</a></p>{% endif %}{% endif %}
-  <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}{% if selected.with_title %}<span class="sr-only">: {% trans "Seitentitel" %}</span>{% endif %}</button>
   {% if selected.source_url %}<p class="text-sm"><a href="{{ selected.source_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-source>{{ selected.source_label }} →</a></p>{% endif %}
 </form>
 {% endif %}

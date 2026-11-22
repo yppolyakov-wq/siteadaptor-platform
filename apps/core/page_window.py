@@ -3,9 +3,13 @@
 План — `docs/fb33-editor-model-2026-11-19.md` §«План M3» и план среза M3-6 (решения владельца
 2026-11-20). Модуль даёт:
 
-- псевдо-строку `__page` — у страниц без основного списка и без строки-носителя (детали,
-  корзина, текстовые) настройки типа страницы открываются тем же окном блока, что у ★;
-  строка не хранится и не правится операциями схемы (`site_schema.mutate` — `SchemaError`);
+- ★-строку страницы `__page` (FB-33 M5b-2, макет V4) — у всех страниц, кроме главной, где
+  правило `site_schema.page_row_ref` её даёт: «★ Seitentitel und Seite» (страницы со своим
+  заголовком `page_title.HEAD_HOSTS`: поля заголовка и настройки типа на вкладке «Seite») или
+  «★ Einstellungen der Seite»; строка не хранится и не правится операциями схемы
+  (`site_schema.mutate` — `SchemaError`);
+- строки-ссылки между ★-строкой и окном основного списка: «Darstellung … im Block › Wie
+  anordnen» у списков со своим видом и «Wie die Liste aussieht: in ★ …» у прочих;
 - часть «Texte» у такой строки — свой заголовок и описание для поисковиков, только на хостах
   `siteconfig.is_seo_page_host` (через черновик; запись при «Speichern» — тем же чистым
   писателем `content_pages.put_page_seo`, что у вкладки «Suchmaschinen» экрана «Seiten»);
@@ -22,6 +26,7 @@ from __future__ import annotations
 import copy
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.html import format_html
 from django.utils.translation import gettext as _
 
 from apps.core import site_schema
@@ -39,16 +44,49 @@ SEO_FIELDS = ("seo_title", "seo_description")
 VIEW_RESET_OP = "view_reset"
 
 
-def pseudo_row(ref: str, page_ref: str) -> dict | None:
-    """Строка `__page` для окна — только там, где настройкам больше негде жить: `page_ref` —
-    ответ единого правила `site_schema.page_row_ref` (FB-33 M5b-1). Ключи — те, что знает
-    окно (`block_window.ROW_KEYS`/`PANEL_KEYS`)."""
+def _entry_page(host: str) -> bool:
+    """Детальная страница одной записи (товар, услуга, номер, событие, акция, набор, запись
+    блога): заголовок — имя записи, полей заголовка в окне нет."""
+    return host.endswith("_detail") or host == "blog_post"
+
+
+def label(host: str) -> str:
+    """Подпись ★-строки (решение владельца 2026-11-22): «Seitentitel und Seite» только у
+    страниц со своим заголовком, иначе «Einstellungen der Seite»."""
+    from apps.core import page_title
+
+    if host in page_title.HEAD_HOSTS:
+        return _("Seitentitel und Seite")
+    return _("Einstellungen der Seite")
+
+
+def summary(host: str, config: dict) -> str:
+    """Сводка ★-строки: свой заголовок в кавычках или «Standard»; у деталей — «Titel = Name
+    des Eintrags»; у прочих — "" ("wie alle …-Seiten" не выводим)."""
+    from apps.core import page_title
+
+    if host in page_title.HEAD_HOSTS:
+        title = page_title.clean_one((config.get("page_titles") or {}).get(host)).get("title")
+        return f"„{title}“" if title else _("Standard")
+    if _entry_page(host):
+        return _("Titel = Name des Eintrags")
+    return ""
+
+
+def pseudo_row(ref: str, page_ref: str, host: str = "", config: dict | None = None) -> dict | None:
+    """★-строка `__page` для окна и экрана — там, где её даёт единое правило
+    `site_schema.page_row_ref` (FB-33 M5b-1, V4 — M5b-2). Ключи — те, что знает окно
+    (`block_window.ROW_KEYS`/`PANEL_KEYS`); у страниц со своим заголовком — поля «Seitentitel»
+    (`site_schema.title_fields`, значения — из `config`, черновика)."""
+    from apps.core import page_title
+
     if ref != site_schema.PAGE_REF or page_ref != site_schema.PAGE_REF:
         return None
-    return {
+    row = {
         "ref": site_schema.PAGE_REF,
         "key": site_schema.PAGE_REF,
-        "label": _("Einstellungen der Seite"),
+        "label": label(host),
+        "summary": summary(host, config or {}),
         "enabled": True,
         "main": True,  # не скрывается, не двигается, меню «⋯» нет
         "cblock": False,
@@ -58,6 +96,47 @@ def pseudo_row(ref: str, page_ref: str) -> dict | None:
         "can_up": False,
         "can_down": False,
     }
+    if host in page_title.HEAD_HOSTS:
+        row["fields"] = site_schema.title_fields(config or {}, host)
+        row["with_title"] = True  # «Überschrift der Seite» и «Einstellungen dieser Seitenart»
+    return row
+
+
+def star_name(text: str, visible: bool = True):
+    """Имя ★-строки в тексте ссылки: `★` скрыт от чтения; `visible=False` — имя только для
+    чтения с экрана (видимое «in ★ bearbeiten», WCAG 2.5.3)."""
+    if visible:
+        return format_html('<span aria-hidden="true">★</span> {}', text)
+    return format_html('<span aria-hidden="true">★</span><span class="sr-only">„{}“</span>', text)
+
+
+def main_has_view(main: dict | None) -> bool:
+    """У основного списка свой вид в окне («Wie anordnen»: каталог, категория, акции, группа
+    акций, Team, Galerie, туры) — по уже заполненным плиткам вида строки."""
+    return bool(main) and bool(main.get("mainview") or main.get("groupview"))
+
+
+def list_links(selected, blocks: list[dict], page_ref: str, host: str) -> None:
+    """Строки-ссылки между ★-строкой и окном основного списка (решение владельца
+    2026-11-22, «Liste/Raster» — настройки типа на ★-строке):
+
+    - у ★-строки страницы, чей список со своим видом, — «Darstellung der Liste – im Block
+      „…“ › Wie anordnen» (`list_link`);
+    - у окна основного списка без своего вида — «Wie die Liste aussieht: in ★ …» на вкладку
+      «Seite» ★-строки (`page_link`): иначе окно было бы пустым."""
+    if not selected or page_ref != site_schema.PAGE_REF:
+        return
+    main = next((b for b in blocks if b.get("main") and not b.get("cblock")), None)
+    if main is None:
+        return
+    if is_page_row(selected) and main_has_view(main):
+        selected["list_link"] = {
+            "name": str(main.get("label") or "").removeprefix("★ "),
+            "ref": main["ref"],
+            "tab": "wie",
+        }
+    elif selected.get("ref") == main["ref"] and not main_has_view(selected):
+        selected["page_link"] = {"where": star_name(label(host)), "ref": page_ref, "tab": "seite"}
 
 
 def is_page_row(selected) -> bool:
@@ -161,8 +240,8 @@ def decorate(selected, config: dict, host: str, code: str) -> None:
 
     if not selected:
         return
-    main = selected.get("main") and not selected.get("cblock")
-    if is_page_row(selected) and siteconfig.is_seo_page_host(host):
+    page = is_page_row(selected)
+    if page and siteconfig.is_seo_page_host(host):
         entry = saved_seo(config, host)
         selected["seo"] = {
             "title": entry.get("title", ""),
@@ -171,17 +250,23 @@ def decorate(selected, config: dict, host: str, code: str) -> None:
             "description_max": siteconfig.SEO_PAGE_DESCRIPTION_MAX,
         }
         return
-    if main and host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
-        category = _category(code)
-        if category is None:
-            return
-        try:
-            url = reverse("catalog:category-edit", args=[category.pk])
-        except NoReverseMatch:
-            url = ""
-        if url:
-            selected["seo_link"] = {"url": url}
+    # FB-33 M5b-2 (architect A-H2): у категории ссылка на её форму (SEO) — у ★-строки
+    # страницы, строка наследования вида товаров — у ★ «Produkte» (вкладка «Wie anordnen»)
+    star = selected.get("main") and not selected.get("cblock") and not page
+    if not (page or star) or not host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
+        return
+    category = _category(code)
+    if category is None:
+        return
+    if star:
         selected["page_inherit"] = category_inherit(config, host, category)
+        return
+    try:
+        url = reverse("catalog:category-edit", args=[category.pk])
+    except NoReverseMatch:
+        url = ""
+    if url:
+        selected["seo_link"] = {"url": url}
 
 
 # ───────────── строка наследования вида товаров у категории (по образцу M3-3c) ─────────────
@@ -224,8 +309,9 @@ def category_inherit(config: dict, host: str, category) -> dict:
         "summary": _view_label(base if base in site_schema.MAIN_VIEW_CHOICES else "raster"),
         "own": _view_label(own_value) if own else "",
         "name": banners._place_label(category),
+        # architect A-M7: «für alle ändern» — вид ★ общей схемы категорий (не правило строки)
         "link": f"{reverse('site-schema')}?seite={site_schema.CATEGORY}&block="
-        f"{siteconfig.MAIN_LIST_KEY}#schema-panel",
+        f"{siteconfig.MAIN_LIST_KEY}&tab=wie#schema-panel",
     }
 
 

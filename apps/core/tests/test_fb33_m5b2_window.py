@@ -34,8 +34,6 @@ from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замок до кода (снимается реализацией W1)
-TODO_W1 = pytest.mark.xfail(strict=True, reason="FB-33 M5b-2 W1: поведения ещё нет")
 
 PAGE = site_schema.PAGE_REF
 TITLE = page_title.TITLE_REF
@@ -92,10 +90,10 @@ CATEGORY = "category@catalog:brot"
 
 
 @pytest.mark.parametrize(("bt", "code", "label"), [
-    pytest.param("friseur", "services", "Seitentitel und Seite", marks=TODO_W1),
-    pytest.param("friseur", "contact", "Seitentitel und Seite", marks=TODO_W1),
-    pytest.param("online_shop", "promos", "Seitentitel und Seite", marks=TODO_W1),
-    pytest.param("online_shop", "catalog", "Einstellungen der Seite", marks=TODO_W1),
+    ("friseur", "services", "Seitentitel und Seite"),
+    ("friseur", "contact", "Seitentitel und Seite"),
+    ("online_shop", "promos", "Seitentitel und Seite"),
+    ("online_shop", "catalog", "Einstellungen der Seite"),
     ("online_shop", "product", "Einstellungen der Seite"),  # было и до W1
 ])  # fmt: skip
 def test_page_window_opens_on_seite(bt, code, label):
@@ -105,7 +103,6 @@ def test_page_window_opens_on_seite(bt, code, label):
     assert 'value="window_done"' in panel
 
 
-@TODO_W1
 def test_seite_tab_dom_order():
     """Y-M2: `fieldset`+`legend` «Überschrift der Seite» (Seitentitel / Einleitung /
     Ausrichtung) → `h4` «Einstellungen dieser Seitenart» → настройки типа (метки групп — `h5`)."""
@@ -128,7 +125,6 @@ def test_seite_tab_dom_order():
     )
 
 
-@TODO_W1
 def test_seite_tab_apply_form_none():
     """Y-M1: на «Seite» несколько форм — кнопки вкладок не применяют ни одну (ссылки)."""
     tenant = _tenant("online_shop", CFG)
@@ -142,7 +138,6 @@ def test_seite_tab_apply_form_none():
         assert "data-window-hint" in panel, "без JS — подсказка «erst übernehmen»"
 
 
-@TODO_W1
 def test_title_form_apply_button_named():
     """Y-M1: «Übernehmen» формы заголовка — с sr-суффиксом «: Seitentitel» (на «Seite» не одна
     кнопка «Übernehmen»)."""
@@ -155,7 +150,6 @@ def test_title_form_apply_button_named():
     )
 
 
-@TODO_W1
 @pytest.mark.parametrize("code", ["services", "contact", "catalog"])
 def test_no_duplicate_ids_on_page_tab(code):
     """Y-M9: без JS все вкладки окна в DOM — ни одного повторного `id` (поля заголовка,
@@ -169,7 +163,6 @@ def test_no_duplicate_ids_on_page_tab(code):
     assert [i for i, n in ids.items() if n > 1] == []
 
 
-@TODO_W1
 def test_page_ref_title_fields_on_real_row():
     """A-H3 на настоящей ★-строке: подписи полей, потолки 120/400, пункты «Ausrichtung»."""
     seite = _section(_panel(Browser(_tenant()).get(f"?seite=services&block={PAGE}")), "seite")
@@ -182,7 +175,6 @@ def test_page_ref_title_fields_on_real_row():
     assert '<option value="center">Zentriert</option>' in seite
 
 
-@TODO_W1
 def test_title_translations_on_seite():
     """Решение владельца: переводы заголовка — той же формой, что немецкое поле, на «Seite»."""
     panel = _panel(Browser(_tenant(locales=["de", "en"])).get(f"?seite=services&block={PAGE}"))
@@ -193,7 +185,6 @@ def test_title_translations_on_seite():
     assert "f_tr_title" not in one
 
 
-@TODO_W1
 def test_title_edit_and_revert_in_page_window():
     b = Browser(_tenant())
     resp, _m = b.post(seite="services", ref=PAGE, op="update", panel_present="1",
@@ -209,14 +200,12 @@ def test_title_edit_and_revert_in_page_window():
     assert "services" not in (b.session.get(aufbau_draft.SESSION_KEY) or {})
 
 
-@TODO_W1
 def test_switch_removed():
     """W1 включает слияние насовсем: переключателя `ON_PAGE_ROW` больше нет."""
     assert not hasattr(page_title, "ON_PAGE_ROW")
     assert site_schema.title_op("services", {}, "update", {"title": "x"}) == PAGE
 
 
-@TODO_W1
 def test_star_row_labels_ru():
     tenant = _tenant()
     cfg = siteconfig.normalize(tenant.site_config)
@@ -236,7 +225,6 @@ def _main_window(tenant, code):
     return _panel(html)
 
 
-@TODO_W1
 @pytest.mark.parametrize("bt", ["online_shop", "friseur", "hotel", "events"])
 def test_every_main_window_not_empty(bt):
     """A-H1: у каждой ★ из `MAIN_LIST_HOSTS` (что есть у бизнеса) окно не пустое: свой вид
@@ -267,7 +255,6 @@ def test_every_main_window_not_empty(bt):
     assert seen, bt
 
 
-@TODO_W1
 def test_own_view_list_link_on_page_tab():
     """Строка «Darstellung … im Block „…“ › Wie anordnen» — на «Seite» у списков со своим видом;
     у прочих — нет (вид — в настройках типа здесь же)."""
@@ -287,7 +274,6 @@ def test_own_view_list_link_on_page_tab():
 # ───────────── H2: наследование вида категории и SEO-ссылка ─────────────
 
 
-@TODO_W1
 def test_category_inherit_on_star_wie():
     """A-H2: строка наследования — у ★ категории, вкладка «Wie anordnen»; ссылка «für alle
     ändern» — на ★ общей схемы категорий, вкладка «Wie anordnen»; у ★-строки её нет."""
@@ -304,7 +290,6 @@ def test_category_inherit_on_star_wie():
     assert "data-schema-page-inherit" not in page
 
 
-@TODO_W1
 def test_category_seo_link_on_page_row():
     """A-H2: ссылка на форму категории (заголовок для поисковиков) — у ★-строки, не у ★."""
     from apps.catalog.models import Category
@@ -316,7 +301,6 @@ def test_category_seo_link_on_page_row():
     assert f"/catalog/categories/{cat.pk}/edit/" not in _main_window(tenant, CATEGORY)
 
 
-@TODO_W1
 def test_category_view_reset_and_cancel_on_star():
     """A-H2: «zurücksetzen» — `ref=main`; «Abbrechen» окна ★ возвращает свой вид."""
     tenant = _category_shop(own_view=True)
@@ -336,7 +320,6 @@ def test_category_view_reset_and_cancel_on_star():
 # ───────────── A-M7: ссылки на правило ─────────────
 
 
-@TODO_W1
 def test_links_to_page_row_use_rule():
     from apps.core import page_templates
     from apps.core.block_views import list_view
@@ -352,7 +335,6 @@ def test_links_to_page_row_use_rule():
 # ───────────── №3: запросы окна ─────────────
 
 
-@TODO_W1
 def test_page_window_queries():
     """SQL окна ★-строки у услуг ≤ суммы прежних окон «Seitentitel» и ★; у ★ каталога — не
     больше прежнего (замер W0 — `QUERIES_BEFORE`)."""

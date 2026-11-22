@@ -35,6 +35,8 @@ PART_TAB: dict[str, str] = {
     "views": "wie",  # виды картинками: категорий, товаров, групп
     "switch": "wie",  # смена вида внутри семьи (M2e)
     "listview": "wie",  # FB-33 M3-3c: как выглядит список (группа «Wie … aussehen» своей формой)
+    "inherit": "wie",  # FB-33 M5b-2 (A-H2): у ★ категории — откуда вид товаров, «zurücksetzen»
+    "pagelink": "wie",  # FB-33 M5b-2 (A-H1): у списка без своего вида — ссылка на ★-строку
     "card_pick": "karte",  # FB-33 M3-4 (M0-2): форма карточки — только подходящие виду
     "platz": "wie",  # ширина и ряд — секция «Platz» (решение владельца)
     "usp": "texte",  # пункты полосы доверия
@@ -43,6 +45,7 @@ PART_TAB: dict[str, str] = {
     "seolink": "texte",  # FB-33 M3-6: у категории — ссылка на форму категории
     "pinned": "texte",  # FB-33 M3-6 (M0-10): плашка § 312j и подпись кнопки (только чтение)
     "settings": "seite",  # настройки типа страницы у ★-строки и строк-носителей
+    "listlink": "seite",  # FB-33 M5b-2: у ★-строки — «Darstellung … im Block › Wie anordnen»
     "formfields": "felder",  # FB-33 M2i-5: поля формы заявки (режимы, свои вопросы)
     "noinput": "felder",  # FB-33 M3-6: «Hier werden keine Angaben abgefragt»
     "formlink": "felder",  # FB-33 M2i-5: у полосы/блока заявки — ссылка на окно формы
@@ -55,6 +58,8 @@ PART_ORDER = (
     "views",
     "switch",
     "listview",
+    "inherit",
+    "pagelink",
     "card_pick",
     "fields",
     "formfields",
@@ -67,6 +72,7 @@ PART_ORDER = (
     "pinned",
     "noinput",
     "settings",
+    "listlink",
 )
 
 #: роль формы «fields» по её полям: выбор источника или набора — «Was», вид — «Wie
@@ -100,7 +106,9 @@ PANEL_KEYS: dict[str, str] = {
     "places": "places",  # FB-33 M3-6
     "seo": "seo",
     "seo_link": "seolink",
-    "page_inherit": "settings",  # строка наследования вида у категории (в части «Seite»)
+    "page_inherit": "inherit",  # FB-33 M5b-2: строка наследования вида у ★ категории
+    "list_link": "listlink",  # FB-33 M5b-2: ★-строка → вид основного списка
+    "page_link": "pagelink",  # FB-33 M5b-2: основной список → настройки типа на ★-строке
     "legal": "pinned",
     "noinput": "noinput",
     "widths": "platz",
@@ -137,6 +145,7 @@ ROW_KEYS = frozenset(
         "builtin_data",
         "banner_choice",
         "family_label",  # шапка окна: «Gehört zu: …»
+        "with_title",  # FB-33 M5b-2: на «Seite» — «Überschrift der Seite» и «…dieser Seitenart»
         "can_up",  # меню «⋯» в шапке
         "can_down",
     }
@@ -167,6 +176,9 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
             g.get("key") == "wie" and g.get("fields") for g in selected.get("groups") or ()
         ),
         "card_pick": bool(selected.get("card_pick")),
+        "inherit": bool(selected.get("page_inherit")),
+        "pagelink": bool(selected.get("page_link")),
+        "listlink": bool(selected.get("list_link")),
         "fields": bool(selected.get("fields")),
         "platz": bool(selected.get("widths")),
         "usp": bool(selected.get("usp")),
@@ -184,7 +196,12 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
 
 
 def tab_of(part: str, selected: dict) -> str:
+    from apps.core import site_schema
+
     if part == "fields":
+        if site_schema.is_title_row(selected):
+            # FB-33 M5b-2: поля «Seitentitel» — на «Seite» ★-строки (переводы — той же формой)
+            return "seite"
         return fields_tab(selected.get("fields") or [])
     return PART_TAB[part]
 

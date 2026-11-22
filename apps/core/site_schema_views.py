@@ -140,6 +140,45 @@ def _block_preview(request, code: str, current, selected: dict) -> dict:
     }
 
 
+def _old_title_link(request, tenant, code: str) -> str:
+    """FB-33 M5b-2 (architect A-M5): старая ссылка на строку «Seitentitel» (`?block=__title`:
+    закладка, письмо, Студия до деплоя) — адрес окна ★-строки на вкладке «Seite»; вид
+    «Telefon», токен окна и язык переводов остаются, подтверждение удаления и раскрытая
+    настройка — нет. У страницы без ★-строки — страница без блока. "" — ссылка не старая."""
+    from apps.core import page_title
+
+    if request.method != "GET" or request.GET.get("block") != page_title.TITLE_REF:
+        return ""
+    keep = {k: v for k, v in _keep(request.GET).items() if k in ("ansicht", "wopen", "sprache")}
+    if site_schema.page_row_ref(tenant, code) != site_schema.PAGE_REF:
+        return _url(code, "", keep)
+    return _url(code, site_schema.PAGE_REF, {**keep, "tab": "seite"})
+
+
+def _title_hint(layout: dict, blocks: list[dict], at, host: str) -> dict | None:
+    """Метка «Überschrift der Seite · in ★ bearbeiten»: номер ряда `layout.lines`, после
+    которого она стоит (ряд последнего видимого блока над заголовком), и имя окна ★-строки
+    для ссылки. None — метки нет (`site_schema.title_hint_at`)."""
+    from apps.core import page_window
+
+    if at is None:
+        return None
+    above = [b["ref"] for b in blocks[:at] if b["enabled"]]
+    if not above:
+        return None
+    line = next(
+        (
+            i
+            for i, li in enumerate(layout.get("lines") or [])
+            if any(b["ref"] == above[-1] for b in li["blocks"])
+        ),
+        None,
+    )
+    if line is None:
+        return None
+    return {"after": line, "where": page_window.star_name(page_window.label(host), visible=False)}
+
+
 @login_required
 def site_schema_view(request):
     from apps.core import aufbau_draft
@@ -422,6 +461,9 @@ def site_schema_view(request):
     # Тип, которого у бизнеса нет (или мусор в адресе), не открывается — главная.
     current = next((r for r in rows if r.code == code), rows[0] if rows else None)
     code = current.code if current else "home"
+    old = _old_title_link(request, tenant, code)
+    if old:
+        return redirect(old)
     # FB-31 P5 R7 (ревью): старая ссылка на настройку со строки «Seite» (закладка, письмо)
     # ведёт на строку раздела, где она теперь живёт
     moved = site_schema.SETTING_ROWS.get(code, {}).get(request.GET.get("offen", ""))
@@ -442,8 +484,10 @@ def site_schema_view(request):
         )
     draft_info = aufbau_draft.info(request, saved, code)
     blocks = site_schema.blocks_for(config, code, host=current.host if current else None)
-    # FB-27 V3 / FB-33 M5b-1: настройки типа живут в строке-носителе (★ или, на главной,
-    # «Banner») либо в строке «Einstellungen der Seite» — одно правило, флаг — до выбора строки
+    host = (current.host if current else "") or ""
+    # FB-27 V3 / FB-33 M5b-1 / M5b-2 (V4): настройки типа живут в ★-строке страницы
+    # («Seitentitel und Seite» / «Einstellungen der Seite»), на главной — в строке «Banner»:
+    # одно правило, флаг носителя — до выбора строки
     page_ref = site_schema.page_row_ref(tenant, code, blocks)
     carrier = next((b for b in blocks if b["ref"] == page_ref), None)
     if carrier is not None:
@@ -451,8 +495,11 @@ def site_schema_view(request):
     selected = next((b for b in blocks if b["ref"] == request.GET.get("block")), None)
     from apps.core import page_window
 
-    # FB-33 M3-6: «Einstellungen der Seite» — тем же окном блока (вкладка «Seite»)
-    selected = selected or page_window.pseudo_row(request.GET.get("block", ""), page_ref)
+    # FB-33 M3-6 / M5b-2: ★-строка страницы — тем же окном блока (вкладка «Seite»)
+    selected = selected or page_window.pseudo_row(
+        request.GET.get("block", ""), page_ref, host, config
+    )
+    page_window.list_links(selected, blocks, page_ref, host)
     if selected and selected.get("list_data") is not None:
         from apps.core import list_panel
 
@@ -576,8 +623,11 @@ def site_schema_view(request):
     # основного списка — на строке «Einstellungen der Seite» (`page_ref` выше).
     page_row, settings, design_rows = None, [], []
     if page_ref == site_schema.PAGE_REF:
+        star = page_window.pseudo_row(page_ref, page_ref, host, config)
         page_row = {
             "ref": site_schema.PAGE_REF,
+            "label": star["label"],
+            "summary": star["summary"],
             "active": request.GET.get("block") == site_schema.PAGE_REF,
         }
     if (selected and selected.get("carrier")) or (page_row and page_row["active"]):
@@ -626,6 +676,11 @@ def site_schema_view(request):
         if c != code and c in labels
     ]
     layout = site_schema.schema_layout(blocks)
+    # FB-33 M5b-2 (V4, a11y Y-H2): серая метка «Überschrift der Seite» — только в разметке,
+    # после ряда с последним видимым блоком над заголовком (не строка: не в `blocks`/рядах)
+    title_hint = None
+    if page_ref == site_schema.PAGE_REF:
+        title_hint = _title_hint(layout, blocks, site_schema.title_hint_at(host, blocks), host)
     confirm_remove = bool(selected) and request.GET.get("entfernen") == "1"
     # FB-33 M3-1: окно блока — части панели по вкладкам (`block_window`)
     window = block_window.tabs(
@@ -650,6 +705,7 @@ def site_schema_view(request):
             "bw_preview": bw_preview,
             "blocks": blocks,
             "layout": layout,
+            "title_hint": title_hint,
             **_row_ops(layout, selected),
             "selected": selected,
             "confirm_remove": confirm_remove,
