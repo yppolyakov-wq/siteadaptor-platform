@@ -857,6 +857,8 @@ input[type="datetime-local"] {
 .sf-slider-dot { width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; background: transparent; border: 0; padding: 0; cursor: pointer; }
 .sf-slider-dot::before { content: ""; width: .5rem; height: .5rem; border-radius: 9999px; background: #d1d5db; }
 .sf-slider-dot.is-on::before { background: var(--accent, #111827); }
+/* M3-9d: точки обложки раздела и шапки категории лежат на фото — кольцо белое с тёмной обводкой */
+[data-cover-dot]:focus-visible, [data-cat-dot]:focus-visible { outline: 2px solid #fff; outline-offset: 0; box-shadow: 0 0 0 4px rgba(0,0,0,.55); }
 .dark .sf-slider-arrow { background: #1f2937; color: #f9fafb; border-color: #374151; }
 .dark .sf-slider-dot:not(.is-on)::before { background: #4b5563; }
 /* DL-16.4 P2: листание фото на карточке товара ([data-card-imgs]) — стрелки при наведении,

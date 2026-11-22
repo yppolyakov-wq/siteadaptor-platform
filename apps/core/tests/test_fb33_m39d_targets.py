@@ -35,7 +35,6 @@ DOT_BUTTON = {"inline-flex", "w-6", "h-6", "items-center", "justify-center", "ro
 DOT_MARK = {"w-2", "h-2", "rounded-full"}
 _BUTTON = re.compile(r"<button\b([^>]*)>(.*?)</button>", re.S)
 #: замки до кода (снимаются коммитом, который даёт поведение)
-TODO_SF = pytest.mark.xfail(strict=True, reason="M3-9d: витрина — следующим коммитом")
 TODO_WIN = pytest.mark.xfail(strict=True, reason="M3-9d: окно и стенд — следующим коммитом")
 _SPAN = re.compile(r'<span aria-hidden="true" class="([^"]*)"></span>')
 
@@ -68,7 +67,6 @@ def _assert_dots(dots, *, active: str):
         assert ('aria-current="true"' in attrs) is (k == 0)
 
 
-@TODO_SF
 def test_cover_dots_are_24px_targets_with_an_8px_mark():
     html = render_to_string(
         "storefront/_archetype_cover.html",
@@ -98,13 +96,11 @@ def _assert_show(show: str):
     assert 'd.removeAttribute("aria-current")' in show
 
 
-@TODO_SF
 def test_cover_script_marks_the_dot_not_the_button():
     body = _script("_archetype_cover.html", "function show(n)")
     _assert_show(body[: body.index("function stop()")])
 
 
-@TODO_SF
 def test_category_header_dots_are_24px_targets():
     html = render_to_string(
         "storefront/_category_header.html",
@@ -118,13 +114,11 @@ def test_category_header_dots_are_24px_targets():
     assert "inset-x-0" in row and "bottom-1" in row
 
 
-@TODO_SF
 def test_category_header_script_marks_the_dot_not_the_button():
     js = _script("_category_header.html", "function show(n)")
     _assert_show(js[: js.index('s.querySelector("[data-cat-prev]")')])
 
 
-@TODO_SF
 def test_dots_have_a_visible_focus_ring():
     """Точка на фото: кольцо белое с тёмной обводкой — видно на светлом и тёмном снимке."""
     css = (ROOT / "static" / "src" / "app.css").read_text(encoding="utf-8")
@@ -160,7 +154,6 @@ def _contact(style: str) -> str:
 
 
 @pytest.mark.parametrize("style", ["card", "compact"])
-@TODO_SF
 def test_contact_links_are_24px_targets(_urlconf, style):
     links = _links(_contact("" if style == "card" else style))
     texts = [t for _a, t in links]
@@ -185,20 +178,16 @@ SOURCE_LINKS = [
 
 
 @pytest.mark.parametrize(("template", "marker"), SOURCE_LINKS)
-@TODO_SF
 def test_storefront_link_is_a_24px_target(template, marker):
     src = (TEMPLATES / template).read_text(encoding="utf-8")
     found = [attrs for attrs, body in _ANCHOR.findall(src) if marker in body]
     assert found, f"{template}: ссылка «{marker}» не найдена"
     small = [
-        a.strip()[:80]
-        for a in found
-        if not {TARGET, "inline-flex", "items-center"} <= set(a.split())
+        a.strip()[:80] for a in found if not {TARGET, "inline-flex", "items-center"} <= _classes(a)
     ]
     assert small == []
 
 
-@TODO_SF
 def test_category_edit_pencil_is_a_24px_square():
     src = (TEMPLATES / "products.html").read_text(encoding="utf-8")
     (attrs,) = [a for a, body in _ANCHOR.findall(src) if body.strip() == "✎"]

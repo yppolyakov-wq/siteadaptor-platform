@@ -2,7 +2,7 @@
 <section class="mt-12">
   <div class="flex items-center justify-between gap-3 mb-4">
     <h2 class="text-xl font-bold">{% trans "Beispiele unserer Arbeit" %}</h2>
-    <a href="{% url 'storefront-gallery' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Alle Fotos" %} →</a>
+    <a href="{% url 'storefront-gallery' %}" class="inline-flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline shrink-0">{% trans "Alle Fotos" %} →</a>
   </div>
   <div class="flex gap-3 overflow-x-auto pb-2">
     {% for img in gallery_examples %}

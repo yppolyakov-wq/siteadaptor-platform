@@ -49,7 +49,7 @@ M20U-4: одна тематическая секция детальной соб
     {% if map_point %}
     <div class="mb-3">
       {% include "storefront/_point_map.html" with map_id="sf-event-map" lat=map_point.lat lng=map_point.lng map_class="w-full h-64 rounded-xl overflow-hidden border border-gray-200 relative z-0" %}
-      <a href="{{ map_link }}" target="_blank" rel="nofollow noopener" class="text-sm text-indigo-600 hover:underline">{% trans "Plan route" %} →</a>
+      <a href="{{ map_link }}" target="_blank" rel="nofollow noopener" class="inline-flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline">{% trans "Plan route" %} →</a>
     </div>
     {% endif %}
     {% if event.images|length > 1 %}

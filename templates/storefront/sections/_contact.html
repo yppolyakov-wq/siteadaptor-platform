@@ -10,10 +10,10 @@ compact: плоская строка без карточки и карты. Ге
     <h2 class="text-base font-bold text-gray-800">{% trans "Contact & opening hours" %}</h2>
     {% with st=request.tenant.open_status %}{% include "storefront/_open_badge.html" %}{% endwith %}
     {% if request.tenant.address %}<span>{{ request.tenant.address }}</span>{% endif %}
-    {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a>{% endif %}
-    {% if request.tenant.public_email %}<a href="mailto:{{ request.tenant.public_email }}" class="hover:underline">{{ request.tenant.public_email }}</a>{% endif %}
+    {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="inline-flex min-h-[24px] items-center hover:underline">{{ request.tenant.public_phone }}</a>{% endif %}
+    {% if request.tenant.public_email %}<a href="mailto:{{ request.tenant.public_email }}" class="inline-flex min-h-[24px] items-center hover:underline">{{ request.tenant.public_email }}</a>{% endif %}
     {% if request.tenant.open_status %}<span>{% trans "Today" %}: {{ request.tenant.todays_hours }}</span>{% endif %}
-    {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" rel="noopener" class="text-indigo-600 hover:underline">{% trans "Open map" %} →</a>{% endif %}
+    {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" rel="noopener" class="inline-flex min-h-[24px] items-center text-indigo-600 hover:underline">{% trans "Open map" %} →</a>{% endif %}
   </div>
 </section>
 {% else %}
@@ -28,10 +28,10 @@ compact: плоская строка без карточки и карты. Ге
   <div class="grid sm:grid-cols-2 {% if section_row.style == "split" and request.tenant.latitude and request.tenant.longitude %}lg:grid-cols-3{% endif %} gap-6 text-sm text-gray-600">
     <div>
       {% if request.tenant.address %}<p class="whitespace-pre-line">{{ request.tenant.address }}</p>{% endif %}
-      {% if request.tenant.public_phone %}<p class="mt-2"><a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
-      {% if request.tenant.public_email %}<p class="mt-1"><a href="mailto:{{ request.tenant.public_email }}" class="hover:underline">{{ request.tenant.public_email }}</a></p>{% endif %}
-      {% if request.tenant.map_url %}<p class="mt-2"><a href="{{ request.tenant.map_url }}" rel="noopener" class="text-indigo-600 hover:underline">{% trans "Open map" %} →</a></p>{% endif %}
-      {% if storefront_inbox_enabled %}<p class="mt-2"><a href="{% url 'storefront-message' %}?kind=callback&amp;label={% filter urlencode %}{% trans 'Callback request' %}{% endfilter %}" class="text-indigo-600 hover:underline">📞 {% trans "Request a callback" %}</a></p>{% endif %}
+      {% if request.tenant.public_phone %}<p class="mt-2"><a href="tel:{{ request.tenant.public_phone }}" class="inline-flex min-h-[24px] items-center hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
+      {% if request.tenant.public_email %}<p class="mt-1"><a href="mailto:{{ request.tenant.public_email }}" class="inline-flex min-h-[24px] items-center hover:underline">{{ request.tenant.public_email }}</a></p>{% endif %}
+      {% if request.tenant.map_url %}<p class="mt-2"><a href="{{ request.tenant.map_url }}" rel="noopener" class="inline-flex min-h-[24px] items-center text-indigo-600 hover:underline">{% trans "Open map" %} →</a></p>{% endif %}
+      {% if storefront_inbox_enabled %}<p class="mt-2"><a href="{% url 'storefront-message' %}?kind=callback&amp;label={% filter urlencode %}{% trans 'Callback request' %}{% endfilter %}" class="inline-flex min-h-[24px] items-center text-indigo-600 hover:underline">📞 {% trans "Request a callback" %}</a></p>{% endif %}
     </div>
     {% if request.tenant.opening_hours or request.tenant.open_status %}
       <div>
