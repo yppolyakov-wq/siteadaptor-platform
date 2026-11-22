@@ -3796,6 +3796,8 @@ def page_row_ref(tenant, code: str, blocks: list[dict] | None = None) -> str:
         try:
             has = bool(setting_codes(tenant, code)) or bool(design_codes(tenant, code))
         except SchemaError:
+            # мусорный код страницы (адрес, закладка): строки нет — как у экрана, но видно в логе
+            logger.debug("page row: page %r not resolved — no settings row", code)
             has = False
         if not has:
             return ""

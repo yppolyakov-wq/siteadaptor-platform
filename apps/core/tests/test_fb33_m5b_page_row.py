@@ -149,12 +149,16 @@ def test_page_row_ref_is_the_view_rule(bt):
             assert static == want, (bt, row.code)
 
 
-def test_page_row_ref_edges():
+def test_page_row_ref_edges(caplog):
     tenant = _tenant()
     saved = siteconfig.normalize(tenant.site_config)
     ghost = "product@product:" + "0" * 32
     assert site_schema.page_row_ref(tenant, ghost, []) == ""
-    assert site_schema.page_row_ref(tenant, "gibtsnicht", []) == "", "SchemaError — строки нет"
+    with caplog.at_level("DEBUG", logger="apps.core.site_schema"):
+        assert site_schema.page_row_ref(tenant, "gibtsnicht", []) == "", "SchemaError — строки нет"
+    assert any(r.levelname == "DEBUG" and "gibtsnicht" in r.getMessage() for r in caplog.records), (
+        "SchemaError не глотается молча (ревью M5b-1)"
+    )
     assert site_schema.page_row_ref(tenant, NO_SETTINGS, []) == ""
     home = site_schema.blocks_for(saved, "home")
     assert site_schema.page_row_ref(tenant, "home", home) == "hero"
