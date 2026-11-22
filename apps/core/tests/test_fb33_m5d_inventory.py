@@ -40,8 +40,6 @@ ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts" / "fb33_m5d_inventory.py"
 OWNER_STAND = ROOT / "scripts" / "fb33_m3_9_owner_stand.py"
 CODES = {"home", "product"}
-#: замок до кода: скрипта ещё нет — снимается коммитом скрипта
-BEFORE = pytest.mark.xfail(strict=True, reason="FB-33 M5d-0: scripts/fb33_m5d_inventory.py ещё нет")
 
 
 def _script():
@@ -113,7 +111,6 @@ def _naive(tenant, code, key) -> bool:
 # --- (а) ответ скрипта = разметка вьюхи ------------------------------------------------------
 
 
-@BEFORE
 def test_window_answer_follows_the_view_markup():
     tenant = _tenant()
     lines = _lines(tenant)
@@ -136,7 +133,6 @@ def test_fixture_tells_the_view_from_the_naive_count():
     assert _naive(tenant, "product", "description") is False
 
 
-@BEFORE
 def test_window_tabs_reads_the_panel_of_the_view():
     tenant = _tenant()
     fetch = view_fetch(tenant)
@@ -174,19 +170,25 @@ def _string_constants(tree) -> set[str]:
     }
 
 
-@BEFORE
 def test_script_keeps_no_list_of_block_kinds():
     tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
     keys = _block_keys()
     assert {"description", "about", "faq"} <= keys  # реестр собран
     leaked = sorted(_string_constants(tree) & keys)
     assert not leaked, f"скрипт держит ключи блоков: {leaked}"
-    src = SCRIPT.read_text(encoding="utf-8")
-    assert "block_window.tabs(" not in src  # ответ — из разметки вьюхи (A-H4)
-    assert 'value="window_done"' in src  # признак окна — как у aufbau.js и стенда владельца
+    # ответ — из разметки вьюхи (A-H4): `block_window` скрипт не импортирует и не зовёт
+    names = {
+        alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Import | ast.ImportFrom)
+        for alias in node.names
+    }
+    assert "block_window" not in names and "apps.core.block_window" not in names
+    assert not [n for n in ast.walk(tree) if isinstance(n, ast.Attribute) and n.attr == "tabs"]
+    # признак окна — как у aufbau.js и стенда владельца
+    assert 'value="window_done"' in _string_constants(tree)
 
 
-@BEFORE
 def test_pages_and_rows_match_the_owner_stand():
     """`schema_pages` + `page_blocks` скрипта = страницы и строки `DUMP` стенда владельца."""
     tenant = _tenant()
@@ -214,7 +216,6 @@ def test_pages_and_rows_match_the_owner_stand():
 # --- (в) непостроенное — строкой «пропущено» --------------------------------------------------
 
 
-@BEFORE
 def test_unbuilt_page_is_a_skipped_line():
     tenant = _tenant()
     real = view_fetch(tenant)
@@ -237,7 +238,6 @@ def test_unbuilt_page_is_a_skipped_line():
     assert "пропущено: экран страницы: ответ 500" in md
 
 
-@BEFORE
 def test_schema_error_and_view_crash_are_skipped_lines(monkeypatch):
     tenant = _tenant()
     mod = _script()
@@ -254,7 +254,6 @@ def test_schema_error_and_view_crash_are_skipped_lines(monkeypatch):
     assert lines and all("RuntimeError: вьюха упала" in ln["skipped"] for ln in lines)
 
 
-@BEFORE
 def test_missing_business_is_a_skipped_line():
     lines = _script().run(["nicht-da"])
     assert lines == [{"kit": "nicht-da", "code": "", "ref": "", "skipped": "нет бизнеса"}]
