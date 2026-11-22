@@ -671,3 +671,40 @@ def test_full_stack_two_broken_addresses_render_once(cached, page_calls):
         assert resp.content == first.content
         assert vary(resp) == vary(first)
         assert resp["Content-Language"] == first["Content-Language"]
+
+
+#: публичные маршруты, читающие `?q=`, которые осознанно НЕ вне индекса при поиске: имя → причина
+SEARCH_NOINDEX_EXEMPT: dict[str, str] = {}
+
+
+def test_every_public_view_reading_q_is_noindexed():
+    """Ревью seo 1 по диффу (обратный замок): каждая публичная вьюха витрины, чей исходник
+    читает `?q=`, — в `SEARCH_NOINDEX_ROUTES` (или в `SEARCH_NOINDEX_EXEMPT` с причиной).
+    Кабинет (`CABINET_PREFIXES`) вне индекса и так — не считается."""
+    from django.urls import URLPattern, URLResolver, get_resolver
+
+    from apps.core import context
+    from apps.core.i18n_cabinet import CABINET_PREFIXES
+
+    reads_q = re.compile(r"GET(\.get\(|\[)\s*['\"]q['\"]")
+
+    def walk(patterns, prefix="/"):
+        for p in patterns:
+            if isinstance(p, URLResolver):
+                yield from walk(p.url_patterns, prefix + str(p.pattern))
+            elif isinstance(p, URLPattern):
+                yield prefix + str(p.pattern), p
+
+    found = set()
+    for route, p in walk(get_resolver("config.urls_tenant").url_patterns):
+        if route.startswith(CABINET_PREFIXES) or not p.name:
+            continue
+        try:
+            src = inspect.getsource(inspect.unwrap(p.callback))
+        except (TypeError, OSError):
+            continue
+        if reads_q.search(src):
+            found.add(p.name)
+    assert found, "обход не нашёл ни одной вьюхи с ?q= — сломан сам замок"
+    missing = found - context.SEARCH_NOINDEX_ROUTES - set(SEARCH_NOINDEX_EXEMPT)
+    assert not missing, f"читают ?q=, но не вне индекса при поиске: {sorted(missing)}"
