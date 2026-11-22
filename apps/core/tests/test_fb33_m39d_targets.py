@@ -225,15 +225,14 @@ def _stand() -> str:
     return STAND.read_text(encoding="utf-8")
 
 
-@TODO_WIN
 def test_m39c_stand_measures_pick_buttons():
-    """Ручной состав «Liste» больше не исключён из проверки окна ≥ 44 px."""
+    """Ручной состав «Liste» больше не исключён из проверки окна ≥ 44 px (в таблице — своей
+    строкой, как раньше)."""
     src = _stand()
     body = src[src.index("def measure_panel") : src.index("def window_part")]
-    assert 't["pick"]' not in body and 'outside = t["tag"] == "a"' in body
+    assert 't["pick"] or' not in body and 'outside = t["tag"] == "a"\n' in body
 
 
-@TODO_WIN
 def test_m39c_stand_targets_cover_m39d():
     """Стенд мерит новые цели: точки обложки и шапки категории, «📞 Rückruf» (только ссылка
     блока «Kontakt»: плитка quick_links ведёт по тому же адресу, но текст без «📞»), страницы

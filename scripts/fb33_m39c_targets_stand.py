@@ -9,7 +9,9 @@
 ретрит): главная и страницы, найденные по ссылкам (товар, акция, запись, номер, событие,
 корзина); меряются цели из списка
 `TARGETS` (подвал, «Alle anzeigen →», стрелки дня и месяца, «+ Mehr hinzufügen», «Herunterladen»,
-«📅», «💬», точки слайдера — только с JS) и ширина страницы (`scrollWidth`).
+«📅», «💬», точки слайдера — только с JS; M3-9d — точки обложки раздела и шапки категории,
+«📞 Rückruf», телефон и e-mail блока «Kontakt») и ширина страницы (`scrollWidth`). С JS у точек
+обложки и шапки категории — `aria-current` у нажатой, фокус по Tab (скриншот), ряд ниже CTA.
 
     DB_NAME=platform_m39c_stand uv run python manage.py migrate_schemas --shared
     DB_NAME=platform_m39c_stand uv run python scripts/text_pages_stand.py --setup
@@ -61,11 +63,19 @@ KIT_PAGES = {
         "/",
         "/warenkorb/",
         "/sortiment/",
+        ("/sortiment/", r"^/sortiment/[a-z0-9-]+/$"),
         ("/sortiment/", r"^/sortiment/[a-z0-9-]+/[a-z0-9-]+/$"),
+        "/ueber-uns/",
         "/aktionen/",
         ("/aktionen/", r"^/p/[0-9a-f-]{36}/$"),
     ],
-    "restaurant": ["/", "/warenkorb/", "/aktionen/", ("/aktionen/", r"^/p/[0-9a-f-]{36}/$")],
+    "restaurant": [
+        "/",
+        "/warenkorb/",
+        "/aktionen/",
+        ("/aktionen/", r"^/p/[0-9a-f-]{36}/$"),
+        ("/kombi/", r"^/kombi/[0-9a-f-]{36}/$"),
+    ],
     "friseur": ["/", "/termin/", ("/termin/", r"^/leistung/[0-9a-f-]{36}/$")],
     "hotel": ["/", "/unterkunft/", ("/unterkunft/", r"^/unterkunft/[0-9a-f-]{36}/")],
     "retreat": [
@@ -88,7 +98,17 @@ TARGETS = {
     "«📅 …»": ["main a[href]", "^📅"],
     "«💬 …»": ["main a[href]:not([class*='bg-'])", "^💬"],
     "точка слайдера": [".sf-slider-dot", None],
+    # M3-9d
+    "точка обложки раздела": ["[data-cover-dot]", None],
+    "точка шапки категории": ["[data-cat-dot]", None],
+    # только ссылка блока «Kontakt»: плитка quick_links «Rückruf anfordern» ведёт туда же, без «📞»
+    "«📞 Rückruf»": ["main a[href*='kind=callback']", "^📞"],
+    "«Kontakt»: телефон, e-mail": ["main a[href^='tel:'], main a[href^='mailto:']", None],
 }
+#: цели, которых на демо-китах может не быть (обложка раздела и шапка категории — по фото)
+OPTIONAL_TARGETS = ("точка обложки раздела", "точка шапки категории")
+#: точки со своим скриптом (не `.sf-slider-dot`): селектор → кнопка-CTA над ними (или None)
+OWN_DOTS = {"[data-cover-dot]": "[data-cover-hero] a", "[data-cat-dot]": None}
 
 _PANEL_JS = """() => {
   const p = document.querySelector('[data-schema-panel]');
@@ -197,9 +217,9 @@ def measure_panel(rep, table, pg, combo, where):
         return
     small = []
     for t in found:
-        # вне правила окна (и со скриптами): ручной состав «Liste» (`_schema_pick.html`, свой
-        # класс min-h-[32px]) и ссылки-кнопки `a.ui-btn` — меряются, в ✗ не идут
-        outside = t["pick"] or t["tag"] == "a"
+        # вне правила окна (и со скриптами): ссылки-кнопки `a.ui-btn` — меряются, в ✗ не идут;
+        # ручной состав «Liste» (`_schema_pick.html`) с M3-9d — 44 px, как остальное окно
+        outside = t["tag"] == "a"
         kind = "состав «Liste» (pick_op)" if t["pick"] else ("a.ui-btn" if outside else t["tag"])
         table.add(kind, combo, t["h"], where)
         if t["h"] < WIN_MIN - 0.5 and not outside:
@@ -264,6 +284,43 @@ def _resolve(pg, base, spec, js, rep):
     return next((h for h in pg.evaluate(_HREFS_JS) if h and rx.search(h)), None)
 
 
+_CTA_GAP_JS = """([dot, cta]) => {
+  const d = document.querySelector(dot), b = cta && document.querySelector(cta);
+  if (!d || !b) return null;
+  return Math.round(d.parentElement.getBoundingClientRect().top - b.getBoundingClientRect().bottom);
+}"""
+
+
+def own_dots(rep, pg, out, combo, where, w, lang):
+    """M3-9d (ревью a11y): точки обложки и шапки категории — после щелчка ровно одна точка с
+    `aria-current`, и это нажатая; фокус по Tab виден (скриншот); ряд точек ниже кнопки CTA."""
+    for sel, cta in OWN_DOTS.items():
+        dots = pg.locator(sel)
+        if dots.count() < 2 or not dots.nth(1).is_visible():
+            continue
+        dots.nth(1).click()
+        pg.wait_for_timeout(300)
+        cur = pg.evaluate(
+            "(sel) => [...document.querySelectorAll(sel)]"
+            ".map((d, k) => d.getAttribute('aria-current') === 'true' ? k : -1)"
+            ".filter(k => k >= 0)",
+            sel,
+        )
+        rep.check(
+            cur == [1], f"{combo} {where}: {sel} aria-current у нажатой ({cur})", code="dotcur"
+        )
+        dots.nth(0).focus()
+        pg.keyboard.press("Tab")
+        pg.keyboard.press("Shift+Tab")
+        kept = pg.evaluate("(sel) => document.activeElement.matches(sel)", sel)
+        rep.check(kept, f"{combo} {where}: {sel} в фокусе по Tab", code="dotfocus")
+        name = re.sub(r"\W+", "", sel)
+        sl.shot(pg, out, f"m39d_focus_{name}_{w}_{lang}", full=False)
+        gap = pg.evaluate(_CTA_GAP_JS, [sel, cta])
+        if gap is not None:
+            rep.check(gap >= 0, f"{combo} {where}: ряд {sel} ниже кнопки ({gap}px)", code="dotcta")
+
+
 def storefront_part(rep, table, browser, out, w, h, lang, js):
     combo = f"{w} {lang} {_mode(js)}"
     seen: set[str] = set()
@@ -307,6 +364,8 @@ def storefront_part(rep, table, browser, out, w, h, lang, js):
                     rep.check(kept, f"{combo} {where}: фокус остаётся на точке", code="dotfocus")
                     cur = pg.locator(".sf-slider-dot[aria-current='true']").count()
                     rep.check(cur >= 1, f"{combo} {where}: aria-current у точки", code="dotcur")
+            if js:
+                own_dots(rep, pg, out, combo, where, w, lang)
             over = sl.overflow(pg)
             rep.check(over <= 0, f"{combo} {where}: без гор. скролла ({over}px)", code="overflow")
             if path == "/" and kit in ("ptx", "shop"):
@@ -316,6 +375,10 @@ def storefront_part(rep, table, browser, out, w, h, lang, js):
     # каждая цель списка встретилась хоть на одной странице (точки слайдера строит скрипт)
     for name in TARGETS:
         if name == "точка слайдера" and not js:
+            continue
+        if name in OPTIONAL_TARGETS:
+            if name not in seen:
+                rep.note(f"{combo}: необязательная цель «{name}» на витрине не встретилась")
             continue
         rep.check(name in seen, f"{combo}: цель «{name}» найдена на витрине", code="found")
 
