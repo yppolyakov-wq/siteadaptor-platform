@@ -1,8 +1,8 @@
 {% load i18n %}{# FB-33 M5a: блок «Suche» — GET-форма на адрес поиска витрины (`storefront_search_url`, как поле в шапке); адреса нет — блока нет #}
 {% if storefront_search_url %}<section class="my-8" data-block-site-search>
-  <form method="get" action="{{ storefront_search_url }}" role="search" class="relative max-w-xl mx-auto flex items-center gap-2">
-    <label for="sf-search-{{ block_id }}" class="sr-only">{% trans "Search" %}</label>
-    <input id="sf-search-{{ block_id }}" type="search" name="q" maxlength="80" placeholder="{% trans 'Suchen…' %}" class="flex-1 min-w-0 min-h-[44px] rounded-xl border border-gray-300 bg-white px-3 py-2 text-base">
+  <form method="get" action="{{ storefront_search_url }}" role="search" aria-label="{% trans 'Suche' %}" data-site-search class="relative max-w-xl mx-auto flex items-center gap-2">
+    <label for="sf-search-{{ block_id|default:"nf" }}" class="sr-only">{% trans "Search" %}</label>
+    <input id="sf-search-{{ block_id|default:"nf" }}" type="search" name="q" maxlength="80" placeholder="{% trans 'Suchen…' %}" class="flex-1 min-w-0 min-h-[44px] rounded-xl border border-gray-300 bg-white px-3 py-2 text-base">
     <button type="submit" class="min-h-[44px] shrink-0 rounded-xl px-4 py-2 text-sm font-semibold" style="background: var(--accent, #4f46e5); color: var(--accent-ink, #fff);">{% trans "Search" %}</button>
   </form>
 </section>{% endif %}

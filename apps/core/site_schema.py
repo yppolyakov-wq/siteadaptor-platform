@@ -2155,9 +2155,8 @@ def add_options(code: str) -> list[tuple[str, str]]:
     if code in siteconfig.FORMLESS_HOSTS:
         # FB-33 M2h-5: на подтверждении блоков с формами нет (данные сделки рядом);
         # FB-33 M5a: на странице 404 — тоже
-        from apps.core.confirmation_page import FORM_BLOCKS
-
-        keys = [k for k in keys if k not in FORM_BLOCKS]
+        banned = siteconfig.banned_blocks(code)
+        keys = [k for k in keys if k not in banned]
     # FB-33 M5a: блок, заведённый для своих страниц («Suche» — для 404), — только там
     keys = [k for k in keys if block_catalog.offered_on(k, code)]
     # FB-33 M2e: подпись с семьёй («Text · Foto + Text»)

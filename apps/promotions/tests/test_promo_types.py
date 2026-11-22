@@ -383,6 +383,11 @@ def test_promo_section_block_works_on_any_page_not_only_home():
 def test_block_type_is_allowed_on_every_page_host():
     """Инвариант: блок не должен выпадать на части страниц (класс «молча выпал»)."""
     for host in siteconfig.PAGE_BLOCK_HOSTS:
+        if "list" in siteconfig.banned_blocks(host):
+            # FB-33 M5a: на странице 404 «Liste» запрещён осознанно (cookie и выборка на каждый
+            # битый адрес) — не «молча выпал»: блок там и не предлагается
+            assert host == "not_found", host
+            continue
         cfg = siteconfig.normalize({"page_blocks": {host: [_promo_list_block("A")]}})
         # LB-1: легаси-ключ доезжает до каждой страницы уже блоком «Liste»
         assert cfg["page_blocks"][host][0]["key"] == "list", host

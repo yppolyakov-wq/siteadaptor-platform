@@ -243,6 +243,11 @@ def test_two_blocks_of_the_same_source_are_not_merged():
 def test_block_is_allowed_on_every_page_host():
     """Класс «молча выпал»: блок обязан жить на каждой странице с блоками."""
     for host in siteconfig.PAGE_BLOCK_HOSTS:
+        if "list" in siteconfig.banned_blocks(host):
+            # FB-33 M5a: на странице 404 «Liste» запрещён осознанно (cookie и выборка на каждый
+            # битый адрес) — не «молча выпал»: блок там и не предлагается
+            assert host == "not_found", host
+            continue
         cfg = siteconfig.normalize({"page_blocks": {host: [_block(source="products")]}})
         assert cfg["page_blocks"][host][0]["key"] == "list", host
 

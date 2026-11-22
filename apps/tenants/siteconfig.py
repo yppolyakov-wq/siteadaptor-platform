@@ -1987,10 +1987,18 @@ FORMLESS_HOSTS = ("confirmation", "not_found")
 KEEP_EMPTY_HOSTS = ("category", "promo_group", "not_found")
 
 
-def _confirmation_form_blocks() -> frozenset:
-    from apps.core.confirmation_page import FORM_BLOCKS
+def banned_blocks(host: str) -> frozenset:
+    """Блоки, которых на хосте нет (пусто — запретов нет): у подтверждения — блоки с полями
+    ввода, у страницы 404 — они же и «Liste». Один вопрос для normalize, показа и «+ Block»."""
+    if host == "not_found":
+        from apps.core import not_found_page
 
-    return FORM_BLOCKS
+        return not_found_page.FORM_BLOCKS
+    if host in FORMLESS_HOSTS:
+        from apps.core.confirmation_page import FORM_BLOCKS
+
+        return FORM_BLOCKS
+    return frozenset()
 
 
 def normalize_page_blocks(raw) -> dict:
@@ -2017,7 +2025,7 @@ def normalize_page_blocks(raw) -> dict:
         # FB-33 M2h-5 (ревью): на подтверждении блоков с формами нет — любой писатель
         # (импорт шаблона, Студия, ассистент, старый конфиг) их здесь не сохранит
         # FB-33 M5a: то же на странице 404
-        banned = _confirmation_form_blocks() if key in FORMLESS_HOSTS else frozenset()
+        banned = banned_blocks(key)
         # FB-32 S6f: голая строка оси хранится как место, если есть якоря разделов
         keep_bare = axis_keys and any(
             isinstance(i, dict) and i.get("key") in anchor_keys and not i.get("id") for i in items

@@ -183,7 +183,6 @@ def test_block_failure_serves_the_plain_page_and_logs(rf, monkeypatch, caplog):
     assert any("kaputt" in (r.exc_text or "") or r.exc_info for r in caplog.records)
 
 
-@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
 def test_failing_plain_page_still_answers_404(rf, monkeypatch, caplog):
     """Ревью: запасная `404.html` рендерится с контекстными процессорами — сбой БД уронил бы и
     её, посетитель получил бы 500. Последний рубеж — ответ без шаблона."""
@@ -201,7 +200,6 @@ def test_failing_plain_page_still_answers_404(rf, monkeypatch, caplog):
     assert caplog.records
 
 
-@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
 def test_failing_gate_serves_the_plain_page(rf, monkeypatch):
     """Ревью: решение «рисовать ли блоки» стояло вне защиты — его сбой давал 500."""
     from apps.core import storefront_state
@@ -215,7 +213,6 @@ def test_failing_gate_serves_the_plain_page(rf, monkeypatch):
     assert resp.status_code == 404 and resp.content == _plain(rf, req)
 
 
-@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
 def test_failure_log_is_deduplicated_and_does_not_carry_raw_path(rf, monkeypatch, caplog):
     """Ревью безопасности: трассировка на КАЖДЫЙ битый адрес бота заливала лог, путь шёл в
     запись как есть (перевод строки = поддельная строка лога). Запись — одна на бизнес за
@@ -329,14 +326,13 @@ def test_search_block_is_a_get_form_to_the_storefront_search(rf):
     assert "csrfmiddlewaretoken" not in form
 
 
-@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
 def test_search_form_is_a_named_landmark_and_demo_has_one_robots_tag(rf):
     """Ревью a11y: два ориентира `search` (шапка и блок) — блок назван. Ревью SEO: у демо-
     бизнеса базовый шаблон уже ставит robots — второго тега нет."""
-    html = _html(rf, _tenant())
+    _resp, html = _html(rf, _tenant())
     form = re.search(r"<form[^>]*role=\"search\"[^>]*data-site-search[^>]*>", html)
     assert form and "aria-label=" in form.group(0)
-    demo = _html(rf, _tenant(is_demo=True))
+    _resp, demo = _html(rf, _tenant(is_demo=True))
     assert len(re.findall(r'<meta name="robots"', demo)) == 1
     assert len(re.findall(r'<meta name="robots"', html)) == 1
 
@@ -475,7 +471,6 @@ def test_default_page_sets_no_cookie_and_stays_out_of_the_page_cache(rf, setting
     assert pagecache._cacheable(req, resp) is False
 
 
-@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
 def test_list_block_is_not_drawn_on_the_page_and_no_cookie_is_set(rf):
     """Ревью безопасности: «Liste» на 404 — кнопка корзины с CSRF-токеном (cookie анониму на
     любом битом адресе) и выборка товаров на каждый запрос бота. Блок на хосте запрещён; и
@@ -504,7 +499,6 @@ def test_list_block_is_not_drawn_on_the_page_and_no_cookie_is_set(rf):
 # ── блоки-формы ─────────────────────────────────────────────────────────────────────
 
 
-@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
 def test_form_blocks_and_list_are_banned_on_the_host():
     page = _page()
     assert {"newsletter", "anfrage_ref", "message_ref"} <= set(page.FORM_BLOCKS)

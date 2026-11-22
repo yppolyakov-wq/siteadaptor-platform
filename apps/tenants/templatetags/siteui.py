@@ -417,9 +417,8 @@ def page_blocks(context, page_key, part="after"):
         # FB-33 M2h (ПДн): на подтверждении блоки с полями ввода не рисуются, а остальные — с
         # ЧИСТЫМ контекстом: сделка и данные клиента вьюхи в блоки не попадают. FB-33 M5a: то
         # же на странице 404 (её отдают анониму на любом адресе — без форм и без cookie)
-        from apps.core import confirmation_page
-
-        blocks = [b for b in blocks if b.get("key") not in confirmation_page.FORM_BLOCKS]
+        banned = siteconfig.banned_blocks(page_key)
+        blocks = [b for b in blocks if b.get("key") not in banned]
         if not blocks and not is_preview:
             return ""
         clean = {"pb_rows": siteconfig.group_block_rows(blocks), "pb_page_key": page_key}

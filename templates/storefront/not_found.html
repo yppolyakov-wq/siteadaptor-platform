@@ -1,6 +1,6 @@
 {% extends "storefront/_base.html" %}
 {% load i18n siteui %}
-{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block robots %}{% if not request.tenant.is_demo %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
 {% block title %}{% trans "Page not found." %} — {{ request.tenant.name }}{% endblock %}
 {% block canonical %}{% endblock %}
 {% block localbusiness %}{% endblock %}
