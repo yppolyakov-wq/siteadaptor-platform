@@ -222,7 +222,6 @@ def test_same_type_again_and_non_food_switch_add_nothing():
     assert "form_fields" not in _stored(other)
 
 
-@pytest.mark.xfail(strict=True, reason="ревью стопки 8: пресет прежнего типа остаётся")
 def test_untouched_preset_follows_the_type_but_owner_edits_stay():
     """Ревью стопки 8: пресет, который владелец не правил, уходит вместе с типом (пекарня →
     магазин: телефон «Pflicht» и «Allergien / Wünsche» магазину не нужны); правленный — остаётся."""

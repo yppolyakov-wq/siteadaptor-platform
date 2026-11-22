@@ -92,28 +92,49 @@ def preset_for(business_type, form: str = "anfrage", locales=()) -> dict:
     return _fields_preset(raw, locales)
 
 
-def _add_checkout(cfg: dict, business_type, locales) -> bool:
+def _checkout_entry(business_type, locales):
+    """Запись `form_fields.checkout`, какой её кладёт пресет типа (None — пресета нет)."""
+    probe: dict = {}
+    _add_checkout(probe, business_type, locales)
+    return (probe.get("form_fields") or {}).get("checkout")
+
+
+def _add_checkout(cfg: dict, business_type, locales, previous_type=None) -> bool:
     """Пресет корзины в `cfg` — только при ОТСУТСТВУЮЩЕМ ключе `form_fields.checkout`; запись —
-    единственным писателем `form_spec.put`. Вернёт «изменено»."""
+    единственным писателем `form_spec.put`. Вернёт «изменено».
+
+    Смена типа (`previous_type`): запись, равная пресету ПРЕЖНЕГО типа, владелец не правил —
+    она уходит вместе с типом (и заменяется пресетом нового, если он есть). Правленная запись
+    остаётся. Ключ, который владелец сбросил до пустого, писатель снимает — при следующей
+    смене типа пресет ляжет снова (как у заявки)."""
     from apps.core import form_spec
 
     stored = cfg.get("form_fields")
     if stored is not None and not isinstance(stored, dict):
         return False  # битое значение — не наше дело: его разберёт `siteconfig.normalize`
+    dropped = False
     if "checkout" in (stored or {}):
-        return False
+        if not previous_type or previous_type == business_type:
+            return False
+        if stored["checkout"] != _checkout_entry(previous_type, locales):
+            return False
+        if stored["checkout"] == _checkout_entry(business_type, locales):
+            return False  # у нового типа пресет тот же
+        form_spec.put(cfg, "checkout", form_spec.edit_state({}, "checkout"))  # пусто → ключ снят
+        dropped = True
     preset = preset_for(business_type, "checkout", locales)
     if not preset:
-        return False
+        return dropped
     state = form_spec.edit_state(cfg, "checkout")
     form_spec.apply_preset(state, "checkout", preset)
     form_spec.put(cfg, "checkout", state)
-    return "checkout" in (cfg.get("form_fields") or {})
+    return dropped or "checkout" in (cfg.get("form_fields") or {})
 
 
-def with_default(site_config, business_type, locales=()) -> tuple[dict, bool]:
+def with_default(site_config, business_type, locales=(), previous_type=None) -> tuple[dict, bool]:
     """(новый конфиг, изменён ли) — пресет формы добавлен, только если её ключа нет.
-    `locales` — языки переводов бизнеса (подпись заметки корзины)."""
+    `locales` — языки переводов бизнеса (подпись заметки корзины); `previous_type` — прежний
+    тип при смене (нетронутый пресет корзины прежнего типа уходит с ним)."""
     cfg = dict(site_config) if isinstance(site_config, dict) else {}
     changed = False
     if "anfrage" not in cfg:
@@ -121,6 +142,6 @@ def with_default(site_config, business_type, locales=()) -> tuple[dict, bool]:
         if preset:
             cfg["anfrage"] = preset
             changed = True
-    if _add_checkout(cfg, business_type, locales):
+    if _add_checkout(cfg, business_type, locales, previous_type):
         changed = True
     return cfg, changed

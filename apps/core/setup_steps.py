@@ -48,7 +48,8 @@ def apply_business_type(tenant, business_type: str) -> None:
     untouched_preset = sorted(tenant.disabled_modules or []) == sorted(
         registry.default_disabled_for(tenant.business_type)
     )
-    type_changed = business_type != tenant.business_type
+    previous_type = tenant.business_type
+    type_changed = business_type != previous_type
     tenant.business_type = business_type
     update_fields = ["business_type", "updated_at"]
     if type_changed or untouched_preset:
@@ -63,9 +64,13 @@ def apply_business_type(tenant, business_type: str) -> None:
         from apps.jobs.anfrage_presets import with_default
 
         # FB-33 M2i-6: тем же шагом — пресет полей корзины (только без ключа
-        # `form_fields.checkout`), подпись заметки — на языки бизнеса
+        # `form_fields.checkout`; нетронутый пресет прежнего типа уходит с ним),
+        # подпись заметки — на языки бизнеса
         tenant.site_config, changed = with_default(
-            tenant.site_config, business_type, locales=i18n_input.extra_locales(tenant)
+            tenant.site_config,
+            business_type,
+            locales=i18n_input.extra_locales(tenant),
+            previous_type=previous_type,
         )
         tenant.site_config, changed_status = status_presets.with_default(
             tenant.site_config, business_type
