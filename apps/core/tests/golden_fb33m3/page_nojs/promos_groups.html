@@ -86,8 +86,15 @@
     <ul class="space-y-2" data-schema-blocks>
       <li class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">
         <span>Kopfzeile & Menü</span>
-        <a href="/dashboard/site/menu/" class="inline-flex items-center min-h-[24px] text-indigo-700 hover:underline">Menü bearbeiten</a>
+        <a href="/dashboard/site/menu/" class="inline-flex items-center min-h-[24px] text-indigo-700 underline hover:no-underline">Menü bearbeiten</a>
       </li>
+      
+      <li><a href="?seite=promos&amp;block=__page&amp;wopen=W#schema-panel"
+             class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-indigo-400 bg-indigo-50"
+             data-schema-block="__page">
+          <span class="font-medium"><span aria-hidden="true">★</span> Seitentitel und Seite</span><span class="sr-only">, feste Position.</span>
+          <span class="block text-xs text-gray-600 break-words">Standard</span>
+      </a></li>
       
       
       <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
@@ -107,24 +114,7 @@
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
-        
-        <li class="min-w-0" style="flex: 12 1 0%" data-schema-pinned="__title">
-        
-        <a href="?seite=promos&amp;block=__title&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="__title">
-          <span class="float-right ml-2 select-none" aria-hidden="true" data-schema-lock>🔒</span><span class="sr-only">feste Position, </span>
-          
-          <span class="block font-semibold">Seitentitel</span>
-          <span class="block text-xs text-gray-600 break-words">Standard</span>
-          
-          
-        </a></li>
-        
-        
-      </ul></li>
+      <li class="flex flex-wrap items-center gap-x-1 rounded-xl border border-dashed border-gray-400 bg-gray-50 px-3 text-sm text-gray-700" data-schema-title-hint>Überschrift der Seite <span aria-hidden="true">·</span> <a href="?seite=promos&amp;block=__page&amp;tab=seite&amp;wopen=W#schema-panel" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 underline hover:no-underline">in <span aria-hidden="true">★</span><span class="sr-only">„Seitentitel und Seite“</span> bearbeiten</a></li>
       
       <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
         
@@ -149,12 +139,12 @@
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="main">
         
         <a href="?seite=promos&amp;block=main&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-indigo-400 bg-indigo-50"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
            data-schema-block="main">
           <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
           
-          <span class="block font-semibold">★ Aktionen</span>
-          
+          <span class="block font-semibold">Aktionen</span>
+          <span class="block text-xs text-gray-600 break-words">Hauptliste · Raster</span>
           
           <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="4" data-thumb-out="grid" style="grid-template-columns: repeat(4, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
 

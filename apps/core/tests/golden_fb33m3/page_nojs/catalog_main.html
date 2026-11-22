@@ -86,8 +86,15 @@
     <ul class="space-y-2" data-schema-blocks>
       <li class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">
         <span>Kopfzeile & Menü</span>
-        <a href="/dashboard/site/menu/" class="inline-flex items-center min-h-[24px] text-indigo-700 hover:underline">Menü bearbeiten</a>
+        <a href="/dashboard/site/menu/" class="inline-flex items-center min-h-[24px] text-indigo-700 underline hover:no-underline">Menü bearbeiten</a>
       </li>
+      
+      <li><a href="?seite=catalog&amp;block=__page&amp;wopen=W#schema-panel"
+             class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-indigo-400 bg-indigo-50"
+             data-schema-block="__page">
+          <span class="font-medium"><span aria-hidden="true">★</span> Einstellungen der Seite</span><span class="sr-only">, feste Position</span>
+          
+      </a></li>
       
       
       <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
@@ -137,8 +144,8 @@
            data-schema-block="main" aria-current="true">
           <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
           
-          <span class="block font-semibold">★ Produkte</span>
-          
+          <span class="block font-semibold">Produkte</span>
+          <span class="block text-xs text-gray-600 break-words">Hauptliste · Raster</span>
           
           <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="4" data-thumb-out="grid" style="grid-template-columns: repeat(4, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
 
@@ -200,12 +207,12 @@
     
     <div class="flex items-start justify-between gap-2">
       <div class="min-w-0">
-        <h2 id="schema-panel-title" class="font-semibold text-lg break-words">★ Produkte</h2>
-        
+        <h2 id="schema-panel-title" class="font-semibold text-lg break-words">Produkte</h2>
+        <p class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-700" data-schema-main-note><span class="ui-badge ui-tone-run">Hauptliste</span> Die Hauptliste lässt sich nicht ausblenden oder entfernen.</p>
       </div>
       
       <details class="relative shrink-0" data-schema-more>
-        <summary class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden" aria-label="Mehr zu „★ Produkte“"><span aria-hidden="true">⋯</span></summary>
+        <summary class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden" aria-label="Mehr zu „Produkte“"><span aria-hidden="true">⋯</span></summary>
         <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
           
           
@@ -224,12 +231,6 @@
     
     
     
-
-<nav class="mt-3" aria-label="Bereiche des Blocks" data-window-tabs>
-  <ul class="flex flex-wrap gap-1">
-    <li><a href="?seite=catalog&amp;block=main&amp;tab=wie&amp;wopen=W#schema-tab-wie" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-current="page" data-window-tab-link="wie">Wie anordnen</a></li><li><a href="?seite=catalog&amp;block=main&amp;tab=seite&amp;wopen=W#schema-tab-seite" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 text-gray-800 hover:bg-gray-50" data-window-tab-link="seite">Seite</a></li>
-  </ul>
-</nav>
 
 
 <section id="schema-tab-wie" class="scroll-mt-20 focus:outline-none" data-window-tab="wie" tabindex="-1">
@@ -302,312 +303,6 @@
   <button type="submit" data-schema-apply class="ui-btn ui-btn-secondary w-full">Übernehmen<span class="sr-only">: Wie Produkte gezeigt werden</span></button>
 </form>
 
-
-</div>
-</section>
-
-<section id="schema-tab-seite" class="scroll-mt-20 focus:outline-none" data-window-tab="seite" hidden>
-  <h3 class="sr-only">Seite</h3>
-  <div data-window-part="settings">
-
-<div class="mt-4 space-y-2" data-schema-settings>
-
-  
-  
-  <details class="rounded-xl border border-gray-300" data-schema-setting-box="catalog_layout">
-  <summary class="flex items-center justify-between gap-2 px-3 min-h-[44px] cursor-pointer text-sm">
-    <span class="font-semibold">Raster</span>
-    
-    <span class="flex items-center gap-2 text-gray-700 text-right"><span>3 pro Zeile</span></span>
-  </summary>
-  <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="catalog_layout" data-pt-setting="catalog_layout" data-schema-manual>
-    <input type="hidden" name="csrfmiddlewaretoken" value="X">
-    <input type="hidden" name="seite" value="catalog"><input type="hidden" name="wopen" value="W">
-
-    <input type="hidden" name="ref" value="main">
-    <input type="hidden" name="op" value="setting">
-    <input type="hidden" name="setting" value="catalog_layout">
-    
-    <fieldset>
-      <legend class="sr-only">Raster</legend>
-          
-            <div class="grid grid-cols-2 gap-2">
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-1" name="value" value="list" class="sr-only" >
-                  
-                  <span>Liste<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-2" name="value" value="cols2" class="sr-only" >
-                  
-                  <span>2 pro Zeile<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-3" name="value" value="cols3" class="sr-only" checked>
-                  
-                  <span>3 pro Zeile<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-4" name="value" value="cols4" class="sr-only" >
-                  
-                  <span>4 pro Zeile<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-5" name="value" value="cols5" class="sr-only" >
-                  
-                  <span>5 pro Reihe<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-6" name="value" value="cols6" class="sr-only" >
-                  
-                  <span>6 pro Reihe<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-7" name="value" value="gallery" class="sr-only" >
-                  
-                  <span>Galerie<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-8" name="value" value="preisliste" class="sr-only" >
-                  
-                  <span>Preisliste<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-9" name="value" value="preisliste_foto" class="sr-only" >
-                  
-                  <span>Preisliste mit Fotos<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-10" name="value" value="preisliste_kompakt" class="sr-only" >
-                  
-                  <span>Preisliste kompakt<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-11" name="value" value="preisliste_2sp" class="sr-only" >
-                  
-                  <span>Preisliste zweispaltig<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-12" name="value" value="preisliste_foto_2sp" class="sr-only" >
-                  
-                  <span>Fotoliste zweispaltig<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-13" name="value" value="preisliste_foto_3sp" class="sr-only" >
-                  
-                  <span>Fotoliste dreispaltig<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-14" name="value" value="preisliste_karte" class="sr-only" >
-                  
-                  <span>Speisekarte klassisch<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_layout-15" name="value" value="preisliste_buch" class="sr-only" >
-                  
-                  <span>Speisekarte zum Blättern<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-            </div>
-          
-    </fieldset>
-    
-<fieldset class="mt-3 border-t border-gray-100 pt-3" data-pt-output data-pt-paginates>
-  <legend class="text-sm font-medium mb-2">Ausgabe</legend>
-  <div class="grid grid-cols-2 gap-3">
-    <label class="block text-sm">
-      <span class="ui-muted text-xs">Ausgabe</span>
-      <select name="out_mode" class="ui-input mt-1" data-pt-mode>
-        <option value="grid" selected>Raster</option>
-        <option value="slider" >Slider</option>
-      </select>
-    </label>
-    <label class="block text-sm">
-      <span class="ui-muted text-xs">Letzte Reihe</span>
-      <select name="out_tail" class="ui-input mt-1">
-        <option value="" selected>Verteilen</option>
-        <option value="show" >Alles zeigen</option>
-        <option value="spread" >Reihen: zentrieren</option>
-        <option value="fill" >Volle Reihen</option>
-      </select>
-    </label>
-    <label class="text-sm" data-pt-rows >
-      <span class="ui-muted text-xs">Reihen</span>
-      <select name="out_rows" class="ui-input mt-1" title="Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen.">
-        <option value="" selected>alle</option>
-        <option value="1" >1</option><option value="2" >2</option><option value="3" >3</option><option value="4" >4</option><option value="5" >5</option><option value="6" >6</option>
-      </select>
-    </label>
-    
-      <label class="block text-sm">
-        <span class="ui-muted text-xs">Pro Seite</span>
-        <input type="number" name="out_page_size" min="6" max="96" inputmode="numeric" value="" placeholder="Standard" class="ui-input mt-1" title="Wie viele Einträge pro Seite. Leer = wie bisher.">
-      </label>
-    
-    <label class="text-sm" data-pt-speed hidden>
-      <span class="ui-muted text-xs">Tempo (Sek.)</span>
-      <input type="number" name="out_speed" min="3" max="15" inputmode="numeric" value="" placeholder="aus" class="ui-input mt-1" title="Sekunden zwischen den Folien. Leer = nicht automatisch drehen.">
-    </label>
-  </div>
-  
-    <label class="mt-3 flex items-center gap-2 text-sm min-h-[44px]" data-pt-apply-all>
-      <input type="checkbox" name="apply_all" value="1">
-      <span>Dieses Raster auch für die anderen Listen übernehmen</span>
-    </label>
-  
-</fieldset>
-
-    <button type="submit" data-schema-apply class="ui-btn ui-btn-secondary w-full mt-3">Übernehmen<span class="sr-only">: Raster</span></button>
-  </form>
-  </details>
-  
-  <details class="rounded-xl border border-gray-300" data-schema-setting-box="catalog_sort">
-  <summary class="flex items-center justify-between gap-2 px-3 min-h-[44px] cursor-pointer text-sm">
-    <span class="font-semibold">Sortierung</span>
-    
-    <span class="flex items-center gap-2 text-gray-700 text-right"><span>Neueste</span></span>
-  </summary>
-  <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="catalog_sort" data-pt-setting="catalog_sort">
-    <input type="hidden" name="csrfmiddlewaretoken" value="X">
-    <input type="hidden" name="seite" value="catalog"><input type="hidden" name="wopen" value="W">
-
-    <input type="hidden" name="ref" value="main">
-    <input type="hidden" name="op" value="setting">
-    <input type="hidden" name="setting" value="catalog_sort">
-    
-    <fieldset>
-      <legend class="sr-only">Sortierung</legend>
-          
-            <div class="grid grid-cols-2 gap-2">
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_sort-1" name="value" value="newest" class="sr-only" checked>
-                  
-                  <span>Neueste<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_sort-2" name="value" value="price_asc" class="sr-only" >
-                  
-                  <span>Preis: von niedrig nach hoch<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-                <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_sort-3" name="value" value="price_desc" class="sr-only" >
-                  
-                  <span>Preis: von hoch nach niedrig<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
-                  
-                  
-                </label>
-              
-            </div>
-          
-    </fieldset>
-    
-    <button type="submit" data-schema-apply class="ui-btn ui-btn-secondary w-full mt-3">Übernehmen<span class="sr-only">: Sortierung</span></button>
-  </form>
-  </details>
-  
-  <details class="rounded-xl border border-gray-300" data-schema-setting-box="catalog_filters">
-  <summary class="flex items-center justify-between gap-2 px-3 min-h-[44px] cursor-pointer text-sm">
-    <span class="font-semibold">Filter</span>
-    
-    <span class="flex items-center gap-2 text-gray-700 text-right"><span>Ein</span></span>
-  </summary>
-  <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="catalog_filters" data-pt-setting="catalog_filters">
-    <input type="hidden" name="csrfmiddlewaretoken" value="X">
-    <input type="hidden" name="seite" value="catalog"><input type="hidden" name="wopen" value="W">
-
-    <input type="hidden" name="ref" value="main">
-    <input type="hidden" name="op" value="setting">
-    <input type="hidden" name="setting" value="catalog_filters">
-    
-    <fieldset>
-      <legend class="sr-only">Filter</legend>
-          
-            <div class="flex gap-2">
-              
-                <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 min-h-[44px] cursor-pointer has-[:checked]:border-indigo-700 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_filters-1" name="value" value="1" checked>
-                  <span>Ein</span>
-                </label>
-              
-                <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 min-h-[44px] cursor-pointer has-[:checked]:border-indigo-700 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" id="st-catalog_filters-2" name="value" value="0" >
-                  <span>Aus</span>
-                </label>
-              
-            </div>
-          
-    </fieldset>
-    
-    <button type="submit" data-schema-apply class="ui-btn ui-btn-secondary w-full mt-3">Übernehmen<span class="sr-only">: Filter</span></button>
-  </form>
-  </details>
-  
-
-
-  
-  <div class="rounded-xl border border-dashed border-gray-300 p-3 space-y-1" data-schema-design>
-    <p class="text-xs text-gray-600">Für alle Seiten — im Design festgelegt</p>
-    
-    <p class="flex flex-wrap items-center justify-between gap-x-2 text-sm min-h-[44px]" data-schema-design-row="product_card_form">
-      <span>Kartenform der Produkte und Leistungen: <span class="text-gray-700">wie Design: Standard</span></span>
-      <a href="/dashboard/design/?tab=karten#dd-product_card_form" class="font-semibold text-indigo-700 underline inline-flex items-center min-h-[44px]">ändern →<span class="sr-only">: Kartenform der Produkte und Leistungen</span></a>
-    </p>
-    
-  </div>
-
-</div>
 
 </div>
 </section>
