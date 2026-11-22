@@ -39911,8 +39911,8 @@ msgid "in %(where)s bearbeiten"
 msgstr "edit in %(where)s"
 
 #, python-format
-msgid "Darstellung der Liste – im Block „%(name)s“ › Wie anordnen"
-msgstr "List display – in the block “%(name)s” › Layout"
+msgid "Darstellung der Liste – im Block „%(name)s“"
+msgstr "List display – in the block “%(name)s”"
 
 #, python-format
 msgid "Wie die Liste aussieht: in %(where)s"

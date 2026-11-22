@@ -131,8 +131,9 @@ def test_star_row_markup():
     link, inner = m.group(0), m.group(1)
     assert "min-h-[44px]" in link
     assert '<span aria-hidden="true">★</span>' in inner
+    # ревью раунд 2 №9 (осознанно): перед сводкой — точка для чтения (не слипается со сводкой)
     assert re.search(
-        r"Seitentitel und Seite</span>\s*<span class=\"sr-only\">, feste Position</span>", inner
+        r"Seitentitel und Seite</span>\s*<span class=\"sr-only\">, feste Position\.</span>", inner
     )
     assert re.search(r'<span class="[^"]*break-words[^"]*">Standard</span>', inner)
     assert "data-schema-pinned" not in link and "data-schema-drag" not in link

@@ -40249,8 +40249,8 @@ msgid "in %(where)s bearbeiten"
 msgstr "змінити в %(where)s"
 
 #, python-format
-msgid "Darstellung der Liste – im Block „%(name)s“ › Wie anordnen"
-msgstr "Вигляд списку – у блоці «%(name)s» › Як розташувати"
+msgid "Darstellung der Liste – im Block „%(name)s“"
+msgstr "Вигляд списку – у блоці «%(name)s»"
 
 #, python-format
 msgid "Wie die Liste aussieht: in %(where)s"

@@ -131,7 +131,7 @@
       <li><a href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel"
              class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] {% if page_row.active %}border-2 border-indigo-700 bg-white{% else %}border-indigo-400 bg-indigo-50{% endif %}"
              data-schema-block="{{ page_row.ref }}"{% if page_row.active %} aria-current="true"{% endif %}>
-          <span class="font-medium"><span aria-hidden="true">★</span> {{ page_row.label }}</span><span class="sr-only">, {% trans "feste Position" %}</span>
+          <span class="font-medium"><span aria-hidden="true">★</span> {{ page_row.label }}</span><span class="sr-only">, {% trans "feste Position" %}{% if page_row.summary %}.{% endif %}</span>
           {% if page_row.summary %}<span class="block text-xs text-gray-600 break-words">{{ page_row.summary }}</span>{% endif %}
       </a></li>
       {% endif %}

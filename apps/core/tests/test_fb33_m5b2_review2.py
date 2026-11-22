@@ -187,7 +187,6 @@ def test_owner_stand_hauptliste_is_a_german_word_not_a_label():
 # ───────────── 7–10. разметка ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="№7: ссылка уходит без leaveOk() (до правки)")
 def test_studio_main_row_link_guarded():
     """Ссылка «Wie die Liste aussieht» — `data-stu-window`: её ловит `leaveOk()` Студии; в
     окно ★-строки, не в окно блока стенда M4b (`block=products`)."""
@@ -212,7 +211,6 @@ def test_hidden_apply_button_stays_readable():
         assert 'tabindex="-1"' in b and "aria-hidden" not in b, b
 
 
-@pytest.mark.xfail(strict=True, reason="№9: «feste Position» слита со сводкой (до правки)")
 def test_page_row_position_separated_from_summary():
     html = Browser(_tenant()).get("?seite=services")
     m = re.search(rf'<a [^>]*data-schema-block="{PAGE}"[^>]*>(.*?)</a>', html, re.S)
@@ -223,7 +221,6 @@ def test_page_row_position_separated_from_summary():
     assert sr and re.search(r"feste Position[.;,]\s*$", sr.group(1)), inner
 
 
-@pytest.mark.xfail(strict=True, reason="№10: глиф › читается (до правки)")
 def test_list_link_glyph_hidden():
     html = _panel(Browser(_tenant("online_shop")).get(f"?seite=catalog&block={PAGE}"))
     link = re.search(r"<a [^>]*data-schema-list-link[^>]*>(.*?)</a>", html, re.S).group(1)

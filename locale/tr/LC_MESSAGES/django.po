@@ -40057,8 +40057,8 @@ msgid "in %(where)s bearbeiten"
 msgstr "%(where)s içinde düzenle"
 
 #, python-format
-msgid "Darstellung der Liste – im Block „%(name)s“ › Wie anordnen"
-msgstr "Liste görünümü – „%(name)s“ bloğunda › Düzen"
+msgid "Darstellung der Liste – im Block „%(name)s“"
+msgstr "Liste görünümü – „%(name)s“ bloğunda"
 
 #, python-format
 msgid "Wie die Liste aussieht: in %(where)s"

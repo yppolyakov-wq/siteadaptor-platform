@@ -18,7 +18,7 @@ collect()/save работают без переименований. data-cb-id 
     <label class="stu-struct flex items-center gap-1">{% trans "Position" %}
       <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
   </div>
-  <p class="text-xs text-gray-700">{% trans "Blöcke davor stehen über der Liste, danach unter ihr." %}{% if b.page_url %} <a href="{{ b.page_url }}" class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline underline-offset-2" data-pb-main-page-link>{% blocktrans with where=b.page_where %}Wie die Liste aussieht: in {{ where }}{% endblocktrans %}</a>{% endif %}</p>
+  <p class="text-xs text-gray-700">{% trans "Blöcke davor stehen über der Liste, danach unter ihr." %}{% if b.page_url %} <a href="{{ b.page_url }}" class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline underline-offset-2" data-pb-main-page-link data-stu-window>{% blocktrans with where=b.page_where %}Wie die Liste aussieht: in {{ where }}{% endblocktrans %}</a>{% endif %}</p>
 </div>
 {% else %}
 <div class="cb-row border border-gray-200 rounded-xl p-4 space-y-2" data-cb-id="{{ b.id }}"{% if pb_page %} data-pb-page="{{ pb_page }}"{% endif %}>
