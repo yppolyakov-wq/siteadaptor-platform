@@ -1112,16 +1112,26 @@ def _cblock_row_lists(request) -> dict:
 _ABOVE_MAIN = "pbmain"
 
 
-def _main_list_row(host: str, order: int) -> dict:
+def _main_list_row(host: str, order: int, tenant=None) -> dict:
     """LB-2: строка «Hauptliste» панели — у маркера нет данных; id уникален по хосту
-    (имена полей формы глобальны), хост несёт `pb_page_<id>`."""
+    (имена полей формы глобальны), хост несёт `pb_page_<id>`. FB-33 M5b-2: имя — как у
+    блока «Liste» той же сущности (`site_schema.main_list_name`), «как выглядит список» —
+    ссылка на окно ★-строки страницы, вкладка «Seite» (настройки типа)."""
+    from apps.core import page_window, window_links
     from apps.tenants import siteconfig
 
-    return {
+    row = {
         "id": "main-" + host.replace(":", "-"),
         "type": siteconfig.MAIN_LIST_KEY,
         "order": order,
+        "main_name": site_schema.main_list_name(host, tenant),
     }
+    code = site_schema.page_code_of_host(host)
+    ref = site_schema.page_row_ref(None, code) if code else ""
+    if ref == site_schema.PAGE_REF:
+        row["page_url"] = window_links.block_window_url(code, ref, "seite")
+        row["page_where"] = page_window.star_name(page_window.label(host))
+    return row
 
 
 def _insert_page_block(rows: list, host: str, block: dict, after: str) -> list:
@@ -3246,7 +3256,7 @@ def home_builder_view(request):
         # LB-2: строка «Hauptliste» стоит среди блоков на своей позиции (неявная —
         # первой): владелец видит и двигает основной список, как любой блок.
         host_rows = [
-            _main_list_row(host, index)
+            _main_list_row(host, index, request.tenant)
             if siteconfig.is_main_marker(s)
             else {
                 "id": s["id"],

@@ -1627,6 +1627,22 @@ def main_list_name(host, tenant=None) -> str:
     return list_blocks.source_label(source, tenant) if source else ""
 
 
+def page_code_of_host(host) -> str:
+    """Код строки схемы страницы, чьи блоки лежат под хостом `host` (Студия знает только
+    хост): своя категория и группа акций — подстраницей типа; "" — такой страницы нет."""
+    from apps.tenants import siteconfig
+
+    if not isinstance(host, str) or not host:
+        return ""
+    if host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
+        return f"{CATEGORY}@{host}"
+    if siteconfig.is_promo_group_host(host):
+        return f"{PROMO_GROUP}@{host}"
+    return next(
+        (pt.code for pt in studio_pages.PAGE_TYPES if pt.code != "home" and _host(pt) == host), ""
+    )
+
+
 def main_list_summary(row: dict) -> str:
     """Сводка строки главного списка: «Hauptliste» и текущий вид из уже заполненных плиток
     вида (`mainview`; второго списка видов нет). Разделитель — в сводке, не в имени."""

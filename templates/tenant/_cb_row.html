@@ -7,18 +7,18 @@ collect()/save работают без переименований. data-cb-id 
 {% if b.type == "main" %}
 {% comment %}LB-2 (план lb-list-blocks §11): «Hauptliste» — основной список страницы
 среди её блоков. Только позиция: не скрывается и не удаляется (решение Р-1а). Блоки
-выше неё стоят над списком, ниже — под ним; вид самого списка — настройки страницы
-выше в панели (шаблон, раскладка, форма карточки).{% endcomment %}
+выше неё стоят над списком, ниже — под ним. FB-33 M5b-2: имя — как у блока «Liste» той же
+сущности и плашка «Hauptliste»; вид самого списка — окно ★-строки страницы («Seite»).{% endcomment %}
 <div class="cb-row border border-dashed border-indigo-300 bg-indigo-50 rounded-xl p-4 space-y-1" data-cb-id="{{ b.id }}" data-pb-page="{{ pb_page }}" data-pb-main-row>
   <input type="hidden" name="pb_id" value="{{ b.id }}">
   <input type="hidden" name="pb_page_{{ b.id }}" value="{{ pb_page }}">
   <input type="hidden" name="cb_type_{{ b.id }}" value="main">
   <div class="flex items-center justify-between gap-3 text-sm">
-    <span class="font-medium">★ {% trans "Hauptliste" %}</span>
+    <span class="flex flex-wrap items-center gap-2"><span class="font-medium">{{ b.main_name|default:_("Hauptliste") }}</span>{% if b.main_name %}<span class="ui-badge ui-tone-run">{% trans "Hauptliste" %}</span>{% endif %}</span>
     <label class="stu-struct flex items-center gap-1">{% trans "Position" %}
       <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
   </div>
-  <p class="text-[11px] text-gray-500">{% trans "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein." %}</p>
+  <p class="text-xs text-gray-700">{% trans "Blöcke davor stehen über der Liste, danach unter ihr." %}{% if b.page_url %} <a href="{{ b.page_url }}" class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline underline-offset-2" data-pb-main-page-link>{% blocktrans with where=b.page_where %}Wie die Liste aussieht: in {{ where }}{% endblocktrans %}</a>{% endif %}</p>
 </div>
 {% else %}
 <div class="cb-row border border-gray-200 rounded-xl p-4 space-y-2" data-cb-id="{{ b.id }}"{% if pb_page %} data-pb-page="{{ pb_page }}"{% endif %}>

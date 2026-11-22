@@ -171,6 +171,9 @@ def studio_settings_url(request, path: str, ref: str = "", tab: str = "") -> str
     host = _host(tenant, code)
     try:
         block = _block_of(request, code, host, ref)
+        if block and site_schema.is_title_alias(ref) and block == site_schema.PAGE_REF:
+            # FB-33 M5b-2 (A-M5): старый ⚙ «Seitentitel» — окно ★-строки, вкладка «Seite»
+            return block_window_url(code, block, "seite")
         if block:
             return block_window_url(code, block, tab)
         if _is_page_key(code, host, ref):

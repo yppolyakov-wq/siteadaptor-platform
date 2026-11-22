@@ -52,8 +52,16 @@ SOURCE_OF = {
 }
 #: у этих списков источника «Liste» нет — своё имя (решение владельца)
 OWN_NAMES = {"team": "Team", "gallery": "Fotos", "wishlist": "Merkzettel", "lookbook": "Looks"}
-NEW_MSGIDS = ("Die Hauptliste lässt sich nicht ausblenden oder entfernen.",)
-DEAD_MSGIDS = ("Darstellung, Kartenform, Textbreite",)
+NEW_MSGIDS = (
+    "Die Hauptliste lässt sich nicht ausblenden oder entfernen.",
+    "Blöcke davor stehen über der Liste, danach unter ihr.",  # W3: строка Студии
+)
+DEAD_MSGIDS = (
+    "Darstellung, Kartenform, Textbreite",
+    # W3: «как выглядит список» строки Студии — теперь ссылка на окно ★-строки
+    "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen "
+    "Sie oben bei dieser Seite ein.",
+)
 
 
 @pytest.fixture(autouse=True)

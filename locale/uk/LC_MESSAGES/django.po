@@ -22888,14 +22888,6 @@ msgstr "недоступно"
 msgid "Hauptliste"
 msgstr "Основний список"
 
-#: templates/tenant/_cb_row.html
-msgid ""
-"Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste "
-"aussieht, stellen Sie oben bei dieser Seite ein."
-msgstr ""
-"Блоки перед ним стоять над списком, після нього — під ним. Як виглядає сам "
-"список, налаштовується вище для цієї сторінки."
-
 #: templates/tenant/site_home.html
 msgid "Block über der Liste einfügen"
 msgstr "Вставити блок над списком"
@@ -40267,3 +40259,7 @@ msgstr "Як виглядає список: у %(where)s"
 # FB-33 M5b-2 W2: главный список — обычная строка, плашка «Hauptliste» в окне
 msgid "Die Hauptliste lässt sich nicht ausblenden oder entfernen."
 msgstr "Основний список не можна приховати чи видалити."
+
+# FB-33 M5b-2 W3: строка «Hauptliste» Студии — вид списка ссылкой на окно ★-строки
+msgid "Blöcke davor stehen über der Liste, danach unter ihr."
+msgstr "Блоки перед ним стоять над списком, після нього — під ним."

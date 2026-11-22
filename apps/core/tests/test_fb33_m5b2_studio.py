@@ -28,8 +28,6 @@ from apps.core.window_link_views import site_schema_open
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замки до кода (strict xfail): снимаются кодом W3
-TODO = pytest.mark.xfail(strict=True, reason="FB-33 M5b-2 W3: до кода")
 
 ROOT = Path(__file__).resolve().parents[3]
 ROW_TPL = ROOT / "templates" / "tenant" / "_cb_row.html"
@@ -98,7 +96,6 @@ def _main_rows(html: str) -> dict[str, str]:
     return out
 
 
-@TODO
 @pytest.mark.parametrize(("bt", "host", "name", "code"), [
     ("online_shop", "services", "Leistungen", "services"),
     ("online_shop", "catalog", "Produkte", "catalog"),
@@ -115,7 +112,6 @@ def test_studio_main_row_name_and_badge(bt, host, name, code):
     assert "text-gray-500" not in row
 
 
-@TODO
 @pytest.mark.parametrize(("host", "code"), [("services", "services"), ("catalog", "catalog")])
 def test_studio_main_row_links_to_page_window(host, code):
     """«Wie die Liste aussieht» — ссылка на окно ★-строки страницы, вкладка «Seite»; цель
@@ -138,7 +134,6 @@ def test_studio_main_row_links_to_page_window(host, code):
     assert "text-gray-700" in row
 
 
-@TODO
 def test_studio_row_template_has_no_bare_star():
     src = ROW_TPL.read_text(encoding="utf-8")
     assert "★ {% trans" not in src
@@ -167,7 +162,6 @@ def site_schema_path(tenant, code: str) -> str:
     return next((r.preview_url for r in rows if r.code == code), "")
 
 
-@TODO
 @pytest.mark.parametrize("tab", ["", "texte", "wie"])
 def test_studio_open_title_alias_lands_on_seite(tab):
     """A-M5: `site-schema-open?block=__title` (Студия до деплоя) — окно `__page`, вкладка
