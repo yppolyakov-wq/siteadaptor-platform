@@ -222,6 +222,33 @@ def test_same_type_again_and_non_food_switch_add_nothing():
     assert "form_fields" not in _stored(other)
 
 
+@pytest.mark.xfail(strict=True, reason="ревью стопки 8: пресет прежнего типа остаётся")
+def test_untouched_preset_follows_the_type_but_owner_edits_stay():
+    """Ревью стопки 8: пресет, который владелец не правил, уходит вместе с типом (пекарня →
+    магазин: телефон «Pflicht» и «Allergien / Wünsche» магазину не нужны); правленный — остаётся."""
+    shop = _tenant("retail")
+    setup_steps.apply_business_type(shop, "bakery")
+    assert _checkout(_stored(shop))["mode"] == {"phone": "req"}
+    setup_steps.apply_business_type(shop, "retail")
+    assert "checkout" not in (_stored(shop).get("form_fields") or {})
+
+    food = _tenant("retail")
+    setup_steps.apply_business_type(food, "bakery")
+    before = copy.deepcopy(_checkout(_stored(food)))
+    setup_steps.apply_business_type(food, "cafe")  # у обоих типов пресет один — остаётся
+    assert _checkout(_stored(food)) == before
+
+    own = _tenant("retail")
+    setup_steps.apply_business_type(own, "bakery")
+    cfg = _stored(own)
+    cfg["form_fields"]["checkout"]["mode"] = {"phone": "opt"}  # владелец смягчил телефон
+    Tenant.objects.filter(pk=own.pk).update(site_config=cfg)
+    own.refresh_from_db()
+    kept = copy.deepcopy(_checkout(_stored(own)))
+    setup_steps.apply_business_type(own, "retail")
+    assert _checkout(_stored(own)) == kept
+
+
 # ───────────── запись — только через form_spec.put ─────────────
 
 
