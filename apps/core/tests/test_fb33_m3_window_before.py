@@ -57,6 +57,7 @@ CASES = (
     ("product", "related"),  # раздел со своими настройками
     ("product", "__kauf"),  # закреплённая «Kaufen»
     ("cart", "summary"),  # закреплённый итог (§ 312j)
+    ("cart", "form"),  # FB-33 C5: вкладка «Felder» формы корзины (стопка 8 — из EXTRA окна M3-2)
     ("promos", "__title"),  # «Seitentitel»
     ("promos", "groups"),  # вид групп акций
     ("text", "pagetext"),  # закреплённый текст страницы
@@ -68,6 +69,8 @@ CASES = (
     ("confirmation", "summary"),
     ("confirmation", "next"),
     ("confirmation", "recommend"),
+    # FB-33 M5a: страница 404 — «Schnellzugriff» с набором «Hauptmenü» (блок по умолчанию)
+    ("not_found", "nf-popular"),
 )
 
 
