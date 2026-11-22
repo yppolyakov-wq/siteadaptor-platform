@@ -90,14 +90,8 @@ def test_page_row_mutate_is_refused():
         site_schema.mutate(items, "text", "toggle", site_schema.PAGE_REF)
 
 
-def test_page_window_without_settings_has_no_row():
-    """Нет настроек у страницы — нет и строки «Seite»: адрес `block=__page` — «Block wählen»."""
-    tenant = _shop()
-    b = Browser(tenant)
-    html = b.get("?seite=team&block=__page")
-    if 'data-schema-block="__page"' in html:
-        pytest.skip("у «Team» есть настройки")
-    assert 'value="window_done"' not in _panel(html)
+# «Нет настроек — нет строки „Seite“» — детерминированно в `test_fb33_m5b_page_row.py` (M5b-1 L6;
+# прежний `?seite=team` открывал главную: типа «team» нет).
 
 
 def _layout(panel):
