@@ -24,7 +24,7 @@
         --settings=config.settings.stand --noreload
     STAND_URL=http://ptx.siteadaptor.de:8047 uv run --no-project --with playwright \\
         python scripts/fb33_m39c_targets_stand.py <папка-скриншотов> \\
-        [--part window|storefront] [--no-js-only] [--sizes 390] [--langs de]
+        [--part window|storefront] [--no-js-only] [--sizes 390] [--langs de] [--kits shop,friseur]
 
 Гонять ДО правки и после: «до» — ✗ на прежних 40 px и 16–20 px, «после» — «N ✓, 0 ✗».
 В конце — таблицы «цель → наименьший размер» по каждому сочетанию размера, языка и режима.
@@ -109,8 +109,11 @@ TARGETS = {
 #: цели, которых на китах может не быть (обложка раздела — по фото раздела); точки шапки
 #: категории обязательны: `--setup` даёт их первой категории магазина
 OPTIONAL_TARGETS = ("точка обложки раздела",)
+CATEGORY_DOTS = "точка шапки категории"
 #: точки со своим скриптом (не `.sf-slider-dot`): селектор → кнопка-CTA над ними (или None)
 OWN_DOTS = {"[data-cover-dot]": "[data-cover-hero] a", "[data-cat-dot]": None}
+#: точки на фото с лайтбоксом: щелчок по низу фото вне точек должен до него доходить
+LIGHTBOX_DOTS = ("[data-cat-dot]",)
 
 _PANEL_JS = """() => {
   const p = document.querySelector('[data-schema-panel]');
@@ -351,10 +354,20 @@ _DOTS_STATE_JS = """(sel) => [...document.querySelectorAll(sel)].map(d => ({
   focus: document.activeElement === d}))"""
 
 
+#: щелчок по низу фото вне точек: x — 12 px от левого края, y — середина ряда точек
+_PHOTO_CLICK_JS = """(sel) => {
+  const d = document.querySelector(sel), row = d && d.parentElement;
+  if (!row) return null;
+  const r = row.getBoundingClientRect();
+  return {x: r.left + 12, y: r.top + r.height / 2};
+}"""
+
+
 def own_dots(rep, pg, out, combo, where, w, lang):
     """M3-9d (ревью a11y и django): точки обложки и шапки категории — после щелчка по каждой
     ровно одна точка с `aria-current` и закрашенной меткой, это нажатая, фокус на ней; фокус по
-    Tab виден (скриншот); ряд точек ниже кнопки CTA."""
+    Tab виден (скриншот); ряд точек ниже кнопки CTA; щелчок по низу фото вне точек открывает
+    лайтбокс (ряд во всю ширину его не перехватывает)."""
     for sel, cta in OWN_DOTS.items():
         dots = pg.locator(sel)
         n = dots.count()
@@ -388,12 +401,27 @@ def own_dots(rep, pg, out, combo, where, w, lang):
         gap = pg.evaluate(_CTA_GAP_JS, [sel, cta])
         if gap is not None:
             rep.check(gap >= 0, f"{combo} {where}: ряд {sel} ниже кнопки ({gap}px)", code="dotcta")
+        if sel in LIGHTBOX_DOTS:
+            at = pg.evaluate(_PHOTO_CLICK_JS, sel)
+            pg.mouse.click(at["x"], at["y"])
+            pg.wait_for_timeout(200)
+            opened = pg.evaluate(
+                "() => { const b = document.getElementById('sf-lightbox');"
+                " return !!b && !b.classList.contains('hidden'); }"
+            )
+            rep.check(
+                opened, f"{combo} {where}: щелчок по низу фото открывает лайтбокс", code="dotrow"
+            )
+            pg.keyboard.press("Escape")
+            pg.wait_for_timeout(100)
 
 
-def storefront_part(rep, table, browser, out, w, h, lang, js):
+def storefront_part(rep, table, browser, out, w, h, lang, js, kits=None):
     combo = f"{w} {lang} {_mode(js)}"
     seen: set[str] = set()
     for kit, sub in KITS.items():
+        if kits and kit not in kits:
+            continue
         base = _kit_url(sub)
         pg = sl.open_page(browser, w, h, js=js, lang=lang, url=base)
         for spec in KIT_PAGES[kit]:
@@ -445,9 +473,12 @@ def storefront_part(rep, table, browser, out, w, h, lang, js):
     for name in TARGETS:
         if name == "точка слайдера" and not js:
             continue
-        if name in OPTIONAL_TARGETS:
+        # часть китов (`--kits`) — не все цели обязаны встретиться; точки шапки категории
+        # обязательны всегда, когда в обходе магазин
+        partial = bool(kits) and not (name == CATEGORY_DOTS and "shop" in kits)
+        if name in OPTIONAL_TARGETS or partial:
             if name not in seen:
-                rep.note(f"{combo}: необязательная цель «{name}» на витрине не встретилась")
+                rep.note(f"{combo}: цель «{name}» на витрине не встретилась (необязательна)")
             continue
         rep.check(name in seen, f"{combo}: цель «{name}» найдена на витрине", code="found")
 
@@ -472,6 +503,7 @@ def main():
     sizes = [s for s in sl.SIZES if str(s[0]) in _flag(argv, "--sizes", ["1440", "390"])]
     langs = _flag(argv, "--langs", list(sl.LANGS))
     modes = (False,) if "--no-js-only" in argv else sl.JS_MODES
+    kits = _flag(argv, "--kits", None)
     rep = sl.Report(quiet=True)
     win, page = Table(), Table()
     with sl.launch() as browser:
@@ -480,7 +512,7 @@ def main():
             if "window" in parts:
                 window_part(rep, win, browser, out, w, h, lang, js)
             if "storefront" in parts:
-                storefront_part(rep, page, browser, out, w, h, lang, js)
+                storefront_part(rep, page, browser, out, w, h, lang, js, kits)
     win.show("панель блока: наименьшая высота, px", lambda v: f"{v:g}")
     page.show("витрина: наименьшая цель, ширина×высота px", lambda v: f"{v[1]:g}×{v[0]:g}")
     rep.finish("FB-33 M3-9c цели касания")

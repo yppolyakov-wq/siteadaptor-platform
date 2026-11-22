@@ -22,8 +22,8 @@
         {% if archetype_cover.button_label %}{{ archetype_cover.button_label }}{% else %}{% trans "Discover" %}{% endif %}</a>
     </div>
     {% if archetype_cover.slides|length > 1 %}
-      <div class="absolute inset-x-0 bottom-1 flex flex-wrap justify-center px-2">
-        {% for img in archetype_cover.slides %}<button type="button" class="inline-flex w-6 h-6 items-center justify-center rounded-full" data-cover-dot aria-label="{% trans 'Slide' %} {{ forloop.counter }}"{% if forloop.first %} aria-current="true"{% endif %}><span aria-hidden="true" class="w-2 h-2 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %}"></span></button>{% endfor %}
+      <div class="absolute inset-x-0 bottom-1 flex flex-wrap justify-center px-2 pointer-events-none">
+        {% for img in archetype_cover.slides %}<button type="button" class="inline-flex w-6 h-6 items-center justify-center rounded-full pointer-events-auto" data-cover-dot aria-label="{% trans 'Slide' %} {{ forloop.counter }}"{% if forloop.first %} aria-current="true"{% endif %}><span aria-hidden="true" class="w-2 h-2 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %}"></span></button>{% endfor %}
       </div>
     {% endif %}
   </div>

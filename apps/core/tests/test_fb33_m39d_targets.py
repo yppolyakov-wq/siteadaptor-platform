@@ -51,6 +51,7 @@ def _assert_dots(dots, *, active: str):
     assert len(dots) == 3
     for k, (attrs, body) in enumerate(dots):
         assert DOT_BUTTON <= _classes(attrs), attrs
+        assert "pointer-events-auto" in _classes(attrs), attrs  # ряд щелчки пропускает
         # цвет — у точки, не у кнопки (кнопка прозрачная)
         assert not {"bg-white", "bg-white/50", "w-2", "h-2", "shadow"} & _classes(attrs), attrs
         assert "aria-hidden" not in attrs  # фокусируемое не прячем от чтеца
@@ -77,6 +78,8 @@ def test_cover_dots_are_24px_targets_with_an_8px_mark():
     assert "bottom-1" in row  # центр точки — 16 px от низа, как раньше (bottom-3 + 4)
     # ряд во всю ширину: absolute + left:50% ужимал ряд до половины (перенос на 390)
     assert "inset-x-0" in row and "left-1/2" not in row and "-translate-x-1/2" not in row
+    # ряд во всю ширину не перехватывает щелчок по низу фото (ревью M3-9d)
+    assert "pointer-events-none" in row
 
 
 def _script(path: str, start: str) -> str:
@@ -110,6 +113,8 @@ def test_category_header_dots_are_24px_targets():
     row = re.search(r'<div class="([^"]*)">\s*<button[^>]*data-cat-dot', html).group(1).split()
     assert "flex-wrap" in row and not [c for c in row if c.startswith("gap")]
     assert "inset-x-0" in row and "bottom-1" in row
+    # щелчок по низу фото вне точек открывает лайтбокс (`data-lightbox`) — ряд его не ловит
+    assert "pointer-events-none" in row
 
 
 def test_category_header_script_marks_the_dot_not_the_button():
@@ -191,7 +196,8 @@ def test_category_edit_pencil_is_a_24px_square():
     (attrs,) = [a for a, body in _ANCHOR.findall(src) if body.strip() == "✎"]
     cls = set(re.search(r'class="([^"]*)"', attrs).group(1).split())
     assert {"min-w-[24px]", "justify-center"} <= cls
-    assert "aria-label=\"{% trans 'Edit category' %}\"" in attrs  # имя не «✎»
+    # имя — из `title` (не «✎»); второй строкой `aria-label` не дублируем (чеклист №18)
+    assert "title=\"{% trans 'Edit category' %}\"" in attrs and "aria-label" not in attrs
 
 
 def test_schema_pick_buttons_are_44px_squares():
@@ -253,3 +259,5 @@ def test_m39c_stand_dot_behaviour_is_a_failure_not_a_note():
     assert "for k in (*range(1, n), 0):" in body
     assert "cur == [k] and on == [k]" in body
     assert 'state[k]["focus"]' in body
+    # щелчок по низу фото шапки категории доходит до лайтбокса — тоже ✗
+    assert 'code="dotrow"' in body and "sf-lightbox" in body
