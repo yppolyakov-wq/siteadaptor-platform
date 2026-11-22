@@ -291,7 +291,6 @@ def test_hint_before_first_row_in_markup(monkeypatch):
 # ───────────── 4. ссылка «Wie auf der Seite …» без строки ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №4: до правки")
 def test_list_view_link_not_built_without_row(monkeypatch):
     tenant = _shop()
     saved = siteconfig.normalize(tenant.site_config)

@@ -294,7 +294,8 @@ def list_view(config: dict, selected: dict) -> dict | None:
                 source = str(_("Wie auf der Seite „%(page)s“") % {"page": page.label})
                 # FB-33 M5b-2: настройки типа — на строке по единому правилу (★-строка «Seite»)
                 block = site_schema.page_row_ref(None, page.code)
-                link = window_links.block_window_url(page.code, block, "seite")
+                if block:  # ревью M5b-2 №4: строки по правилу нет — ссылки нет (не `block=`)
+                    link = window_links.block_window_url(page.code, block, "seite")
         elif frm == "type":
             source = str(_("Wie bei diesem Aktionstyp"))
         return {
