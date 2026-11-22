@@ -15,6 +15,12 @@
 
 ## 1. Открыто сейчас (сводка на 2026-11-13)
 
+### Стопка 9 — решения при выполнении (2026-11-22)
+- **M5b-2 — «вначале макет»** (план стопки 9, §4 п. 1): слияние ★-строк только вариантами на холсте (макет M0, раздел «FB-33 · M5b-2»; рекомендация V4 = M0-11); код — стопка 10 после выбора. M5b-1 (правило `__page`, вид прежний) — кодом в стопке 9.
+- **Ответы на вопросы плана (§4–5, пп. 2–7, «по рекомендации»):** шаг точек обложки и шапки категории 24 px; точки шапки категории и все ссылки `_contact.html` — в срезе, прочие кандидаты — только те, что стенд покажет ✗; на 404 переключатель языка и баннер демо ведут на `/`; хост входит в ключ кэша; `noindex` у категории и «Nur Aktionen» — только мета-тегом; демо-бизнесы кэшируются наравне.
+- **Отступление от плана — canonical:** на выдаче `?q=` canonical не выводится (решение координатора по seo-ревью; план писал «canonical прежний»). Сообщено владельцу; подтверждения пока нет.
+- **Открыто для владельца — M5b-2 (нужно до кода стопки 10):** вариант V4 / V2 / V1; метка «Überschrift der Seite · in ★ bearbeiten» — да / нет; имя строки главного списка (сейчас по содержимому: «Dienstleistungen» / «Produkte» с пометкой «Hauptliste»); «Breite der Seite» и «Seitenvorlage» по-прежнему нет (M3-6).
+
 ### Решения владельца стопки 9 (2026-11-22, «по рекомендации»)
 - Состав стопки 9: M3-9d (остаток мелких целей витрины, первым) + M5b (ядровой: слияние ★-строк и вынос
   правила `__page` в `site_schema`) + M5a-2 (кэш HTML страницы 404, `noindex,follow` листингов при `?q=`).
@@ -530,6 +536,11 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 - `hero_tiles.BLOCK_LINK_SETS` / `menu_tiles` / `link_set_options` (FB-33 M5a) — набор «Hauptmenü» (`MENU_SET`) у блока «Schnellzugriff»; `menu_tiles` — верхний уровень `storefront_menu` контекста (до 8, второй `resolve_menu` не звать); `link_set_options` — варианты окна.
 
 - `block_catalog.offered_on` (FB-33 M5a) — где блок предлагается в «+ Block» (`LibraryEntry.only`); блок «Suche» — только на хосте `not_found`.
+- `site_schema.page_row_ref(tenant, code, blocks=None)` (FB-33 M5b-1) — единственное правило строки `__page`: `main` / ref носителя (у главной `hero`) / `PAGE_REF` / `""`; без строк — правило по строкам типа по умолчанию (`_default_rows`). Вьюха окна, `page_window.pseudo_row`, `window_links._refs`, `settings_url`, `block_window.tabs` — только через неё.
+
+- `apps/core/pagecache.py::cached_not_found` (FB-33 M5a-2) — единая точка кэша страницы 404: ключ `sf404:{host}:{schema}:{lang}:v{версия}` без пути, TTL `min(PUBLIC_PAGE_CACHE_TTL, NOT_FOUND_CACHE_TTL=60)`; мимо кэша — не GET/HEAD, любой query, любая cookie, непустая сессия; сброс — версия витрины (`site_config`, публикация «Seitenaufbau»).
+
+- `apps/core/context.py::SEARCH_NOINDEX_ROUTES` (FB-33 M5a-2) — маршруты выдачи с `noindex,follow` (производный от `_SEARCH_ROUTES` + `storefront-aktionen`, `storefront-category`); ключ контекста `storefront_search_noindex` (непустой `q`); `_base.html` выводит один мета-тег.
 
 - `form_spec.apply_preset` (FB-33 M2i-6) — кнопка «Branchen-Vorlage laden» корзины; запись только через `form_spec.put`, в окне — через черновик.
 

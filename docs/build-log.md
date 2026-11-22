@@ -24677,6 +24677,40 @@ security/silent-failure): тупик в двусторонних прятках,
 - После мержа: полный обход владельца (`scripts/fb33_m3_9_owner_stand.py`) прогнан после мержа на `b446a35`: **63485 ✓ / 40 ✗** (было 70669 ✓ / 3834 ✗ на базе стопки 6); 5xx нет, горизонтального скролла нет, немецкого в ru нет, окно — 0 ✗. Все 40 ✗ — мелкие цели витрины, которых не было в списке №6 (см. «Отложено» стопки 8); стенд окна `fb33_m3_window_stand.py` — 131 ✓ / 0 ✗.
 - Недоиграно: стенд целей `fb33_m39c_targets_stand.py` после правок ревью повторён только частью «витрина» на 390 / de (283 ✓ / 0 ✗), стенд окна `fb33_m3_window_stand.py` на верхушке не гонялся; бизнес без адреса поиска в браузере не открывался; Firefox и Safari руками не проверялись.
 
+### 2026-11-22 — FB-33 M3-9d: остаток мелких целей витрины (точки обложки и шапки, ссылки, «Liste»)
+- Остаток после полного обхода владельца стопки 8 (40 ✗). Замки до кода — `apps/core/tests/test_fb33_m39d_targets.py`; план — `docs/fb33-stack9-plan-2026-11-22.md`, §A.
+- Точки обложки раздела (`_archetype_cover.html`) и шапки категории (`_category_header.html`): кнопка 24×24 с видимой точкой 8 px во внутреннем `<span aria-hidden>`; ряд `flex-wrap` с `pointer-events-none` (кнопки — `auto`); `aria-current` переносит `show()`; имя «Slide N»; кольцо фокуса — `static/src/app.css` (`[data-cover-dot]:focus-visible`, `[data-cat-dot]:focus-visible`). Шаг точек 24 px — по решению владельца.
+- Ссылки блока «Kontakt» (`sections/_contact.html`), «Alle Fotos →» (`_combo_examples.html`), «Route planen →» (`_event_thematic.html`) — `inline-flex min-h-[24px] items-center`; «✎» превью категории (`products.html`) — 24×24, имя из `title`; ручной состав «Liste» (`templates/tenant/_schema_pick.html`) — 44×44, `min-h-[32px]` снят.
+- Стенд целей `scripts/fb33_m39c_targets_stand.py` (новые цели и страницы; `--kits`, `--setup` создаёт данные под точки шапки категории и ручной состав): до 3478 ✓ / 156 ✗, после 3762 ✓ / 0 ✗. Эталоны `golden_fb32s6` (about-plain/tail/texts, combo-plain) — только классы.
+- Правки ревью: `pointer-events` у ряда точек и `aria-label` у «✎».
+
+### 2026-11-22 — FB-33 M5b-1: одно правило строки `__page` (`site_schema.page_row_ref`)
+- Вид не меняется, эталоны — ноль изменений. Замки `apps/core/tests/test_fb33_m5b_page_row.py` (L1 характеризация по 5 типам, L2 `_refs`, L3 AST-обход `apps/` и текст `scripts/` — правило только в `site_schema`, L4 запросы 27/0, L5, L6).
+- `apps/core/site_schema.py::page_row_ref(tenant, code, blocks=None)` → `main` / ref носителя (у главной `hero`) / `PAGE_REF` / `""`; без строк — правило по строкам типа по умолчанию (`_default_rows`, lru_cache). На неё переведены вьюха `site_schema_views`, `page_window.pseudo_row`, `window_links._refs`, `settings_url`, `block_window.tabs` (`PAGE_REF` вместо литерала), `aufbau_draft._window_setting_codes`, стенд владельца. Снята недостижимая ветка `site_schema.html`.
+- Дефект закрыт: `window_links._refs` считал `__page` строкой на главной и на странице без настроек.
+- Закрывает долг §5.6 `fb33-next-2026-11-20.md` и `pitfalls.md` (строка про `__page`). Стенды: окно — 131 ✓ / 0 ✗, `fb33_m3_6` — 66 ✓ / 0 ✗.
+
+### 2026-11-22 — FB-33 M5a-2: кэш страницы 404 и `noindex` выдачи поиска
+- Замки до кода — `apps/core/tests/test_fb33_m5a2_cache_search.py` (+ переписан `test_fb33_m5a_not_found.py::…_is_cacheable_only_as_404`).
+- `apps/core/pagecache.py::cached_not_found` — единая точка кэша 404: ключ `sf404:{host}:{schema}:{lang}:v{версия}` без пути; TTL `min(PUBLIC_PAGE_CACHE_TTL, NOT_FOUND_CACHE_TTL=60)` (0 выключает); мимо кэша — не GET/HEAD, любой query, любая cookie, непустая сессия; HEAD читает, но не пишет; `_cacheable(status=)` строгий; хит — 404 через `_pack/_unpack`. Язык в ключе — активный язык рендера; хост — отдельные записи для доменов одного бизнеса.
+- Каждая фаза (хост, сессия, чтение, запись, упаковка) — под своим try: сбой — страница с блоками и WARNING (`exc_info`, окно 300 с на операцию prepare/get/set).
+- `not_found_views._page` гасит маршрутные ключи (`archetype_cover`, `seo_meta`, `storefront_search_noindex`, `storefront_return_path="/"`): тело не зависит от пути и маршрута; переключатель языка и баннер демо на 404 ведут на `/`. Сброс — версия витрины (сохранение `site_config`, публикация «Seitenaufbau»).
+- `apps/core/context.py::SEARCH_NOINDEX_ROUTES` (производный от `_SEARCH_ROUTES` + `storefront-aktionen`, `storefront-category`), ключ `storefront_search_noindex` (непустой `q`); `_base.html` — один `noindex,follow` (поиск или демо). На выдаче `?q=` canonical не выводится (`canonical_link`) — отступление от плана («canonical прежний»), решение координатора по seo-ревью, сообщено владельцу. X-Robots-Tag на листингах нет; `?cursor=`, `?seite=`, сорт и пустой `q` — как было.
+- Стенд 404: 275 ✓ / 0 ✗. Вживую — второй битый адрес из кэша (0,025 с против 0,24 с), одна запись в Redis.
+- Закрывает дефекты стопки 8: 404 рендерит хром на каждый битый адрес; листинги при `?q=` без noindex; обложка раздела на 404 при `Http404` из вьюхи.
+
+### 2026-11-22 — FB-33 M5b-2: слияние ★-строк — макет на утверждении (код — стопка 10)
+- Решение владельца «вначале макет» (`project-memory.md` §1). Макет на холсте M0: https://claude.ai/artifact/AGiFxS4acMdiqVELkewkgW, раздел «FB-33 · M5b-2», артборды M5bCompare / M5bPages / M5bWindow.
+- Рекомендация — V4 (= утверждённый M0-11): одна строка «★ Seitentitel und Seite» сверху; главный список — обычная строка по содержимому («Dienstleistungen» / «Produkte») с пометкой «Hauptliste»; у форм и под фото-шапкой серая метка «Überschrift der Seite · in ★ bearbeiten»; у деталей «★ Einstellungen der Seite»; главная без изменений; витрина не меняется; миграций нет. Альтернативы — V2, V1.
+- Кода в стопке 9 нет. Вопросы владельцу — `docs/fb33-next-2026-11-20.md` §5.3 №1.
+
+### 2026-11-22 — FB-33: сборка стопки 9 (P0 → M3-9d → M5b-1 → M5a-2)
+- Ветка `claude/wonderful-planck-ad6f9k` от main `7c5ecb7`: P0 `4adb4e4` (план и якоря `.po`), срезы A, B, C в worktree, свод на верхушке `f8341a5`. Миграций нет, новых msgid нет, `SEEDER_VERSION` 24 без изменений, пересева демо не нужно.
+- Видимое для посетителя: битые адреса витрин отдаются из кэша до 60 с; выдача поиска `?q=` — `noindex,follow` и без canonical; точки обложки и шапки категории — 24 px.
+- Ревью: планы — planner ×3, architect (M5b-2), a11y-architect (A), security-reviewer + seo-specialist (C); диффы — django-reviewer (B, C), security-reviewer + silent-failure-hunter + seo-specialist (C), a11y-architect + django-reviewer (A), code-reviewer (вся стопка). CRITICAL и HIGH — 0; MEDIUM и LOW исправлены замками. Журнал — `docs/skill-feedback.md` (12 строк 2026-11-22 стопки 9).
+- Полный обход владельца `scripts/fb33_m3_9_owner_stand.py` на `7a8fe1a` (до двух правок шаблонов ревью M3-9d): **63565 ✓ / 0 ✗** (было 63485 ✓ / 40 ✗ после стопки 8); 5 типов бизнеса × 1440/390 × de/ru, без JS и с JS; 5xx нет.
+- Недоиграно: полный обход владельца — на `7a8fe1a` (63 565 ✓ / 0 ✗); две правки ревью M3-9d после него (pointer-events ряда точек, aria-label «✎») проверены стендом целей (311 ✓ / 0 ✗) и замками, полный обход на верхушке не повторялся. CI на верхушке — см. журнал Actions. Firefox и Safari руками не проверялись.
+- Ops — `fb33-next-2026-11-20.md` §2.
 
 ## 2026-11-21 — T-13 стопка A: единый гейт, проектные скиллы, чистка правил ECC (без миграций, код приложения не тронут)
 
