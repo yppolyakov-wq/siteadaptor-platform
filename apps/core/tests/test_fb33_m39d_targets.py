@@ -241,3 +241,15 @@ def test_m39c_stand_targets_cover_m39d():
     assert "/ueber-uns/" in mod.KIT_PAGES["shop"]
     assert ("/sortiment/", r"^/sortiment/[a-z0-9-]+/$") in mod.KIT_PAGES["shop"]
     assert ("/kombi/", r"^/kombi/[0-9a-f-]{36}/$") in mod.KIT_PAGES["restaurant"]
+
+
+def test_m39c_stand_dot_behaviour_is_a_failure_not_a_note():
+    """Поведение точек держит стенд (строковые замки скрипта — вспомогательные): после щелчка
+    по КАЖДОЙ точке ровно одна `aria-current` и закрашенная метка — у нажатой, фокус на ней.
+    Всё — ✗ (`rep.check`), не note."""
+    src = _stand()
+    body = src[src.index("def own_dots") : src.index("def storefront_part")]
+    assert "rep.note" not in body
+    assert "for k in (*range(1, n), 0):" in body
+    assert "cur == [k] and on == [k]" in body
+    assert 'state[k]["focus"]' in body

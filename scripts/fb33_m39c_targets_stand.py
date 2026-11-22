@@ -345,24 +345,39 @@ _CTA_GAP_JS = """([dot, cta]) => {
 }"""
 
 
+_DOTS_STATE_JS = """(sel) => [...document.querySelectorAll(sel)].map(d => ({
+  cur: d.getAttribute('aria-current') === 'true',
+  on: (d.firstElementChild || d).classList.contains('bg-white'),
+  focus: document.activeElement === d}))"""
+
+
 def own_dots(rep, pg, out, combo, where, w, lang):
-    """M3-9d (ревью a11y): точки обложки и шапки категории — после щелчка ровно одна точка с
-    `aria-current`, и это нажатая; фокус по Tab виден (скриншот); ряд точек ниже кнопки CTA."""
+    """M3-9d (ревью a11y и django): точки обложки и шапки категории — после щелчка по каждой
+    ровно одна точка с `aria-current` и закрашенной меткой, это нажатая, фокус на ней; фокус по
+    Tab виден (скриншот); ряд точек ниже кнопки CTA."""
     for sel, cta in OWN_DOTS.items():
         dots = pg.locator(sel)
-        if dots.count() < 2 or not dots.nth(1).is_visible():
+        n = dots.count()
+        if n < 2 or not dots.nth(1).is_visible():
             continue
-        dots.nth(1).click()
-        pg.wait_for_timeout(300)
-        cur = pg.evaluate(
-            "(sel) => [...document.querySelectorAll(sel)]"
-            ".map((d, k) => d.getAttribute('aria-current') === 'true' ? k : -1)"
-            ".filter(k => k >= 0)",
-            sel,
-        )
-        rep.check(
-            cur == [1], f"{combo} {where}: {sel} aria-current у нажатой ({cur})", code="dotcur"
-        )
+        for k in (*range(1, n), 0):
+            dots.nth(k).click()
+            pg.wait_for_timeout(200)
+            state = pg.evaluate(_DOTS_STATE_JS, sel)
+            cur = [i for i, d in enumerate(state) if d["cur"]]
+            on = [i for i, d in enumerate(state) if d["on"]]
+            rep.check(
+                cur == [k] and on == [k],
+                f"{combo} {where}: {sel} щелчок по {k}: aria-current {cur}, метка {on}",
+                sigs=f"{sel}: aria-current/метка не у нажатой",
+                code="dotcur",
+            )
+            rep.check(
+                state[k]["focus"],
+                f"{combo} {where}: {sel} фокус на нажатой {k}",
+                sigs=f"{sel}: фокус не на нажатой",
+                code="dotfocus",
+            )
         dots.nth(0).focus()
         pg.keyboard.press("Tab")
         pg.keyboard.press("Shift+Tab")
