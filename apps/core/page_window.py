@@ -39,12 +39,11 @@ SEO_FIELDS = ("seo_title", "seo_description")
 VIEW_RESET_OP = "view_reset"
 
 
-def pseudo_row(ref: str, blocks: list[dict]) -> dict | None:
-    """Строка `__page` для окна — только там, где настройкам больше негде жить (нет ★ и
-    строки-носителя). Ключи — те, что знает окно (`block_window.ROW_KEYS`/`PANEL_KEYS`)."""
-    if ref != site_schema.PAGE_REF:
-        return None
-    if any(b.get("main") or b.get("carrier") for b in blocks):
+def pseudo_row(ref: str, page_ref: str) -> dict | None:
+    """Строка `__page` для окна — только там, где настройкам больше негде жить: `page_ref` —
+    ответ единого правила `site_schema.page_row_ref` (FB-33 M5b-1). Ключи — те, что знает
+    окно (`block_window.ROW_KEYS`/`PANEL_KEYS`)."""
+    if ref != site_schema.PAGE_REF or page_ref != site_schema.PAGE_REF:
         return None
     return {
         "ref": site_schema.PAGE_REF,

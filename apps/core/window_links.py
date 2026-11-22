@@ -66,7 +66,7 @@ def _host(tenant, code: str) -> str:
 
 def _refs(request, code: str, host: str) -> set[str]:
     """Строки схемы страницы — с черновиком «Seitenaufbau» (как их видит окно)."""
-    from apps.core import aufbau_draft, page_window, site_schema
+    from apps.core import aufbau_draft, site_schema
     from apps.tenants import siteconfig
 
     saved = siteconfig.normalize(request.tenant.site_config)
@@ -74,7 +74,8 @@ def _refs(request, code: str, host: str) -> set[str]:
     config = aufbau_draft.overlay(saved, draft) if draft else saved
     blocks = site_schema.blocks_for(config, code, host=host or None, summaries=False)
     refs = {b["ref"] for b in blocks}
-    if page_window.pseudo_row(site_schema.PAGE_REF, blocks) is not None:
+    # FB-33 M5b-1: строка «Einstellungen der Seite» — там же, где её показывает экран
+    if site_schema.page_row_ref(request.tenant, code, blocks) == site_schema.PAGE_REF:
         refs.add(site_schema.PAGE_REF)
     return refs
 

@@ -192,6 +192,8 @@ def tab_of(part: str, selected: dict) -> str:
 def tabs(selected: dict | None, ctx: dict, wanted: str = "") -> list[dict]:
     """Вкладки окна: [{key, label, parts, active}] — только непустые, в порядке `TABS`.
     Открыта запрошенная (`?tab=`), если она есть у блока, иначе первая."""
+    from apps.core import site_schema
+
     found = parts(selected, ctx)
     out = []
     for key, label in TABS:
@@ -199,7 +201,7 @@ def tabs(selected: dict | None, ctx: dict, wanted: str = "") -> list[dict]:
         if mine:
             out.append({"key": key, "label": label, "parts": mine, "active": False})
     if out:
-        if not wanted and (selected or {}).get("ref") == "__page":
+        if not wanted and (selected or {}).get("ref") == site_schema.PAGE_REF:
             wanted = "seite"  # FB-33 M3-6 (M0-11): «Einstellungen der Seite» — с «Seite»
         active = next((t for t in out if t["key"] == wanted), out[0])
         active["active"] = True

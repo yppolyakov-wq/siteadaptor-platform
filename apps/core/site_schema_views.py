@@ -442,11 +442,17 @@ def site_schema_view(request):
         )
     draft_info = aufbau_draft.info(request, saved, code)
     blocks = site_schema.blocks_for(config, code, host=current.host if current else None)
+    # FB-27 V3 / FB-33 M5b-1: настройки типа живут в строке-носителе (★ или, на главной,
+    # «Banner») либо в строке «Einstellungen der Seite» — одно правило, флаг — до выбора строки
+    page_ref = site_schema.page_row_ref(tenant, code, blocks)
+    carrier = next((b for b in blocks if b["ref"] == page_ref), None)
+    if carrier is not None:
+        carrier["carrier"] = True
     selected = next((b for b in blocks if b["ref"] == request.GET.get("block")), None)
     from apps.core import page_window
 
     # FB-33 M3-6: «Einstellungen der Seite» — тем же окном блока (вкладка «Seite»)
-    selected = selected or page_window.pseudo_row(request.GET.get("block", ""), blocks)
+    selected = selected or page_window.pseudo_row(request.GET.get("block", ""), page_ref)
     if selected and selected.get("list_data") is not None:
         from apps.core import list_panel
 
@@ -567,34 +573,16 @@ def site_schema_view(request):
         # страницы «Anfrage» (одна настройка на все места формы, без дубля)
         selected["form_link"] = site_schema.form_window_url()
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
-    # основного списка — на строке «Einstellungen der Seite».
+    # основного списка — на строке «Einstellungen der Seite» (`page_ref` выше).
     page_row, settings, design_rows = None, [], []
-    try:
-        has_settings = bool(site_schema.setting_codes(tenant, code))
-        # FB-31 P2: общие настройки «Design» видны строкой и там, где своих настроек нет
-        has_design = bool(site_schema.design_codes(tenant, code))
-    except site_schema.SchemaError:
-        has_settings = has_design = False
-    has_settings = has_settings or has_design
-    if has_settings:
-        # FB-27 V3 (макет Main): настройки живут в строке блока-носителя — основной список
-        # либо, на главной, строка «Banner». Отдельная строка «Einstellungen der Seite» —
-        # только у страниц, где носителя нет (детали, корзина, текстовые).
-        carrier = next((b for b in blocks if b["main"]), None) or next(
-            (b for b in blocks if b["ref"] == site_schema.settings_carrier(code)), None
-        )
-        if carrier is None:
-            page_row = {
-                "ref": site_schema.PAGE_REF,
-                "active": request.GET.get("block") == site_schema.PAGE_REF,
-            }
-        else:
-            carrier["carrier"] = True
-        if (selected and selected.get("carrier")) or (page_row and page_row["active"]):
-            settings = site_schema.settings_groups(tenant, code, config)
-            design_rows = site_schema.design_rows(tenant, code)
-    if page_window.is_page_row(selected) and page_row is None:
-        selected = None  # FB-33 M3-6: настроек у страницы нет — и строки «Seite» нет
+    if page_ref == site_schema.PAGE_REF:
+        page_row = {
+            "ref": site_schema.PAGE_REF,
+            "active": request.GET.get("block") == site_schema.PAGE_REF,
+        }
+    if (selected and selected.get("carrier")) or (page_row and page_row["active"]):
+        settings = site_schema.settings_groups(tenant, code, config)
+        design_rows = site_schema.design_rows(tenant, code)
     # FB-31 P5 R7: строка раздела со своими настройками («Ähnliche › Wie»)
     if selected and site_schema.row_settings(code, selected["ref"]):
         selected["setting_row"] = True

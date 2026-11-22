@@ -128,7 +128,6 @@ def test_screen_row_follows_the_view_rule(bt):
     assert kinds == {"page", "carrier", "none"}, "все три исхода правила встречаются"
 
 
-@pytest.mark.xfail(strict=True, reason="M5b-1 C2: window_links._refs — по правилу экрана")
 @pytest.mark.parametrize("bt", TYPES)
 def test_page_row_ref_is_the_view_rule(bt):
     tenant = _tenant(bt)
@@ -168,7 +167,6 @@ def test_garbage_seite_opens_home_without_window():
 # ───────────── L2: `__page` у ⚙ Студии только там, где строка есть ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="M5b-1 C2: window_links._refs — по правилу экрана")
 @pytest.mark.parametrize("code", ["home", NO_SETTINGS])
 def test_window_links_refs_have_no_page_row_without_it(code):
     tenant = _tenant()
@@ -184,7 +182,7 @@ def test_window_links_refs_keep_the_page_row_where_it_is():
 # ───────────── L3: правило — только в site_schema ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="M5b-1 C2/C3: правило ещё в вьюхе и стенде")
+@pytest.mark.xfail(strict=True, reason="M5b-1 C3: правило ещё в стенде владельца")
 def test_rule_lives_only_in_site_schema():
     callers = (
         "apps/core/site_schema_views.py",

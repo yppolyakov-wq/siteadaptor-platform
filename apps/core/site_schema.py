@@ -3670,19 +3670,13 @@ def settings_url(type_code: str, setting: str = "") -> str:
     — просто на экран. `setting` — какую настройку раскрыть."""
     from urllib.parse import urlencode
 
-    from apps.tenants import siteconfig
-
     owner = next((row for row, more in SETTINGS_FOLLOWERS.items() if type_code in more), "")
     code = owner or ("text" if type_code == "legal" else type_code)
     pt = _page_type(code)
     url = reverse("site-schema")
     if pt is None:
         return url
-    block = (
-        siteconfig.MAIN_LIST_KEY
-        if _host(pt) in siteconfig.MAIN_LIST_HOSTS
-        else settings_carrier(pt.code) or PAGE_REF
-    )
+    block = page_row_ref(None, pt.code)  # M5b-1: строка — по единому правилу (по хосту типа)
     block = SETTING_ROWS.get(pt.code, {}).get(setting) or block  # R7: строка раздела
     query = {"seite": pt.code, "block": block}
     if setting:
