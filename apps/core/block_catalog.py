@@ -40,6 +40,7 @@ class Family(NamedTuple):
 FAMILIES: tuple[Family, ...] = (
     Family("banner", _("Banner"), (("hero", SECTION), ("banner", CBLOCK))),
     Family("quick_links", _("Schnellzugriff"), (("quick_links", CBLOCK),)),
+    Family("site_search", _("Suche"), (("site_search", CBLOCK),)),  # FB-33 M5a
     Family("trust_bar", _("Trust bar"), (("usp_bar", SECTION),)),
     Family("finder", _("Finder"), (("finder", SECTION),)),
     Family("stay_search", _("Booking search (stays)"), (("stay_search", SECTION),)),
@@ -129,6 +130,8 @@ class LibraryEntry(NamedTuple):
     studio: bool = True  # есть в библиотеке Студии
     page_only: bool = False  # только на страницах (ссылочные блоки — не на главной)
     view: object = ""  # FB-33 M2e: подпись вида в семье («Foto + Text»); пусто — без вида
+    #: FB-33 M5a: коды типов страниц, где блок предлагается в «+ Block»; пусто — везде
+    only: tuple[str, ...] = ()
 
 
 #: Группы меню «+ Block» (FB-27 R6, решение владельца): ключ → подпись.
@@ -215,6 +218,8 @@ LIBRARY: tuple[LibraryEntry, ...] = (
         "inhalt",
         studio=False,
     ),
+    # FB-33 M5a: поле поиска — блок страницы 404 (на прочих страницах поиск стоит в шапке)
+    LibraryEntry("site_search", "🔎", "", "inhalt", studio=False, only=("not_found",)),
 )
 
 _BY_KEY = {entry.key: entry for entry in LIBRARY}
@@ -228,6 +233,12 @@ def family_of(key: str) -> Family | None:
 
 def library_entry(key: str) -> LibraryEntry | None:
     return _BY_KEY.get(key)
+
+
+def offered_on(key: str, code: str) -> bool:
+    """FB-33 M5a: предлагается ли блок в «+ Block» страницы типа `code` (`LibraryEntry.only`)."""
+    entry = _BY_KEY.get(key)
+    return entry is None or not entry.only or code in entry.only
 
 
 def can_switch(old: str, new: str) -> bool:

@@ -184,6 +184,7 @@ def test_library_invariants():
         "textpage",
         "contact_card",
         "quick_links",
+        "site_search",  # FB-33 M5a: блок страницы 404, ставится в «Seitenaufbau»
     }
     assert all(str(e.hint) for e in block_catalog.LIBRARY if e.studio)
 

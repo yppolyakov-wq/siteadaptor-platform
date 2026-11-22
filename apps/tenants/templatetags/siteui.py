@@ -84,6 +84,7 @@ CBLOCK_TEMPLATES = {
     "textpage": "storefront/sections/_block_textpage.html",  # FB-27 R6
     "contact_card": "storefront/sections/_block_contact.html",  # FB-27 R6
     "quick_links": "storefront/sections/_block_quick_links.html",  # FB-33 M2c
+    "site_search": "storefront/sections/_block_site_search.html",  # FB-33 M5a
 }
 
 
@@ -160,6 +161,9 @@ def hero_tiles(context, widget):
     tenant = getattr(context.get("request"), "tenant", None) or context.get("tenant")
     if tenant is None:
         return {"tiles": []}
+    if widget == registry.MENU_SET:
+        # FB-33 M5a: плитки — верхний уровень меню витрины из контекста (второго разбора нет)
+        return {"tiles": registry.menu_tiles(context.get("storefront_menu"))}
     deal = deal_of_day() if registry.needs_deal(widget) else None
     # FB-33 M3-5b: скрытые плашки и свои подписи блока «Schnellzugriff» (`quick_links_html`)
     hidden, labels = context.get("ql_hidden") or (), context.get("ql_labels") or {}
@@ -378,7 +382,9 @@ def page_blocks(context, page_key, part="after"):
             request._page_blocks_site = (cache_key, raw, site)
         except AttributeError:
             pass
-    stored = (site.get("page_blocks") or {}).get(page_key, [])
+    # FB-33 M5a: строки — через `page_rows` (умолчание страницы 404 считает она); у прочих
+    # хостов тег получает уже выбранный хост, для них это прежнее чтение ключа
+    stored = siteconfig.page_rows(site, page_key)
     above, below = siteconfig.split_at_main(stored)
     if isinstance(part, str) and part.startswith("ids:"):
         # FB-31 P5: кусок блоков детали между разделами (по id, в порядке хранения)
@@ -407,9 +413,10 @@ def page_blocks(context, page_key, part="after"):
         blocks = _drop_empty_faq(blocks, page_key, context.get("site") or site, context, raw)
     if not blocks and (before or not is_preview):
         return ""
-    if page_key == "confirmation":
+    if page_key in siteconfig.FORMLESS_HOSTS:
         # FB-33 M2h (ПДн): на подтверждении блоки с полями ввода не рисуются, а остальные — с
-        # ЧИСТЫМ контекстом: сделка и данные клиента вьюхи в блоки не попадают
+        # ЧИСТЫМ контекстом: сделка и данные клиента вьюхи в блоки не попадают. FB-33 M5a: то
+        # же на странице 404 (её отдают анониму на любом адресе — без форм и без cookie)
         from apps.core import confirmation_page
 
         blocks = [b for b in blocks if b.get("key") not in confirmation_page.FORM_BLOCKS]

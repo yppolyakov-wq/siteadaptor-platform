@@ -78,6 +78,7 @@ TYPE_MODULES: dict[str, str | None] = {
     "contact": None,
     "legal": None,
     "confirmation": None,  # FB-33 M2h-5: модули сделок — `_storefront_shows`
+    "not_found": None,  # FB-33 M5a: страница 404 есть у любого бизнеса
 }
 
 #: FB-33 M2h-5: модули, у которых есть страница подтверждения сделки

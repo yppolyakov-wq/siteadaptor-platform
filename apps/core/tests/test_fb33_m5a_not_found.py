@@ -27,10 +27,7 @@ pytestmark = pytest.mark.django_db
 HOST = "not_found"
 CODE = "not_found"
 #: потолок запросов страницы 404 с блоками по умолчанию (после прогрева): боты бьют в 404
-MAX_404_QUERIES = 25
-
-#: замок написан до кода (первый коммит среза) — снимается коммитом с реализацией
-red = pytest.mark.xfail(strict=True, reason="FB-33 M5a: замок до кода")
+MAX_404_QUERIES = 6
 
 
 @pytest.fixture(autouse=True)
@@ -79,7 +76,6 @@ def _block_hrefs(html, marker):
 # ── обработчик: кто получает страницу с блоками ─────────────────────────────────────
 
 
-@red
 def test_tenant_urlconf_uses_our_handler():
     handler = get_resolver("config.urls_tenant").resolve_error_handler(404)
     assert handler is _views().storefront_404
@@ -92,7 +88,6 @@ def test_platform_and_portal_urlconfs_keep_the_plain_handler(urlconf):
 
 
 @pytest.mark.parametrize("method", ["get", "head"])
-@red
 def test_unknown_address_gets_the_block_page(rf, method):
     resp, html = _html(rf, _tenant(), method=method)
     assert resp.status_code == 404
@@ -154,7 +149,6 @@ def _fallback_cases():
 
 
 @pytest.mark.parametrize("case", _fallback_cases(), ids=lambda c: c.__name__)
-@red
 def test_everything_else_gets_the_plain_page(rf, case):
     """R1/R2: платформа, портал, кабинет, HTMX, не-GET, скрытая витрина, файлы — прежняя 404."""
     req = case(rf)
@@ -173,7 +167,6 @@ def test_plain_page_is_alive_as_the_fallback(rf):
 # ── сбой и мусор ────────────────────────────────────────────────────────────────────
 
 
-@red
 def test_block_failure_serves_the_plain_page_and_logs(rf, monkeypatch, caplog):
     def boom(*_a, **_kw):
         raise RuntimeError("kaputt")
@@ -205,7 +198,6 @@ def test_block_failure_serves_the_plain_page_and_logs(rf, monkeypatch, caplog):
         {"menus": "kaputt", "page_blocks": {HOST: None}},
     ],
 )
-@red
 def test_garbage_config_is_still_the_block_page(rf, site_config):
     resp, html = _html(rf, _tenant(site_config=site_config))
     assert resp.status_code == 404 and "data-not-found" in html
@@ -214,7 +206,6 @@ def test_garbage_config_is_still_the_block_page(rf, site_config):
 # ── «Beliebt»: плитки = верхний уровень меню контекста ─────────────────────────────
 
 
-@red
 def test_popular_tiles_are_the_top_level_menu_of_the_context(rf):
     from apps.core import context
 
@@ -227,7 +218,6 @@ def test_popular_tiles_are_the_top_level_menu_of_the_context(rf):
     assert _block_hrefs(html, "data-block-quick-links") == want[: hero_tiles.MENU_TILES_MAX]
 
 
-@red
 def test_menu_tiles_take_only_top_level_items_with_an_address():
     menu = [
         {"label": "Sortiment", "url": "/sortiment/", "icon": "🥨", "children": []},
@@ -246,10 +236,11 @@ def test_menu_tiles_take_only_top_level_items_with_an_address():
     assert len(hero_tiles.menu_tiles(many)) == hero_tiles.MENU_TILES_MAX
 
 
-@red
 def test_menu_set_has_no_tile_keys_and_keeps_only_the_set():
     """У набора «menu» своих ключей плиток нет: «скрыть» и «своя подпись» не хранятся."""
-    assert hero_tiles.MENU_SET in hero_tiles.QUICK_LINK_SETS
+    assert hero_tiles.MENU_SET in hero_tiles.BLOCK_LINK_SETS
+    # наборы реестра (их переносил `quick_links_migration`) прежние
+    assert hero_tiles.MENU_SET not in hero_tiles.QUICK_LINK_SETS
     data = {"set": "menu", "hidden": ["sortiment"], "labels": {"sortiment": "X"}}
     assert hero_tiles.clean_data(data) == {"set": "menu"}
     panel = hero_tiles.panel({"set": "menu"})
@@ -262,7 +253,6 @@ def test_menu_set_has_no_tile_keys_and_keeps_only_the_set():
 # ── «Suche» ─────────────────────────────────────────────────────────────────────────
 
 
-@red
 def test_search_block_is_a_get_form_to_the_storefront_search(rf):
     from apps.core import context
 
@@ -279,7 +269,6 @@ def test_search_block_is_a_get_form_to_the_storefront_search(rf):
     assert "csrfmiddlewaretoken" not in form
 
 
-@red
 def test_search_block_draws_nothing_without_a_search_address():
     from django.template.loader import render_to_string
 
@@ -289,7 +278,6 @@ def test_search_block_draws_nothing_without_a_search_address():
     assert html.strip() == ""
 
 
-@red
 def test_search_block_is_offered_only_on_the_not_found_page():
     assert "site_search" in dict(site_schema.add_options(CODE))
     for code in ("home", "text", "catalog", "confirmation", "cart"):
@@ -299,7 +287,6 @@ def test_search_block_is_offered_only_on_the_not_found_page():
 # ── умолчание и «задано пусто» ──────────────────────────────────────────────────────
 
 
-@red
 def test_missing_key_means_default_rows_with_constant_ids():
     page = _page()
     first = siteconfig.page_rows(siteconfig.normalize({}), HOST)
@@ -321,7 +308,6 @@ def test_default_does_not_materialise_a_config_key():
     assert HOST not in (siteconfig.normalize({}).get("page_blocks") or {})
 
 
-@red
 def test_empty_key_is_kept_and_means_no_blocks(rf):
     cfg = siteconfig.normalize({"page_blocks": {HOST: []}})
     assert cfg["page_blocks"][HOST] == []
@@ -333,7 +319,6 @@ def test_empty_key_is_kept_and_means_no_blocks(rf):
     assert "data-block-site-search" not in html and "data-block-quick-links" not in html
 
 
-@red
 def test_default_state_of_the_page_has_a_stable_fingerprint():
     """R4: с постоянными id сохранённое состояние страницы одно и то же в любом запросе —
     иначе открытый черновик «конфликтовал» бы сам с собой."""
@@ -369,7 +354,6 @@ def _saved(tenant):
     return (Tenant.objects.get(pk=tenant.pk).site_config or {}).get("page_blocks") or {}
 
 
-@red
 def test_first_edit_in_the_editor_materialises_the_default():
     b = _browser()
     html = b.get(f"?seite={CODE}")
@@ -382,7 +366,6 @@ def test_first_edit_in_the_editor_materialises_the_default():
     assert [(r["id"], r["enabled"]) for r in rows] == [("nf-search", False), ("nf-popular", True)]
 
 
-@red
 def test_deleting_every_block_in_the_editor_keeps_the_empty_key(rf):
     b = _browser()
     b.post(seite=CODE, op="delete", ref="nf-search")
@@ -399,7 +382,6 @@ def test_deleting_every_block_in_the_editor_keeps_the_empty_key(rf):
 # ── cookie, сессия, кэш ─────────────────────────────────────────────────────────────
 
 
-@red
 def test_default_page_sets_no_cookie_and_stays_out_of_the_page_cache(rf, settings):
     settings.PUBLIC_PAGE_CACHE_TTL = 60
     tenant = _tenant()
@@ -421,7 +403,6 @@ def test_default_page_sets_no_cookie_and_stays_out_of_the_page_cache(rf, setting
     assert pagecache._cacheable(req, resp) is False
 
 
-@red
 def test_page_with_a_list_block_does_not_write_the_session(rf):
     rows = [{"key": "list", "id": "l1", "enabled": True, "data": {"source": "products"}}]
     tenant = _tenant(site_config={"page_blocks": {HOST: rows}})
@@ -434,7 +415,6 @@ def test_page_with_a_list_block_does_not_write_the_session(rf):
 # ── блоки-формы ─────────────────────────────────────────────────────────────────────
 
 
-@red
 def test_form_blocks_are_banned_on_the_host_and_list_is_allowed():
     page = _page()
     assert {"newsletter", "anfrage_ref", "message_ref"} <= set(page.FORM_BLOCKS)
@@ -461,7 +441,6 @@ def test_form_blocks_are_banned_on_the_host_and_list_is_allowed():
             site_schema.mutate(items, CODE, "add", block_type=key)
 
 
-@red
 def test_blocks_are_drawn_with_a_clean_context(rf, monkeypatch):
     """Блоки 404 не видят контекста вьюхи (как на подтверждении) — только свои строки."""
     from apps.tenants.templatetags import siteui
@@ -482,7 +461,6 @@ def test_blocks_are_drawn_with_a_clean_context(rf, monkeypatch):
 # ── тип страницы и превью ───────────────────────────────────────────────────────────
 
 
-@red
 def test_type_is_registered_and_always_offered(monkeypatch):
     pt = studio_pages.page_type(CODE)
     assert pt.code == CODE and pt.block_host == HOST
@@ -493,7 +471,6 @@ def test_type_is_registered_and_always_offered(monkeypatch):
     assert page_settings.type_active(tenant, CODE)
 
 
-@red
 def test_seitenaufbau_offers_the_page_and_opens_the_tiles_block():
     b = _browser()
     html = b.get(f"?seite={CODE}")
@@ -512,13 +489,11 @@ def _preview(rf, tenant, monkeypatch, allowed=True, query=""):
     return _views().not_found_preview(req)
 
 
-@red
 def test_preview_is_only_for_the_team(rf, monkeypatch):
     with pytest.raises(Http404):
         _preview(rf, _tenant(), monkeypatch, allowed=False)
 
 
-@red
 def test_preview_answers_200_out_of_index_and_cache(rf, monkeypatch):
     resp = _preview(rf, _tenant(), monkeypatch)
     html = resp.content.decode()
@@ -528,17 +503,15 @@ def test_preview_answers_200_out_of_index_and_cache(rf, monkeypatch):
     assert 'rel="canonical"' not in html and "application/ld+json" not in html
 
 
-@red
 def test_preview_route_reports_its_page_type():
     """R7: превью — обычный маршрут витрины, тип страницы даёт реестр."""
-    ctx = studio_pages.resolve(reverse("storefront-404-vorschau"))
+    ctx = studio_pages.resolve_page(reverse("storefront-404-vorschau"))
     assert ctx.code == CODE and ctx.block_host == HOST
 
 
 # ── запросы ─────────────────────────────────────────────────────────────────────────
 
 
-@red
 def test_default_page_stays_under_the_query_ceiling(rf):
     tenant = _tenant()
     _html(rf, tenant)  # прогрев: кэш шаблонов, ContentType, версии кэша

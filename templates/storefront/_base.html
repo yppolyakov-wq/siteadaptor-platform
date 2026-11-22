@@ -27,7 +27,7 @@
   <meta name="description" content="{% block meta_description %}{% if seo_meta.description %}{{ seo_meta.description }}{% else %}{{ request.tenant.name|default:'' }}{% endif %}{% endblock %}">
   {% block canonical %}{% canonical_link %}{% endblock %}
   {% block og %}{% endblock %}
-  {% localbusiness_jsonld %}
+  {% block localbusiness %}{% localbusiness_jsonld %}{% endblock %}
   {% block structured_data %}{% endblock %}
   {# P5: ранний fetch hero-фото (LCP) — background-image иначе находится поздно. #}
   {% if storefront_hero_preload %}<link rel="preload" as="image" href="{{ storefront_hero_preload }}" fetchpriority="high">{% endif %}

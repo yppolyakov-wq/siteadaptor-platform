@@ -169,6 +169,9 @@ REPEATABLE_BLOCKS = (
     # FB-33 M2c: «Schnellzugriff» — плитки-входы (запись, звонок, маршрут…) отдельным
     # блоком, а не внутри баннера (решение владельца 2026-11-19)
     "quick_links",
+    # FB-33 M5a: «Suche» — поле поиска по сайту (GET `?q=` на адрес поиска витрины); в
+    # «+ Block» предлагается только на странице 404 (`block_catalog.LibraryEntry.only`)
+    "site_search",
 )
 #: FB-27 R6: варианты карточки контактов (пусто — карточка в две колонки).
 CONTACT_STYLES = ("split", "map_first", "compact")
@@ -1320,6 +1323,8 @@ PAGE_BLOCK_HOSTS = (
     "combo_detail",  # /kombi/<pk>/ — FB-32 S6g-3
     # FB-33 M2h: подтверждения (заказ, запись, номер, билет, стол) — один набор блоков
     "confirmation",
+    # FB-33 M5a: страница 404 витрины; ключа нет — блоки по умолчанию (`page_rows`)
+    "not_found",
     # FB-31 P3 R6: «Alle Angebotsgruppen» — общие блоки страниц групп акций (пока не
     # сохранены, группы показывают блоки обзора `/aktionen/`, как и раньше)
     "promo_group",
@@ -1359,6 +1364,7 @@ CBLOCK_LABELS = {
     "textpage": _("Textseite"),
     "contact_card": _("Kontakt & Öffnungszeiten"),
     "quick_links": _("Schnellzugriff"),
+    "site_search": _("Suche"),
     "faq_ref": _("FAQ anzeigen"),
     "team_ref": _("Team anzeigen"),
     "gallery_ref": _("Galerie anzeigen"),
@@ -1904,6 +1910,12 @@ def page_rows(config: dict, host: str) -> list:
             for b in blocks.get("promos") or []
             if isinstance(b, dict) and (b.get("id") or is_main_marker(b))
         ]
+    # FB-33 M5a: страница 404, пока её не правили, — «Suche» и «Beliebt»; ключ есть (и пуст)
+    # — ровно то, что сохранено
+    if host == "not_found" and "not_found" not in blocks:
+        from apps.core import not_found_page
+
+        return not_found_page.default_rows()
     return list(blocks.get(host) or [])
 
 
@@ -1967,6 +1979,14 @@ def _page_block_hosts(raw: dict) -> list:
     )
 
 
+#: FB-33 M2h / M5a: хосты без блоков с полями ввода (подтверждение — рядом данные сделки;
+#: 404 — страница любого битого адреса, без cookie)
+FORMLESS_HOSTS = ("confirmation", "not_found")
+#: FB-33 M5a: хосты, чей ПУСТОЙ список хранится — сам ключ значит «сохранена» (иначе
+#: «удалил все блоки» молча вернуло бы блоки по умолчанию или общие)
+KEEP_EMPTY_HOSTS = ("category", "promo_group", "not_found")
+
+
 def _confirmation_form_blocks() -> frozenset:
     from apps.core.confirmation_page import FORM_BLOCKS
 
@@ -1996,7 +2016,8 @@ def normalize_page_blocks(raw) -> dict:
         axis_keys = _axis_section_keys(key)
         # FB-33 M2h-5 (ревью): на подтверждении блоков с формами нет — любой писатель
         # (импорт шаблона, Студия, ассистент, старый конфиг) их здесь не сохранит
-        banned = _confirmation_form_blocks() if key == "confirmation" else frozenset()
+        # FB-33 M5a: то же на странице 404
+        banned = _confirmation_form_blocks() if key in FORMLESS_HOSTS else frozenset()
         # FB-32 S6f: голая строка оси хранится как место, если есть якоря разделов
         keep_bare = axis_keys and any(
             isinstance(i, dict) and i.get("key") in anchor_keys and not i.get("id") for i in items
@@ -2054,7 +2075,8 @@ def normalize_page_blocks(raw) -> dict:
         # FB-30.16 R5 (ревью): «Alle Kategorien» хранится и пустой — сам ключ значит
         # «сохранена», иначе «удалил все блоки» молча вернуло бы блоки каталога
         # (R6: так же «Alle Angebotsgruppen»)
-        if blocks or key in ("category", "promo_group") or is_promo_group_host(key):
+        # FB-33 M5a: и страница 404 — пустой ключ ≠ блоки по умолчанию
+        if blocks or key in KEEP_EMPTY_HOSTS or is_promo_group_host(key):
             out[key] = blocks
     return out
 

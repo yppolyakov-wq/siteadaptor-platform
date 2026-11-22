@@ -402,6 +402,14 @@ def tiles_for(widget: str, tenant, deal=None, hidden=(), labels=None) -> list[di
 #: генерик-наборы реестра. `stays` (форма дат) и `services` (топ услуг) — не ссылки: при
 #: переносе они становятся секцией «Suche» и списком услуг (решение владельца, план M2c).
 QUICK_LINK_SETS = ("gastro", "bakery", "butcher", "mode", *HERO_TILE_WIDGETS)
+#: FB-33 M5a: набор «menu» — плитки строятся из пунктов меню витрины (`menu_tiles`), своих
+#: ключей плиток у него нет: скрывать и переименовывать нечего (пункты правит редактор меню).
+#: В `QUICK_LINK_SETS` его нет: те — наборы реестра (их переносил `quick_links_migration`).
+MENU_SET = "menu"
+#: потолок плиток набора «menu» (меню длиннее — плитки не превращаются во вторую шапку)
+MENU_TILES_MAX = 8
+#: всё, что может показать блок «Schnellzugriff»: наборы реестра и пункты меню
+BLOCK_LINK_SETS = (*QUICK_LINK_SETS, MENU_SET)
 
 #: Подпись набора в окне блока — тип бизнеса, для которого он собран (переведённые
 #: подписи `Tenant.BUSINESS_TYPES`, новых строк перевода нет).
@@ -418,7 +426,34 @@ QUICK_LINK_LABELS = {
     "aktionsmarkt": _("Aktionen"),
     "touren": _("Tours"),
     "retreat": _("Veranstalter / Events"),
+    MENU_SET: _("Hauptmenü"),
 }
+
+
+def menu_tiles(menu) -> list[dict]:
+    """FB-33 M5a: плитки набора «menu» — пункты ВЕРХНЕГО уровня готового меню витрины
+    (`storefront_menu` контекста) со своим адресом; подменю и пункты-заголовки без адреса
+    не идут. Форма плитки — как у `tiles_for`."""
+    out = []
+    for item in menu if isinstance(menu, (list, tuple)) else ():
+        if not isinstance(item, dict):
+            continue
+        label, href = item.get("label"), item.get("url")
+        if not label or not href:
+            continue
+        out.append(
+            {
+                "icon": item.get("icon") or "",
+                "label": label,
+                "sub": "",
+                "href": href,
+                "highlight": False,
+                "deal_sub": False,
+            }
+        )
+        if len(out) >= MENU_TILES_MAX:
+            break
+    return out
 
 
 # ─────────── FB-33 M3-5b: плашки в окне блока — скрыть и переименовать ───────────
@@ -507,7 +542,7 @@ def clean_data(d: dict) -> dict:
     """Данные блока «Schnellzugriff»: {"set"} + скрытые плашки и свои подписи — только ключи
     своего набора; пустая или стандартная подпись не хранится (конфиги прежние байт-в-байт)."""
     link_set = d.get("set") if isinstance(d, dict) else None
-    if link_set not in QUICK_LINK_SETS:
+    if link_set not in BLOCK_LINK_SETS:
         return {}
     out: dict = {"set": link_set}
     keys = tile_keys(link_set)
@@ -517,7 +552,7 @@ def clean_data(d: dict) -> dict:
     if hidden:
         out["hidden"] = hidden
     raw_labels = d.get("labels") if isinstance(d.get("labels"), dict) else {}
-    standard = {key: _standard(label) for key, label, _hint in QUICK_LINK_TILES[link_set]}
+    standard = {key: _standard(label) for key, label, _hint in QUICK_LINK_TILES.get(link_set, ())}
     labels = {}
     for key in keys:
         text = raw_labels.get(key)
@@ -570,7 +605,7 @@ def update_data(data: dict, fields: dict) -> dict:
     hidden = [k for k in keys if fields.get(f"show_{k}") != "1"]
     # окно показывает стандартную подпись на языке кабинета — она тоже «своей» не считается
     # (на любом языке платформы: язык кабинета у разных запросов окна может отличаться)
-    shown = {key: _all_languages(label) for key, label, _hint in QUICK_LINK_TILES[link_set]}
+    shown = {key: _all_languages(label) for key, label, _hint in QUICK_LINK_TILES.get(link_set, ())}
     labels = {}
     for k in keys:
         text = fields.get(f"label_{k}", "")
@@ -642,7 +677,7 @@ def panel(data: dict) -> dict:
         "set": link_set,
         "options": [
             ("", gettext("Bitte wählen")),
-            *((k, str(QUICK_LINK_LABELS[k])) for k in QUICK_LINK_SETS),
+            *((k, str(QUICK_LINK_LABELS[k])) for k in BLOCK_LINK_SETS),
         ],
         "rows": rows,
         "max": LABEL_MAX,

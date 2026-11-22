@@ -22,6 +22,7 @@ from apps.core import (
     extras_pages,
     health,
     lite_cabinet,
+    not_found_views,
     owner_login,
     page_templates,
     tg_login,
@@ -987,6 +988,12 @@ urlpatterns = [
         confirmation_views.confirmation_preview,
         name="storefront-bestaetigung-vorschau",
     ),
+    # FB-33 M5a: превью страницы 404 для «Seitenaufbau» (код 200, только команде)
+    path(
+        "seite-nicht-gefunden/vorschau/",
+        not_found_views.not_found_preview,
+        name="storefront-404-vorschau",
+    ),
     path("r/<str:code>/qr.svg", public_views.reservation_qr, name="storefront-reservation-qr"),
     path("v/<str:code>/qr.svg", public_views.voucher_qr, name="storefront-voucher-qr"),
     path("c/<uuid:token>/qr.svg", public_views.loyalty_card_qr, name="storefront-loyalty-qr"),
@@ -1047,3 +1054,9 @@ if getattr(settings, "SERVE_MEDIA", False):
     urlpatterns += [
         path("media/<path:path>", serve_media),  # корень читает гейт при запросе
     ]
+
+# FB-33 M5a: страница 404 витрины с блоками владельца. Django берёт обработчик из текущего
+# urlconf, а до разбора адреса это ROOT_URLCONF — этот модуль: `Http404` из middleware на
+# платформе и портале тоже попадёт сюда, поэтому обработчик сам решает, кому отдать страницу
+# с блоками, а кому прежнюю (`not_found_views.storefront_404`).
+handler404 = "apps.core.not_found_views.storefront_404"

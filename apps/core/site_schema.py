@@ -1469,6 +1469,8 @@ _TYPE_GROUPS = (
     ("aktionen", gettext_lazy("Aktionen"), "promotions", ("promos", PROMO_GROUP, "promo")),
     # FB-33 M2h-5: подтверждение всех сделок — одной страницей
     ("nachkauf", gettext_lazy("Nach dem Kauf"), None, ("confirmation",)),
+    # FB-33 M5a: страница 404 — не содержимое и не страница модуля
+    ("sonstiges", gettext_lazy("Sonstiges"), None, ("not_found",)),
 )
 _CONTENT_GROUP = gettext_lazy("Inhalte")
 #: FB-30.16 R5: общая страница категорий в выборе страниц
@@ -1797,12 +1799,12 @@ def fill_options(block: dict, host: str) -> None:
     elif key == "page_title":
         options = {"align": [("", _("Links")), ("center", _("Zentriert"))]}
     elif key == "quick_links":
-        from apps.core.hero_tiles import QUICK_LINK_LABELS, QUICK_LINK_SETS
+        from apps.core.hero_tiles import BLOCK_LINK_SETS, QUICK_LINK_LABELS
 
         options = {
             "set": [
                 ("", _("Bitte wählen")),
-                *((k, str(QUICK_LINK_LABELS[k])) for k in QUICK_LINK_SETS),
+                *((k, str(QUICK_LINK_LABELS[k])) for k in BLOCK_LINK_SETS),
             ]
         }
         block["style_only"] = True
@@ -2150,11 +2152,14 @@ def add_options(code: str) -> list[tuple[str, str]]:
     keys = list(siteconfig.REPEATABLE_BLOCKS)
     if code != "home":
         keys += list(siteconfig.PAGE_REF_BLOCKS)
-    if code == "confirmation":
-        # FB-33 M2h-5: на подтверждении блоков с формами нет (данные сделки рядом)
+    if code in siteconfig.FORMLESS_HOSTS:
+        # FB-33 M2h-5: на подтверждении блоков с формами нет (данные сделки рядом);
+        # FB-33 M5a: на странице 404 — тоже
         from apps.core.confirmation_page import FORM_BLOCKS
 
         keys = [k for k in keys if k not in FORM_BLOCKS]
+    # FB-33 M5a: блок, заведённый для своих страниц («Suche» — для 404), — только там
+    keys = [k for k in keys if block_catalog.offered_on(k, code)]
     # FB-33 M2e: подпись с семьёй («Text · Foto + Text»)
     return [(k, block_catalog.menu_label(k)) for k in keys]
 

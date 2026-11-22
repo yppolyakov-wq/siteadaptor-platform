@@ -738,6 +738,14 @@ PAGE_TYPES: tuple[PageType, ...] = (
         (),
         block_host="confirmation",
     ),
+    # FB-33 M5a: страница 404 витрины; превью — та же страница с кодом 200, только команде
+    PageType(
+        "not_found",
+        _("Seite nicht gefunden"),
+        ("storefront-404-vorschau",),
+        (),
+        block_host="not_found",
+    ),
     PageType(
         "lookbook",
         _("Lookbook"),

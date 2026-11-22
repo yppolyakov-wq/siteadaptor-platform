@@ -40248,6 +40248,10 @@ msgstr "Этот заказ уже нельзя оплатить онлайн. �
 msgid "fb33-stack-anchor-m5a"
 msgstr "fb33-stack-anchor-m5a"
 
+# FB-33 M5a: страница 404 с блоками
+msgid "Seite nicht gefunden"
+msgstr "Страница не найдена"
+
 msgid "fb33-stack-anchor-m2i6"
 msgstr "fb33-stack-anchor-m2i6"
 

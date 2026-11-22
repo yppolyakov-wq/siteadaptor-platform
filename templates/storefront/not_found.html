@@ -1,0 +1,17 @@
+{% extends "storefront/_base.html" %}
+{% load i18n siteui %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block title %}{% trans "Page not found." %} — {{ request.tenant.name }}{% endblock %}
+{% block canonical %}{% endblock %}
+{% block localbusiness %}{% endblock %}
+
+{% block content %}
+{% comment %}FB-33 M5a: страница 404 витрины — заголовок и кнопка на главную постоянные, ниже блоки владельца (хост `not_found`; по умолчанию «Suche» и «Beliebt»). Запасная страница без хрома — `templates/404.html`.{% endcomment %}
+<div class="max-w-xl mx-auto text-center py-6" data-not-found>
+  <p class="text-5xl" aria-hidden="true">🔍</p>
+  <h1 class="text-2xl font-bold mt-3">{% trans "Page not found." %}</h1>
+  <p class="text-gray-600 mt-1">{% trans "This page does not exist or is no longer available." %}</p>
+  <a href="{% url 'storefront-home' %}" class="mt-5 inline-flex items-center justify-center min-h-[44px] rounded-xl px-5 font-semibold" style="background: var(--accent, #4f46e5); color: var(--accent-ink, #fff);">{% trans "To the homepage" %}</a>
+</div>
+{% page_blocks "not_found" %}
+{% endblock %}
