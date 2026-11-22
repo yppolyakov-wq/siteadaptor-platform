@@ -170,8 +170,7 @@ def test_page_titles_writers_unchanged():
 def test_page_ref_title_caps():
     caps = {"title": page_title.TITLE_MAX, "intro": page_title.INTRO_MAX}
     assert block_window.field_caps(_title_row_page()) == caps
-    legacy = site_schema.title_row(siteconfig.normalize({}), CODE)
-    assert block_window.field_caps(legacy) == caps
+    # W2: строки «Seitentitel» (`title_row`) больше нет — потолки только у ★-строки
     # W0: строка `__page` окна полей заголовка не несёт — потолков нет, окно прежнее
     assert block_window.field_caps(_title_row_page(fields=False)) == {}
     assert site_schema.is_title_row(_title_row_page(), "anfrage")
@@ -190,10 +189,10 @@ def test_page_ref_title_caps():
 
 
 def test_page_ref_title_align_options():
-    for row in (_title_row_page(), site_schema.title_row(siteconfig.normalize({}), CODE)):
-        site_schema.fill_options(row, "anfrage")
-        align = next(f for f in row["fields"] if f["name"] == "align")
-        assert [value for value, _label in align["options"]] == ["", "center"]
+    row = _title_row_page()  # W2: строки «Seitentitel» (`title_row`) больше нет
+    site_schema.fill_options(row, "anfrage")
+    align = next(f for f in row["fields"] if f["name"] == "align")
+    assert [value for value, _label in align["options"]] == ["", "center"]
     foreign = _title_row_page()
     site_schema.fill_options(foreign, "cart")
     assert "options" not in next(f for f in foreign["fields"] if f["name"] == "align")
