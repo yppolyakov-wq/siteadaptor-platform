@@ -170,10 +170,14 @@ def test_page_template_and_card_form_tiles_are_shown_at_once():
     страницы, их плитки должны быть видны сразу, а не спрятаны в свёрнутой строке."""
     import re
 
+    from apps.core import site_schema
+
     b = Browser(_tenant())
     html = b.get(f"?seite=catalog&block={siteconfig.MAIN_LIST_KEY}")
     # FB-30.16 R4 + FB-31 P2 (осознанно): шаблон каталога стал видом ★ — плитки формой без
     # свёртки; форма карточки общая для сайта — строкой «wie Design» со ссылкой
     assert 'data-schema-view-tiles="mainview"' in html
     assert not re.search(r"<details[^>]*data-schema-setting-box=\"mainview\"", html)
-    assert 'data-schema-design-row="product_card_form"' in html
+    # FB-33 M5b-2 W1 (V4): строки «Design» и настройки типа — у ★-строки страницы
+    page = b.get(f"?seite=catalog&block={site_schema.page_row_ref(b.tenant, 'catalog')}")
+    assert 'data-schema-design-row="product_card_form"' in page

@@ -139,11 +139,12 @@ def test_cancel_refuses_when_the_page_was_published_elsewhere():
 
 def test_title_and_settings_rows_are_restored_too():
     b = Browser(_shop())
-    _post(b, seite="promos", ref="__title", op="update", panel_present="1", f_title="Mein Titel")
+    # FB-33 M5b-2 W1: заголовок и настройки типа — в окне ★-строки страницы (`__page`)
+    _post(b, seite="promos", ref="__page", op="update", panel_present="1", f_title="Mein Titel")
     assert _drafts(b)["promos"]["title"]
-    _post(b, seite="promos", ref="__title", op="revert")
+    _post(b, seite="promos", ref="__page", op="revert")
     assert _drafts(b) == {}
-    html = b.get("?seite=catalog&block=main")
+    html = b.get("?seite=catalog&block=__page")
     # первая настройка ★ с выбором: значение, которое сейчас НЕ выбрано (иначе черновика нет)
     for form in re.finditer(
         r'<form method="post"[^>]*data-schema-setting="([a-z_]+)" data-pt-setting.*?</form>',
@@ -159,9 +160,9 @@ def test_title_and_settings_rows_are_restored_too():
         if free:
             code = form.group(1)
             break
-    _resp, msgs = _post(b, seite="catalog", ref="main", op="setting", setting=code, value=free[0])
+    _resp, msgs = _post(b, seite="catalog", ref="__page", op="setting", setting=code, value=free[0])
     assert (_drafts(b).get("catalog") or {}).get("settings"), (code, free, msgs)
-    _post(b, seite="catalog", ref="main", op="revert")
+    _post(b, seite="catalog", ref="__page", op="revert")
     assert _drafts(b) == {}
 
 
@@ -276,7 +277,8 @@ def test_missing_setting_codes_are_logged_not_swallowed(monkeypatch, caplog):
 
     monkeypatch.setattr(site_schema, "setting_codes", boom)
     with caplog.at_level("WARNING", logger="apps.core.aufbau_draft"):
-        assert aufbau_draft._window_setting_codes(_shop(), "catalog", "main") == []
+        # FB-33 M5b-2 W1: строка настроек каталога — ★-строка страницы (`__page`)
+        assert aufbau_draft._window_setting_codes(_shop(), "catalog", "__page") == []
     assert "setting codes" in caplog.text
 
 

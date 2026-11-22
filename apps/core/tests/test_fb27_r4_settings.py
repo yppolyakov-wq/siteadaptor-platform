@@ -187,10 +187,15 @@ def test_every_page_setting_is_reachable_from_seitenaufbau(business_type):
 
 
 def test_main_list_panel_carries_the_page_settings(_urlconf):
+    """FB-33 M5b-2 W1 (решение владельца, V4): настройки типа — у ★-строки страницы, не у ★
+    основного списка (его окно — вид товаров)."""
     b = Browser(_tenant())
     cfg = siteconfig.normalize(b.tenant.site_config)
     main = next(x for x in site_schema.blocks_for(cfg, "catalog") if x["main"])
-    html = b.get(f"?seite=catalog&block={main['ref']}")
+    assert "data-schema-settings" not in b.get(f"?seite=catalog&block={main['ref']}")
+    ref = site_schema.page_row_ref(b.tenant, "catalog")
+    assert ref == site_schema.PAGE_REF
+    html = b.get(f"?seite=catalog&block={ref}")
     assert "data-schema-settings" in html
     for code in ("catalog_sort", "catalog_layout"):
         assert f'data-schema-setting="{code}"' in html
@@ -219,9 +224,10 @@ def test_category_settings_live_on_the_catalog_row(_urlconf):
 def test_panel_shows_the_draft_value_not_the_saved_one(_urlconf):
     b = Browser(_tenant())
     cfg = siteconfig.normalize(b.tenant.site_config)
-    main = next(x for x in site_schema.blocks_for(cfg, "catalog") if x["main"])
-    b.post(seite="catalog", op="setting", ref=main["ref"], setting="catalog_filters", value="0")
-    html = b.get(f"?seite=catalog&block={main['ref']}")
+    assert cfg is not None
+    ref = site_schema.page_row_ref(b.tenant, "catalog")  # FB-33 M5b-2: ★-строка страницы
+    b.post(seite="catalog", op="setting", ref=ref, setting="catalog_filters", value="0")
+    html = b.get(f"?seite=catalog&block={ref}")
     form = html[html.index('data-schema-setting="catalog_filters"') :]
     form = form[: form.index("</form>")]
     assert 'value="0" checked' in form

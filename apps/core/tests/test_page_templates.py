@@ -114,7 +114,8 @@ def test_old_screen_is_gone_and_its_address_redirects(tenant):
     ведёт в «Seitenaufbau», на строку с настройками запрошенного типа."""
     resp = page_templates.page_templates_website(_req(tenant, data={"typ": "catalog"}))
     assert resp.status_code == 302
-    assert resp["Location"] == "/dashboard/site/aufbau/?seite=catalog&block=main#schema-panel"
+    # FB-33 M5b-2 W1 (V4): настройки типа — у ★-строки страницы (`__page`), не у ★
+    assert resp["Location"] == "/dashboard/site/aufbau/?seite=catalog&block=__page#schema-panel"
     resp = page_templates.page_templates_website(_req(tenant))
     assert resp.status_code == 302 and resp["Location"] == "/dashboard/site/aufbau/"
     assert not (Path(dj_settings.BASE_DIR) / "templates/tenant/page_templates.html").exists()
@@ -131,19 +132,22 @@ def test_menu_entry_and_permission_rule():
 
 
 def test_old_addresses_redirect_to_the_row_that_owns_the_type(tenant):
-    """Старые адреса работают: тип сохраняется, вопрос уходит помощнику."""
+    """Старые адреса работают: тип сохраняется, вопрос уходит помощнику. FB-33 M5b-2 W1
+    (V4): строка настроек — ★-строка страницы `__page` (было: ★ основной список `main`)."""
     base = "/dashboard/site/aufbau/?seite="
     resp = page_templates.page_templates_sortiment(_req(tenant, data={"typ": "category"}))
     assert resp.status_code == 302
-    assert resp["Location"] == base + "category&block=main#schema-panel"  # своя строка (R5)
+    assert resp["Location"] == base + "category&block=__page#schema-panel"  # своя строка (R5)
     resp = page_templates.page_templates_sortiment(_req(tenant))
-    assert resp["Location"] == base + "catalog&block=main#schema-panel"
+    assert resp["Location"] == base + "catalog&block=__page#schema-panel"
     resp = page_templates.page_templates_aktionen(_req(tenant))
-    assert resp["Location"] == base + "promos&block=main#schema-panel"
+    assert resp["Location"] == base + "promos&block=__page#schema-panel"
     resp = page_templates.page_templates_sortiment(_req(tenant, data={"frage": "Brot 3 €"}))
     assert resp["Location"].startswith("/dashboard/anlegen/?frage=")
     # FB-31 P3 R6 (осознанно): у групп акций своя строка «Alle Angebotsgruppen»
-    assert page_templates.cabinet_url("promo_group") == base + "promo_group&block=main#schema-panel"
+    assert (
+        page_templates.cabinet_url("promo_group") == base + "promo_group&block=__page#schema-panel"
+    )
     assert page_templates.cabinet_url("product") == base + "product&block=__page#schema-panel"
     assert page_templates.cabinet_url("legal") == base + "text&block=__page#schema-panel"
     assert page_templates.cabinet_url("<x>") == "/dashboard/site/aufbau/"

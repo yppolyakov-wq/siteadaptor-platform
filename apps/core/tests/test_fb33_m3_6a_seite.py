@@ -257,7 +257,11 @@ def test_category_star_links_to_the_category_form_for_seo():
 
     tenant = _shop()
     cat = Category.objects.create(name={"de": "Brot"}, slug="brot")
-    html = Browser(tenant).get("?seite=category@catalog:brot&block=main")
+    # FB-33 M5b-2 W1 (A-H2): ссылка — у ★-строки страницы категории, не у ★ «Produkte»
+    assert "In der Kategorie bearbeiten →" not in _panel(
+        Browser(tenant).get("?seite=category@catalog:brot&block=main")
+    )
+    html = Browser(tenant).get("?seite=category@catalog:brot&block=__page")
     panel = _panel(html)
     assert "In der Kategorie bearbeiten →" in panel
     assert f"/catalog/categories/{cat.pk}/edit/" in panel

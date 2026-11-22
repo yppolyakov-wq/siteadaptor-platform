@@ -207,7 +207,7 @@ def test_panel_inputs_carry_the_input_caps_and_hints():
     with translation.override("de"):
         bt = _panel(b.get("?seite=home&block=bt1&tab=texte"))
         t1 = _panel(b.get("?seite=home&block=t1&tab=texte"))
-        title = _panel(b.get("?seite=promos&block=__title"))
+        title = _panel(b.get("?seite=promos&block=__page"))
         nxt = _panel(b.get("?seite=confirmation&block=next"))
     caps = siteconfig.CBLOCK_INPUT_CAPS
     assert f'name="f_label" value="Los" maxlength="{caps["button"]["label"]}"' in bt

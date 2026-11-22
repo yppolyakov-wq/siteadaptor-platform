@@ -464,7 +464,8 @@ def test_inheritance_line_names_the_page_the_view_comes_from():
     b = _browser(cfg)
     html = _panel(_get(b, "?seite=home&block=l1"))
     assert "Wie auf der Seite „Katalog“: Raster · 3 Spalten" in _line(html)
-    assert "seite=catalog&amp;block=main&amp;tab=seite" in html
+    # FB-33 M5b-2 W1: настройки типа — у ★-строки страницы (`page_row_ref`), вкладка «Seite»
+    assert "seite=catalog&amp;block=__page&amp;tab=seite" in html
     assert not _reset_form(html)  # своего вида у блока нет
     b.get("?seite=home&block=l1")
     _post(b, seite="home", ref="l1", op="update", panel_present="1", f_cols="2")

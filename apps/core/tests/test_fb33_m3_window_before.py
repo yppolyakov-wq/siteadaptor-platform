@@ -58,7 +58,7 @@ CASES = (
     ("product", "__kauf"),  # закреплённая «Kaufen»
     ("cart", "summary"),  # закреплённый итог (§ 312j)
     ("cart", "form"),  # FB-33 C5: вкладка «Felder» формы корзины (стопка 8 — из EXTRA окна M3-2)
-    ("promos", "__title"),  # «Seitentitel»
+    ("promos", "__page"),  # FB-33 M5b-2: ★-строка «Seitentitel und Seite» (было `__title`)
     ("promos", "groups"),  # вид групп акций
     ("text", "pagetext"),  # закреплённый текст страницы
     ("text", "f1"),  # ссылочный блок FAQ

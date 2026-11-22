@@ -240,8 +240,11 @@ def test_category_links_have_full_names_and_shared_rows_say_so():
     from apps.catalog.models import Category
 
     Category.objects.create(name={"de": "Brot"}, slug="brot")
-    html = _panel(Browser(_shop(CFG)).get("?seite=category@catalog:brot&block=main"))
+    b = Browser(_shop(CFG))
+    html = _panel(b.get("?seite=category@catalog:brot&block=main"))
     assert 'für alle ändern<span class="sr-only"> – Ansicht aller Kategorie-Seiten</span>' in html
-    assert re.search(r"</p>\s*<p class=\"text-sm\"><a [^>]*>In der Kategorie bearbeiten →", html)
+    # FB-33 M5b-2 W1 (A-H2): ссылка на форму категории — у ★-строки страницы
+    page = _panel(b.get("?seite=category@catalog:brot&block=__page"))
+    assert re.search(r"<p class=\"text-sm\"><a [^>]*>In der Kategorie bearbeiten →", page)
     src = open("templates/tenant/site_schema.html").read()
     assert "feste Position" in src and "gilt für alle Seiten" in src

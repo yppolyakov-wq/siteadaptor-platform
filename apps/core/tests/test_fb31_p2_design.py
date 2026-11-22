@@ -88,8 +88,9 @@ def test_panel_shows_the_design_value_with_a_link():
     b = Browser(_tenant())
     page_settings.write(b.tenant, "product_card_form", "deal")
     cfg = siteconfig.normalize(b.tenant.site_config)
-    main = next(x for x in site_schema.blocks_for(cfg, "catalog") if x["main"])
-    html = b.get(f"?seite=catalog&block={main['ref']}")
+    assert cfg is not None
+    # FB-33 M5b-2 W1: настройки типа и строки «Design» — у ★-строки страницы (не у ★)
+    html = b.get(f"?seite=catalog&block={site_schema.page_row_ref(b.tenant, 'catalog')}")
     row = html.split('data-schema-design-row="product_card_form"', 1)[1].split("</p>", 1)[0]
     assert "wie Design" in row and "?tab=karten#dd-product_card_form" in row
 

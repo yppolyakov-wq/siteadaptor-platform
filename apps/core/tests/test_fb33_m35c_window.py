@@ -85,6 +85,6 @@ def test_texts_are_escaped():
 def test_page_title_window_has_translations():
     cfg = copy.deepcopy(_with_ru())
     cfg["page_titles"] = {"promos": {"title": "Aktionen"}}
-    _html, form = _form(Browser(_shop(cfg)), "?seite=promos&block=__title")
+    _html, form = _form(Browser(_shop(cfg)), "?seite=promos&block=__page")
     assert 'name="f_tr_title_ru"' in form and 'name="f_tr_intro_ru"' in form
     assert 'name="f_tr_align_ru"' not in form

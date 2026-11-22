@@ -105,12 +105,15 @@ def test_unknown_or_missing_tab_falls_back_without_a_hidden_field():
 
 def test_one_tab_needs_no_tab_bar_and_banner_shows_choice_and_page():
     b = Browser(_shop())
-    title = b.get("?seite=promos&block=__title")
-    assert _tabs_of(title) == [("texte", "")] and "data-window-tabs" not in title
+    # FB-33 M5b-2 W1: заголовок и настройки типа промо — одна вкладка «Seite» ★-строки
+    title = b.get("?seite=promos&block=__page")
+    assert _tabs_of(title) == [("seite", "")] and "data-window-tabs" not in title
     hero = b.get("?seite=home&block=hero")
     assert [t for t, _h in _tabs_of(hero)] == ["was", "seite"]
     assert [t for t, _h in _tabs_of(b.get("?seite=text&block=bn1"))] == ["was", "wie"]
-    assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=main"))] == ["wie", "seite"]
+    # FB-33 M5b-2 W1: у ★ каталога — только вид товаров; настройки типа — у ★-строки
+    assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=main"))] == ["wie"]
+    assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=__page"))] == ["seite"]
     # FB-33 M3-4: «Kartenform» — своей вкладкой «Karte»
     assert [t for t, _h in _tabs_of(b.get("?seite=home&block=l1"))] == ["was", "wie", "karte"]
     # FB-33 M2h-5: «Was passiert jetzt» — свой текст, одна вкладка «Texte»
@@ -176,7 +179,7 @@ def test_every_rendered_part_sits_in_exactly_one_tab_for_each_matrix_row():
 
 def test_tabs_are_named_by_a_heading_and_add_no_landmarks():
     b = Browser(_shop())
-    for query in ("?seite=home&block=t1", "?seite=promos&block=__title"):
+    for query in ("?seite=home&block=t1", "?seite=promos&block=__page"):
         sections = _sections(_panel(b.get(query)))
         for key, (hidden, attrs, body) in sections.items():
             assert "aria-label" not in attrs and "role=" not in attrs, key

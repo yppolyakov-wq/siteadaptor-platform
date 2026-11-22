@@ -7,10 +7,9 @@
 (`site_schema.page_ref`).
 
 Слияние ключей окна и переводов (`__title` → `__page`: снимок окна, `btr`, `btr_base`, вкладка
-переводов заголовка на `__page`) включает один переключатель `page_title.ON_PAGE_ROW` — в W0
-он выключен: иначе окно `__title`, которое ещё на экране, читало бы свои переводы и снимок
-под чужим ключом, а окно `__page` у форм показало бы переводы заголовка. Замки слияния
-гоняются с включённым переключателем (так, как будет после W1).
+переводов заголовка на `__page`) в W0 держал переключатель `page_title.ON_PAGE_ROW`; W1 его
+снял — слияние действует всегда. Сессия до деплоя (ключи `__title`) в замках строится явно:
+правка окна, затем ключи переименовываются так, как их писал прежний код.
 """
 
 import copy
@@ -32,12 +31,6 @@ WOPEN = "openW0a"
 OTHER = "openW0b"
 #: хост с «Seitentitel» и страницей промо у фабричного бизнеса (`_shop`)
 CODE = "promos"
-
-
-@pytest.fixture
-def merged(monkeypatch):
-    """Состояние после W1: ключи окна и переводов заголовка — под `__page`."""
-    monkeypatch.setattr(page_title, "ON_PAGE_ROW", True)
 
 
 def _post(b, **data):
@@ -223,20 +216,22 @@ def test_studio_open_title_alias(monkeypatch):
     assert window_links._block_of(None, CODE, CODE, page_title.TITLE_REF) == ""
 
 
-# ───────────── W0 невидим: ключи окна и переводов — прежние ─────────────
+# ───────────── после W1: ключи окна и переводов — под ★-строкой ─────────────
 
 
-def test_w0_keeps_title_window_keys():
-    assert page_title.ON_PAGE_ROW is False
+def test_title_window_keys_are_page_keys():
+    """W1 (переписано осознанно: W0 держал прежние ключи до слияния): правка заголовка — и по
+    старому ref `__title` — пишет снимок и переводы под `__page`; окно `__page` форм несёт
+    переводы заголовка; у страницы без заголовка снимок `__page` — без заголовка."""
+    assert not hasattr(page_title, "ON_PAGE_ROW")
     b = Browser(_shop())
     _post(b, seite=CODE, ref=page_title.TITLE_REF, op="update", panel_present="1",
           f_title="Mein Titel", f_tr_title_en="Deals")  # fmt: skip
     draft = _drafts(b)[CODE]
-    assert set(draft[aufbau_draft.WINDOW_KEY]) == {page_title.TITLE_REF}
-    assert set(draft["btr"]) == set(draft["btr_base"]) == {page_title.TITLE_REF}
-    assert site_schema.title_op(CODE, {}, "update", {"title": "x"}) == page_title.TITLE_REF
-    # окно `__page` у форм — без переводов заголовка; снимок `__page` — без заголовка
-    assert block_i18n.kinds({"host": "anfrage", "items": []}, site_schema.PAGE_REF) == ()
+    assert set(draft[aufbau_draft.WINDOW_KEY]) == {site_schema.PAGE_REF}
+    assert set(draft["btr"]) == set(draft["btr_base"]) == {site_schema.PAGE_REF}
+    assert site_schema.title_op(CODE, {}, "update", {"title": "x"}) == site_schema.PAGE_REF
+    assert block_i18n.kinds({"host": "anfrage", "items": []}, site_schema.PAGE_REF) == ("title",)
     _post(b, seite="text", ref=site_schema.PAGE_REF, op="update", panel_present="1",
           f_seo_title="Über uns")  # fmt: skip
     assert "title" not in _drafts(b)["text"][aufbau_draft.WINDOW_KEY][site_schema.PAGE_REF]
@@ -245,11 +240,22 @@ def test_w0_keeps_title_window_keys():
 # ───────────── после W1: сессия до деплоя ─────────────
 
 
+def _as_before_deploy(b, code=CODE):
+    """Ключи окна и переводов заголовка — так, как их писал код до слияния (`__title`)."""
+    draft = b.session[aufbau_draft.SESSION_KEY][code]
+    for key in (aufbau_draft.WINDOW_KEY, *block_i18n.DRAFT_KEYS):
+        part = draft.get(key)
+        if isinstance(part, dict) and site_schema.PAGE_REF in part:
+            part[page_title.TITLE_REF] = part.pop(site_schema.PAGE_REF)
+    b.session.modified = True
+
+
 def _old_title_draft(tenant, title="Neu"):
     """Черновик сессии до слияния: правка окна «Seitentitel» с переводом (ключи `__title`)."""
     b = Browser(tenant)
     _post(b, seite=CODE, ref=page_title.TITLE_REF, op="update", panel_present="1",
           f_title=title, f_tr_title_en="Deals")  # fmt: skip
+    _as_before_deploy(b)
     draft = _drafts(b)[CODE]
     assert page_title.TITLE_REF in draft[aufbau_draft.WINDOW_KEY]
     assert page_title.TITLE_REF in draft["btr"]
@@ -257,17 +263,15 @@ def _old_title_draft(tenant, title="Neu"):
 
 
 @pytest.mark.parametrize("ref", (page_title.TITLE_REF, site_schema.PAGE_REF))
-def test_legacy_window_title_snapshot_reverts(monkeypatch, ref):
+def test_legacy_window_title_snapshot_reverts(ref):
     b = _old_title_draft(_shop())
-    monkeypatch.setattr(page_title, "ON_PAGE_ROW", True)
     _resp, msgs = _post(b, seite=CODE, ref=ref, op="revert")
     assert "Änderungen an diesem Block zurückgenommen." in msgs
     assert _drafts(b) == {}
 
 
-def test_legacy_btr_title_saves(monkeypatch):
+def test_legacy_btr_title_saves():
     b = _old_title_draft(_shop())
-    monkeypatch.setattr(page_title, "ON_PAGE_ROW", True)
     _resp, msgs = _post(b, seite=CODE, op="save")
     assert "Gespeichert." in msgs
     saved = _saved(b)
@@ -275,9 +279,8 @@ def test_legacy_btr_title_saves(monkeypatch):
     assert saved["i18n"]["en"]["page_titles"][CODE] == {"title": "Deals"}
 
 
-def test_legacy_keys_logged(monkeypatch, caplog):
+def test_legacy_keys_logged(caplog):
     b = _old_title_draft(_shop())
-    monkeypatch.setattr(page_title, "ON_PAGE_ROW", True)
     with caplog.at_level(logging.INFO, logger="apps.core.aufbau_draft"):
         b.get(f"?seite={CODE}")
         b.get(f"?seite={CODE}")
@@ -288,12 +291,11 @@ def test_legacy_keys_logged(monkeypatch, caplog):
         assert set(draft[key]) == {site_schema.PAGE_REF}, key
 
 
-def test_open_draft_before_deploy_not_conflict(monkeypatch):
+def test_open_draft_before_deploy_not_conflict():
     """Перевод заголовка уже сохранён: отпечаток `btr_base["__title"]` равен отпечатку
     `__page` после слияния — «Speichern» не видит чужой правки."""
     b = _old_title_draft(_shop_with_ru_title(), title="Aktionen")  # немецкий прежний — ru остаётся
     assert _drafts(b)[CODE]["btr_base"][page_title.TITLE_REF]
-    monkeypatch.setattr(page_title, "ON_PAGE_ROW", True)
     _resp, msgs = _post(b, seite=CODE, op="save")
     assert "Gespeichert." in msgs, msgs
     saved = _saved(b)
@@ -301,7 +303,7 @@ def test_open_draft_before_deploy_not_conflict(monkeypatch):
     assert saved["i18n"]["ru"]["page_titles"][CODE] == {"title": "Акции"}
 
 
-def test_bases_title_equals_page(merged):
+def test_bases_title_equals_page():
     tenant = _shop_with_ru_title()
     cfg = siteconfig.normalize(tenant.site_config)
     for host in (CODE, "anfrage", "services"):
@@ -314,14 +316,12 @@ def test_bases_title_equals_page(merged):
     assert block_i18n.kinds({"host": "cart", "items": []}, site_schema.PAGE_REF) == ()
 
 
-def test_two_snapshots_pick_by_token(monkeypatch):
+def test_two_snapshots_pick_by_token():
     """У формы до слияния — два окна: «Einstellungen der Seite» (`__page`) и «Seitentitel»
     (`__title`). После слияния остаётся снимок того окна, чей токен прислан."""
 
     def two_windows():
-        monkeypatch.setattr(page_title, "ON_PAGE_ROW", False)  # сессия до деплоя
-        b = _old_title_draft(_shop())
-        monkeypatch.setattr(page_title, "ON_PAGE_ROW", True)
+        b = _old_title_draft(_shop())  # сессия до деплоя
         drafts = b.session[aufbau_draft.SESSION_KEY]
         window = drafts[CODE][aufbau_draft.WINDOW_KEY]
         window[site_schema.PAGE_REF] = {
@@ -350,7 +350,7 @@ def test_two_snapshots_pick_by_token(monkeypatch):
     assert set(_drafts(b)[CODE]["btr"]) == {site_schema.PAGE_REF}
 
 
-def test_merged_title_window_writes_new_keys_only(merged):
+def test_merged_title_window_writes_new_keys_only():
     b = Browser(_shop())
     _resp, _msgs = _post(b, seite=CODE, ref=site_schema.PAGE_REF, op="update", panel_present="1",
                          f_title="Neu", f_tr_title_en="Deals")  # fmt: skip

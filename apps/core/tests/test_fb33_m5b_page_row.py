@@ -3,7 +3,10 @@
 Замки C0 (план стопки 9 §1.B, §2 «B»), вид экрана не меняется:
 
 L1 характеризация — по всем строкам «Seitentyp» (`type_groups`) и строке объекта (`object_row`)
-у пяти типов бизнеса (de+en) правило экрана = оракул (правило вьюхи до среза, вписано сюда);
+у пяти типов бизнеса (de+en) правило экрана = оракул. FB-33 M5b-2 W1 (смена правила владельцем
+2026-11-22, макет V4 — не ослабление замка): оракул — правило V4 (главная — «Banner», любая
+другая страница с настройками, «Design» или своим заголовком — ★-строка `__page`; ★ основной
+список больше не носитель); до W1 здесь стояло правило вьюхи до M5b-1 (★ → носитель → `__page`);
 `data-schema-block="__page"` на экране ⇔ правило даёт `PAGE_REF`; новая функция = оракул; код
 объекта → ""; мусорный `seite` → главная без окна.
 L2 `window_links._refs` не считает `__page` строкой на главной и на странице без настроек.
@@ -68,17 +71,17 @@ def _tenant(bt="online_shop", config=None):
 
 
 def _oracle(tenant, code: str, blocks: list[dict]) -> str:
-    """Правило вьюхи `site_schema_views` до среза (FB-27 R4/V3, FB-31 P2), дословно."""
+    """Правило V4 (владелец 2026-11-22, план стопки 10 §2.A W1 п.1), дословно."""
+    from apps.core import page_title
+
     try:
         has = bool(site_schema.setting_codes(tenant, code))
         has_design = bool(site_schema.design_codes(tenant, code))
     except site_schema.SchemaError:
-        has = has_design = False
-    if not (has or has_design):
         return ""
-    carrier = next((b for b in blocks if b["main"]), None) or next(
-        (b for b in blocks if b["ref"] == site_schema.settings_carrier(code)), None
-    )
+    if not (has or has_design or site_schema.host_for(code) in page_title.HEAD_HOSTS):
+        return ""
+    carrier = next((b for b in blocks if b["ref"] == site_schema.settings_carrier(code)), None)
     return PAGE if carrier is None else carrier["ref"]
 
 
@@ -123,7 +126,10 @@ def test_screen_row_follows_the_view_rule(bt):
         if shown:
             assert 'data-schema-block="__page" aria-current="true"' in html, row.code
             assert 'value="window_done"' in panel, f"{row.code}: строка открыта — окно есть (L5)"
-            assert re.search(r'id="schema-panel-title"[^>]*>Einstellungen der Seite<', panel)
+            assert re.search(
+                r'id="schema-panel-title"[^>]*>(Einstellungen der Seite|Seitentitel und Seite)<',
+                panel,
+            )
         else:
             assert 'value="window_done"' not in panel, f"{row.code}: окна `__page` нет"
         if site_schema.is_object_code(row.code):

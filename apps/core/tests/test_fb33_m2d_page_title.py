@@ -67,6 +67,8 @@ def test_translation_overlay_wins_in_its_language():
 
 @pytest.mark.parametrize("host", ("events", "services", "anfrage", "message"))
 def test_schema_shows_the_title_row_where_the_page_draws_h1(host):
+    """FB-33 M5b-2 W1 (макет V4): строки «Seitentitel» больше нет — то же место показывает
+    серая метка `site_schema.title_hint_at` (только при блоке над заголовком)."""
     from apps.core import studio_pages
 
     code = next(pt.code for pt in studio_pages.PAGE_TYPES if site_schema.host_for(pt.code) == host)
@@ -75,11 +77,12 @@ def test_schema_shows_the_title_row_where_the_page_draws_h1(host):
     ]}})  # fmt: skip
     rows = site_schema.blocks_for(cfg, code)
     refs = [r["ref"] for r in rows]
-    assert refs.count(page_title.TITLE_REF) == 1
-    at = refs.index(page_title.TITLE_REF)
+    assert page_title.TITLE_REF not in refs
+    at = site_schema.title_hint_at(host, rows)
+    assert at is not None
     if host in page_title.H1_FIRST:
-        # первая строка (или сразу под фото-шапкой страницы, если она есть)
-        assert refs[:at] in ([], ["page_head"])
+        # сразу под фото-шапкой страницы (без неё заголовок первый — метки нет)
+        assert refs[:at] == ["page_head"]
     else:
         assert refs[at - 1] == "t1"  # свой блок «сверху» стоит над заголовком
 
@@ -168,7 +171,8 @@ def test_inline_edit_accepts_known_pages_only(rf):
 
 
 def test_seitenaufbau_panel_edits_the_title_through_the_draft(settings):
-    """Сквозь экран: строка «Seitentitel» видна в схеме, её панель — поля, «Speichern» пишет."""
+    """Сквозь экран: место заголовка видно в схеме (метка), поля — в окне ★-строки страницы
+    (FB-33 M5b-2 W1; старая ссылка `__title` ведёт туда же)."""
     from apps.core import studio_pages
     from apps.core.modules import default_disabled_for
     from apps.core.tests.test_fb27_r2_draft import Browser
@@ -182,8 +186,8 @@ def test_seitenaufbau_panel_edits_the_title_through_the_draft(settings):
     )
     b = Browser(tenant)
     html = b.get(f"?seite={code}")
-    assert "Seitentitel" in html
-    panel = b.get(f"?seite={code}&block={page_title.TITLE_REF}")
+    assert "Seitentitel und Seite" in html and "data-schema-title-hint" in html
+    panel = b.get(f"?seite={code}&block={site_schema.PAGE_REF}")
     assert 'name="f_title"' in panel and 'name="f_intro"' in panel and 'value="center"' in panel
     assert "data-schema-confirm" not in panel  # удалять нечего
 
