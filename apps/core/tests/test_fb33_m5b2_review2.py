@@ -15,7 +15,7 @@
 6. комментарий `page_templates` без «★ Hauptliste»; стенд обхода владельца ищет «Hauptliste»
    как немецкое слово (не подпись строки) — правило верно;
 7. ссылка «Wie die Liste aussieht» уводит из Студии через `leaveOk()` (`data-stu-window`);
-8. скрытая «Übernehmen» формы полей (`tabindex="-1"`) — `aria-hidden`;
+8. скрытая «Übernehmen» формы полей — НЕ `aria-hidden` (решение a11y M3-5c; находка не принята);
 9. ★-строка: «, feste Position» отделена от сводки для чтения;
 10. глиф «›» строки «Darstellung der Liste» — в `aria-hidden`;
 11. окно ★-строки без повторных `id` и у страницы с SEO на «Texte»; SEO-хосты и хосты своего
@@ -94,7 +94,6 @@ def test_page_code_of_host_round_trip(monkeypatch):
         assert site_schema.page_code_of_host(junk) == "", junk
 
 
-@pytest.mark.xfail(strict=True, reason="№1: текстовые хосты разбирает только code_for_path")
 def test_page_code_of_host_text_pages():
     """Те же ветки, что у `code_for_path`: «Versand», «Info», своя страница `seite:<slug>`."""
     assert site_schema.page_code_of_host("versand") == f"{site_schema.TEXT}@versand"
@@ -104,7 +103,6 @@ def test_page_code_of_host_text_pages():
         assert site_schema.host_for(site_schema.page_code_of_host(host)) == host, host
 
 
-@pytest.mark.xfail(strict=True, reason="№1: code_for_path разбирает хост сам (до правки)")
 def test_code_for_path_uses_page_code_of_host():
     """Ветки префиксов хоста живут в одном месте: `code_for_path` зовёт `page_code_of_host`."""
     src = inspect.getsource(site_schema.code_for_path)
@@ -115,7 +113,6 @@ def test_code_for_path_uses_page_code_of_host():
 # ───────────── 2. ссылка Студии — по правилу с тенантом ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="№2: ссылка строится без тенанта (до правки)")
 def test_studio_main_row_no_link_without_page_row():
     """У магазина модуля записи нет — ★-строки «Leistungen» нет (`page_row_ref(tenant, …)`
     пусто): ссылки «Wie die Liste aussieht» нет, имя списка и плашка остаются."""
@@ -153,7 +150,6 @@ def test_main_list_name_every_host_named():
         assert site_schema.main_list_name("stay_rooms") == list_blocks.source_label("stays")
 
 
-@pytest.mark.xfail(strict=True, reason="№3: карта повторяет тождественные источники")
 def test_main_list_sources_only_renamed():
     """В карте — только хосты, чей источник назван иначе (тождественные — из `LIST_SOURCES`)."""
     assert set(site_schema._MAIN_LIST_SOURCES) == {"catalog", "category", "promos", "promo_group"}
@@ -162,7 +158,6 @@ def test_main_list_sources_only_renamed():
 # ───────────── 4–6. мелочи кода ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="№4: _() внутри f-строки (до правки)")
 def test_summary_msgid_outside_fstring():
     src = inspect.getsource(site_schema.main_list_summary)
     assert '{_("' not in src and "{_('" not in src
@@ -174,7 +169,6 @@ def test_is_title_alias_exact():
         assert not site_schema.is_title_alias(ref), ref
 
 
-@pytest.mark.xfail(strict=True, reason="№6: устаревший комментарий page_templates (до правки)")
 def test_page_templates_doc_current():
     src = (ROOT / "apps" / "core" / "page_templates.py").read_text(encoding="utf-8")
     assert "★ Hauptliste" not in src
@@ -206,13 +200,16 @@ def test_studio_main_row_link_guarded():
     assert re.search(r'querySelectorAll\("[^"]*\[data-stu-window\][^"]*"\)\.forEach', src)
 
 
-@pytest.mark.xfail(strict=True, reason="№8: скрытая «Übernehmen» без aria-hidden (до правки)")
-def test_hidden_apply_button_aria_hidden():
+def test_hidden_apply_button_stays_readable():
+    """№8 не принят: невидимая «Übernehmen» формы полей — БЕЗ `aria-hidden` (решение a11y-ревью
+    M3-5c, замок `test_fb33_m35c_review::test_invisible_apply_button_is_not_aria_hidden`,
+    грабля `pitfalls.md` 2026-11-21 и скилла sa-block-editor). На «Seite» видимая кнопка формы
+    заголовка различима суффиксом «: Seitentitel» (`test_title_form_apply_button_named`)."""
     src = (TPL / "_bw_fields.html").read_text(encoding="utf-8")
     buttons = re.findall(r'<button [^>]*class="sr-only"[^>]*>', src)
     assert buttons
     for b in buttons:
-        assert 'tabindex="-1"' in b and 'aria-hidden="true"' in b, b
+        assert 'tabindex="-1"' in b and "aria-hidden" not in b, b
 
 
 @pytest.mark.xfail(strict=True, reason="№9: «feste Position» слита со сводкой (до правки)")

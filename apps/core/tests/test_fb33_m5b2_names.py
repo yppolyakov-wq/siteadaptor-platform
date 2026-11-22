@@ -253,11 +253,13 @@ def test_m5b2_dead_code():
             seen.add(path.relative_to(ROOT).as_posix())
     assert seen <= allowed, seen - allowed
     schema = (ROOT / "apps/core/site_schema.py").read_text(encoding="utf-8")
-    # в site_schema — только импорт и псевдоним `page_ref`
+    # в site_schema — только импорт и псевдоним (`page_ref` и его признак `is_title_alias`:
+    # ревью раунд 2 №5 — точное сравнение, осознанно)
     lines = [ln.strip() for ln in schema.splitlines() if "TITLE_REF" in ln]
     assert lines == [
         "from apps.core.page_title import TITLE_REF",
         "return PAGE_REF if ref == TITLE_REF else ref",
+        "return isinstance(ref, str) and ref == TITLE_REF",
     ], lines
     draft = (ROOT / "apps/core/aufbau_draft.py").read_text(encoding="utf-8")
     assert [ln.strip() for ln in draft.splitlines() if "TITLE_REF" in ln] == [

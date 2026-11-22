@@ -1127,7 +1127,8 @@ def _main_list_row(host: str, order: int, tenant=None) -> dict:
         "main_name": site_schema.main_list_name(host, tenant),
     }
     code = site_schema.page_code_of_host(host)
-    ref = site_schema.page_row_ref(None, code) if code else ""
+    # ревью M5b-2 №2: правило с тенантом — у бизнеса без ★-строки страницы ссылки нет
+    ref = site_schema.page_row_ref(tenant, code) if code else ""
     if ref == site_schema.PAGE_REF:
         row["page_url"] = window_links.block_window_url(code, ref, "seite")
         row["page_where"] = page_window.star_name(page_window.label(host))

@@ -762,17 +762,8 @@ def code_for_path(tenant, path: str) -> str:
         return ""
     from apps.tenants import siteconfig
 
-    if host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
-        code = f"{CATEGORY}@{host}"
-    elif host.startswith("seite:") or host == "versand":
-        code = f"{TEXT}@{host}"
-    elif host == "info":
-        code = TEXT
-    else:
-        code = next(
-            (pt.code for pt in studio_pages.PAGE_TYPES if host and _host(pt) == host),
-            "home" if pt_code == "home" else "",
-        )
+    # ревью M5b-2 №1: разбор «хост → код» — один (`page_code_of_host`)
+    code = page_code_of_host(host) or ("home" if pt_code == "home" else "")
     if not code:
         return ""
     # FB-33 M4: страница одной группы акций — её строка (живая группа; иначе общая)
@@ -1579,15 +1570,14 @@ def title_hint_at(host: str, blocks: list[dict]) -> int | None:
 
 
 #: FB-33 M5b-2 (решение владельца 2026-11-22): источник блока «Liste» той же сущности, что
-#: главный список хоста, — там, где хост не совпадает с ключом встроенного списка
-#: (`siteconfig.BUILTIN_LIST_SOURCES`). Имя берёт `list_blocks.source_label`.
+#: главный список хоста, — только там, где источник назван иначе, чем хост; прочие — ключ
+#: встроенного списка (`siteconfig.BUILTIN_LIST_SOURCES`) или сам хост, если он источник
+#: (`siteconfig.LIST_SOURCES`: наборы, отзывы). Имя берёт `list_blocks.source_label`.
 _MAIN_LIST_SOURCES = {
     "catalog": "products",
     "category": "products",
     "promos": "promotions",
     "promo_group": "promotions",
-    "combos": "combos",
-    "reviews": "reviews",
 }
 #: У этих списков блока «Liste» своей сущности нет — своё имя.
 _MAIN_LIST_OWN_NAMES = {
@@ -1623,13 +1613,19 @@ def main_list_name(host, tenant=None) -> str:
     base = _main_list_host(host)
     if base in _MAIN_LIST_OWN_NAMES:
         return str(_MAIN_LIST_OWN_NAMES[base])
-    source = _MAIN_LIST_SOURCES.get(base) or siteconfig.BUILTIN_LIST_SOURCES.get(base, "")
+    source = (
+        _MAIN_LIST_SOURCES.get(base)
+        or siteconfig.BUILTIN_LIST_SOURCES.get(base)
+        or (base if base in siteconfig.LIST_SOURCES else "")
+    )
     return list_blocks.source_label(source, tenant) if source else ""
 
 
 def page_code_of_host(host) -> str:
     """Код строки схемы страницы, чьи блоки лежат под хостом `host` (Студия знает только
-    хост): своя категория и группа акций — подстраницей типа; "" — такой страницы нет."""
+    хост; `code_for_path` — хост страницы витрины): своя категория, группа акций и текстовая
+    страница — подстраницей типа; "" — такой страницы нет (и у главной: её код по хосту не
+    определить — решает вызывающий). Единственный разбор «хост → код» (ревью M5b-2 №1)."""
     from apps.tenants import siteconfig
 
     if not isinstance(host, str) or not host:
@@ -1638,6 +1634,10 @@ def page_code_of_host(host) -> str:
         return f"{CATEGORY}@{host}"
     if siteconfig.is_promo_group_host(host):
         return f"{PROMO_GROUP}@{host}"
+    if host.startswith("seite:") or host == "versand":
+        return f"{TEXT}@{host}"
+    if host == "info":
+        return TEXT
     return next(
         (pt.code for pt in studio_pages.PAGE_TYPES if pt.code != "home" and _host(pt) == host), ""
     )
@@ -1650,7 +1650,8 @@ def main_list_summary(row: dict) -> str:
     current = next(
         (str(lab) for v, lab, *_rest in view.get("choices") or () if v == view.get("value")), ""
     )
-    return f"{_('Hauptliste')} · {current}" if current else str(_("Hauptliste"))
+    head = _("Hauptliste")
+    return f"{head} · {current}" if current else str(head)
 
 
 def name_main_rows(blocks: list[dict], host, tenant) -> None:
@@ -1823,7 +1824,7 @@ def page_ref(ref: str) -> str:
 def is_title_alias(ref) -> bool:
     """Старый ref строки «Seitentitel» (`__title`), который читается как ★-строка страницы
     (`page_ref`): правка, окно и ссылки идут в её окно, на вкладку «Seite»."""
-    return isinstance(ref, str) and page_ref(ref) != ref
+    return isinstance(ref, str) and ref == TITLE_REF
 
 
 def is_page_title_edit(ref: str, fields) -> bool:

@@ -112,11 +112,15 @@ def test_studio_main_row_name_and_badge(bt, host, name, code):
     assert "text-gray-500" not in row
 
 
-@pytest.mark.parametrize(("host", "code"), [("services", "services"), ("catalog", "catalog")])
-def test_studio_main_row_links_to_page_window(host, code):
+@pytest.mark.parametrize(("bt", "host", "code"), [
+    ("friseur", "services", "services"),
+    ("online_shop", "catalog", "catalog"),
+])  # fmt: skip
+def test_studio_main_row_links_to_page_window(bt, host, code):
     """«Wie die Liste aussieht» — ссылка на окно ★-строки страницы, вкладка «Seite»; цель
-    ≥ 24 px, подчёркнута; ★ в имени окна скрыт от чтения."""
-    row = _main_rows(_studio(_tenant()))[host]
+    ≥ 24 px, подчёркнута; ★ в имени окна скрыт от чтения. Ревью раунд 2 №2 (осознанно): у
+    магазина ★-строки «Leistungen» нет (модуль записи выключен) — услуги берём у салона."""
+    row = _main_rows(_studio(_tenant(bt)))[host]
     links = re.findall(r"<a [^>]*>.*?</a>", row, re.S)
     assert len(links) == 1, links
     link = links[0]
