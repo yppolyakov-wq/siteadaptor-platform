@@ -39894,18 +39894,9 @@ msgstr "Your payment is already being processed."
 msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
 msgstr "This order can no longer be paid online. Please place a new order."
 
-msgid "fb33-stack-anchor-m5a"
-msgstr "fb33-stack-anchor-m5a"
-
 # FB-33 M5a: страница 404 с блоками
 msgid "Seite nicht gefunden"
 msgstr "Page not found"
 
-msgid "fb33-stack-anchor-m2i6"
-msgstr "fb33-stack-anchor-m2i6"
-
 msgid "Allergien / Wünsche"
 msgstr "Allergies / requests"
-
-msgid "fb33-stack-anchor-m39c"
-msgstr "fb33-stack-anchor-m39c"
