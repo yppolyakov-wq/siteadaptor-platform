@@ -461,7 +461,11 @@ def test_deleting_every_block_in_the_editor_keeps_the_empty_key(rf):
 # ── cookie, сессия, кэш ─────────────────────────────────────────────────────────────
 
 
-def test_default_page_sets_no_cookie_and_stays_out_of_the_page_cache(rf, settings):
+def test_default_page_sets_no_cookie_and_is_cacheable_only_as_404(rf, settings):
+    """M5a-2 переворачивает прежнее «404 не в кэше»: страничный кэш (код 200) её по-прежнему
+    не берёт, а кэш 404 (`pagecache.cached_not_found`, запись без пути) берёт — те же проверки
+    персонального ответа (cookie, сессия, CSRF), только с кодом 404. Замки кэша —
+    `test_fb33_m5a2_cache_search.py`."""
     settings.PUBLIC_PAGE_CACHE_TTL = 60
     tenant = _tenant()
     seen = {}
@@ -480,6 +484,7 @@ def test_default_page_sets_no_cookie_and_stays_out_of_the_page_cache(rf, setting
     assert not req.session.modified and req.session.session_key is None
     assert not req.META.get("CSRF_COOKIE_NEEDS_UPDATE"), "CSRF-кука анониму на 404"
     assert pagecache._cacheable(req, resp) is False
+    assert pagecache._cacheable(req, resp, status=404) is True
 
 
 def test_list_block_is_not_drawn_on_the_page_and_no_cookie_is_set(rf):

@@ -9,8 +9,11 @@ urlconf, а до разбора адреса это ROOT_URLCONF (тот же м
 
 Страница отдаётся анониму на любом битом адресе: сама сессию не пишет и cookie не ставит —
 как любая страница витрины, она лишь покажет ждущее flash-сообщение посетителя (блоки с
-формами и «Liste» на хосте запрещены — `not_found_page.FORM_BLOCKS`), в кэш страниц не
-попадает (код не 200), вне индекса, без canonical и JSON-LD.
+формами и «Liste» на хосте запрещены — `not_found_page.FORM_BLOCKS`), вне индекса, без
+canonical и JSON-LD. M5a-2: анониму без cookie она отдаётся из короткого кэша
+`pagecache.cached_not_found` — одна запись на хост и язык, тело без пути (переключатель языка и
+баннер демо ведут на главную, обложка и мета раздела на 404 не выводятся), поэтому перебор
+адресов не рендерит страницу заново.
 
 Запасных рубежа два: сбой рендера блоков или самой проверки → простая `404.html`; сбой и её
 (она рендерится с контекстными процессорами — та же БД) → ответ без шаблона. В журнал — одна
@@ -27,7 +30,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.views.defaults import page_not_found
 
-from apps.core import not_found_page, page_settings
+from apps.core import not_found_page, page_settings, pagecache
 from apps.core.i18n_cabinet import CABINET_PREFIXES
 
 logger = logging.getLogger(__name__)
@@ -66,6 +69,13 @@ def _page(request, status: int, is_preview: bool = False):
         "storefront_page_type": not_found_page.HOST,
         "storefront_page_ref": "",
         "is_preview": is_preview,
+        # M5a-2: тело одно на любой битый адрес (кэш без пути). `Http404` из вьюхи раздела
+        # оставляет `resolver_match` — без этих ключей на 404 выходили бы обложка и мета
+        # раздела, флаг поиска (второй robots), а ссылки языка и демо несли бы путь.
+        "archetype_cover": {},
+        "seo_meta": {},
+        "storefront_search_noindex": False,
+        "storefront_return_path": "/",
     }
     return render(request, TEMPLATE, context, status=status)
 
@@ -103,7 +113,8 @@ def storefront_404(request, exception=None):
     try:
         if not _wants_blocks(request):
             return _plain(request, exception)
-        response = _page(request, 404)
+        # кэш — после проверки: простая 404 (файлы, кабинет, закрытая витрина) в него не идёт
+        response = pagecache.cached_not_found(request, lambda: _page(request, 404))
     except Exception:  # noqa: BLE001 — сбой блока не делает из 404 ошибку 500
         _log_failure(request, "block-page")
         return _plain(request, exception)

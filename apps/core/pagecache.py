@@ -9,8 +9,13 @@ TTL — settings.PUBLIC_PAGE_CACHE_TTL (сек); 0 выключает кэш п�
 работают тесты вьюх — иначе они загрязняли бы друг друга отрендеренным HTML).
 Инвалидация — только по TTL: выдача терпит минутную задержку, листинги и так
 материализуются асинхронно. Fail-open: недоступный Redis не валит страницу.
+
+FB-33 M5a-2: страница 404 витрины — `cached_not_found`, одна запись на хост + язык (тело без
+пути), короткий TTL `NOT_FOUND_CACHE_TTL`.
 """
 
+import logging
+import time
 from functools import wraps
 
 from django.conf import settings
@@ -18,6 +23,15 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from django.http.request import split_domain_port
 from django.utils.cache import patch_vary_headers
+
+logger = logging.getLogger(__name__)
+
+#: FB-33 M5a-2: потолок TTL записи страницы 404, сек (рабочий — не больше PUBLIC_PAGE_CACHE_TTL)
+NOT_FOUND_CACHE_TTL = 60
+#: не чаще одной записи журнала о сбое кэша 404 за столько секунд на процесс
+NOT_FOUND_WARN_EVERY = 300
+#: когда процесс в последний раз писал о сбое кэша 404 (time.monotonic), None — ещё не писал
+_nf_warned_at: float | None = None
 
 
 def _sf_version(schema: str) -> int:
@@ -68,7 +82,71 @@ def _pub_key(request, lang: str, host: str) -> str:
     return f"pubpage2:{host}:{request.path}:{lang}"
 
 
-def _cacheable(request, response) -> bool:
+def _nf_key(schema: str, lang: str, host: str) -> str:
+    """FB-33 M5a-2: ключ страницы 404 — БЕЗ пути: тело одно на любой битый адрес (переключатель
+    языка и баннер демо ведут на главную — `not_found_views._page`), поэтому боты, перебирая
+    адреса, не плодят записей. Версия — как у витрины: публикация сбрасывает и 404."""
+    return f"sf404:{host}:{schema}:{lang}:v{_sf_version(schema)}"
+
+
+def not_found_ttl() -> int:
+    """Рабочий TTL записи 404: короче страничного, 0 (тесты) выключает и его."""
+    return max(0, min(getattr(settings, "PUBLIC_PAGE_CACHE_TTL", 0), NOT_FOUND_CACHE_TTL))
+
+
+def _warn_not_found_cache(exc: Exception) -> None:
+    """Сбой Redis на 404 — страница отдаётся, в журнал WARNING не чаще окна на процесс:
+    битые адреса шлют боты, запись на каждый залила бы журнал."""
+    global _nf_warned_at
+    now = time.monotonic()
+    if _nf_warned_at is not None and now - _nf_warned_at < NOT_FOUND_WARN_EVERY:
+        return
+    _nf_warned_at = now
+    logger.warning("storefront 404 cache unavailable, page rendered: %s", type(exc).__name__)
+
+
+def cached_not_found(request, render):
+    """FB-33 M5a-2: страница 404 витрины через кэш; `render()` рисует её при промахе.
+
+    Мимо кэша: TTL 0, не GET/HEAD, любой query, ЛЮБАЯ cookie (язык, согласие, сессия — тело
+    могло бы стать личным), непустая сессия, нет схемы или хоста. HEAD запись читает, но не
+    пишет. Запись — при тех же проверках `_cacheable`, что у страниц, только с кодом 404; хит —
+    тоже 404. Устаревание: поля бизнеса (имя, телефон, часы, цвет) версию не меняют — до TTL
+    (минута) 404 может показать прежние, осознанно."""
+    ttl = not_found_ttl()
+    has_session = hasattr(request, "session") and not request.session.is_empty()
+    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+    host = _cache_host(request)
+    if (
+        not ttl
+        or request.method not in ("GET", "HEAD")
+        or request.GET
+        or request.COOKIES
+        or not hasattr(request, "session")
+        or has_session
+        or not schema
+        or not host
+    ):
+        return render()
+    key = _nf_key(schema, getattr(request, "LANGUAGE_CODE", "de"), host)
+    try:
+        hit = cache.get(key)
+    except Exception as exc:  # noqa: BLE001 — кэш недоступен: рисуем страницу
+        _warn_not_found_cache(exc)
+        hit = None
+    cached = _unpack(hit, status=404) if hit is not None else None
+    if cached is not None:
+        return cached
+    response = render()
+    if request.method == "GET" and _cacheable(request, response, status=404):
+        try:
+            cache.set(key, _pack(response), ttl)
+        except Exception as exc:  # noqa: BLE001
+            _warn_not_found_cache(exc)
+    return response
+
+
+def _cacheable(request, response, status: int = 200) -> bool:
     """P0-1 (аудит 2026-09-03 §9.3): в ОБЩИЙ кэш нельзя класть персональное.
 
     Раньше в кэш попадало тело с `{% csrf_token %}`, а на хите отдавался голый
@@ -83,7 +161,8 @@ def _cacheable(request, response) -> bool:
     их рендеры с формой в разметке перестают кэшироваться для анонимов
     (состояние до SE-5a). Возврат кэша — токен вне тела (JS из куки), отдельно.
     """
-    if response.status_code != 200 or getattr(response, "streaming", False):
+    # Код — строгое равенство: страничный кэш не пишет 404, кэш 404 — не пишет 200.
+    if response.status_code != status or getattr(response, "streaming", False):
         return False
     # Вьюха может отказаться от кэша сама (`response.no_store = True`) — так
     # ограничивается ось ПУТИ: путь входит в ключ, и роут, принимающий любую
@@ -123,13 +202,13 @@ def _pack(response) -> tuple:
     return (response.content, response.get("Content-Type", "text/html"), response.get("Vary", ""))
 
 
-def _unpack(hit) -> HttpResponse | None:
+def _unpack(hit, status: int = 200) -> HttpResponse | None:
     # Формат записи — кортеж из трёх; старые двухэлементные (`sfpage:`/`pubpage:`)
     # живут под другим префиксом, но чужой формат честно считаем промахом.
     if not (isinstance(hit, tuple) and len(hit) == 3):
         return None
     content, content_type, vary = hit
-    response = HttpResponse(content, content_type=content_type)
+    response = HttpResponse(content, content_type=content_type, status=status)
     if vary:
         response["Vary"] = vary
     # Ключ кэша ключуется сессией (непустая — мимо кэша), но на хите сессию

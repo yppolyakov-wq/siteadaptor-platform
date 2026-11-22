@@ -107,7 +107,6 @@ def renders(monkeypatch):
 # ── (а) кэш 404: один ключ через pagecache ─────────────────────────────────────────────
 
 
-@XFAIL
 def test_404_cache_ttl_is_short(settings):
     assert pagecache.NOT_FOUND_CACHE_TTL == 60
     settings.PUBLIC_PAGE_CACHE_TTL = 120
@@ -118,7 +117,6 @@ def test_404_cache_ttl_is_short(settings):
     assert pagecache.not_found_ttl() == 0  # 0 выключает и кэш 404
 
 
-@XFAIL
 def test_404_cache_goes_through_pagecache_key(cached, renders):
     """Одна точка: запись лежит под ключом `pagecache._nf_key` (без пути), второго кэша нет."""
     from django.core.cache import cache
@@ -134,7 +132,6 @@ def test_404_cache_goes_through_pagecache_key(cached, renders):
     assert "pagecache.cached_not_found(" in src
 
 
-@XFAIL
 def test_second_broken_address_renders_nothing(cached, renders):
     tenant, host = _tenant(), _host()
     first = _nf(_req(tenant, "/eins-m5a2/", host=host))
@@ -147,7 +144,6 @@ def test_second_broken_address_renders_nothing(cached, renders):
     assert second.content == first.content
 
 
-@XFAIL
 def test_different_paths_share_one_entry(cached, renders):
     tenant, host = _tenant(), _host()
     for path in ("/x1-m5a2/", "/x2-m5a2/", "/x3/y/z-m5a2/"):
@@ -155,7 +151,6 @@ def test_different_paths_share_one_entry(cached, renders):
     assert len(renders) == 1
 
 
-@XFAIL
 def test_cached_404_hit_returns_404_status(cached, renders):
     tenant, host = _tenant(), _host()
     _nf(_req(tenant, host=host))
@@ -163,7 +158,6 @@ def test_cached_404_hit_returns_404_status(cached, renders):
     assert len(renders) == 1 and hit.status_code == 404
 
 
-@XFAIL
 def test_hit_keeps_404_noindex_vary(cached, renders):
     tenant, host = _tenant(), _host()
     _nf(_req(tenant, host=host))
@@ -174,7 +168,6 @@ def test_hit_keeps_404_noindex_vary(cached, renders):
     assert "Cache-Control" not in hit
 
 
-@XFAIL
 def test_hit_keeps_vary_from_view(cached, monkeypatch):
     """Vary хита = Vary промаха: упаковка — прежние `_pack`/`_unpack`, второго упаковщика нет."""
     views = _views()
@@ -202,7 +195,6 @@ def test_hosts_and_languages_are_separate_entries(cached, renders):
     assert len(renders) == 3
 
 
-@XFAIL
 def test_demo_is_cached_like_everyone(cached, renders):
     """Решение владельца §4 п. 7."""
     tenant, host = _tenant(is_demo=True), _host()
@@ -211,7 +203,6 @@ def test_demo_is_cached_like_everyone(cached, renders):
     assert len(renders) == 1
 
 
-@XFAIL
 @pytest.mark.parametrize(
     "case", ["lang_cookie", "any_cookie", "session_cookie_no_session", "session", "query", "post"]
 )
@@ -248,7 +239,6 @@ def test_cookie_or_session_bypasses_404_cache(cached, renders, case):
     assert cache.get(pagecache._nf_key(tenant.schema_name, "de", host)) is None
 
 
-@XFAIL
 def test_head_miss_does_not_write_404_cache(cached, renders):
     """Ревью безопасности L1: HEAD читает запись, но не пишет её (пишет только GET)."""
     from django.core.cache import cache
@@ -262,7 +252,6 @@ def test_head_miss_does_not_write_404_cache(cached, renders):
     assert len(renders) == 2 and head.status_code == 404
 
 
-@XFAIL
 def test_preview_never_touches_404_cache(cached, monkeypatch):
     """Ревью безопасности M1: превью (200 через тот же `_page`) — вне кэша."""
     from django.core.cache import cache
@@ -278,7 +267,6 @@ def test_preview_never_touches_404_cache(cached, monkeypatch):
     assert cache.get(pagecache._nf_key(tenant.schema_name, "de", host)) is None
 
 
-@XFAIL
 def test_sf404_rejects_200_and_page_cache_rejects_404(cached):
     """Ревью безопасности M1: код ответа — строгое равенство в обе стороны."""
     tenant = _tenant()
@@ -291,7 +279,6 @@ def test_sf404_rejects_200_and_page_cache_rejects_404(cached):
     assert pagecache._cacheable(req, resp, status=404) is False
 
 
-@XFAIL
 def test_unknown_host_and_port_variants_make_no_404_entries(cached, renders):
     """Порт и регистр хоста — одна запись (ключ — `_cache_host`, не сырой `get_host()`)."""
     tenant, base = _tenant(), uuid.uuid4().hex
@@ -316,7 +303,6 @@ def test_publication_resets_404_cache(cached, renders):
     assert len(renders) == 2
 
 
-@XFAIL
 def test_closed_or_media_never_served_from_cache(cached, renders):
     """Простая 404 (файлы, закрытая витрина) идёт мимо кэша и не читает запись витрины."""
     from django.core.cache import cache
@@ -334,7 +320,6 @@ def test_closed_or_media_never_served_from_cache(cached, renders):
     assert len(renders) == 1
 
 
-@XFAIL
 def test_404_cache_failure_serves_page_and_warns(cached, renders, monkeypatch, caplog):
     from django.core.cache import cache
 
@@ -394,7 +379,6 @@ def test_legacy_redirect_survives_cached_404(cached):
 # ── тело 404 не зависит от пути ─────────────────────────────────────────────────────────
 
 
-@XFAIL
 @pytest.mark.parametrize("lang", ["de", "en"])
 @pytest.mark.parametrize("demo", [False, True])
 def test_404_body_has_no_path(monkeypatch, lang, demo):
@@ -416,7 +400,6 @@ def test_404_body_has_no_path(monkeypatch, lang, demo):
         assert "data-demo-design" in html and "&next=/" in html.replace("&amp;", "&")
 
 
-@XFAIL
 def test_section_404_has_no_archetype_cover():
     """Дефект §5.6: `Http404` из вьюхи раздела показывал обложку раздела над страницей 404."""
     tenant = _tenant()
@@ -428,7 +411,6 @@ def test_section_404_has_no_archetype_cover():
     assert "data-not-found" in html and "Obloshka-M5A2" not in html
 
 
-@XFAIL
 @pytest.mark.parametrize("lang", ["de", "en"])
 def test_404_body_is_route_independent(lang):
     """Ревью безопасности H1: `seo_meta` по `resolver_match` (процессор `seo`) и прочие
