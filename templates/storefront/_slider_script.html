@@ -29,13 +29,20 @@ window.__sfSliderInit — повторная инициализация посл
     function page() { var w = strip.clientWidth || 1; return Math.min(pages() - 1, Math.round(strip.scrollLeft / w)); }
     function renderDots() {
       var n = pages(), cur = page();
-      dots.innerHTML = "";
-      if (n < 2) { wrap.classList.add("sf-slider-single"); return; }
+      if (n < 2) { dots.innerHTML = ""; wrap.classList.add("sf-slider-single"); return; }
       wrap.classList.remove("sf-slider-single");
-      for (var k = 0; k < n; k++) {
-        var d = document.createElement("button"); d.type = "button"; d.className = "sf-slider-dot" + (k === cur ? " is-on" : "");
-        d.setAttribute("aria-label", (k + 1) + " / " + n); d.dataset.page = String(k);
-        dots.appendChild(d);
+      if (dots.children.length !== n) {
+        dots.innerHTML = "";
+        for (var k = 0; k < n; k++) {
+          var d = document.createElement("button"); d.type = "button"; d.className = "sf-slider-dot";
+          d.setAttribute("aria-label", (k + 1) + " / " + n); d.dataset.page = String(k);
+          dots.appendChild(d);
+        }
+      }
+      for (var i = 0; i < n; i++) {
+        var on = i === cur, b = dots.children[i];
+        b.classList.toggle("is-on", on);
+        if (on) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
       }
       var max = strip.scrollWidth - strip.clientWidth - 1;
       prev.disabled = strip.scrollLeft <= 0; next.disabled = strip.scrollLeft >= max;
