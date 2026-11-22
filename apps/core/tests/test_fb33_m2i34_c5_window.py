@@ -137,12 +137,18 @@ def test_1f_payment_methods_error_is_logged(monkeypatch, caplog):
     assert "checkout window" in caplog.text and "RuntimeError" in caplog.text
 
 
-def test_1c_presets_for_checkout_are_empty():
+@pytest.mark.xfail(strict=True, reason="FB-33 M2i-6: замок до кода")
+def test_1c_presets_are_per_form():
+    """FB-33 M2i-6: замок перевёрнут осознанно — у корзины гастро-типов пресет появился
+    (было `preset_for(…, form="checkout") == {}` у всех)."""
     from apps.jobs.anfrage_presets import preset_for
 
     assert preset_for("catering")  # заявка — прежний пресет
     assert preset_for("catering", form="anfrage") == preset_for("catering")
-    assert preset_for("catering", form="checkout") == {}
+    assert preset_for("catering", form="checkout") == {}  # пресет заявки в корзину не течёт
+    assert preset_for("bakery", form="checkout")
+    assert preset_for("bakery", form="anfrage") == {}  # и обратно
+    assert preset_for("retail", form="checkout") == {}
 
 
 # ───────────── 2: черновик на хосте cart, заявка байт-в-байт ─────────────
