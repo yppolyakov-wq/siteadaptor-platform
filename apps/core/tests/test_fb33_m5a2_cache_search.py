@@ -585,3 +585,53 @@ def test_robots_txt_has_no_search_disallow():
 
     src = (tpl.template.source if tpl else "") + inspect.getsource(context)
     assert "Disallow: /*?q=" not in src and "Disallow: /sortiment/?q" not in src
+
+
+# ── полный стек middleware (ревью django M1 по диффу) ───────────────────────────────────
+
+
+@pytest.fixture
+def page_calls(monkeypatch):
+    views = _views()
+    calls = []
+    real = views._page
+
+    def counting(*args, **kwargs):
+        calls.append(1)
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(views, "_page", counting)
+    return calls
+
+
+def test_full_stack_two_broken_addresses_render_once(cached, page_calls):
+    """`django.test.Client` на хосте тенанта: настоящий стек middleware (сессия, язык, CSRF,
+    переезд адресов). Два анонимных GET на разные битые пути и `Http404` из вьюхи категории —
+    404, без Set-Cookie, один рендер, одно тело, одинаковые `Vary` и `Content-Language`."""
+    from django.test import Client
+
+    from apps.tenants.tests.factories import DomainFactory
+
+    # слаг — свой на прогон: хост входит в ключ, а Redis переживает прогон
+    tenant = _tenant(slug=f"m5a2-{uuid.uuid4().hex[:10]}")
+    domain = DomainFactory(tenant=tenant, domain=f"{tenant.slug}.siteadaptor.de")
+    client = Client(HTTP_HOST=domain.domain)
+    paths = ("/eins-m5a2-stack/", "/zwei/m5a2-stack/", "/sortiment/keine-kategorie-m5a2/")
+    responses = [client.get(path, secure=True) for path in paths]
+    for resp in responses:
+        assert resp.status_code == 404 and b"data-not-found" in resp.content
+        assert not resp.cookies, list(resp.cookies)
+        assert resp["X-Robots-Tag"] == "noindex"
+    assert len(page_calls) == 1, "второй и третий адрес снова отрендерили страницу"
+    first = responses[0]
+
+    def vary(resp):
+        # порядок токенов на хите другой (Cookie ставит `_unpack` раньше LocaleMiddleware) —
+        # для кэшей значим набор, не порядок
+        return {v.strip() for v in resp["Vary"].split(",")}
+
+    assert vary(first) == {"Accept-Language", "Cookie"}
+    for resp in responses[1:]:
+        assert resp.content == first.content
+        assert vary(resp) == vary(first)
+        assert resp["Content-Language"] == first["Content-Language"]
