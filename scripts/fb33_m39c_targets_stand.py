@@ -28,7 +28,8 @@
 
 Гонять ДО правки и после: «до» — ✗ на прежних 40 px и 16–20 px, «после» — «N ✓, 0 ✗».
 В конце — таблицы «цель → наименьший размер» по каждому сочетанию размера, языка и режима.
-`--setup` (только стенд-БД, `DB_NAME=…_stand`) даёт `ptx` подвал в две колонки, телефон и e-mail.
+`--setup` (только стенд-БД, `DB_NAME=…_stand`) даёт `ptx` подвал в две колонки, телефон и e-mail,
+а первой категории магазина — шапку со слайдером из трёх фото (точки шапки категории).
 """
 
 from __future__ import annotations
@@ -37,7 +38,7 @@ import os
 import re
 import subprocess
 import sys
-from urllib.parse import parse_qs, quote, urlparse
+from urllib.parse import parse_qs, quote, urljoin, urlparse
 
 import standlib as sl
 
@@ -168,6 +169,39 @@ t.address = t.address or "Markt 1, 42781 Haan"
 t.save(update_fields=["site_config", "contact_phone", "contact_email", "address"])
 bump_storefront_cache(t.schema_name)
 print("READY", len(t.site_config["menus"]["footer"]["columns"]), t.public_phone)
+# M3-9d: блок «Liste» с ручным составом на текстовой странице `ptx` — кнопки ↑ ↓ ✕ ＋ окна
+from django_tenants.utils import schema_context
+from apps.catalog.models import Product
+from apps.core import site_schema
+from decimal import Decimal
+ref = next((b["id"] for b in (t.site_config.get("page_blocks") or {}).get("info") or []
+            if b.get("id") and "source" in (b.get("data") or {})), "")
+with schema_context("ptx"):
+    for name in ("Roggenbrot", "Bauernbrot", "Dinkelbrot", "Brezel"):
+        if not Product.objects.filter(name__de=name).exists():
+            Product.objects.create(name={"de": name}, base_price=Decimal("3.20"), is_active=True)
+    pks = [str(p.pk) for p in Product.objects.filter(is_active=True).order_by("pk")[:3]]
+    ref = ref or site_schema.apply(t, "text", "add", block_type="list")
+    site_schema.apply(t, "text", "update", ref=ref, fields={"source": "products", "pick": pks})
+bump_storefront_cache(t.schema_name)
+print("LIST", ref, len(pks))
+# M3-9d: шапка категории со слайдером (≥ 2 фото) у магазина — точки шапки есть на стенде
+from django_tenants.utils import schema_context
+from apps.catalog.models import Category
+with schema_context("shop"):
+    cat = Category.objects.filter(is_active=True, parent=None).order_by("sort_order").first()
+    url = (cat.image_url or "/medien/demo.svg").split("?")[0]
+    cat.images = [{"url": f"{url}?m39d={k}", "is_primary": k == 0} for k in range(3)]
+    cat.save(update_fields=["images"])
+shop = Tenant.objects.get(schema_name="shop")
+scfg = dict(shop.site_config or {})
+own = siteconfig.category_host(cat.slug)  # своя схема категории: шапка «Titelbild»
+scfg["page_blocks"] = {**(scfg.get("page_blocks") or {}),
+    own: [{"key": "page_head", "style": "titelbild"}, {"key": "main"}]}
+shop.site_config = siteconfig.normalize(scfg)
+shop.save(update_fields=["site_config"])
+bump_storefront_cache("shop")
+print("CATEGORY", cat.slug, len(cat.images))
 """
 
 _HREFS_JS = "() => [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href'))"
@@ -235,6 +269,20 @@ def measure_panel(rep, table, pg, combo, where):
     rep.check(over <= 0, f"{combo} {where}: без гор. скролла ({over}px)", code="overflow")
 
 
+def _measure_pick(rep, table, pg, js, combo, where) -> bool:
+    """M3-9d: способ «Von Hand» блока «Liste» — ручной состав (`_schema_pick.html`) с этой
+    вкладки; панель после него не возвращается (вызывающий сам идёт на следующий адрес)."""
+    pick = next((u for u in pg.evaluate(_HREFS_JS) if u and "welche=einzeln" in u), None)
+    if not pick:
+        return False
+    pg.goto(urljoin(pg.url, pick))
+    sl.settle(pg, js, rep)
+    has = pg.locator("[data-schema-pick]").count() > 0
+    rep.check(has, f"{combo} {where}: ручной состав «Liste» открыт", code="pick")
+    measure_panel(rep, table, pg, combo, f"{where}&welche=einzeln")
+    return True
+
+
 def window_part(rep, table, browser, out, w, h, lang, js):
     combo = f"{w} {lang} {_mode(js)}"
     pg = sl.open_page(browser, w, h, js=js, lang=lang)
@@ -257,10 +305,13 @@ def window_part(rep, table, browser, out, w, h, lang, js):
                 "() => [...document.querySelectorAll('[data-window-tab-link]')]"
                 ".map(e => e.getAttribute('data-window-tab-link'))"
             )
+            picked = _measure_pick(rep, table, pg, js, combo, f"{code}/{ref}")
             for tab in tabs[1:]:
                 pg.goto(f"{base}&tab={tab}")
                 sl.settle(pg, js, rep)
                 measure_panel(rep, table, pg, combo, f"{code}/{ref}?tab={tab}")
+                if not picked:
+                    picked = _measure_pick(rep, table, pg, js, combo, f"{code}/{ref}?tab={tab}")
                 if (code, ref, tab) in (("cart", "form", "felder"), ("anfrage", "form", "felder")):
                     sl.shot(pg, out, f"m39c_felder_{code}_{w}_{lang}_{_mode(js)}", full=not js)
     rep.check(not pg.js_errors, f"{combo}: без ошибок JS ({pg.js_errors[:2]})", code="js")
