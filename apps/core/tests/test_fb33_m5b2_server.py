@@ -317,7 +317,8 @@ def test_bases_title_equals_page():
 
 def test_two_snapshots_pick_by_token():
     """У формы до слияния — два окна: «Einstellungen der Seite» (`__page`) и «Seitentitel»
-    (`__title`). После слияния остаётся снимок того окна, чей токен прислан."""
+    (`__title`). После слияния — один снимок: основа — окно с присланным токеном, второй
+    вливается в неё (ревью M5b-2 №1)."""
 
     def two_windows():
         b = _old_title_draft(_shop())  # сессия до деплоя
@@ -334,12 +335,12 @@ def test_two_snapshots_pick_by_token():
     assert "Änderungen an diesem Block zurückgenommen." in msgs
     assert _drafts(b) == {}  # заголовок вернулся — черновика нет
 
+    # ревью M5b-2 №1 (осознанно): снимок — одного окна; второй не отбрасывается, а вливается —
+    # «Abbrechen» окна «Einstellungen der Seite» откатывает и заголовок из окна «Seitentitel»
     b = two_windows()
     _resp, msgs = _post(b, seite=CODE, ref=site_schema.PAGE_REF, op="revert", wopen=OTHER)
     assert "Änderungen an diesem Block zurückgenommen." in msgs
-    draft = _drafts(b)[CODE]
-    assert draft["title"] == {"title": "Neu"}  # окно «Seitentitel» не откатывали
-    assert page_title.TITLE_REF not in (draft.get(aufbau_draft.WINDOW_KEY) or {})
+    assert _drafts(b) == {}
 
     # без токена окна выбрать нечем: оба снимка ждут своего окна
     b = two_windows()

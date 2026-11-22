@@ -113,7 +113,6 @@ def _two_windows():
 # ───────────── 1. два снимка: слияние вместо затирания ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №1: до правки")
 @pytest.mark.parametrize("token", (OTHER, WOPEN))
 def test_two_snapshots_cancel_reverts_settings_and_title(token):
     """Какое бы из двух окон ни нажало «Abbrechen» (его токен — в снимке), откатываются и
@@ -124,7 +123,6 @@ def test_two_snapshots_cancel_reverts_settings_and_title(token):
     assert _drafts(b) == {}, "настройки, заголовок и перевод — как до правок"
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №1: до правки")
 def test_two_snapshots_merged_into_window_of_the_token():
     b = _two_windows()
     b.post(seite=CODE, ref=PAGE, op="update", panel_present="1", wopen=OTHER,
@@ -133,11 +131,11 @@ def test_two_snapshots_merged_into_window_of_the_token():
     assert set(window) == {PAGE}
     proto = window[PAGE]
     assert proto["wopen"] == OTHER
-    assert proto["title"] == [False, None], "заголовок — как при открытии окна «Seitentitel»"
+    # заголовок — как при открытии окна «Seitentitel» (сохранённого своего заголовка нет)
+    assert proto["title"] == [True, {}]
     assert proto.get("settings") or proto.get("codes")
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №1: до правки")
 def test_two_snapshots_without_token_untouched():
     """Без токена выбрать окно нечем: оба снимка остаются как были (и с пустым `wopen` у
     обоих: `"" == ""` — не совпадение токена)."""
@@ -158,7 +156,6 @@ def test_two_snapshots_foreign_token_untouched():
     assert _drafts(b)[CODE][aufbau_draft.WINDOW_KEY] == before
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №1: до правки")
 def test_two_snapshots_merge_logged(caplog):
     b = _two_windows()
     with caplog.at_level(logging.INFO, logger=LOGGER):
@@ -167,7 +164,6 @@ def test_two_snapshots_merge_logged(caplog):
     assert "merged" in said and "title" in said, said
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №1: до правки")
 def test_btr_merged_by_language_conflict_logged(caplog):
     """Переводы под `__title` и `__page` у одного черновика: сливаются по языкам; ключ,
     который есть в обоих с разным текстом, — остаётся у `__page`, отброшенное — в лог."""
@@ -189,7 +185,6 @@ def test_btr_merged_by_language_conflict_logged(caplog):
 # ───────────── 2. снимок `__page` до деплоя — без заголовка ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №2: до правки")
 def test_page_snapshot_before_deploy_gets_title_on_first_title_edit():
     tenant = _shop()
     b = Browser(tenant)
@@ -201,7 +196,7 @@ def test_page_snapshot_before_deploy_gets_title_on_first_title_edit():
     # после деплоя окно перерисовано с полями заголовка — тот же токен
     b.post(seite=CODE, ref=PAGE, op="update", panel_present="1", wopen=OTHER, f_title="Neu")
     assert _drafts(b)[CODE]["title"] == {"title": "Neu"}
-    assert _drafts(b)[CODE][aufbau_draft.WINDOW_KEY][PAGE]["title"] == [False, None]
+    assert _drafts(b)[CODE][aufbau_draft.WINDOW_KEY][PAGE]["title"] == [True, {}]
     _resp, msgs = b.post(seite=CODE, ref=PAGE, op="revert", wopen=OTHER)
     assert "Änderungen an diesem Block zurückgenommen." in msgs
     assert _drafts(b) == {}, "и настройка, и заголовок — как при открытии"
@@ -226,7 +221,6 @@ def test_page_snapshot_before_deploy_without_title_edit_keeps_title():
 # ───────────── 7. повреждённый снимок ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №7: до правки")
 @pytest.mark.parametrize("with_page", (True, False))
 def test_broken_legacy_snapshot_dropped_with_warning(caplog, with_page):
     b = _two_windows()

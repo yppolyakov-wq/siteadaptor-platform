@@ -168,33 +168,125 @@ def _request_token(request) -> str:
 def _rename_legacy_title(request, code: str, draft: dict) -> None:
     """FB-33 M5b-2: черновик сессии до слияния ★-строк — снимок окна «Seitentitel» и его
     переводы лежат под `__title`; один раз переименовываются в `__page` (в шести функциях
-    `block_i18n` и в окне псевдонимов нет). У формы до слияния бывают оба снимка (окна
-    «Einstellungen der Seite» и «Seitentitel»): остаётся тот, чей токен прислан; без токена
-    выбрать нечем — оба ждут своего окна."""
+    `block_i18n` и в окне псевдонимов нет).
+
+    У формы до слияния бывают оба снимка (окна «Einstellungen der Seite» и «Seitentitel»);
+    снимок теперь — одного окна, поэтому они сливаются (ревью M5b-2 №1): основа — снимок окна,
+    чей токен прислан, из второго переносится то, чего в основе нет (прежде всего `title`), —
+    «Abbrechen» откатывает и настройки, и заголовок. Без токена (или с чужим) выбрать основу
+    нечем — оба ждут своего окна. Переводы `btr` сливаются по языкам. Что отброшено — в лог."""
     from apps.core import page_title
 
     old, new = page_title.TITLE_REF, site_schema.PAGE_REF
-    renamed = []
+    renamed: list[str] = []
+    dropped: list[str] = []
     window = draft.get(WINDOW_KEY)
     if isinstance(window, dict) and old in window:
-        token = _request_token(request) if new in window else ""
-        if new not in window or (window.get(old) or {}).get("wopen") == token:
-            window[new] = window.pop(old)
-            renamed.append(WINDOW_KEY)
-        elif token and (window.get(new) or {}).get("wopen") == token:
-            window.pop(old)
-            renamed.append(WINDOW_KEY)
+        renamed.extend(_rename_window(code, window, old, new, _request_token(request), dropped))
+        if not window:
+            draft.pop(WINDOW_KEY, None)
     for key in _block_i18n().DRAFT_KEYS:
         part = draft.get(key)
         if isinstance(part, dict) and old in part:
             value = part.pop(old)
-            part.setdefault(new, value)  # под `__page` переводов заголовка до W1 не бывало
+            if new not in part:
+                part[new] = value
+            elif key == "btr":
+                part[new] = _merge_tr(part[new], value, dropped, key)
+            elif part[new] != value:
+                dropped.append(key)  # отпечаток `__page` остаётся: правку под ним сверяют с ним
             renamed.append(key)
     if renamed:
         logger.info("aufbau draft %s: legacy keys __title -> __page (%s)", code, ", ".join(renamed))
+    if dropped:
+        logger.info("aufbau draft %s: legacy __title merge dropped %s", code, ", ".join(dropped))
+    if renamed:
         session = getattr(request, "session", None)
         if session is not None:
             session.modified = True
+
+
+#: поля снимка, которые описывают само открытие окна, — у слитого снимка они от основы
+_SNAPSHOT_IDENTITY = ("item", "at", "after", "base", "wopen")
+
+
+def _rename_window(code: str, window: dict, old: str, new: str, token: str, dropped: list):
+    """Снимок `old` → `new` в `window` (см. `_rename_legacy_title`); что сделано — для лога."""
+    if not isinstance(window[old], dict):
+        # повреждённая сессия: такой снимок «Abbrechen» не вернёт — отбросить, не падать
+        window.pop(old)
+        logger.warning("aufbau draft %s: broken window snapshot %s dropped", code, old)
+        return [WINDOW_KEY]
+    if not isinstance(window.get(new), dict):
+        if new in window:
+            logger.warning("aufbau draft %s: broken window snapshot %s replaced", code, new)
+        window[new] = window.pop(old)
+        return [WINDOW_KEY]
+    mine = next((r for r in (new, old) if token and window[r].get("wopen") == token), "")
+    if not mine:
+        return []  # без токена (или с чужим) основы нет — оба снимка ждут своего окна
+    other = old if mine == new else new
+    taken: list[str] = []
+    merged = _merge_snapshot(window[mine], window[other], taken, dropped)
+    window.pop(old)
+    window[new] = merged
+    return [f"{WINDOW_KEY} merged from {other}: {', '.join(taken) or '-'}"]
+
+
+def _merge_snapshot(primary: dict, secondary: dict, taken: list, dropped: list) -> dict:
+    """Снимок окна `primary` и то из `secondary`, чего в нём нет (FB-33 M5b-2, ревью №1)."""
+    out = copy.deepcopy(primary)
+    extra = secondary.get("settings") if isinstance(secondary.get("settings"), dict) else {}
+    for key, value in secondary.items():
+        if key in _SNAPSHOT_IDENTITY or key == "settings":
+            continue
+        if key == "codes":
+            have = out.setdefault("codes", [])
+            mine = out.get("settings") if isinstance(out.get("settings"), dict) else {}
+            for c in value or ():
+                if c not in have:
+                    have.append(c)
+                    if c in extra:
+                        out.setdefault("settings", {})[c] = copy.deepcopy(extra[c])
+                    taken.append(f"codes.{c}")
+                elif extra.get(c) != mine.get(c):
+                    dropped.append(f"settings.{c}")
+        elif key == "btr_ref" and isinstance(value, dict):
+            entry = out.get("btr_ref")
+            if not isinstance(entry, dict):
+                out["btr_ref"] = copy.deepcopy(value)
+            else:
+                entry["tr"] = _merge_tr(entry.get("tr"), value.get("tr"), dropped, "btr_ref")
+                if entry.get("base") is None:
+                    entry["base"] = value.get("base")
+            taken.append(key)
+        elif key not in out:
+            out[key] = copy.deepcopy(value)
+            taken.append(key)
+        elif out[key] != value:
+            dropped.append(key)
+    return out
+
+
+def _merge_tr(primary, secondary, dropped: list, label: str):
+    """Переводы `{язык: {ключ: текст}}`: `primary` и ключи `secondary`, которых в нём нет;
+    ключ в обоих с разным текстом — остаётся `primary`, отброшенное — в `dropped`."""
+    if not isinstance(secondary, dict):
+        return primary
+    out = copy.deepcopy(primary) if isinstance(primary, dict) else {}
+    for lang, texts in secondary.items():
+        if not isinstance(texts, dict):
+            continue
+        mine = out.get(lang)
+        if not isinstance(mine, dict):
+            out[lang] = copy.deepcopy(texts)
+            continue
+        for k, text in texts.items():
+            if k not in mine:
+                mine[k] = text
+            elif mine[k] != text:
+                dropped.append(f"{label}.{lang}.{k}")
+    return out if out or isinstance(primary, dict) else primary
 
 
 def get(request, code: str) -> dict | None:
@@ -771,6 +863,11 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
     old = window.get(ref)
     if isinstance(old, dict) and old.get("wopen") == token:
         _record_codes(source, old, codes)
+        if "title" not in old and _window_has_title(host, ref):
+            # FB-33 M5b-2 (ревью №2): окно ★-строки, открытое до деплоя, полей заголовка не
+            # несло — заголовок в снимок попадает до первой правки в этом окне после деплоя
+            # (до неё заголовок в этом окне не правили): «Abbrechen» откатит и его
+            old["title"] = ["title" in source, copy.deepcopy(source.get("title"))]
         draft[WINDOW_KEY] = window
         return
     items = source.get("items") or []
