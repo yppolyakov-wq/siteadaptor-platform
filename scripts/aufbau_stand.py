@@ -285,10 +285,10 @@ with sync_playwright() as p:
         close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
-        # R4 / FB-33 M5b-2: настройки типа страницы — на ★-строке страницы (`__page`)
+        # R4 / FB-33 M5b-2: настройки типа страницы — на ★-строке «Einstellungen der Seite»
         pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
         close_sheet(pg)
-        pg.locator('[data-schema-block="__page"]').first.click()
+        pg.locator("[data-schema-block]").filter(has_text="Einstellungen der Seite").first.click()
         pg.wait_for_load_state()
         n = pg.locator("[data-schema-setting]").count()
         check(n >= 4, f"у каталога настройки типа в панели основного списка ({n})")

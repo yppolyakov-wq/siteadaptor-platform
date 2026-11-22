@@ -224,8 +224,7 @@
     <div class="flex items-start justify-between gap-2">
       <div class="min-w-0">
         <h2 id="schema-panel-title" class="font-semibold text-lg break-words">{{ selected.label }}{% if selected.pinned and not selected.main %} <span aria-hidden="true" data-schema-lock>🔒</span><span class="sr-only"> ({% trans "fest" %})</span>{% endif %}</h2>
-        {% if not selected.enabled and not selected.main %}<p class="text-xs text-amber-900">{% trans "Ausgeblendet" %}</p>{% endif %}
-        {% if selected.main and selected.key == "main" and not selected.cblock %}{% comment %}FB-33 M5b-2 (a11y Y-M4): главный список — обычная строка; почему её нельзя скрыть, сказано текстом.{% endcomment %}<p class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-700" data-schema-main-note><span class="ui-badge ui-tone-run">{% trans "Hauptliste" %}</span> {% trans "Die Hauptliste lässt sich nicht ausblenden oder entfernen." %}</p>{% endif %}
+        {% if not selected.enabled and not selected.main %}<p class="text-xs text-amber-900">{% trans "Ausgeblendet" %}</p>{% endif %}{% if selected.main and selected.key == "main" and not selected.cblock %}{% comment %}FB-33 M5b-2 (a11y Y-M4): главный список — обычная строка; почему её нельзя скрыть, сказано текстом.{% endcomment %}<p class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-700" data-schema-main-note><span class="ui-badge ui-tone-run">{% trans "Hauptliste" %}</span> {% trans "Die Hauptliste lässt sich nicht ausblenden oder entfernen." %}</p>{% endif %}
       </div>
       {% if not confirm_remove and not selected.main and not selected.pinned or not confirm_remove and selected.can_up and not selected.pinned or not confirm_remove and selected.can_down and not selected.pinned %}
       <details class="relative shrink-0" data-schema-more>
