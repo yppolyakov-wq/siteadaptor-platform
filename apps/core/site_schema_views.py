@@ -155,8 +155,10 @@ def _old_title_link(request, tenant, code: str) -> str:
 
 def _title_hint(layout: dict, blocks: list[dict], at, host: str) -> dict | None:
     """Метка «Überschrift der Seite · in ★ bearbeiten»: номер ряда `layout.lines`, после
-    которого она стоит (ряд последнего видимого блока над заголовком), и имя окна ★-строки
-    для ссылки. None — метки нет (`site_schema.title_hint_at`)."""
+    которого она стоит, и имя окна ★-строки для ссылки. Ряд последнего видимого блока над
+    заголовком целиком выше точки заголовка — метка после него; в ряду есть и блок под точкой
+    (узкие соседи) — перед этим рядом (ревью M5b-2 №3; -1 — перед первым рядом). None —
+    метки нет (`site_schema.title_hint_at`)."""
     from apps.core import page_window
 
     if at is None:
@@ -164,17 +166,17 @@ def _title_hint(layout: dict, blocks: list[dict], at, host: str) -> dict | None:
     above = [b["ref"] for b in blocks[:at] if b["enabled"]]
     if not above:
         return None
-    line = next(
-        (
-            i
-            for i, li in enumerate(layout.get("lines") or [])
-            if any(b["ref"] == above[-1] for b in li["blocks"])
-        ),
-        None,
-    )
-    if line is None:
-        return None
-    return {"after": line, "where": page_window.star_name(page_window.label(host), visible=False)}
+    index = {b["ref"]: i for i, b in enumerate(blocks)}
+    for line, li in enumerate(layout.get("lines") or []):
+        refs = [b["ref"] for b in li["blocks"]]
+        if above[-1] not in refs:
+            continue
+        whole = all(index.get(r, at) < at for r in refs)
+        return {
+            "after": line if whole else line - 1,
+            "where": page_window.star_name(page_window.label(host), visible=False),
+        }
+    return None
 
 
 @login_required

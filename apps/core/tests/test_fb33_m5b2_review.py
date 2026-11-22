@@ -251,7 +251,6 @@ def _b(ref, width=""):
     return {"ref": ref, "key": ref, "enabled": True, "width": width}
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №3: до правки")
 def test_hint_before_row_that_straddles_the_title():
     # ряд [a ½, b ½]: a над заголовком, b под ним — метка перед рядом (перед первым: -1)
     assert _hint_after([_b("a", "w12"), _b("b", "w12"), _b("c")], 1) == -1
@@ -262,7 +261,6 @@ def test_hint_before_row_that_straddles_the_title():
     assert _hint_after([_b("x"), _b("a", "w12"), _b("b", "w12"), _b("y")], 3) == 1
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M5b-2 №3: до правки")
 def test_hint_before_first_row_in_markup(monkeypatch):
     """Фото-шапка ½ и соседний блок ½ в одном ряду (заголовок — под шапкой): метка — перед
     рядом, не после него. Сохранённое состояние ширину шапке списка не даёт (normalize) —

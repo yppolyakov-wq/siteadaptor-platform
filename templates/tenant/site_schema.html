@@ -135,7 +135,9 @@
           {% if page_row.summary %}<span class="block text-xs text-gray-600 break-words">{{ page_row.summary }}</span>{% endif %}
       </a></li>
       {% endif %}
-      {% for line in layout.lines %}{% with row=line.blocks %}
+      {% for line in layout.lines %}{% if title_hint and forloop.first and title_hint.after == -1 %}{% comment %}FB-33 M5b-2 (ревью №3): первый ряд разрезан точкой заголовка (узкие блоки над и под ним) — метка перед рядом; та же метка, что после ряда ниже.{% endcomment %}
+      <li class="flex flex-wrap items-center gap-x-1 rounded-xl border border-dashed border-gray-400 bg-gray-50 px-3 text-sm text-gray-700" data-schema-title-hint>{% trans "Überschrift der Seite" %} <span aria-hidden="true">·</span> <a href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}&amp;tab=seite{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 underline hover:no-underline">{% blocktrans with where=title_hint.where %}in {{ where }} bearbeiten{% endblocktrans %}</a></li>
+      {% endif %}{% with row=line.blocks %}
       <li><ul class="flex flex-col {% if not phone_view %}md:flex-row {% endif %}gap-2" data-schema-row{% if row|length > 1 %} aria-label="{% trans 'Blöcke nebeneinander' %}: {{ row|length }}"{% endif %}>
         {% for b in row %}
         <li class="min-w-0" style="flex: {% if b.basis %}0 1 {{ b.basis }}%{% else %}{{ b.flex|stringformat:'g' }} 1 0%{% endif %}"{% if not b.pinned %} data-schema-drag="{{ b.ref }}"{% else %} data-schema-pinned="{{ b.ref }}"{% if b.drop_after %} data-schema-drop-only="after"{% endif %}{% endif %}{% if b.basis %} data-schema-share="{{ b.basis }}"{% endif %}>
