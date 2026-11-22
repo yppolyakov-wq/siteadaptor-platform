@@ -173,11 +173,70 @@ def test_block_failure_serves_the_plain_page_and_logs(rf, monkeypatch, caplog):
 
     monkeypatch.setattr(hero_tiles, "menu_tiles", boom, raising=False)
     req = _req(rf, _tenant())
+    from django.core.cache import cache
+
+    cache.clear()
     with caplog.at_level(logging.WARNING, logger="apps.core.not_found_views"):
         resp = _views().storefront_404(req, Http404())
     assert resp.status_code == 404
     assert resp.content == _plain(rf, req)
     assert any("kaputt" in (r.exc_text or "") or r.exc_info for r in caplog.records)
+
+
+@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
+def test_failing_plain_page_still_answers_404(rf, monkeypatch, caplog):
+    """Ревью: запасная `404.html` рендерится с контекстными процессорами — сбой БД уронил бы и
+    её, посетитель получил бы 500. Последний рубеж — ответ без шаблона."""
+
+    def boom(*_a, **_kw):
+        raise RuntimeError("kaputt")
+
+    views = _views()
+    monkeypatch.setattr(hero_tiles, "menu_tiles", boom, raising=False)
+    monkeypatch.setattr(views, "page_not_found", boom)
+    with caplog.at_level(logging.ERROR, logger="apps.core.not_found_views"):
+        resp = views.storefront_404(_req(rf, _tenant()), Http404())
+    assert resp.status_code == 404 and resp.content
+    assert resp["X-Robots-Tag"] == "noindex"
+    assert caplog.records
+
+
+@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
+def test_failing_gate_serves_the_plain_page(rf, monkeypatch):
+    """Ревью: решение «рисовать ли блоки» стояло вне защиты — его сбой давал 500."""
+    from apps.core import storefront_state
+
+    def boom(*_a, **_kw):
+        raise RuntimeError("kaputt")
+
+    monkeypatch.setattr(storefront_state, "hidden_reasons", boom)
+    req = _req(rf, _tenant())
+    resp = _views().storefront_404(req, Http404())
+    assert resp.status_code == 404 and resp.content == _plain(rf, req)
+
+
+@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
+def test_failure_log_is_deduplicated_and_does_not_carry_raw_path(rf, monkeypatch, caplog):
+    """Ревью безопасности: трассировка на КАЖДЫЙ битый адрес бота заливала лог, путь шёл в
+    запись как есть (перевод строки = поддельная строка лога). Запись — одна на бизнес за
+    окно, уровнем error (видна мониторингу), путь — через repr и с потолком длины."""
+    from django.core.cache import cache
+
+    cache.clear()
+
+    def boom(*_a, **_kw):
+        raise RuntimeError("kaputt")
+
+    monkeypatch.setattr(hero_tiles, "menu_tiles", boom, raising=False)
+    tenant = _tenant()
+    with caplog.at_level(logging.DEBUG, logger="apps.core.not_found_views"):
+        for _ in range(3):
+            _views().storefront_404(_req(rf, tenant, path="/x\nFAKE " + "a" * 500), Http404())
+    errors = [r for r in caplog.records if r.levelno >= logging.ERROR]
+    assert len(errors) == 1 and errors[0].exc_info
+    text = errors[0].getMessage()
+    assert "\n" not in text and len(text) < 400
+    assert len(caplog.records) == 1
 
 
 @pytest.mark.parametrize(
@@ -268,6 +327,18 @@ def test_search_block_is_a_get_form_to_the_storefront_search(rf):
     field_id = re.search(r'<input id="([^"]+)"', form).group(1)
     assert f'<label for="{field_id}"' in form
     assert "csrfmiddlewaretoken" not in form
+
+
+@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
+def test_search_form_is_a_named_landmark_and_demo_has_one_robots_tag(rf):
+    """Ревью a11y: два ориентира `search` (шапка и блок) — блок назван. Ревью SEO: у демо-
+    бизнеса базовый шаблон уже ставит robots — второго тега нет."""
+    html = _html(rf, _tenant())
+    form = re.search(r"<form[^>]*role=\"search\"[^>]*data-site-search[^>]*>", html)
+    assert form and "aria-label=" in form.group(0)
+    demo = _html(rf, _tenant(is_demo=True))
+    assert len(re.findall(r'<meta name="robots"', demo)) == 1
+    assert len(re.findall(r'<meta name="robots"', html)) == 1
 
 
 def test_search_block_draws_nothing_without_a_search_address():
@@ -404,19 +475,37 @@ def test_default_page_sets_no_cookie_and_stays_out_of_the_page_cache(rf, setting
     assert pagecache._cacheable(req, resp) is False
 
 
-def test_page_with_a_list_block_does_not_write_the_session(rf):
+@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
+def test_list_block_is_not_drawn_on_the_page_and_no_cookie_is_set(rf):
+    """Ревью безопасности: «Liste» на 404 — кнопка корзины с CSRF-токеном (cookie анониму на
+    любом битом адресе) и выборка товаров на каждый запрос бота. Блок на хосте запрещён; и
+    старый конфиг с ним страницу не меняет."""
     rows = [{"key": "list", "id": "l1", "enabled": True, "data": {"source": "products"}}]
-    tenant = _tenant(site_config={"page_blocks": {HOST: rows}})
-    req = _req(rf, tenant)
-    resp = _views().storefront_404(req, Http404())
+    tenant = _tenant()
+    Tenant.objects.filter(pk=tenant.pk).update(site_config={"page_blocks": {HOST: rows}})
+    tenant.refresh_from_db()
+    seen = {}
+
+    def view(request):
+        request.tenant = tenant
+        request.portal = None
+        request.user = AnonymousUser()
+        seen["req"] = request
+        return _views().storefront_404(request, Http404())
+
+    resp = SessionMiddleware(view)(rf.get("/gibt-es-nicht/"))
     assert resp.status_code == 404 and b"data-not-found" in resp.content
-    assert not req.session.modified
+    assert b'data-sf-section="l1"' not in resp.content
+    assert b"csrfmiddlewaretoken" not in resp.content
+    assert not resp.cookies and not seen["req"].session.modified
+    assert not seen["req"].META.get("CSRF_COOKIE_NEEDS_UPDATE")
 
 
 # ── блоки-формы ─────────────────────────────────────────────────────────────────────
 
 
-def test_form_blocks_are_banned_on_the_host_and_list_is_allowed():
+@pytest.mark.xfail(strict=True, reason="ревью стопки 8 — до правки")
+def test_form_blocks_and_list_are_banned_on_the_host():
     page = _page()
     assert {"newsletter", "anfrage_ref", "message_ref"} <= set(page.FORM_BLOCKS)
     raw = {
@@ -432,10 +521,12 @@ def test_form_blocks_are_banned_on_the_host_and_list_is_allowed():
         }
     }
     pb = siteconfig.normalize(raw)["page_blocks"]
-    assert [b["id"] for b in pb[HOST]] == ["l1", "t1"]
+    assert [b["id"] for b in pb[HOST]] == ["t1"]
     assert [b["id"] for b in pb["info"]] == ["n2"]
     offered = {k for k, _lab in site_schema.add_options(CODE)}
-    assert "list" in offered and not offered & set(page.FORM_BLOCKS)
+    assert "list" in page.FORM_BLOCKS and not offered & set(page.FORM_BLOCKS)
+    # подтверждение «Liste» по-прежнему держит (свой набор запретов у каждого хоста)
+    assert "list" in {k for k, _lab in site_schema.add_options("confirmation")}
     items = site_schema.load_items(siteconfig.normalize({}), False, HOST)
     for key in page.FORM_BLOCKS:
         with pytest.raises(site_schema.SchemaError):
