@@ -233,9 +233,11 @@ def test_m39c_stand_targets_cover_m39d():
     sels = {sel: pat for sel, pat in mod.TARGETS.values()}
     assert "[data-cover-dot]" in sels and "[data-cat-dot]" in sels
     assert sels.get("main a[href*='kind=callback']") == "^📞"
-    # точки обложки и шапки категории есть не на каждом ките — цель необязательная
+    # обложка раздела есть не на каждом ките — необязательна; точки шапки категории даёт
+    # `--setup` магазину — обязательны (ревью: иначе стенд молча их пропускал)
     optional = {mod.TARGETS[name][0] for name in mod.OPTIONAL_TARGETS}
-    assert {"[data-cover-dot]", "[data-cat-dot]"} <= optional
+    assert optional == {"[data-cover-dot]"}
+    assert "if cat is None:" in mod.SETUP
     assert "/ueber-uns/" in mod.KIT_PAGES["shop"]
     assert ("/sortiment/", r"^/sortiment/[a-z0-9-]+/$") in mod.KIT_PAGES["shop"]
     assert ("/kombi/", r"^/kombi/[0-9a-f-]{36}/$") in mod.KIT_PAGES["restaurant"]

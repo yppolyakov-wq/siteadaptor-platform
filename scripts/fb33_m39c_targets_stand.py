@@ -106,8 +106,9 @@ TARGETS = {
     "«📞 Rückruf»": ["main a[href*='kind=callback']", "^📞"],
     "«Kontakt»: телефон, e-mail": ["main a[href^='tel:'], main a[href^='mailto:']", None],
 }
-#: цели, которых на демо-китах может не быть (обложка раздела и шапка категории — по фото)
-OPTIONAL_TARGETS = ("точка обложки раздела", "точка шапки категории")
+#: цели, которых на китах может не быть (обложка раздела — по фото раздела); точки шапки
+#: категории обязательны: `--setup` даёт их первой категории магазина
+OPTIONAL_TARGETS = ("точка обложки раздела",)
 #: точки со своим скриптом (не `.sf-slider-dot`): селектор → кнопка-CTA над ними (или None)
 OWN_DOTS = {"[data-cover-dot]": "[data-cover-hero] a", "[data-cat-dot]": None}
 
@@ -190,6 +191,8 @@ from django_tenants.utils import schema_context
 from apps.catalog.models import Category
 with schema_context("shop"):
     cat = Category.objects.filter(is_active=True, parent=None).order_by("sort_order").first()
+    if cat is None:
+        raise SystemExit("у shop нет активной категории: seed_demo_tenants --kit shop")
     url = (cat.image_url or "/medien/demo.svg").split("?")[0]
     cat.images = [{"url": f"{url}?m39d={k}", "is_primary": k == 0} for k in range(3)]
     cat.save(update_fields=["images"])
