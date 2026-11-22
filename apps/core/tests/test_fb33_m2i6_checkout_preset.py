@@ -33,8 +33,6 @@ from apps.tenants.services import _new_tenant
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замки до кода (первый коммит среза): поведения ещё нет — снять вместе с реализацией
-RED = pytest.mark.xfail(strict=True, reason="FB-33 M2i-6: замок до кода")
 
 FOOD = ("bakery", "cafe", "restaurant", "butcher")
 NOTE_DE = "Allergien / Wünsche"
@@ -96,7 +94,6 @@ def _part(html):
 # ───────────── реестр: один, у гастро-типов пресет, у остальных — нет ─────────────
 
 
-@RED
 def test_food_types_have_checkout_preset_others_do_not():
     for business_type in FOOD:
         preset = preset_for(business_type, form="checkout")
@@ -109,7 +106,6 @@ def test_food_types_have_checkout_preset_others_do_not():
     assert preset_for("catering")["fields"] == ["date", "guests", "event_type"]
 
 
-@RED
 def test_preset_note_is_translated_to_the_given_locales_only():
     preset = preset_for("bakery", form="checkout", locales=["en", "ru"])
     assert preset["labels_i18n"] == {"note": {"en": NOTE["en"], "ru": NOTE["ru"]}}
@@ -125,7 +121,6 @@ def test_preset_note_is_translated_to_the_given_locales_only():
         }
 
 
-@RED
 def test_one_registry_feeds_signup_type_switch_and_window(monkeypatch):
     """Второго списка нет: запись реестра меняет все три пути сразу."""
     monkeypatch.setitem(anfrage_presets.PRESETS["checkout"], "hotel", {"mode": {"email": "req"}})
@@ -142,7 +137,6 @@ def test_one_registry_feeds_signup_type_switch_and_window(monkeypatch):
 # ───────────── создание бизнеса ─────────────
 
 
-@RED
 def test_new_food_business_starts_with_checkout_preset():
     for i, business_type in enumerate(FOOD):
         tenant = _new(business_type, slug=f"neu-{i}")
@@ -161,7 +155,6 @@ def test_new_business_of_other_type_has_no_checkout_settings():
     assert "form_fields" not in catering and catering["anfrage"]  # заявка — прежний пресет
 
 
-@RED
 def test_signup_with_directions_and_wizard_keeps_the_preset():
     tenant = _new_tenant(
         business_name="Neu",
@@ -179,7 +172,6 @@ def test_signup_with_directions_and_wizard_keeps_the_preset():
 # ───────────── смена типа: только при отсутствующем ключе ─────────────
 
 
-@RED
 def test_switch_to_food_type_adds_preset_and_keeps_other_keys():
     cfg = {"notify": {"x": 1}, "form_fields": {"anfrage": {"mode": {"phone": "req"}}}}
     tenant = _tenant("retail", cfg)
@@ -189,7 +181,6 @@ def test_switch_to_food_type_adds_preset_and_keeps_other_keys():
     assert stored == cfg  # заявка и чужие ключи — как были
 
 
-@RED
 def test_switch_translates_note_to_tenant_languages():
     tenant = _tenant("retail", enabled_locales=["de", "ru", "uk"])
     setup_steps.apply_business_type(tenant, "butcher")
@@ -234,7 +225,6 @@ def test_same_type_again_and_non_food_switch_add_nothing():
 # ───────────── запись — только через form_spec.put ─────────────
 
 
-@RED
 def test_preset_is_written_through_form_spec_put(monkeypatch):
     calls = []
     real = form_spec.put
@@ -255,7 +245,6 @@ def test_preset_is_written_through_form_spec_put(monkeypatch):
     assert calls == []  # пресета нет — писателя не зовут
 
 
-@RED
 def test_without_the_writer_nothing_is_stored(monkeypatch):
     """Мимо писателя записи нет: с «немым» `put` ключ не появляется ни одним путём."""
     assert _checkout(_new("bakery", slug="vor").site_config)  # с писателем — есть
@@ -269,7 +258,6 @@ def test_without_the_writer_nothing_is_stored(monkeypatch):
 # ───────────── окно: «Branchen-Vorlage laden» — через черновик ─────────────
 
 
-@RED
 def test_preset_button_only_for_types_with_checkout_preset():
     assert "data-form-preset" in _part(Browser(_tenant("cafe")).get(WINDOW))
     assert "data-form-preset" not in _part(Browser(_tenant("online_shop")).get(WINDOW))
@@ -277,7 +265,6 @@ def test_preset_button_only_for_types_with_checkout_preset():
     assert "data-form-preset" not in _part(Browser(_tenant("catering")).get(WINDOW))
 
 
-@RED
 def test_window_preset_goes_to_draft_not_to_site_config():
     tenant = _tenant("cafe", {"notify": {"x": 1}})
     before = json.dumps(_stored(tenant), sort_keys=True)
@@ -297,7 +284,6 @@ def test_window_preset_goes_to_draft_not_to_site_config():
     assert json.dumps(_stored(tenant), sort_keys=True) == before
 
 
-@RED
 def test_window_preset_reaches_the_site_only_on_save_through_put(monkeypatch):
     tenant = _tenant("butcher", {"notify": {"x": 1}}, enabled_locales=["de", "tr"])
     calls = []
@@ -322,7 +308,6 @@ def test_window_preset_reaches_the_site_only_on_save_through_put(monkeypatch):
     assert stored["notify"] == {"x": 1}
 
 
-@RED
 def test_window_preset_replaces_modes_and_keeps_own_questions():
     own = {
         "mode": {"email": "off", "note": "req"},
@@ -341,7 +326,6 @@ def test_window_preset_replaces_modes_and_keeps_own_questions():
     assert [q["label"] for q in state["custom"]] == ["Uhrzeit"]  # свои вопросы целы
 
 
-@RED
 def test_window_preset_without_template_says_so_and_changes_nothing():
     tenant = _tenant("online_shop")
     b = Browser(tenant)

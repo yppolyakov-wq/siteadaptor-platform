@@ -773,17 +773,11 @@ def _action(state: dict, get, form: str, preset, notes: list, cuts: list | None 
                 question["mode"] = REQ
             custom.append(question)
         return
-    if do == "preset" and form == "anfrage":
+    if do == "preset":
         if not preset:
             notes.append(gettext("Für Ihre Branche gibt es keine Vorlage."))
             return
-        chosen = set(preset.get("fields") or ())
-        for field in fields_of(form):
-            if field.legacy:
-                on = field.legacy in chosen
-                was = state["mode"].get(field.key)
-                state["mode"][field.key] = (REQ if was == REQ else OPT) if on else OFF
-        state["event_types"] = list(preset.get("event_types") or [])
+        apply_preset(state, form, preset)
         notes.append(
             gettext("Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf der Seite.")
         )
@@ -801,6 +795,36 @@ def _action(state: dict, get, form: str, preset, notes: list, cuts: list | None 
         custom[at - 1], custom[at] = custom[at], custom[at - 1]
     elif action == "down" and at < len(custom) - 1:
         custom[at + 1], custom[at] = custom[at], custom[at + 1]
+
+
+def apply_preset(state: dict, form: str, preset: dict) -> None:
+    """«Branchen-Vorlage» в состояние вкладки (на месте): кнопка окна и стартовый пресет нового
+    бизнеса (`apps.jobs.anfrage_presets` — единственный реестр). Свои вопросы не трогаются.
+
+    Заявка: событийные поля — как в пресете (включённое обязательным остаётся обязательным),
+    варианты события — из пресета. Корзина (FB-33 M2i-6): режимы системных полей — из пресета,
+    остальные — к умолчанию («ersetzen»); подпись из пресета заменяет свою, и её переводы
+    заменяются переводами пресета (перевод прежней подписи устарел)."""
+    if form == "anfrage":
+        chosen = set(preset.get("fields") or ())
+        for field in fields_of(form):
+            if field.legacy:
+                on = field.legacy in chosen
+                was = state["mode"].get(field.key)
+                state["mode"][field.key] = (REQ if was == REQ else OPT) if on else OFF
+        state["event_types"] = list(preset.get("event_types") or [])
+        return
+    modes = preset.get("mode") or {}
+    labels_tr = state.setdefault(LABELS_I18N, {})
+    for field in fields_of(form):
+        if field.pinned:
+            continue
+        mode = modes.get(field.key)
+        state["mode"][field.key] = mode if mode in MODES else field.default
+        label = (preset.get("labels") or {}).get(field.key)
+        if label:
+            state.setdefault("labels", {})[field.key] = label
+            labels_tr[field.key] = dict((preset.get(LABELS_I18N) or {}).get(field.key) or {})
 
 
 def put(config: dict, form: str, state) -> dict:

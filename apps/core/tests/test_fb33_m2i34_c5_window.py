@@ -4,7 +4,8 @@
 же движком, что форма заявки (M2i-5): правка — в черновик страницы «Warenkorb»
 (`draft["form"]` на хосте `cart`), «Abbrechen» возвращает черновик байт-в-байт, «Speichern»
 пишет только `form_fields.checkout` через `form_spec.put` под блокировкой строки бизнеса. Имя
-закреплено (🔒), событийных полей и «Branchen-Vorlage» нет, порядок системных полей —
+закреплено (🔒), событийных полей нет («Branchen-Vorlage» — только у типа с пресетом корзины,
+M2i-6), порядок системных полей —
 фиксированный. Подсказки части (`apps/core/checkout_window.py`): онлайн-оплата и столик.
 """
 
@@ -86,7 +87,7 @@ def test_1_cart_form_opens_on_tab_felder_with_checkout_fields():
     for key in ("email", "phone", "note"):
         for mode in ("off", "opt", "req"):
             assert f'name="f_mode_{key}" value="{mode}"' in part
-    # без событий и без «Branchen-Vorlage» (пресета корзины нет — место под M2i-6)
+    # без событий и без «Branchen-Vorlage» (у магазина пресета корзины нет — M2i-6)
     assert "f_event_types" not in part and "data-form-preset" not in part
     assert "Anfrage-Form" not in part
     assert 'name="ref" value="form"' in part and 'name="seite" value="cart"' in part
@@ -137,7 +138,6 @@ def test_1f_payment_methods_error_is_logged(monkeypatch, caplog):
     assert "checkout window" in caplog.text and "RuntimeError" in caplog.text
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 M2i-6: замок до кода")
 def test_1c_presets_are_per_form():
     """FB-33 M2i-6: замок перевёрнут осознанно — у корзины гастро-типов пресет появился
     (было `preset_for(…, form="checkout") == {}` у всех)."""
@@ -361,7 +361,7 @@ def test_5b_cart_and_anfrage_drafts_side_by_side():
 
 
 def test_5c_preset_button_on_cart_changes_nothing():
-    tenant = _tenant()  # кафе — у заявки пресета нет, у корзины его нет вовсе
+    tenant = _tenant()  # у кейтеринга пресет есть только у заявки — в корзину он не течёт
     tenant.business_type = "catering"
     tenant.save(update_fields=["business_type"])
     before = json.dumps(_saved(tenant), sort_keys=True)

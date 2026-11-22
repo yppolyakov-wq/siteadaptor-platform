@@ -1666,9 +1666,15 @@ def form_op(
     current = aufbau_draft.form_state(config, draft, form=form)
     preset = None
     if fields.get("do") == "preset":
+        from apps.core import i18n_input
         from apps.jobs.anfrage_presets import preset_for
 
-        preset = preset_for(getattr(tenant, "business_type", ""), form=form)
+        # FB-33 M2i-6: подписи пресета корзины — с переводами на языки бизнеса
+        preset = preset_for(
+            getattr(tenant, "business_type", ""),
+            form=form,
+            locales=i18n_input.extra_locales(tenant),
+        )
     try:
         state, said = form_spec.parse_post(fields, current, form, preset)
     except form_spec.FormSpecError as exc:

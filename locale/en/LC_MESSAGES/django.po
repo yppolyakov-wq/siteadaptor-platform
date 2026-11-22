@@ -39900,5 +39900,8 @@ msgstr "fb33-stack-anchor-m5a"
 msgid "fb33-stack-anchor-m2i6"
 msgstr "fb33-stack-anchor-m2i6"
 
+msgid "Allergien / Wünsche"
+msgstr "Allergies / requests"
+
 msgid "fb33-stack-anchor-m39c"
 msgstr "fb33-stack-anchor-m39c"

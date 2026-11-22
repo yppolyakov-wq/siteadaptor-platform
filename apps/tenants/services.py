@@ -16,6 +16,9 @@ from apps.core import modules
 
 from .models import Domain, Tenant
 
+#: языки нового бизнеса: основной и английский (остальные владелец включает сам)
+START_LOCALES = ("de", "en")
+
 
 def _base_domain() -> str:
     # В dev — siteadaptor.de:8000, в prod — siteadaptor.de. Берём из настроек,
@@ -66,7 +69,9 @@ def _new_tenant(
     from apps.jobs.anfrage_presets import with_default
 
     # KA-12 A-3: стартовая форма заявки по типу (кейтеринг — дата/гости/повод).
-    site_config, _changed = with_default({}, business_type)
+    # FB-33 M2i-6: и поля корзины (гастро — телефон обязателен, «Allergien / Wünsche»);
+    # подпись заметки — сразу с переводом на стартовые языки бизнеса.
+    site_config, _changed = with_default({}, business_type, locales=START_LOCALES)
     # KA-12 A-6b: мастерской — рабочие статусы заявки (In Arbeit/Teile/Abholbereit).
     from apps.jobs import status_presets
 
@@ -86,7 +91,7 @@ def _new_tenant(
         # Стартовый набор блоков по вертикали (Track D / D0b): нерекомендованные
         # опциональные модули выключены, владелец включает на /dashboard/modules/.
         disabled_modules=modules.default_disabled_for(business_type),
-        enabled_locales=["de", "en"],
+        enabled_locales=list(START_LOCALES),
         site_config=site_config,
     )
     if directions:
