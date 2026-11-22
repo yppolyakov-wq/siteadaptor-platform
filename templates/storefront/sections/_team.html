@@ -6,7 +6,7 @@
   {% if not as_page %}
   <div class="flex items-baseline justify-between gap-3 mb-6">
     <h2 class="text-xl md:text-2xl font-bold">{% trans "Our team" %}</h2>
-    {% if site.team %}<a href="{% url 'storefront-team' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Ganzes Team" %} →</a>{% endif %}
+    {% if site.team %}<a href="{% url 'storefront-team' %}" class="inline-flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline shrink-0">{% trans "Ganzes Team" %} →</a>{% endif %}
   </div>
   {% endif %}
   {% comment %}UC6-6f/UC6-8: 5 видов по section_row.style — "" карточки | circles |

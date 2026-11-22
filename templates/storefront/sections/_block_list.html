@@ -35,7 +35,7 @@ LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страни�
     <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-4">
       <h2 class="text-xl md:text-2xl font-bold">{{ lb.label }}</h2>
       {% if lb.price_list %}{% include "storefront/_price_view_toggle.html" with pl_style=lb.style plv_key="lb-"|add:block_id %}{% endif %}
-      {% if lb.more %}<a data-sf-list-all href="{{ lb.url }}" class="text-sm font-medium hover:underline whitespace-nowrap" style="color: var(--accent, #4f46e5);">{% blocktrans with n=lb.total %}Alle {{ n }}{% endblocktrans %} →</a>{% endif %}
+      {% if lb.more %}<a data-sf-list-all href="{{ lb.url }}" class="inline-flex min-h-[24px] items-center text-sm font-medium hover:underline whitespace-nowrap" style="color: var(--accent, #4f46e5);">{% blocktrans with n=lb.total %}Alle {{ n }}{% endblocktrans %} →</a>{% endif %}
     </div>
     {% if lb.intro %}<p class="-mt-2 mb-4 text-gray-600 whitespace-pre-line max-w-2xl">{{ lb.intro }}</p>{% endif %}
     {% comment %}LB-4c: вид-композиция блока — те же партиалы, что у секций главной

@@ -38,15 +38,15 @@ wa.me строится хелпером LS-1.{% endcomment %}
     <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
       <h3 class="font-semibold mb-2">📍 {% trans "Where to find us" %}</h3>
       <p class="text-sm text-gray-600">{{ tenant.address }}</p>
-      {% if tenant.map_url %}<a href="{{ tenant.map_url }}" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline mt-1 inline-block">{% trans "Open in maps" %} →</a>{% endif %}
+      {% if tenant.map_url %}<a href="{{ tenant.map_url }}" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline mt-1 inline-flex min-h-[24px] items-center">{% trans "Open in maps" %} →</a>{% endif %}
     </div>
     {% endif %}
     {% if has_contact_card %}
     <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
       <h3 class="font-semibold mb-2">📞 {% trans "Questions before booking?" %}</h3>
-      {% if tenant.public_phone %}<a href="tel:{{ tenant.public_phone }}" class="block text-sm text-indigo-600 hover:underline">{{ tenant.public_phone }}</a>{% endif %}
-      {% if wa_url %}<a href="{{ wa_url }}" target="_blank" rel="noopener" class="block text-sm text-indigo-600 hover:underline mt-1">WhatsApp</a>{% endif %}
-      {% if inbox_on %}<a href="{% url 'storefront-message' %}" class="block text-sm text-gray-500 hover:underline mt-1">{% trans "Contact" %} →</a>{% endif %}
+      {% if tenant.public_phone %}<a href="tel:{{ tenant.public_phone }}" class="flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline">{{ tenant.public_phone }}</a>{% endif %}
+      {% if wa_url %}<a href="{{ wa_url }}" target="_blank" rel="noopener" class="flex min-h-[24px] items-center text-sm text-indigo-600 hover:underline mt-1">WhatsApp</a>{% endif %}
+      {% if inbox_on %}<a href="{% url 'storefront-message' %}" class="flex min-h-[24px] items-center text-sm text-gray-500 hover:underline mt-1">{% trans "Contact" %} →</a>{% endif %}
     </div>
     {% endif %}
   </div>

@@ -40,7 +40,7 @@
 {% endif %}
 {% comment %}FB-29 T4: примеры в предпросмотре дизайна, пока своих записей нет.{% endcomment %}
 {% if sample_sections %}{% include "storefront/sections/_services.html" %}{% endif %}
-{% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}"{% if embed %} target="_top" rel="noopener"{% endif %} class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
+{% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}"{% if embed %} target="_top" rel="noopener"{% endif %} class="inline-flex min-h-[24px] items-center text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
 {% if not embed %}{% page_blocks "services" %}{% endif %}
 {% booking_info %}
 {% endblock %}
