@@ -31,6 +31,15 @@ MAX_404_QUERIES = 6
 
 
 @pytest.fixture(autouse=True)
+def _fresh_log_window():
+    """Запись о сбое — одна на бизнес за окно (ключ в кэше): имена схем фабрики повторяются
+    между прогонами, кэш Redis живёт дольше — без сброса повторный прогон был бы красным."""
+    from django.core.cache import cache
+
+    cache.clear()
+
+
+@pytest.fixture(autouse=True)
 def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
@@ -180,7 +189,9 @@ def test_block_failure_serves_the_plain_page_and_logs(rf, monkeypatch, caplog):
         resp = _views().storefront_404(req, Http404())
     assert resp.status_code == 404
     assert resp.content == _plain(rf, req)
-    assert any("kaputt" in (r.exc_text or "") or r.exc_info for r in caplog.records)
+    logged = [r for r in caplog.records if r.name == "apps.core.not_found_views"]
+    assert len(logged) == 1 and logged[0].levelno == logging.ERROR
+    assert logged[0].exc_info and "kaputt" in str(logged[0].exc_info[1])
 
 
 def test_failing_plain_page_still_answers_404(rf, monkeypatch, caplog):
