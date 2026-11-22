@@ -684,14 +684,14 @@ def _ident(item) -> str:
 
 def _window_setting_codes(tenant, code: str, ref: str) -> list[str]:
     """Настройки, которые правятся в окне строки `ref`: свои у строки раздела, все
-    настройки типа — у ★ и у строки-носителя (как их показывает окно)."""
-    from apps.tenants import siteconfig
-
+    настройки типа — у строки, которую даёт единое правило `site_schema.page_row_ref` (★,
+    носитель или «Einstellungen der Seite» — как их показывает окно)."""
     own = site_schema.row_settings(code, ref)
     if own:
         return list(own)
-    # FB-33 M3-6: и у строки «Einstellungen der Seite» (окно со вкладкой «Seite»)
-    if ref in (siteconfig.MAIN_LIST_KEY, site_schema.settings_carrier(code), site_schema.PAGE_REF):
+    # FB-33 M5b-1 (ревью): строка — по правилу без проверки настроек; их список — ниже, со
+    # своим предупреждением на сбой
+    if ref and ref == site_schema.page_row_ref(None, code):
         try:
             return list(site_schema.setting_codes(tenant, code))
         except site_schema.SchemaError:

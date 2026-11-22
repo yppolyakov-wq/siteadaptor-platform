@@ -27,7 +27,7 @@ from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
 
 from apps.catalog.models import Product
-from apps.core import site_schema, window_links
+from apps.core import aufbau_draft, site_schema, window_links
 from apps.core.modules import default_disabled_for
 from apps.core.tests.test_fb27_r2_draft import Browser
 from apps.core.tests.test_fb33_m3_window_before import CFG, _panel
@@ -158,6 +158,26 @@ def test_page_row_ref_edges():
     assert site_schema.page_row_ref(tenant, "home", []) == PAGE, "нет «Banner» — строка `__page`"
 
 
+@pytest.mark.parametrize("bt", TYPES)
+def test_window_snapshot_settings_follow_the_rule(bt):
+    """Ревью M5b-1: окно строки снимает (и «Abbrechen» возвращает) настройки типа ⇔ строка —
+    та, что даёт `page_row_ref` (строки разделов со своими настройками — отдельно, R7)."""
+    tenant = _tenant(bt)
+    saved, rows = _rows(tenant)
+    for row in rows:
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None)
+        want = site_schema.page_row_ref(tenant, row.code, blocks)
+        try:
+            codes = list(site_schema.setting_codes(tenant, row.code))
+        except site_schema.SchemaError:
+            codes = []
+        for ref in [*(b["ref"] for b in blocks), PAGE, siteconfig.MAIN_LIST_KEY, "hero"]:
+            if site_schema.row_settings(row.code, ref):
+                continue
+            got = aufbau_draft._window_setting_codes(tenant, row.code, ref)
+            assert got == (codes if ref == want else []), (bt, row.code, ref, want)
+
+
 def test_garbage_seite_opens_home_without_window():
     html = Browser(_tenant()).get(f"?seite=gibtsnicht&block={PAGE}")
     assert 'data-schema-block="__page"' not in html
@@ -194,6 +214,9 @@ def test_rule_lives_only_in_site_schema():
         for name in ("settings_carrier(", "setting_codes(", "design_codes("):
             assert name not in src, f"{rel}: {name} — правило `__page` повторено"
     assert '"__page"' not in (ROOT / "apps/core/block_window.py").read_text()
+    # ревью M5b-1: окно черновика решает «чьи настройки» тем же правилом (`setting_codes` там —
+    # сам список настроек строки, не решение)
+    assert "settings_carrier(" not in (ROOT / "apps/core/aufbau_draft.py").read_text()
     tpl = (ROOT / "templates/tenant/site_schema.html").read_text()
     assert "elif page_row.active" not in tpl, "недостижимая ветка панели без окна"
 
