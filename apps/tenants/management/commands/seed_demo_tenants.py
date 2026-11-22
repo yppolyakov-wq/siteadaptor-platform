@@ -35,7 +35,7 @@ travel, all). Без ``--recreate`` существующие демо пропу
 ~1 мин). Демо одноразовы — удаляются дропом схемы.
 """
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django_tenants.utils import schema_context
 
 from apps.tenants import demo_kits, services
@@ -143,6 +143,13 @@ class Command(BaseCommand):
             help="DCC: параллельно N китов (каждый — отдельный подпроцесс manage.py; "
             "свои соединения с БД). 1 = последовательно, как раньше.",
         )
+        parser.add_argument(
+            "--lock-timeout",
+            type=int,
+            default=None,
+            help="M3-9b: сколько секунд ждать блокировку операций над схемами (её держит "
+            "деплой на время миграций); по умолчанию $OPS_LOCK_TIMEOUT или 900.",
+        )
 
     def _keys(self, options) -> list[str]:
         keys = _split(options.get("kit"))
@@ -189,6 +196,22 @@ class Command(BaseCommand):
             if not keys:
                 self.stdout.write(self.style.SUCCESS("Изменённых китов нет — пересев не нужен."))
                 return
+        # FB-33 M3-9b: пересев удаляет и создаёт схемы — не одновременно с миграциями
+        # деплоя (иначе `MigrationSchemaMissing`). Блокировка — на отдельном соединении
+        # родителя; подпроцессы `--jobs` её наследуют через окружение и свою не берут.
+        from apps.core import ops_lock
+
+        try:
+            with ops_lock.hold(
+                timeout=options.get("lock_timeout"),
+                what="seed_demo_tenants",
+                log=self.stdout.write,
+            ):
+                self._seed(keys, options)
+        except ops_lock.Busy as exc:
+            raise CommandError(str(exc)) from exc
+
+    def _seed(self, keys, options):
         done, failed = [], []
         total = len(keys)
         jobs = max(1, int(options.get("jobs") or 1))

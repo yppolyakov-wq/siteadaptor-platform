@@ -21,8 +21,9 @@ from apps.core import card_forms
 
 logger = logging.getLogger(__name__)
 
-#: Поля, которые панель вправе менять у блока «Liste» (остальное — `speed`, охват
-#: вида — остаётся как было: запись — патч).
+#: Поля, которые панель вправе менять у блока «Liste» (остальное — `speed` — остаётся
+#: как было: запись — патч). Охват вида (`scope`, FB-33 M4c) — не данные блока: его
+#: держит черновик страницы (`aufbau_draft.SCOPE_KEY`).
 NAMES = (
     "source",
     "title",
@@ -356,9 +357,65 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
     return out
 
 
-def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
+def scope_allowed(request) -> bool:
+    """FB-33 M4c: «Den ganzen Typ» пишет настройки типа акции (`promo_groups`) — то же
+    право, что у экрана «Aktionstypen»."""
+    from django.urls import reverse
+
+    from apps.core import view_perms
+
+    url = reverse("promotions:promo-type-save")
+    return view_perms.url_allowed(getattr(request, "user", None), url, "POST")
+
+
+def scope_rights_note() -> str:
+    return _(
+        "„Ansicht gilt für“ wurde nicht übernommen: "
+        "Dafür fehlt das Recht, Aktionstypen zu bearbeiten."
+    )
+
+
+def _scope_field(data: dict, scope: str) -> tuple[dict | None, str]:
+    """FB-33 M4c: охват вида — только у «Liste» с акциями и заданным типом: (поле, строка).
+    Поле только пишет: «Den ganzen Typ» при «Speichern» отдаёт вид блока типу акции
+    (`list_blocks.apply_type_scope`); выбор держит черновик страницы. У блока без своих
+    осей вида поля нет (пустой вид стёр бы настройки типа) — вместо него строка: блок
+    следует виду типа."""
+    from apps.core import list_blocks
+    from apps.promotions import promo_types
+
+    item = {"key": "list", "data": data}
+    kind = list_blocks.type_kind(item)
+    if not kind:
+        return None, ""
+    label = promo_types.label_for(kind)
+    if not list_blocks.type_scope_kind(item):
+        note = _(
+            "Dieser Block folgt der Ansicht des Typs „%(typ)s“. "
+            "Sie wird unter „Aktionstypen“ geändert."
+        )
+        return None, note % {"typ": label}
+    hint = _("Gilt für alle Blöcke dieses Typs und für seine Seite:")
+    field = _select(
+        "scope",
+        _("Ansicht gilt für"),
+        "type" if scope == "type" else "",
+        [("", _("Nur diesen Block")), ("type", _("Den ganzen Typ: %(typ)s") % {"typ": label})],
+        hint=f"{hint} {label}",
+    )
+    if scope == "type":
+        # a11y (ревью A2): что сделает «Speichern» — видимым предупреждением у поля
+        field["warn"] = _(
+            "Beim Speichern ändert sich die Ansicht aller Blöcke dieses Typs und seiner Seite; "
+            "die eigenen Einstellungen dieses Blocks entfallen."
+        )
+    return field, ""
+
+
+def groups(request, cfg: dict, data: dict, mode: str = "", scope: str | None = None) -> list[dict]:
     """Три группы полей панели для блока «Liste»: [{key, title, fields}]. У группы
-    «Welche» — ещё `mode` и `modes` (способ отбора; показываются поля только его)."""
+    «Welche» — ещё `mode` и `modes` (способ отбора; показываются поля только его).
+    `scope` — выбранный охват вида (FB-33 M4c); None — поля охвата нет."""
     from apps.core import list_blocks
     from apps.core.views import _cblock_row_lists
     from apps.tenants import siteconfig
@@ -480,6 +537,11 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
                 [("", f"{hint['card_from']}: {hint['card']}"), *cards],
             )
         )
+    scope_field, scope_note = (
+        (None, "") if scope is None else _scope_field({**data, "source": source}, scope)
+    )
+    if scope_field:
+        how.append(scope_field)
     # FB-30.5: заголовки групп говорят, о чём выбор («Welche Kategorien gezeigt werden»),
     # а не голое «Welche» / «Wie».
     what_label = siteconfig.LIST_SOURCES[source]["label"]
@@ -498,7 +560,12 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
             if mode == "regel"
             else "",
         },
-        {"key": "wie", "title": _("Wie %(what)s aussehen") % {"what": what_label}, "fields": how},
+        {
+            "key": "wie",
+            "title": _("Wie %(what)s aussehen") % {"what": what_label},
+            "fields": how,
+            "scope_note": scope_note,  # FB-33 M4c: блок без своих осей следует виду типа
+        },
     ]
 
 

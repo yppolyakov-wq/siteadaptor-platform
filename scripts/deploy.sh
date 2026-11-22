@@ -11,6 +11,12 @@
 # схемам, собирает статику, перезапускает сервисы, проверяет health.
 set -euo pipefail
 
+# FB-33 M3-9b (ревью): всё тело — в функции main, вызов — последней строкой. Шаг [1/8]
+# делает `git pull` и меняет ЭТОТ файл под работающим bash; построчно читаемый скрипт
+# продолжил бы со сдвигом. Функцию bash читает целиком до исполнения, а после pull скрипт
+# один раз запускает себя заново (DEPLOY_REEXEC) — деплой идёт сценарием своего коммита.
+# Тело намеренно без отступа: правки шагов читаются в diff как прежде.
+main() {
 # Корень репозитория = на уровень выше папки со скриптом (scripts/).
 # Можно переопределить через REPO_DIR=... ./scripts/deploy.sh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,6 +36,40 @@ COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml $PROFILE
 
 cd "$REPO_DIR"
 
+# FB-33 M3-9b: два деплоя сразу на одном сервере — второй выходит, не начав (раньше оба
+# собирали образ и мигрировали вперемешку). Блокировка — файл на этом сервере; снимается
+# сама, когда скрипт завершается (в том числе аварийно).
+# Файл — в каталоге репозитория (.git не чистится и в рабочее дерево не попадает).
+DEPLOY_LOCK_FILE="${DEPLOY_LOCK_FILE:-$REPO_DIR/.git/siteadaptor-deploy.lock}"
+if [ "${DEPLOY_REEXEC:-0}" = "1" ]; then
+	: # перезапуск после pull: блокировка уже наша — дескриптор 9 унаследован
+elif command -v flock >/dev/null 2>&1; then
+	exec 9>"$DEPLOY_LOCK_FILE"
+	if ! flock -n 9; then
+		echo "!!! Другой деплой уже идёт на этом сервере ($DEPLOY_LOCK_FILE занят)." >&2
+		echo "!!! Дождитесь его конца и запустите снова." >&2
+		exit 1
+	fi
+else
+	echo "    WARN: flock не найден — защита от двух деплоев сразу выключена"
+fi
+
+# FB-33 M3-9b: миграции идут под общей блокировкой операций над схемами
+# (apps/core/ops_lock.py) — её же берёт пересев демо (seed_demo_tenants): пересев удалял
+# схему, которую мигрировал деплой (MigrationSchemaMissing). Занята — ждём OPS_LOCK_TIMEOUT
+# секунд (по умолчанию 900) и останавливаем деплой с понятным сообщением, а не висим.
+# LOCK_BUSY — код выхода run_locked «не дождались» (ops_lock.EXIT_BUSY).
+LOCK_BUSY=75
+LOCK_ENV="-e OPS_LOCK_TIMEOUT=${OPS_LOCK_TIMEOUT:-900}"
+lock_busy_stop() {
+	echo "!!! Блокировка операций над схемами занята дольше ${OPS_LOCK_TIMEOUT:-900} с:" >&2
+	echo "!!! идёт пересев демо (seed_demo_tenants) или миграции другого деплоя." >&2
+	echo "!!! Схемы этим шагом НЕ тронуты, сервисы работают на прежней версии." >&2
+	echo "!!! Дождитесь конца той операции и запустите деплой снова" >&2
+	echo "!!! (дольше ждать: OPS_LOCK_TIMEOUT=3600 ./scripts/deploy.sh ...)." >&2
+	exit 1
+}
+
 # T-10: длительность каждого шага — чтобы видеть, что именно тормозит деплой.
 DEPLOY_START=$SECONDS
 STEP_START=$SECONDS
@@ -43,10 +83,17 @@ step() {
 	echo "==> $1"
 }
 
-step "[1/8] Pull $BRANCH from git"
-git fetch origin "$BRANCH"
-git checkout "$BRANCH"
-git pull --ff-only origin "$BRANCH"
+if [ "${DEPLOY_REEXEC:-0}" != "1" ]; then
+	step "[1/8] Pull $BRANCH from git"
+	git fetch origin "$BRANCH"
+	git checkout "$BRANCH"
+	git pull --ff-only origin "$BRANCH"
+	# дальше — сценарий только что полученного коммита (второго pull там нет)
+	export DEPLOY_REEXEC=1
+	SELF="$SCRIPT_DIR/$(basename "${BASH_SOURCE[0]}")"
+	exec "$SELF" "$@"
+fi
+echo "==> [1/8] Pull: сделан, деплой идёт сценарием коммита $(git rev-parse --short HEAD)"
 
 step "[2/8] Build images"
 # Один образ (web) на web/worker/beat + caddy; слой зависимостей берётся из кэша,
@@ -55,6 +102,28 @@ $COMPOSE build
 # Тег образа по коммиту — для отката: `docker tag siteadaptor-app:<sha> siteadaptor-app:latest`
 # и `$COMPOSE up -d` (latest перезаписывается каждой сборкой).
 docker tag siteadaptor-app:latest "siteadaptor-app:$(git rev-parse --short HEAD)" || true
+
+# FB-33 M3-9b: чистка диска. Каждый деплой оставлял образ `siteadaptor-app:<sha>` и кэш
+# сборки навсегда. Остаются latest, образ текущего коммита и ещё IMAGE_KEEP−1 предыдущих
+# (откат), остальным снимаем тег; кэш сборки старше 72 ч — прочь. Без силы (`rmi` без -f): образ
+# запущенного контейнера Docker удалить не даст. Контейнеры и тома не трогаем. Любая
+# ошибка чистки деплой не останавливает.
+IMAGE_KEEP="${IMAGE_KEEP:-5}"
+cleanup_images() {
+	local current tags old tag
+	current="$(git rev-parse --short HEAD)"
+	# теги-коммиты, новые первыми (по дате создания образа), без текущего коммита
+	tags="$(docker image ls siteadaptor-app --format '{{.CreatedAt}}|{{.Tag}}' \
+		| sort -r -s -t '|' -k1,1 | cut -d '|' -f2 \
+		| grep -E '^[0-9a-f]{7,40}$' | grep -vx "$current")" || tags=""
+	# текущий коммит оставляем всегда, к нему — IMAGE_KEEP-1 предыдущих
+	old="$(printf '%s\n' "$tags" | tail -n +"$IMAGE_KEEP")"
+	for tag in $old; do
+		docker rmi "siteadaptor-app:$tag" >/dev/null && echo "    образ siteadaptor-app:$tag снят"
+	done
+	docker builder prune -f --filter until=72h >/dev/null
+}
+cleanup_images || echo "    чистка образов не удалась — деплой продолжается"
 
 step "[2b/8] Media volume owner (non-root app)"
 # SEC-G11b: приложение работает под uid 10001, а том media создавался, когда оно было
@@ -98,14 +167,24 @@ step "[4/8] Preflight: deploy checks (fail-closed)"
 $COMPOSE run --rm web python manage.py check --deploy
 
 step "[5/8] Migrate shared (public) schema"
-$COMPOSE run --rm web python manage.py migrate_schemas --shared
+rc=0
+# shellcheck disable=SC2086
+$COMPOSE run --rm $LOCK_ENV web python manage.py run_locked migrate_schemas --shared || rc=$?
+if [ "$rc" = "$LOCK_BUSY" ]; then lock_busy_stop; fi
+if [ "$rc" != "0" ]; then exit "$rc"; fi
 
 step "[6a/8] Schema template (fast schema creation)"
 # T-10 D-1: шаблон, копией которого создаются новые схемы (регистрация, пересев демо).
 # Идемпотентно; свежий шаблон — секунды. Сбой не валит деплой: без шаблона схемы
 # создаются прежним путём миграциями.
-$COMPOSE run --rm web python manage.py ensure_template_schema \
-	|| echo "    шаблон не готов — новые схемы будут создаваться миграциями"
+# Под той же блокировкой: пересев демо создаёт схемы копией шаблона.
+rc=0
+# shellcheck disable=SC2086
+$COMPOSE run --rm $LOCK_ENV web python manage.py run_locked ensure_template_schema || rc=$?
+if [ "$rc" = "$LOCK_BUSY" ]; then lock_busy_stop; fi
+if [ "$rc" != "0" ]; then
+	echo "    шаблон не готов — новые схемы будут создаваться миграциями"
+fi
 
 step "[6b/8] Migrate tenant schemas"
 # T-10: если по всем схемам применять нечего — шаг пропускается (раньше сотня схем
@@ -117,9 +196,19 @@ if [ "${FORCE_MIGRATE:-0}" != "1" ] \
 else
 	# Сбой параллельного прогона (взаимная блокировка на public-таблицах и т. п.) —
 	# повтор по одной схеме: миграции атомарны, применённое не повторяется.
-	$COMPOSE run --rm web python manage.py migrate_schemas --tenant --executor=multiprocessing \
-		|| { echo "    параллельно не вышло — повтор по одной схеме"; \
-			$COMPOSE run --rm web python manage.py migrate_schemas --tenant; }
+	# Занятая блокировка (код LOCK_BUSY) — не сбой миграций: повтор ждал бы её ещё раз.
+	rc=0
+	# shellcheck disable=SC2086
+	$COMPOSE run --rm $LOCK_ENV web python manage.py run_locked migrate_schemas --tenant --executor=multiprocessing || rc=$?
+	if [ "$rc" = "$LOCK_BUSY" ]; then lock_busy_stop; fi
+	if [ "$rc" != "0" ]; then
+		echo "    параллельно не вышло — повтор по одной схеме"
+		rc=0
+		# shellcheck disable=SC2086
+		{ $COMPOSE run --rm $LOCK_ENV web python manage.py run_locked migrate_schemas --tenant; } || rc=$?
+		if [ "$rc" = "$LOCK_BUSY" ]; then lock_busy_stop; fi
+		if [ "$rc" != "0" ]; then exit "$rc"; fi
+	fi
 fi
 # collectstatic делает сам web при старте (compose). Отдельный шаг `run --rm
 # collectstatic` писал во временный контейнер и только тратил время (T-10).
@@ -195,3 +284,7 @@ fi
 
 step "done"
 echo "==> Deploy complete (mode: $MODE) за $((SECONDS - DEPLOY_START)) с."
+}
+
+main "$@"
+exit

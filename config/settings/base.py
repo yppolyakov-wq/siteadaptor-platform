@@ -462,6 +462,10 @@ CELERY_TASK_DEFAULT_QUEUE = "default"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TIMEZONE = TIME_ZONE
 
+# FB-33 M2i-7.1: через сколько часов отменяется брошенный онлайн-заказ без e-mail
+# (оплата не начата, напоминание слать некуда). Задача — expire-abandoned-online-orders.
+ORDERS_ABANDONED_HOURS = env.int("ORDERS_ABANDONED_HOURS", default=24)
+
 # Периодические задачи. DatabaseScheduler синхронизирует это в БД при старте
 # beat'а. Задачи сами проходят по всем схемам арендаторов (см. apps/*/tasks.py).
 CELERY_BEAT_SCHEDULE = {
@@ -488,6 +492,12 @@ CELERY_BEAT_SCHEDULE = {
     "expire-anprobe": {
         "task": "apps.orders.tasks.expire_anprobe_reservations",
         "schedule": 300.0,
+    },
+    # FB-33 M2i-7.1: брошенный онлайн-заказ без e-mail (оплата не начата) отменяется
+    # через ORDERS_ABANDONED_HOURS — склад и лимит акции не висят занятыми.
+    "expire-abandoned-online-orders": {
+        "task": "apps.orders.tasks.expire_abandoned_online_orders",
+        "schedule": 900.0,
     },
     # SH-23d (Р-4): снятие удержания с неоплаченных сделок по прошедшему сроку
     # оплаты (счёт — до Zahlungsziel, Vorkasse — 3 дня). Тот же ритм, что у

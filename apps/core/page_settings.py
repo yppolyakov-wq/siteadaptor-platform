@@ -548,6 +548,12 @@ def _storefront_shows(tenant, type_code: str) -> bool:
         from apps.events.models import Teacher
 
         return Teacher.objects.filter(is_active=True).exists()
+    if type_code == "team":
+        # FB-33 M3-9a: `/team/` без команды — 404 (`public_views.team_page`); гейт как у
+        # пункта меню (`tenants.menu`)
+        from apps.tenants import siteconfig
+
+        return bool(siteconfig.normalize(tenant.site_config).get("team"))
     return True
 
 

@@ -167,31 +167,14 @@ collect()/save работают без переименований. data-cb-id 
         </div>
       </details>
       {% comment %}Темп — только у ленты (у сетки поле скрытое: «Speichern» его не стирает, W0); «Ansicht gilt für» — у блока акций с типом (выбор охвата, не раскладка окна: ревью M4b №3). Пустой группы нет.{% endcomment %}
-      {% if b.data.out == "slider" or not b.data.out and lh.mode_key == "slider" or b.data.source|default:"promotions" == "promotions" and b.data.type %}
+      {% if b.data.out == "slider" or not b.data.out and lh.mode_key == "slider" %}
       <details class="bld-grp w-full" data-grp="feinschliff" open>
         <summary class="bld-grp-sum">{% trans "Feinschliff" %}</summary>
         <div class="bld-grp-body">
-          {% if b.data.out == "slider" or not b.data.out and lh.mode_key == "slider" %}
           <div class="stu-row" data-lb-speed>
             <span class="stu-lb">{% trans "Tempo (Sek.)" %}</span>
             <input type="number" name="cb_{{ b.id }}_speed" data-lb-axis="speed" min="3" max="15" value="{{ b.data.speed|default_if_none:'' }}" placeholder="{% trans 'aus' %}" aria-label="{% trans 'Tempo (Sek.)' %}" class="stu-ctrl stu-num" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
           </div>
-          {% else %}
-          <input type="hidden" name="cb_{{ b.id }}_speed" value="{{ b.data.speed|default_if_none:'' }}">
-          {% endif %}
-          {% if b.data.source|default:"promotions" == "promotions" and b.data.type %}
-          {% comment %}LB-1b: «Den ganzen Typ» — сохранённый вид блока уходит типу акции (все его блоки и страница), `list_blocks.apply_type_scope`; поле служебное, в конфиге не хранится.{% endcomment %}
-          <div class="stu-row" data-lb-scope-row>
-            <label class="block">
-              <span class="stu-lb">{% trans "Ansicht gilt für" %}</span>
-              <select name="cb_{{ b.id }}_scope" class="stu-ctrl">
-                <option value="" selected>{% trans "Nur diesen Block" %}</option>
-                <option value="type">{% trans "Den ganzen Typ" %}</option>
-              </select>
-            </label>
-            <p class="mt-1 text-[11px] text-gray-400">{% trans "Gilt für alle Blöcke dieses Typs und für seine Seite:" %} <b>{{ lh.type_label }}</b></p>
-          </div>
-          {% endif %}
         </div>
       </details>
       {% else %}

@@ -40045,15 +40045,15 @@ msgstr "Тут надсилається необов’язковий запит
 
 #. FB-33 M3-6
 msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern. Texte und Felder können Sie anpassen."
-msgstr "Підсумок замовлення, загальна ціна й кнопка «Zahlungspflichtig bestellen» мають стояти безпосередньо одне під одним — цього вимагає § 312j BGB (Button-Lösung). Тому блок не можна переставити, приховати чи змінити за шириною. Тексти й поля можна налаштувати."
+msgstr "Підсумок замовлення, загальна ціна й кнопка «Zahlungspflichtig bestellen» мають стояти безпосередньо одне під одним — цього вимагає § 312j BGB («правило кнопки»). Тому блок не можна переставити, приховати чи змінити за шириною. Тексти й поля можна налаштувати."
 
 #. FB-33 M3-6
 msgid "Bei kostenpflichtigen Buchungen muss der Button „Zahlungspflichtig buchen“ heißen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt sich dieser Block nicht verschieben, ausblenden oder in der Breite ändern."
-msgstr "Під час платного бронювання кнопка має називатися «Zahlungspflichtig buchen» — цього вимагає § 312j BGB (Button-Lösung). Тому блок не можна переставити, приховати чи змінити за шириною."
+msgstr "Під час платного бронювання кнопка має називатися «Zahlungspflichtig buchen» — цього вимагає § 312j BGB («правило кнопки»). Тому блок не можна переставити, приховати чи змінити за шириною."
 
 #. FB-33 M3-6
 msgid "Der Kauf wird im Warenkorb mit dem Button „Zahlungspflichtig bestellen“ abgeschlossen — so verlangt es § 312j BGB (Button-Lösung). Dieser Block hat deshalb einen festen Platz: Er lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
-msgstr "Покупка завершується в кошику кнопкою «Zahlungspflichtig bestellen» — цього вимагає § 312j BGB (Button-Lösung). Тому блок має постійне місце: його не можна переставити, приховати чи змінити за шириною."
+msgstr "Покупка завершується в кошику кнопкою «Zahlungspflichtig bestellen» — цього вимагає § 312j BGB («правило кнопки»). Тому блок має постійне місце: його не можна переставити, приховати чи змінити за шириною."
 
 #. FB-33 M3-6
 msgid "Beschriftung des Buchungs-Buttons"
@@ -40164,7 +40164,7 @@ msgstr "Цей блок тут не видно – попередній пере
 
 #. FB-33 M2i-34: плашка § 312j у итога корзины — без обещания «Felder»
 msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern."
-msgstr "Підсумок замовлення, загальна ціна й кнопка «Zahlungspflichtig bestellen» мають стояти безпосередньо одне під одним — цього вимагає § 312j BGB (Button-Lösung). Тому блок не можна переставити, приховати чи змінити за шириною."
+msgstr "Підсумок замовлення, загальна ціна й кнопка «Zahlungspflichtig bestellen» мають стояти безпосередньо одне під одним — цього вимагає § 312j BGB («правило кнопки»). Тому блок не можна переставити, приховати чи змінити за шириною."
 
 msgid "öffnet das Blockfenster"
 msgstr "відкриває вікно блока"
@@ -40198,3 +40198,36 @@ msgstr "Підтвердження надішлемо на адресу елек
 msgid "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet"
 msgstr "Оплачено — немає адреси електронної пошти, підтвердження не надіслано"
 
+#. FB-33 M4c
+#: apps/core/list_panel.py
+#, python-format
+msgid "Dieser Block folgt der Ansicht des Typs „%(typ)s“. Sie wird unter „Aktionstypen“ geändert."
+msgstr "Блок наслідує вигляд типу «%(typ)s». Він змінюється в розділі «Типи акцій»."
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+#, python-format
+msgid "Den ganzen Typ: %(typ)s"
+msgstr "Усьому типу: %(typ)s"
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+msgid "Beim Speichern ändert sich die Ansicht aller Blöcke dieses Typs und seiner Seite; die eigenen Einstellungen dieses Blocks entfallen."
+msgstr "Під час збереження зміниться вигляд усіх блоків цього типу та його сторінки; власні налаштування цього блоку буде знято."
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+msgid "„Ansicht gilt für“ wurde nicht übernommen: Dafür fehlt das Recht, Aktionstypen zu bearbeiten."
+msgstr "«Вигляд застосовується до» не застосовано: немає права редагувати типи акцій."
+
+msgid "Automatisch storniert: nicht bezahlt"
+msgstr "Скасовано автоматично: не оплачено"
+
+msgid "Rückerstattung offen — bitte in Stripe prüfen"
+msgstr "Повернення не виконано — перевірте у Stripe"
+
+msgid "Ihre Zahlung wird bereits verarbeitet."
+msgstr "Ваш платіж уже обробляється."
+
+msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
+msgstr "Це замовлення вже не можна оплатити онлайн. Будь ласка, оформіть нове."

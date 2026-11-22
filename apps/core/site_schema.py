@@ -113,6 +113,12 @@ def _preview_url(pt) -> str:
                 return obj.get_absolute_url()
             except Exception:  # noqa: BLE001 — превью необязательно
                 return ""
+        route = _OBJECT_PREVIEW_ROUTES.get(pt.code)
+        if obj is not None and route:  # адрес по своему полю (категория — slug)
+            try:
+                return reverse(route[0], args=[getattr(obj, route[1])])
+            except NoReverseMatch:
+                return ""
         if obj is not None:
             for name in pt.url_names:  # запись без своего адреса — маршрут типа по pk
                 try:
@@ -169,8 +175,8 @@ STUDIO_LAYOUT_KEYS = ("tail", "balance", "mobile", "tablet")
 #: FB-33 M4b: что из строки встроенного списка правит только окно (Was · Wie · Karte).
 _BUILTIN_WINDOW_FIELDS = ("data", "source", "limit", "style")
 #: FB-33 M4b: данные блока «Liste», которые по-прежнему пишет Студия; остальное — окно.
-#: `scope` — служебный охват «Ansicht gilt für» (`list_blocks.apply_type_scope`, ревью №3).
-LIST_STUDIO_FIELDS = ("title", "intro", "speed", "scope")
+#: Охват «Ansicht gilt für» с FB-33 M4c правит только окно блока (`aufbau_draft.SCOPE_KEY`).
+LIST_STUDIO_FIELDS = ("title", "intro", "speed")
 
 
 def _is_builtin_list(item: dict) -> bool:
@@ -515,7 +521,11 @@ OBJECT_KINDS = ("product", "service", "stay", "event", "promo", "tour")
 #: T1: вид объекта без своего типа страницы → тип, чьи блоки и настройки он делит.
 OBJECT_PAGE_TYPES = {"tour": "event"}
 #: Адрес витрины объекта, у которого он не строится по pk маршрутом типа: (маршрут, поле).
-_OBJECT_PREVIEW_ROUTES = {"tour": ("storefront-tour", "slug")}
+#: FB-33 M3-9a: и образец типа «Kategorie» — по pk его адрес ловил маршрут товара (404).
+_OBJECT_PREVIEW_ROUTES = {
+    "tour": ("storefront-tour", "slug"),
+    "category": ("storefront-category", "slug"),
+}
 _OBJECT_MODELS = {
     # путь одной строкой: пара («модуль», «Имя») читается проверкой переводов как подпись
     "product": "apps.catalog.models.Product",
@@ -854,18 +864,31 @@ def category_items(config: dict, host: str, items: list[dict], op: str) -> list[
     return copied + own
 
 
-def text_pages() -> list[SubPage]:
-    """Страницы типа «Seite»: Über uns, Versand (если доступна) и свои страницы."""
+def versand_shown(tenant) -> bool:
+    """FB-33 M3-9a: «Versand» есть, пока магазин принимает заказы — тот же гейт, что у
+    вьюхи `/versand/` (`orders.public_views.shipping_info`): иначе строка вела бы в 404."""
+    from apps.core import storefront_state
+
+    return storefront_state.orders_active(tenant)
+
+
+def text_pages(tenant=None) -> list[SubPage]:
+    """Страницы типа «Seite»: Über uns, Versand (если доступна) и свои страницы.
+    `tenant` — бизнес, чьи строки собираются: без заказов «Versand» не предлагается
+    (без него — как раньше, по одному маршруту)."""
     from apps.core import content_pages
     from apps.core.models import ContentPage
 
     out = [SubPage(TEXT, str(_("Über uns")), "info", reverse("storefront-about"))]
-    try:
-        out.append(
-            SubPage(f"{TEXT}@versand", str(_("Versand")), "versand", reverse("storefront-shipping"))
-        )
-    except NoReverseMatch:
-        pass
+    if tenant is None or versand_shown(tenant):
+        try:
+            out.append(
+                SubPage(
+                    f"{TEXT}@versand", str(_("Versand")), "versand", reverse("storefront-shipping")
+                )
+            )
+        except NoReverseMatch:
+            pass
     pages = ContentPage.objects.exclude(slug__in=list(content_pages.SYSTEM_PAGES)).order_by(
         "sort_order", "title"
     )
@@ -1183,9 +1206,16 @@ def _banner_choice(config: dict, item: dict) -> dict:
 
 
 def blocks_for(
-    config: dict, code: str, host: str | None = None, summaries: bool = True
+    config: dict,
+    code: str,
+    host: str | None = None,
+    summaries: bool = True,
+    has_combos: bool | None = None,
 ) -> list[dict]:
-    """Строки схемы: {ref, key, label, enabled, main, cblock, summary} по порядку страницы."""
+    """Строки схемы: {ref, key, label, enabled, main, cblock, summary} по порядку страницы.
+
+    «Sets & Menüs» — строка только при наборах, каким бы ни был `summaries` (M3-9a).
+    `has_combos` — уже известный ответ «наборы есть» (без запроса); None — спросить базу."""
     from apps.tenants import siteconfig
 
     pt = _page_type(code)
@@ -1331,7 +1361,9 @@ def blocks_for(
         _form_row(config, out, host)
     if _dp.object_kind(host or ""):
         out = _with_shared_rows(config, host, out)
-    if summaries and host in ("catalog", "category") and not _has_combos():
+    if host in ("catalog", "category") and not (
+        _has_combos() if has_combos is None else has_combos
+    ):
         # «Sets & Menüs» — только если наборы есть (иначе строке нечего показывать)
         out = [b for b in out if b["key"] != siteconfig.CATALOG_SETS_KEY]
     if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
@@ -2019,7 +2051,9 @@ def _row(
     code = code or pt.code
     if host is None:
         host = host_for(code)
-    blocks = blocks_for(config, code, host=host, summaries=False)
+    # строке списка страниц нужен только счёт СВОИХ блоков: «Sets & Menüs» в него не входит,
+    # поэтому базу о наборах не спрашиваем (has_combos=False — строки нет, запроса нет)
+    blocks = blocks_for(config, code, host=host, summaries=False, has_combos=False)
     return PageRow(
         code=code,
         label=label or str(pt.label),
@@ -2075,7 +2109,7 @@ def type_groups(tenant, config: dict) -> list[tuple[str, list[PageRow]]]:
         if code == TEXT:
             content.extend(
                 _row(config, pt, code=p.code, label=p.label, preview=p.preview_url, host=p.host)
-                for p in text_pages()
+                for p in text_pages(tenant)
             )
         else:
             content.append(_row(config, pt))
@@ -2213,6 +2247,8 @@ def resolve(tenant, code: str):
     home = pt.code == "home"
     if not home and not host:
         raise SchemaError("page")
+    if pt.code == TEXT and host == "versand" and not versand_shown(tenant):
+        raise SchemaError("page")  # M3-9a: страницы нет без заказов — не правится и POST'ом
     return pt, host, home
 
 

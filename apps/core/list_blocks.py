@@ -1284,6 +1284,16 @@ _VIEW_AXES = ("out", "cols", "rows", "speed", "card")
 _LAYOUT_AXES = ("out", "cols", "rows", "speed")
 
 
+def _list_rows(rows) -> list[dict]:
+    return [
+        item
+        for item in rows or ()
+        if isinstance(item, dict)
+        and siteconfig.cblock_type(item.get("key")) == "list"
+        and isinstance(item.get("data"), dict)
+    ]
+
+
 def _list_blocks_of(cfg: dict) -> list[dict]:
     """Блоки «Liste» конфига в порядке обхода: главная, затем страницы."""
     found: list = []
@@ -1295,13 +1305,7 @@ def _list_blocks_of(cfg: dict) -> list[dict]:
         for rows in pages.values():
             if isinstance(rows, list):
                 found.extend(rows)
-    return [
-        item
-        for item in found
-        if isinstance(item, dict)
-        and siteconfig.cblock_type(item.get("key")) == "list"
-        and isinstance(item.get("data"), dict)
-    ]
+    return _list_rows(found)
 
 
 def _axis_int(raw, low: int, high: int) -> int:
@@ -1340,28 +1344,52 @@ def _type_layout(cfg: dict, data: dict) -> dict:
     return layout
 
 
-def apply_type_scope(cfg: dict) -> None:
+def type_kind(item) -> str:
+    """FB-33 M4c: тип акции блока «Liste» с источником «Aktionen»; пусто — не «Liste», не
+    акции или тип не задан."""
+    data = item.get("data") if isinstance(item, dict) else None
+    if not isinstance(data, dict) or siteconfig.cblock_type(item.get("key")) != "list":
+        return ""
+    if _source(data) != "promotions":
+        return ""
+    return str(data.get("type") or "").strip()
+
+
+def type_scope_kind(item) -> str:
+    """FB-33 M4c: тип акции, которому блок «Liste» может отдать свой вид («Den ganzen
+    Typ»); пусто — охват не предлагается: не «Liste» с типом акции (`type_kind`) или у блока
+    нет ни одной своей оси вида — отдавать нечего, а пустой вид стёр бы настройки типа.
+    Одно условие для поля окна блока, черновика и `apply_type_scope`."""
+    kind = type_kind(item)
+    return kind if kind and any(item["data"].get(axis) for axis in _VIEW_AXES) else ""
+
+
+def apply_type_scope(cfg: dict, ids=None, rows=None) -> None:
     """LB-1b: блоки в режиме «Den ganzen Typ» отдают свой вид ТИПУ акции.
 
-    Одна функция для Save билдера и для живого черновика — превью показывает ровно то,
-    что сохранится. Для блока `list` с `scope="type"`, источником «Aktionen» и типом:
-    оси вида уходят в `promo_groups[тип]` (пустые — тип снова наследует страницу), а у
-    блока очищаются — он следует за типом, как все блоки этого типа. Шаблон страницы
-    типа (`style`) и чужие типы не трогаются. `scope` — служебное поле формы и в
-    конфиге не остаётся ни у одного блока. Два блока одного типа в этом режиме —
-    побеждает последний по порядку обхода (главная, затем страницы).
+    Для блока `list` с источником «Aktionen», типом и хотя бы одной своей осью вида
+    (`type_scope_kind`): оси вида уходят в `promo_groups[тип]`, а у блока очищаются — он
+    следует за типом, как все блоки этого типа. Блок без своих осей вид типа не трогает
+    (ревью M4c: иначе повторный выбор охвата стирал бы настройки типа). Шаблон страницы
+    типа (`style`) и чужие типы не трогаются.
+
+    FB-33 M4c: охват выбирают в окне блока, черновик страницы держит выбор отдельно от
+    данных блока (`aufbau_draft.SCOPE_KEY`): `ids` — {id блока: тип на момент выбора} (тип
+    у блока уже другой — вид не уходит), `rows` — строки страницы черновика (блоки других
+    страниц не обходятся). Без `rows` — весь конфиг: страховка, сметает служебный `scope`
+    из старых данных формы Студии (в конфиге он не остаётся ни у одного блока).
     """
     if not isinstance(cfg, dict):
         return
     from apps.promotions import promo_types
 
+    ids = ids if isinstance(ids, dict) else {}
     types = None
-    for item in _list_blocks_of(cfg):
+    for item in _list_blocks_of(cfg) if rows is None else _list_rows(rows):
         data = item["data"]
-        if data.pop("scope", None) != "type":
-            continue
-        kind = str(data.get("type") or "").strip()
-        if _source(data) != "promotions" or not kind:
+        scoped = data.pop("scope", None) == "type"
+        kind = type_scope_kind(item)
+        if not kind or not (scoped or ids.get(item.get("id")) == kind):
             continue
         if types is None:
             raw = cfg.get("promo_groups")
@@ -1382,46 +1410,6 @@ def apply_type_scope(cfg: dict) -> None:
             data.pop(axis, None)
     if types is not None:
         cfg["promo_groups"] = types
-
-
-def type_views(cfg: dict, keys=()) -> dict:
-    """LB-1b: карта для пилюли охвата в строке редактора (один JSON на страницу).
-
-    `types` — что покажут контролы вида в режиме «Den ganzen Typ» (значения самого
-    типа, пусто = тип наследует); `page` — подписи пустых пунктов в этом режиме: тип
-    без своей оси берёт её у страницы акций.
-    """
-    from apps.promotions import promo_types
-
-    cfg = cfg or {}
-    per_type = cfg.get("promo_groups") if isinstance(cfg.get("promo_groups"), dict) else {}
-    names = [*keys, *per_type, *(b["data"].get("type") for b in _list_blocks_of(cfg))]
-    types: dict = {}
-    for key in dict.fromkeys(str(k or "").strip() for k in names):
-        if not key:
-            continue
-        settings = promo_types.settings_for(per_type, key)
-        layout = settings.get("layout") or {}
-        types[key] = {
-            "out": ("slider" if layout.get("scroll") else "grid") if layout else "",
-            "cols": str(layout.get("cols") or "") if layout else "",
-            "rows": str(layout.get("rows") or ""),
-            "speed": str(layout.get("speed") or ""),
-            "card": settings.get("card", ""),
-        }
-    page = view_hint(cfg, {"source": "promotions"})
-    return {
-        "types": types,
-        "page": {
-            "out": f"{page['layout_from']}: {page['mode']}",
-            "cols": f"{page['layout_from']}: {page['cols']}",
-            "rows": (
-                f"{page['layout_from']}: {page['rows']}" if page["rows"] else _("automatisch")
-            ),
-            "card": f"{page['card_from']}: {page['card']}",
-            "mode": page["mode_key"],
-        },
-    }
 
 
 def editor_options(

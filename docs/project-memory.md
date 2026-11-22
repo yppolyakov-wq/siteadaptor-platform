@@ -15,6 +15,16 @@
 
 ## 1. Открыто сейчас (сводка на 2026-11-13)
 
+### Решения владельца стопки 7 (2026-11-21, по рекомендации плана — подтвердить)
+- Срок автоотмены брошенных онлайн-заказов без e-mail — 24 ч (`ORDERS_ABANDONED_HOURS`, общий для всех бизнесов). Принято по рекомендации.
+- Телефон заказ не держит: заказ с телефоном, но без e-mail, отменяется так же (напоминание уходит только по e-mail).
+- Охват «Ansicht gilt für» (вид типа акций) пишет настройки типа → требует права на акции (`marketing.edit`), а не только `website.edit`. Раньше Студия писала `promo_groups` без этой проверки.
+- Платёж «в пути» (SEPA/Klarna) не отменяется; потолок — 14 дней от создания заказа (`payment_holds.PROCESSING_HOLD`). Заказ с e-mail этим правилом не отменяется.
+- Поздняя оплата после ручной отмены владельцем возвращается (как у брони/номера/билета) — принято.
+- Полный прогон стопки — только CI; стенды и ревью идут параллельно с CI (правило владельца 2026-11-21, `pitfalls.md` §6).
+- Открыто: брошенные онлайн-заказы С e-mail висят бессрочно (получают одно напоминание) — отменять ли их, например через 72 ч после напоминания.
+- Снятое: селект охвата в Студии — не восстанавливать (охват только в окне блока).
+
 Идёт в работе:
 - **FB-27** «Website: Seitenaufbau» — сделаны R0…R6 (настройки типа страницы в панели
   «★ Hauptliste» / «Einstellungen der Seite»; «Seitenvorlagen» снесены, адреса → 302; ручной
@@ -181,6 +191,7 @@ LLM-режим Finder, SSE для чата.
 
 ## 2. Ops владельцу (сводка; выполнено ли — не подтверждено, если не сказано иначе)
 
+- FB-33 стопка 7 (2026-11-21): миграций нет. Деплой — `git pull origin main && ./scripts/deploy.sh single` (первый раз — уже новым сценарием; одной командой без pull — старым, см. `fb33-next-2026-11-20.md` §2). Новая настройка `ORDERS_ABANDONED_HOURS` (по умолчанию 24). Первый проход после деплоя отменит висящие неоплаченные онлайн-заказы без e-mail старше срока — ожидаемо. Новая beat-задача: перезапуск worker/beat делает `deploy.sh`. Деплой и пересев демо ждут друг друга через блокировку до 15 мин (`OPS_LOCK_TIMEOUT`).
 - FB-33 стопка 4 (2026-11-21): миграций нет — обычный `deploy.sh single`.
 - FB-33 стопка 3 (2026-11-20): миграции `catalog/0046_fb33_product_faq`, `stays/0049_fb33_unit_faq`
   (аддитивные, `db_default`) — обычный `deploy.sh single`; после — `seed_demo_tenants --group all --changed
@@ -251,6 +262,15 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 второй список или второй писатель.
 
 ### apps/core
+- `list_blocks.type_scope_kind(item)` — может ли блок отдать вид типу акции (и какому): одно условие для поля окна, черновика и `apply_type_scope`. Второе условие «Liste + акции + тип» не заводить.
+- `list_blocks.apply_type_scope(cfg, ids=(), rows=None)` — единственный перенос вида блока в `promo_groups[тип]`; `ids` = {id блока: тип}, `rows` — строки страницы черновика (без них — весь конфиг, страховка Студии). Зовут `aufbau_draft.overlay`/`commit`; два вызова в Студии (`views.py`) — остаток, снять при правке.
+- `aufbau_draft.SCOPE_KEY` / `SCOPE_BASE` (+ строка в `SIDE_PARTS`), `scope_of(draft, ref)`, `_sync_scope`, `_scope_conflict`, `SCOPE_OFF` — выбор охвата в черновике страницы; в данных блока и в `site_config` `scope` не хранится.
+- `aufbau_draft.overlay(config, draft, *, scope=True)` — `scope=False` только для окна блока (`site_schema_views`).
+- `list_panel.scope_allowed(request)`, `list_panel.scope_rights_note()` — право на охват и пометка.
+- `site_schema.versand_shown(tenant)` — есть ли страница «Versand» (тот же гейт, что у вьюхи `/versand/`); `text_pages`, `type_groups`, `resolve` зовут её.
+- `site_schema._OBJECT_PREVIEW_ROUTES["category"]` = (`storefront-category`, `slug`) — адрес превью категории по слагу (рядом с `tour`).
+- `page_settings._storefront_shows` — ветка `team` (как `tenants.menu` и `public_views.team_page`).
+- `apps/core/ops_lock.py` — ЕДИНСТВЕННАЯ блокировка операций над схемами (миграции деплоя, пересев демо): `ops_lock.hold(what=…)`, один ключ `KEY`; `manage.py run_locked <cmd>` ведёт команду подпроцессом. Новая команда, которая создаёт, удаляет или мигрирует схемы пачкой, берёт её либо запускается через `run_locked`; второй ключ не заводить.
 - `page_axes_objects.py` (FB-31.7 B1b-2) — перенос своих шаблонов объектов (категория,
   акция, группа) в строки своих хостов; та же единица `migrate_categories` закрепляет свои
   шаблоны категорий перед записью «Alle Kategorien» (`page_settings._pin_own_categories`).
@@ -549,6 +569,12 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 
 ### apps/orders
 
+- `apps/orders/tasks.expire_abandoned_online` / `_abandoned_pks` / `_still_abandoned` — единственный путь автоотмены брошенного онлайн-заказа; условия выборки и повторной проверки менять ВМЕСТЕ. `tasks.retry_late_refunds` — повтор возврата поздней оплаты (до 4 раз).
+- `payments.abandon_deadline(order)` — ЕДИНЫЙ срок автоотмены (выборка SQL зеркалит его; читают `_still_abandoned`, `pay_window_closed`, `_session_expires_at`): max(создан + срок; при оплате «в пути» — + 14 дней; `payment_due_at`).
+- `payments.abandoned_hours()` (читает `ORDERS_ABANDONED_HOURS`, минимум 1 ч); `payments._session_expires_at`; `payments.has_contact_email(order)` и `payments.no_contact_email_q` — «клиенту есть куда писать» (одно условие).
+- `payments.mark_order_paid` — строка под `select_for_update`; поздняя оплата → `payment_holds.settle_late_payment("order", …)`; `payments._is_late_new_payment` — «новые деньги у отменённого заказа» по книге сделки.
+- `payments.mark_order_processing` / `release_failed_payment` / `payment_processing` — «оплата в пути»: признак — `payment_state=unpaid` + непустой `stripe_payment_intent`.
+- `payments.refund_open` — «отменён · оплачен онлайн» = незавершённый возврат (читают карточка и `retry_late_refunds`); `payments.pay_window_closed`, `was_auto_cancelled`, `ABANDONED_ACTOR`.
 - `apps/orders/delivery_choice.py` — общий разбор «Abholung | Lieferung» для корзины, акции, предложения, заявки (SH-24).
 - apps/orders/editing.py — правка состава/скидки/доставки/клиента заказа тем же складским движком, что создание/отмена.
 - `apps/orders/offers.py` — Sofort-Angebot (LS-3)

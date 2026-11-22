@@ -665,9 +665,8 @@ _LIST_BLOCK_FIELDS = (
     # FB-27 R5: ручной состав («Einzeln») правится в «Seitenaufbau»; строка Студии несёт
     # его скрытым полем, иначе её Save стёр бы выбор владельца (W0).
     "pick",
-    # LB-1b: охват вида — «только этот блок» ("") или «весь тип» ("type"). Служебное
-    # поле формы: `list_blocks.apply_type_scope` разбирает его ДО normalize.
-    "scope",
+    # FB-33 M4c: охват вида («Ansicht gilt für») выбирают в окне блока — форма Студии его
+    # не читает (`aufbau_draft.SCOPE_KEY`).
 )
 
 
@@ -2863,9 +2862,7 @@ def home_builder_view(request):
                 config, new_page_blocks=new_pages, skip_locale=save_loc if translating else None
             )
             config["page_blocks"] = new_pages
-        # LB-1b: блоки «Liste» в режиме «Den ganzen Typ» отдают свой вид типу акции —
-        # та же функция, что у живого черновика (превью = результат Save). До снимка
-        # шаблона страницы и до разборки перевода: оси вида — структура, не текст.
+        # FB-33 M4c: страховка — сметает устаревший `scope` из старых данных (охват — в окне блока)
         list_blocks.apply_type_scope(config)
         # SE-4b: сохранить текущую компоновку как шаблон страницы. Снимок берём из только
         # что собранного config["sections"] → ловит несохранённые правки порядка/видимости
@@ -3471,10 +3468,6 @@ def home_builder_view(request):
             ],
             # Селекторы строк C-блоков (промо, тип акции, стиль скидки, категории LB-1).
             **_row_lists,
-            # LB-1b: вид каждого типа акции — контролы строки в режиме «Den ganzen Typ».
-            "lb_type_views": list_blocks.type_views(
-                config, [key for key, _label in _row_lists["promo_types_for_blocks"]]
-            ),
             # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка даёт
             # демо-данные из siteconfig.CBLOCK_DEMO_DATA). FB-33 M2a: каталог блоков.
             "block_types": block_catalog.studio_block_types(),
@@ -4036,7 +4029,7 @@ def site_preview_draft(request):
             # пустым FAQ, и Save стёр бы вопросы)
             _parsed.pop("faq", None)
         cfg.update(_parsed)
-    # LB-1b: «Den ganzen Typ» — та же функция, что у Save билдера (превью = результат).
+    # FB-33 M4c: страховка — сметает устаревший `scope` из старых данных (охват — в окне блока)
     list_blocks.apply_type_scope(cfg)
     # STU-19a: the draft must show cabinet-owned settings as stored (no-op until 19e).
     from apps.core import page_settings

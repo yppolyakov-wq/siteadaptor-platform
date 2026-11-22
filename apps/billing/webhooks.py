@@ -134,6 +134,16 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             # удержание (expire_overdue). Оплату не ставим.
             logger.warning("stripe webhook %s: async payment failed %s", kind, meta)
             payment_holds.release_after_failed(meta)
+            if kind == "order_payment":
+                # FB-33 M2i-7.1: платёж отвязан — заказ снова можно оплатить, а брошенный
+                # без e-mail снова подлежит автоотмене.
+                from apps.orders.payments import release_failed_payment
+
+                release_failed_payment(
+                    tenant_schema=meta.get("tenant_schema", ""),
+                    order_id=meta.get("order_id", ""),
+                    payment_intent=obj.get("payment_intent") or "",
+                )
             return
         elif event_type == "checkout.session.completed" and (
             obj.get("payment_status") not in PAID_STATUSES
@@ -141,6 +151,16 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             logger.info("stripe webhook %s: payment pending (%s)", kind, obj.get("payment_status"))
             # Ревью волны 1 (M3): пока деньги в пути, удержание не снимает сделку.
             payment_holds.hold_while_processing(meta)
+            if kind == "order_payment":
+                # FB-33 M2i-7.1: у заказа удержания нет — платёж «в пути» привязывается к
+                # заказу (без смены оплаты), и автоотмена брошенных его не трогает.
+                from apps.orders.payments import mark_order_processing
+
+                mark_order_processing(
+                    tenant_schema=meta.get("tenant_schema", ""),
+                    order_id=meta.get("order_id", ""),
+                    payment_intent=obj.get("payment_intent") or "",
+                )
             return
 
     # Разовый платёж за продвижение листинга (P2.4b) — не подписка: ставим срок

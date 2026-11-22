@@ -39860,3 +39860,36 @@ msgstr "We will send the confirmation to the email address used for the payment.
 msgid "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet"
 msgstr "Paid — no email address, confirmation not sent"
 
+#. FB-33 M4c
+#: apps/core/list_panel.py
+#, python-format
+msgid "Dieser Block folgt der Ansicht des Typs „%(typ)s“. Sie wird unter „Aktionstypen“ geändert."
+msgstr "This block follows the view of the type “%(typ)s”. It is changed under “Promotion types”."
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+#, python-format
+msgid "Den ganzen Typ: %(typ)s"
+msgstr "The whole type: %(typ)s"
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+msgid "Beim Speichern ändert sich die Ansicht aller Blöcke dieses Typs und seiner Seite; die eigenen Einstellungen dieses Blocks entfallen."
+msgstr "Saving changes the view of all blocks of this type and of its page; this block’s own settings are dropped."
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+msgid "„Ansicht gilt für“ wurde nicht übernommen: Dafür fehlt das Recht, Aktionstypen zu bearbeiten."
+msgstr "“View applies to” was not applied: the right to edit promotion types is missing."
+
+msgid "Automatisch storniert: nicht bezahlt"
+msgstr "Cancelled automatically: not paid"
+
+msgid "Rückerstattung offen — bitte in Stripe prüfen"
+msgstr "Refund pending — please check in Stripe"
+
+msgid "Ihre Zahlung wird bereits verarbeitet."
+msgstr "Your payment is already being processed."
+
+msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
+msgstr "This order can no longer be paid online. Please place a new order."

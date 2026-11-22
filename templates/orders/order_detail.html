@@ -107,6 +107,8 @@ Netto. Теперь тот же общий партиал, что у остал�
     {% if order.payment_state == 'paid' %}{% trans "Paid" %}{% elif order.payment_state == 'refunded' %}{% trans "Refunded" %}{% else %}{% trans "Unpaid" %}{% endif %}
     {% if order.stripe_payment_intent %}<span class="text-gray-400">· {% trans "Online (Stripe)" %}</span>{% endif %}
   </p>{% if order.payment_method == 'stripe' and order.payment_state == 'paid' and not order.customer.email %}<p class="text-sm text-amber-700 mt-1" data-paid-no-email>{% trans "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet" %}</p>{% endif %}
+  {% if auto_cancelled %}<p class="text-sm text-gray-600 mt-1" data-auto-cancelled>{% trans "Automatisch storniert: nicht bezahlt" %}</p>{% endif %}
+  {% if refund_open %}<p class="text-sm text-amber-700 mt-1" data-refund-open>{% trans "Rückerstattung offen — bitte in Stripe prüfen" %}</p>{% endif %}
   {% if order.payment_state != 'paid' %}
     <form method="post" action="{% url 'orders:order-action' order.pk %}" class="mt-2">
       {% csrf_token %}

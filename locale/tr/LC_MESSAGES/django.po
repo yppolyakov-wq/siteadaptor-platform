@@ -40006,3 +40006,36 @@ msgstr "Onayı ödemede kullanılan e-posta adresine göndereceğiz."
 msgid "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet"
 msgstr "Ödendi — e-posta adresi yok, onay gönderilmedi"
 
+#. FB-33 M4c
+#: apps/core/list_panel.py
+#, python-format
+msgid "Dieser Block folgt der Ansicht des Typs „%(typ)s“. Sie wird unter „Aktionstypen“ geändert."
+msgstr "Bu blok „%(typ)s“ türünün görünümünü izler. Görünüm „Kampanya türleri“ altında değiştirilir."
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+#, python-format
+msgid "Den ganzen Typ: %(typ)s"
+msgstr "Tüm tür: %(typ)s"
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+msgid "Beim Speichern ändert sich die Ansicht aller Blöcke dieses Typs und seiner Seite; die eigenen Einstellungen dieses Blocks entfallen."
+msgstr "Kaydedildiğinde bu türün tüm bloklarının ve sayfasının görünümü değişir; bu bloğun kendi ayarları kaldırılır."
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+msgid "„Ansicht gilt für“ wurde nicht übernommen: Dafür fehlt das Recht, Aktionstypen zu bearbeiten."
+msgstr "„Görünüm şunun için geçerli“ uygulanmadı: kampanya türlerini düzenleme yetkisi yok."
+
+msgid "Automatisch storniert: nicht bezahlt"
+msgstr "Otomatik iptal edildi: ödenmedi"
+
+msgid "Rückerstattung offen — bitte in Stripe prüfen"
+msgstr "İade bekliyor — lütfen Stripe'ta kontrol edin"
+
+msgid "Ihre Zahlung wird bereits verarbeitet."
+msgstr "Ödemeniz zaten işleniyor."
+
+msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
+msgstr "Bu sipariş artık çevrimiçi ödenemez. Lütfen yeni bir sipariş verin."
