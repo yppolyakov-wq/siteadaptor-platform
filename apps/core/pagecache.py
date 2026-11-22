@@ -112,38 +112,53 @@ def cached_not_found(request, render):
     могло бы стать личным), непустая сессия, нет схемы или хоста. HEAD запись читает, но не
     пишет. Запись — при тех же проверках `_cacheable`, что у страниц, только с кодом 404; хит —
     тоже 404. Устаревание: поля бизнеса (имя, телефон, часы, цвет) версию не меняют — до TTL
-    (минута) 404 может показать прежние, осознанно."""
-    ttl = not_found_ttl()
+    (минута) 404 может показать прежние, осознанно.
+
+    Любой сбой самого кэшевого слоя (хост, сессия, ключ, Redis, проверка и упаковка записи) —
+    страница всё равно рисуется, WARNING отсюда: внешний except обработчика ушёл бы в простую
+    404 с ERROR. Сбой `render()` — не наш: он уходит вызывающему как есть."""
+    try:
+        key = _nf_lookup_key(request)
+    except Exception as exc:  # noqa: BLE001 — слой кэша не роняет страницу
+        _warn_not_found_cache(exc)
+        key = None
+    if key is None:
+        return render()
+    try:
+        hit = cache.get(key)
+        cached = _unpack(hit, status=404) if hit is not None else None
+    except Exception as exc:  # noqa: BLE001 — кэш недоступен: рисуем страницу
+        _warn_not_found_cache(exc)
+        cached = None
+    if cached is not None:
+        return cached
+    response = render()
+    try:
+        if request.method == "GET" and _cacheable(request, response, status=404):
+            cache.set(key, _pack(response), not_found_ttl())
+    except Exception as exc:  # noqa: BLE001
+        _warn_not_found_cache(exc)
+    return response
+
+
+def _nf_lookup_key(request) -> str | None:
+    """Ключ записи 404 для этого запроса; None — мимо кэша (см. `cached_not_found`)."""
     has_session = hasattr(request, "session") and not request.session.is_empty()
     schema = getattr(getattr(request, "tenant", None), "schema_name", None)
-    host = _cache_host(request)
     if (
-        not ttl
+        not not_found_ttl()
         or request.method not in ("GET", "HEAD")
         or request.GET
         or request.COOKIES
         or not hasattr(request, "session")
         or has_session
         or not schema
-        or not host
     ):
-        return render()
-    key = _nf_key(schema, getattr(request, "LANGUAGE_CODE", "de"), host)
-    try:
-        hit = cache.get(key)
-    except Exception as exc:  # noqa: BLE001 — кэш недоступен: рисуем страницу
-        _warn_not_found_cache(exc)
-        hit = None
-    cached = _unpack(hit, status=404) if hit is not None else None
-    if cached is not None:
-        return cached
-    response = render()
-    if request.method == "GET" and _cacheable(request, response, status=404):
-        try:
-            cache.set(key, _pack(response), ttl)
-        except Exception as exc:  # noqa: BLE001
-            _warn_not_found_cache(exc)
-    return response
+        return None
+    host = _cache_host(request)
+    if not host:
+        return None
+    return _nf_key(schema, getattr(request, "LANGUAGE_CODE", "de"), host)
 
 
 def _cacheable(request, response, status: int = 200) -> bool:

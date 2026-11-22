@@ -340,6 +340,27 @@ def test_404_cache_failure_serves_page_and_warns(cached, renders, monkeypatch, c
     assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
 
 
+@pytest.mark.parametrize("broken", ["_pack", "_cache_host", "_cacheable"])
+def test_cache_layer_failure_serves_page_and_warns(cached, renders, monkeypatch, caplog, broken):
+    """Ревью безопасности M1 (дифф): сбой кэшевого слоя до или после готового рендера не
+    уводит во внешний except обработчика (ERROR «block-page» и простая 404) — страница с
+    блоками и WARNING от pagecache."""
+
+    def boom(*a, **kw):
+        raise RuntimeError("cache layer")
+
+    monkeypatch.setattr(pagecache, "_nf_warned_at", None)
+    monkeypatch.setattr(pagecache, broken, boom)
+    with caplog.at_level(logging.WARNING):
+        resp = _nf(_req(_tenant()))
+    assert resp.status_code == 404 and b"data-not-found" in resp.content
+    assert len(renders) == 1
+    assert [r.levelno for r in caplog.records if r.name == "apps.core.pagecache"] == [
+        logging.WARNING
+    ]
+    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+
 def test_legacy_410_does_not_leak_into_cache(cached):
     """Ревью безопасности M2: запись, созданная запросом по 410-пути, хранит и отдаёт 404."""
     from apps.core import legacy_redirects
