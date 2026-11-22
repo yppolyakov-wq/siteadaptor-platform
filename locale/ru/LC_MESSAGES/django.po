@@ -40251,3 +40251,6 @@ msgstr "Страница не найдена"
 
 msgid "Allergien / Wünsche"
 msgstr "Аллергии / пожелания"
+
+msgid "fb33-stack-anchor-m5b2"
+msgstr "fb33-stack-anchor-m5b2"

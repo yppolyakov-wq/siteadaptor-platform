@@ -40238,3 +40238,6 @@ msgstr "Сторінку не знайдено"
 
 msgid "Allergien / Wünsche"
 msgstr "Алергії / побажання"
+
+msgid "fb33-stack-anchor-m5b2"
+msgstr "fb33-stack-anchor-m5b2"
