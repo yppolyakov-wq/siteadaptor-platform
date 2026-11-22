@@ -150,14 +150,17 @@ def test_title_form_apply_button_named():
     )
 
 
-@pytest.mark.parametrize("code", ["services", "contact", "catalog"])
+@pytest.mark.parametrize("code", ["services", "contact", "catalog", "text"])
 def test_no_duplicate_ids_on_page_tab(code):
     """Y-M9: без JS все вкладки окна в DOM — ни одного повторного `id` (поля заголовка,
-    переводы, формы настроек)."""
+    переводы, формы настроек). Ревью раунд 2 №11: и у страницы с SEO на «Texte» («Info»);
+    SEO и заголовок на «Seite» вместе не бывают (`test_seo_hosts_and_head_hosts_disjoint`)."""
     bt = "online_shop" if code == "catalog" else "friseur"
     html = Browser(_tenant(bt, locales=["de", "en", "ru"])).get(f"?seite={code}&block={PAGE}")
     assert 'value="window_done"' in _panel(html), "окно ★-строки открыто"
-    if code != "catalog":
+    if code == "text":
+        assert "f_seo_title" in _panel(html), "SEO на «Texte»"
+    elif code != "catalog":
         assert 'id="schema-f-title"' in html and "f_tr_title_en" in html
     ids = Counter(re.findall(r'\sid="([^"]+)"', html))
     assert [i for i, n in ids.items() if n > 1] == []
