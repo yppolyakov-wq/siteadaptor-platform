@@ -40231,3 +40231,12 @@ msgstr "Ваш платіж уже обробляється."
 
 msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
 msgstr "Це замовлення вже не можна оплатити онлайн. Будь ласка, оформіть нове."
+
+msgid "fb33-stack-anchor-m5a"
+msgstr "fb33-stack-anchor-m5a"
+
+msgid "fb33-stack-anchor-m2i6"
+msgstr "fb33-stack-anchor-m2i6"
+
+msgid "fb33-stack-anchor-m39c"
+msgstr "fb33-stack-anchor-m39c"

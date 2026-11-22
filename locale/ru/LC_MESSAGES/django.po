@@ -40244,3 +40244,12 @@ msgstr "Ваш платёж уже обрабатывается."
 
 msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
 msgstr "Этот заказ уже нельзя оплатить онлайн. Пожалуйста, оформите новый."
+
+msgid "fb33-stack-anchor-m5a"
+msgstr "fb33-stack-anchor-m5a"
+
+msgid "fb33-stack-anchor-m2i6"
+msgstr "fb33-stack-anchor-m2i6"
+
+msgid "fb33-stack-anchor-m39c"
+msgstr "fb33-stack-anchor-m39c"

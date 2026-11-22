@@ -40039,3 +40039,12 @@ msgstr "Ödemeniz zaten işleniyor."
 
 msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
 msgstr "Bu sipariş artık çevrimiçi ödenemez. Lütfen yeni bir sipariş verin."
+
+msgid "fb33-stack-anchor-m5a"
+msgstr "fb33-stack-anchor-m5a"
+
+msgid "fb33-stack-anchor-m2i6"
+msgstr "fb33-stack-anchor-m2i6"
+
+msgid "fb33-stack-anchor-m39c"
+msgstr "fb33-stack-anchor-m39c"

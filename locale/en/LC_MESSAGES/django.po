@@ -39893,3 +39893,12 @@ msgstr "Your payment is already being processed."
 
 msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
 msgstr "This order can no longer be paid online. Please place a new order."
+
+msgid "fb33-stack-anchor-m5a"
+msgstr "fb33-stack-anchor-m5a"
+
+msgid "fb33-stack-anchor-m2i6"
+msgstr "fb33-stack-anchor-m2i6"
+
+msgid "fb33-stack-anchor-m39c"
+msgstr "fb33-stack-anchor-m39c"
