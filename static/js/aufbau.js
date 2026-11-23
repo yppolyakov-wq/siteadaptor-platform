@@ -736,16 +736,7 @@ function aufbauSubmitCopy(form, submitter) {
     if (win.querySelector("[data-schema-inserted]")) {
       var first = firstField() || win.querySelector("#schema-panel-title") ||
         win.querySelector('[data-schema-panel] button[value="window_done"]');
-      if (first) {
-        first.focus();
-        if (document.readyState !== "complete") {
-          window.addEventListener("load", function () {
-            var at = document.activeElement;
-            if (win && at !== first && (!at || at === document.body || at.id === "schema-panel")) first.focus();
-          }, { once: true });
-        }
-        return;
-      }
+      if (first) { hold(first); return; }
     }
     var hash = location.hash;
     var tab = null;
@@ -754,7 +745,18 @@ function aufbauSubmitCopy(form, submitter) {
     }
     if (tab && !tab.hidden && win.contains(tab)) { tab.focus(); return; }
     var h = win.querySelector("#schema-panel-title");
-    if (h) h.focus();
+    if (h) hold(h);
+  }
+
+  // Фокус в окне держим до конца загрузки: адрес строки несёт #schema-panel, и браузер ставит
+  // фокус на якорь ПОСЛЕ скрипта (грабля M5b-2; стенд fb33_m5d_inhalt_stand, код focus-open)
+  function hold(el) {
+    el.focus();
+    if (document.readyState === "complete") return;
+    window.addEventListener("load", function () {
+      var at = document.activeElement;
+      if (win && at !== el && (!at || at === document.body || at.id === "schema-panel")) el.focus();
+    }, { once: true });
   }
 
   function openWindow(panel) {
