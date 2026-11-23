@@ -90,7 +90,11 @@ def test_real_report_builds_and_names_the_indicator():
 
 def test_datasets_rows_carry_share_and_match_the_report():
     data = _mod().datasets("2026-11-19")
-    assert {"steps", "weeks", "context", "journal"} == set(data)
+    assert {"steps", "weeks", "context", "journal", "history"} == set(data)
+    assert data["history"], "история снимков пуста — страница-панель потеряет сравнение по стопкам"
+    assert {"stack", "share", "plan_commits", "plan", "diff", "after", "red_ci"} <= set(
+        data["history"][0]
+    )
     for row in data["steps"] + data["weeks"]:
         assert row["share"] == round(100 * row["review"] / row["commits"])
     assert all(row["kb"] > 0 for row in data["context"])
@@ -114,6 +118,7 @@ def test_plan_review_is_counted_apart_from_rework():
         "FB-33 стопка 10: план — правки по ревью architect и a11y-architect (§8: 7 HIGH)",
         "FB-33 стопка 8: план — поправки ревью planner к срезу M5a (R1–R8)",
         "FB-33 стопка 10: черновик плана (planner) — M5b-2 W0–W3 по V4",
+        "FB-33 стопка 8: P0 — план (docs/fb33-stack8-plan), ID срезов в каталоге, якоря",
     ):
         assert mod.kind(subject) == "plan", subject
         assert not mod.is_review(subject), subject
@@ -128,6 +133,7 @@ def test_journal_docs_and_skill_updates_are_not_rework():
         "FB-33 стопка 10: снимок статистики стопки (dev_stats --snapshot)",
         "FB-33 стопка 7: доки — срезы M4c, M3-9a/b (журнал, каталог, ревью)",
         "FB-33: передача стопки 11 — очередь срезов, находки ревью",
+        "FB-33 стопка 8: ретро — строка тренда в журнале находок (план 11, дифф 18)",
     ):
         assert mod.kind(subject) == "docs", subject
 
@@ -139,6 +145,9 @@ def test_rework_is_a_fix_or_lock_after_code_review():
         "FB-33 M5a: правки ревью — третий рубеж 404 (ответ без шаблона)",
         "FB-33 M3-9c: цели 24 px — остальные ссылки секций главной (находка стенда)",
         "FB-33 стопка 8: правки финального ревью — замки 404 не зависят от кэша",
+        # хвост темы упоминает журнал и скиллы — это всё равно правка ревью, а не запись о ней
+        "FB-33 M5a: правки ревью — третий рубеж 404, одна запись; строка в журнал находок, скиллы sa-*",
+        "FB-33 M2i-6: правка ревью — нетронутый пресет уходит с типом (журнал находок, документы)",
     ):
         assert mod.kind(subject) == "rework", subject
         assert mod.is_review(subject), subject

@@ -27,7 +27,15 @@ import re
 import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-REVIEW = re.compile(r"ревью|находк", re.I)
+# «ревью» — только отдельным словом: «превью» (срезы «Vorschau», страница 404) — не ревью.
+REVIEW = re.compile(r"(?<![а-яё])ревью|находк", re.I)
+# Записи о работе, а не работа: журнал, снимки, передача, документы, правка скиллов, ретро.
+# Сверяется НАЧАЛО темы после «ID:» — в хвосте правки ревью часто стоит «…, строка журнала».
+DOCS = re.compile(
+    r"журнал находок|снимок статистик|передача стопки|доки\b|документы\b|скиллы sa-|ретро\b", re.I
+)
+# План и его ревью — до кода; этого мы и добивались, в переделку не входит.
+PLAN = re.compile(r"(?:P0 — )?план\b|черновик плана|ревью плана", re.I)
 # «FB-33 M3-7: …» → шаг «FB-33 M3-7»; «T-13.1: …» → «T-13.1»; «FB-33 стопка 5: …» → стыки стопки.
 STEP = re.compile(r"^([A-Z][\w-]*(?:\.\w+)*(?: (?:стопка \d+|[A-Z0-9][\w-]*))?)(?=[:(\s—]|$)")
 ANSWERS = ("нет правила", "правило неверное", "было, не сработало")
@@ -37,17 +45,33 @@ HISTORY_HEAD = """# История снимков статистики разр�
 
 Строка на стопку или крупный мерж: `uv run python scripts/dev_stats.py --snapshot "<имя>"
 --range origin/main..HEAD --red-ci N`. Судить по трём числам вместе (правила —
-`docs/skill-feedback.md`): доля правок ревью (база 30 %, цель < 20 %), находок `план` больше,
-чем `дифф`, `после мержа` не растёт.
+`docs/skill-feedback.md`): доля правок ревью ПОСЛЕ кода (цель < 20 %), находок `план` больше,
+чем `дифф`, `после мержа` не растёт. «Ревью» — замки и правки по находкам после кода; план и
+его ревью — отдельной колонкой, журнал и документы не считаются.
 
-| Дата | Стопка | Коммитов | Ревью | Доля | Находки: план | дифф | после мержа | Красных CI |
-|---|---|---|---|---|---|---|---|---|
-| 2026-11-21 | FB-33 стопки 4–6 (база, до скиллов) | 73 | 22 | 30 % | — | — | — | — |
+| Дата | Стопка | Коммитов | Ревью | Доля | Коммитов плана | Находки: план | дифф | после мержа | Красных CI |
+|---|---|---|---|---|---|---|---|---|---|
 """
 
 
+def kind(subject: str) -> str:
+    """`docs` — записи о работе; `plan` — план и его ревью (до кода); `rework` — замок или
+    правка по находке ПОСЛЕ кода; `work` — всё остальное. Порядок проверок важен: журнал
+    «находок ревью плана» — это `docs`, а не `plan` и не `rework`."""
+    prefix, _, head = subject.partition(":")
+    head = head.strip() or subject
+    if REVIEW.search(prefix):  # «FB-33 M5b-2 ревью: …» — правка по ревью, что бы ни шло дальше
+        return "rework"
+    if DOCS.match(head):
+        return "docs"
+    if PLAN.match(head):
+        return "plan"
+    return "rework" if REVIEW.search(subject) else "work"
+
+
 def is_review(subject: str) -> bool:
-    return bool(REVIEW.search(subject))
+    """Переделка после кода — то, долю чего мы хотим снизить."""
+    return kind(subject) == "rework"
 
 
 def step_of(subject: str) -> str:
@@ -107,9 +131,27 @@ def snapshot_row(label: str, commits, found: dict, red_ci: str, today: str) -> s
     mine = [r for r in found.get("rows", []) if r[1] in steps or r[1] in label or label in r[1]]
     when = collections.Counter(r[2] for r in mine)
     share = f"{round(100 * review / total)} %" if total else "—"
-    cells = [today, label.replace("|", "/"), total, review, share]
+    plan = sum(kind(s) == "plan" for _, s in commits)
+    cells = [today, label.replace("|", "/"), total, review, share, plan]
     cells += [when[w] for w in WHEN] + [red_ci]
     return "| " + " | ".join(str(c) for c in cells) + " |"
+
+
+def history_rows(text: str) -> list[dict]:
+    """Таблица `docs/dev-stats-history.md` строками — набор «по стопкам» страницы-панели."""
+
+    def num(value: str):
+        value = value.replace("%", "").strip()
+        return int(value) if value.isdigit() else None
+
+    rows = []
+    for line in text.splitlines():
+        c = [x.strip() for x in line.strip().strip("|").split("|")]
+        if len(c) != 10 or not re.match(r"\d{4}-\d\d-\d\d$", c[0]):
+            continue
+        keys = ("commits", "review", "share", "plan_commits", "plan", "diff", "after", "red_ci")
+        rows.append({"stack": c[1], "date": c[0], **dict(zip(keys, map(num, c[2:]), strict=True))})
+    return rows
 
 
 def sizes() -> list[tuple[str, int]]:
@@ -172,9 +214,11 @@ def report(since: str) -> str:
     review = sum(is_review(s) for _, s in commits)
     if shallow_note():
         lines += [shallow_note(), ""]
+    plan = sum(kind(s) == "plan" for _, s in commits)
     lines += [
         f"**Индикатор: доля «правок ревью» — {_pct(review, total)}** ({review} из {total} коммитов).",
         "Ниже — лучше: меньше работы уходит на исправление найденного после кода.",
+        f"Коммитов плана и его ревью (до кода, в долю не входят): {plan}.",
         "",
         "## По неделям",
         "",
@@ -238,6 +282,7 @@ def datasets(since: str) -> dict[str, list[dict]]:
         "weeks": rows("week", weekly(commits)),
         "context": [{"what": name, "kb": round(size / 1000, 1)} for name, size in sizes()],
         "journal": found if j["total"] else [],
+        "history": history_rows(HISTORY.read_text(encoding="utf-8")) if HISTORY.exists() else [],
     }
 
 
