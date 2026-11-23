@@ -134,8 +134,8 @@ def test_row_single_link():
     gear = links[0]
     assert f'data-schema-block="{ref}"' in gear and f'data-schema-gear="{ref}"' in gear
     assert 'aria-label="Einstellungen: ' in gear
-    desc = re.search(r'aria-describedby="([^"]+)"', gear).group(1)
-    assert f'id="{desc}"' in box
+    for desc in re.search(r'aria-describedby="([^"]+)"', gear).group(1).split():
+        assert f'id="{desc}"' in box
 
 
 def test_gear_no_title():

@@ -3324,7 +3324,8 @@ def _insert(items: list[dict], new_blocks: list[dict], after: str, rows_host: st
     if not after:
         return
     try:
-        place_item(items, len(before), "after", after, rows_host)
+        # ревью L4: та же проверка порядка неподвижных строк, что у броска
+        place_item(items, len(before), "after", after, rows_host, before=list(before))
         prev = new_blocks[0]["id"]
         for blk in new_blocks[1:]:
             items.pop(next(i for i, it in enumerate(items) if it.get("id") == blk["id"]))

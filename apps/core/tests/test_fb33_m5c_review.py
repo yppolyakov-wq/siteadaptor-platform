@@ -4,6 +4,7 @@
 Находки — `docs/fb33-stack11-plan-2026-11-23.md` (ревью C0–C2: django L3, security LOW).
 """
 
+import re
 from urllib.parse import parse_qs, quote, urlsplit
 
 import pytest
@@ -14,8 +15,6 @@ from apps.core.tests.test_fb29_banner_pick import _tenant
 from apps.core.tests.test_fb33_m5c0_insert import _blk, _draft_items, _order
 
 pytestmark = pytest.mark.django_db
-#: замок первого коммита: поведения ещё нет (снимается реализацией)
-_red = pytest.mark.xfail(strict=True, reason="FB-33 M5c ревью C0–C2: правки ещё нет")
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +37,6 @@ def _item(b, ref):
     return next(i for i in _draft_items(b, "text") if i.get("id") == ref)
 
 
-@_red
 def test_row_edit_drops_window_snapshot():
     """L3: правка в окне → «⋯ Ausblenden» строкой → «Abbrechen» окна — блок остаётся скрытым
     (снимок окна этого блока снят правкой строки, «Abbrechen» не откатывает её молча)."""
@@ -94,7 +92,6 @@ def test_insert_after_kauf_first_goes_to_top():
     assert _order(items)[0] == new
 
 
-@_red
 def test_insert_checks_pinned_order(monkeypatch):
     """L4: вставка проверяет порядок неподвижных строк той же функцией, что и бросок."""
     seen = []
@@ -108,3 +105,16 @@ def test_insert_checks_pinned_order(monkeypatch):
     items = [{"key": "items"}, {"key": "form"}, {"key": "summary"}, _blk("t")]
     site_schema.mutate(items, "cart", "add", block_type="text", after="t")
     assert seen and seen[0] is not None, "place_item получает копию списка до вставки"
+
+
+def test_window_done_of_hidden_block_opens_hidden_list():
+    """L2: «Fertig» у скрытого блока — якорь #schema-row-<ref> в раскрытом «Ausgeblendet»."""
+    b = _browser(2)
+    a, _c = _ids(b)
+    b.post(seite="text", op="toggle", ref=a)
+    resp, _m = b.post(seite="text", op="window_done", ref=a)
+    loc = resp["Location"]
+    html = b.get(loc[loc.index("?") : loc.index("#")])
+    assert re.search(r"<details\b[^>]*data-schema-hidden[^>]*\sopen", html)
+    assert f'id="schema-row-{a}"' in html
+    assert not re.search(r"<details\b[^>]*data-schema-hidden[^>]*\sopen", b.get("?seite=text"))

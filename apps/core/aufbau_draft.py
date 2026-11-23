@@ -1083,11 +1083,14 @@ def op(
     token: str = "",
     notes: list | None = None,
     after: str = "",
+    row_edit: bool = False,
 ) -> str:
     """Одна правка схемы — в черновик (база не меняется). SchemaError на недопустимом.
     `token` — токен открытия окна блока (`wopen`, FB-33 M3-1b); `notes` — сюда правка
     вкладки «Felder» кладёт сообщения владельцу (FB-33 M2i-5); `after` — позиция вставки
-    `add`/`add_row` (FB-33 M5c-1, `site_schema.mutate`)."""
+    `add`/`add_row` (FB-33 M5c-1, `site_schema.mutate`); `row_edit` — правка из «⋯» строки
+    схемы (FB-33 M5c-2, ревью L3): снимок открытого окна этого блока снимается — «Abbrechen»
+    окна иначе молча откатил бы и её (скрытие, перестановку)."""
     from apps.tenants import siteconfig
 
     _pt, host, home = site_schema.resolve(tenant, code)
@@ -1179,6 +1182,8 @@ def op(
     if tr_prior is not None:
         # FB-33 M3-5c: переводы из окна и снятие перевода изменённого немецкого текста
         _block_i18n().take(request, config, draft, window_ref, tr_prior, fields, notes)
+    if row_edit:
+        _drop_snapshot(draft, window_ref)
     if op_name == "delete":
         _drop_snapshot(draft, window_ref)  # блока больше нет — и снимка его
         _block_i18n().drop(draft, window_ref)  # ревью H1: и его переводов

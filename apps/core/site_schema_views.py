@@ -316,6 +316,8 @@ def site_schema_view(request):
                     notes=notes,
                     # FB-33 M5c-1: позиция вставки — своим полем, только у вставки
                     after=request.POST.get("after", "") if op in INSERT_OPS else "",
+                    # ревью L3: правка строкой — окно этого блока «Abbrechen» её не откатит
+                    row_edit=row_form,
                 )
                 for note in notes:
                     messages.warning(request, note)
@@ -438,7 +440,7 @@ def site_schema_view(request):
             # (`schema-more-<ref>`) у «⋯» видимой строки и у «Einblenden» скрытой
             target = _url(code, "", keep)
             if applied and ref:
-                target = f"{target}&{urlencode({'bewegt': ref})}#schema-more-{ref}"
+                target = f"{target}&{urlencode({'bewegt': ref})}#schema-more-{quote(ref, safe='')}"
         lang = request.POST.get("f_sprache", "")
         if "#" in target and lang and _keep({"f_sprache": lang}).get("sprache") == lang:
             # FB-33 M2i-5b (ревью a11y): после кнопки языка фокус — на ней (`#schema-tab-…`
@@ -781,6 +783,8 @@ def site_schema_view(request):
             "moved_msg": moved_msg,
             "moved_hidden": moved is not None and not moved["enabled"],
             "add_at": add_at,  # FB-33 M5c-3
+            # ревью L2: «Fertig» у скрытого блока — якорь #schema-row в раскрытом «Ausgeblendet»
+            "last_hidden": selected is None and anchor is not None and not anchor["enabled"],
             "inserted_msg": inserted_msg,
             **_row_ops(layout, selected),
             "selected": selected,

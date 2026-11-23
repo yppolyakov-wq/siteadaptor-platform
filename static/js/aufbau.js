@@ -5,7 +5,8 @@
 function aufbauError(text) {
   var box = document.querySelector("[data-schema-messages]");
   text = text || (box && box.getAttribute("data-schema-error")) || "";
-  if (!text) return;
+  // ревью M5c (silent): без текста ошибки не молчать — страница покажет состояние сервера
+  if (!text) { location.reload(); return; }
   // FB-33 M3-2: при открытом окне блока фон под inert — сообщение пишется в само окно
   var inWindow = document.querySelector("dialog.ui-bwin[open] [data-bwin-msgs]");
   var host = inWindow || box || document.querySelector("[data-schema-panel]");
@@ -772,7 +773,7 @@ function aufbauSubmitCopy(form, submitter) {
         u.searchParams.delete("neu");
         // и якорь #schema-panel: браузер ставит фокус по нему ПОСЛЕ скрипта (грабля M5b-2)
         history.replaceState(history.state, "", u.pathname + u.search);
-      } catch (err) { /* без URL/history — без этого удобства */ }
+      } catch (err) { if (window.console) console.debug("aufbau: Adresse", err); }
     }
     mark = document.createComment("schema-panel");
     panel.parentNode.insertBefore(mark, panel);
@@ -892,29 +893,51 @@ function aufbauSubmitCopy(form, submitter) {
    строки (у скрытой — на её «Einblenden»: тот же id), через ~300 мс текст «ist jetzt Nummer n»
    в пустую живую область (готовый текст после перезагрузки сам не прозвучит). */
 window.aufbauMoved = function (ref, text) {
-  var target = ref ? document.getElementById("schema-more-" + ref) : null;
-  if (target) target.focus({ preventScroll: false });
+  // нет «⋯» (строка ушла) — ⚙ строки, нет и её — заголовок схемы (фокус не теряется в body)
+  var target = (ref && document.getElementById("schema-more-" + ref)) ||
+    (ref && Array.prototype.find.call(document.querySelectorAll("[data-schema-gear]"), function (a) {
+      return a.getAttribute("data-schema-gear") === ref;
+    })) || document.getElementById("schema-title");
+  if (target) {
+    if (target.id === "schema-title") target.setAttribute("tabindex", "-1");
+    target.focus({ preventScroll: false });
+  }
+  // ревью M5c (silent HIGH): озвучивается только готовый текст сервера — не «Übernommen.»
+  // по умолчанию (отказ иначе звучал бы успехом)
   var live = document.querySelector("[data-schema-live]");
-  if (!live) return;
+  if (!live || !text) return;
   live.textContent = "";
-  setTimeout(function () { live.textContent = text || live.getAttribute("data-done") || ""; }, 300);
+  setTimeout(function () { live.textContent = text; }, 300);
 };
 (function () {
   "use strict";
   var ref = new URLSearchParams(location.search).get("bewegt");
-  if (!ref || location.hash !== "#schema-more-" + ref) return;
+  if (!ref || location.hash !== "#schema-more-" + encodeURIComponent(ref)) return;
   var said = document.querySelector("[data-schema-moved]");
-  // браузер ставит фокус по якорю после скрипта — якорь снимаем, фокус ставим сами
-  if (window.history && history.replaceState) history.replaceState(history.state, "", location.pathname + location.search);
+  // браузер ставит фокус по якорю после скрипта — якорь снимаем, фокус ставим сами; и
+  // `bewegt` из адреса (F5 не повторяет сообщение, ревью L1)
+  try {
+    var u = new URL(location.href);
+    u.searchParams.delete("bewegt");
+    history.replaceState(history.state, "", u.pathname + u.search);
+  } catch (err) { if (window.console) console.debug("aufbau: Adresse", err); }
   window.aufbauMoved(ref, said ? said.textContent.trim() : "");
 })();
 
-/* FB-33 M5c-2 (a11y B1): «⋯» строк — открыт один; щелчок мимо закрывает (Esc — в шаблоне). */
+/* FB-33 M5c-2 (a11y B1): «⋯» строк — открыт один; щелчок мимо и уход фокуса закрывают (Esc —
+   в шаблоне); «＋ Block» под строкой и в конце — тоже один открытый. */
 document.addEventListener("toggle", function (e) {
   var d = e.target;
-  if (!d || !d.matches || !d.matches("details[data-schema-more]") || !d.open) return;
-  document.querySelectorAll("details[data-schema-more][open]").forEach(function (o) { if (o !== d) o.open = false; });
+  if (!d || !d.matches || !d.open) return;
+  var group = d.matches("details[data-schema-more]") ? "details[data-schema-more][open]"
+    : d.matches("details[data-schema-add]") ? "details[data-schema-add][open]" : "";
+  if (!group) return;
+  document.querySelectorAll(group).forEach(function (o) { if (o !== d) o.open = false; });
 }, true);
+document.addEventListener("focusout", function (e) {
+  var d = e.target && e.target.closest ? e.target.closest("details[data-schema-more][open]") : null;
+  if (d && e.relatedTarget && !d.contains(e.relatedTarget)) d.open = false;
+});
 document.addEventListener("click", function (e) {
   if (!e.target.closest) return;
   document.querySelectorAll("details[data-schema-more][open]").forEach(function (d) {
@@ -982,6 +1005,7 @@ document.addEventListener("click", function (e) {
     if (!li || !li.hasAttribute("data-schema-drag")) return;  // место в ряду не перетаскивают
     dragged = li.getAttribute("data-schema-drag");
     e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.clearData();  // ревью a11y: не адрес ссылки ⚙, а ref строки
     e.dataTransfer.setData("text/plain", dragged);
   });
   document.addEventListener("dragover", function (e) {
@@ -1060,21 +1084,40 @@ document.addEventListener("click", function (e) {
     data.set("value", slot ? slot : where + ":" + (li.getAttribute("data-schema-drag") || li.getAttribute("data-schema-pinned")));
     if (new URLSearchParams(location.search).get("ansicht") === "telefon") data.set("ansicht", "telefon");
     fetch(location.pathname, { method: "POST", body: data, credentials: "same-origin" })
-      .then(function (resp) { if (!resp.ok) throw new Error("status"); return resp.text(); })
-      .then(function (html) {
-        var doc = new DOMParser().parseFromString(html, "text/html");
+      .then(function (resp) {
+        if (!resp.ok) throw new Error("status " + resp.status);
+        // ревью M5c (silent): ответ ушёл со страницы (вход, другой экран) — это сбой, не успех
+        var url = new URL(resp.url || location.href, location.href);
+        if (url.pathname !== location.pathname) throw new Error("ответ с " + url.pathname);
+        return resp.text().then(function (html) {
+          return { html: html, moved: url.searchParams.get("bewegt") === ref };
+        });
+      })
+      .then(function (r) {
+        var doc = new DOMParser().parseFromString(r.html, "text/html");
+        var swapped = 0;
         ["[data-schema-status]", "[data-schema-messages]", "[data-schema-map]", "[data-schema-panel]"].forEach(function (sel) {
           var now = document.querySelector(sel), next = doc.querySelector(sel);
-          if (now && next) now.replaceWith(document.importNode(next, true));
+          if (now && next) { now.replaceWith(document.importNode(next, true)); swapped += 1; }
         });
+        if (!swapped) throw new Error("в ответе нет схемы");
         document.querySelectorAll('[data-schema-fields] button[value="update"],[data-schema-list] button[value="update"]').forEach(function (b) { b.style.display = "none"; });
         document.querySelectorAll("[data-window-hint]").forEach(function (p) { p.hidden = true; });
         arm();
-        // FB-33 M5c-2 (a11y A2): фокус — на «⋯» перенесённой строки, затем — её новый номер
+        // FB-33 M5c-2 (a11y A2): фокус — на «⋯» перенесённой строки, затем — её новый номер;
+        // отказ (в адресе нет `bewegt`) — фокус туда же, слышен отказ сервера (role=alert)
         var said = document.querySelector("[data-schema-moved]");
-        window.aufbauMoved(ref, said ? said.textContent.trim() : "");
+        if (r.moved) {
+          window.aufbauMoved(ref, said ? said.textContent.trim() : "");
+        } else {
+          window.aufbauMoved(ref, "");
+          if (!document.querySelector('[data-schema-messages] [role="alert"]')) aufbauError();
+        }
       })
-      .catch(function () { aufbauError(); })  // ревью 2: перетаскивание не удалось — видно
+      .catch(function (err) {  // ревью 2: перетаскивание не удалось — видно
+        if (window.console) console.error("aufbau: Verschieben", err);
+        aufbauError();
+      })
       .then(function () { document.documentElement.setAttribute("data-schema-busy", "0"); });
   }
   // после правки из панели схема перерисовывается — перевооружаем строки

@@ -148,7 +148,7 @@ def test_main_row_is_plain_row(bt, code, name):
     assert f'<span class="block font-semibold">{name}</span>' in inner
     assert "★" not in inner
     summary = re.search(
-        r'<span class="block text-xs text-gray-600 break-words">(.*?)</span>', inner
+        r'<span class="block text-xs text-gray-600 break-words"[^>]*>(.*?)</span>', inner
     )
     assert summary and summary.group(1).startswith("Hauptliste"), inner
     assert "bg-indigo-50" not in tag and "border-indigo-400" not in tag

@@ -1841,6 +1841,8 @@ input[type="datetime-local"] {
   /* ⠿ — цель не меньше 24 px (a11y B6); видна только на широком экране (aufbau.js, matchMedia) */
   .schema-grip { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem; min-height: 2.75rem; cursor: grab; }
   .schema-grip.hidden { display: none; }
+  /* ревью a11y (HIGH): открытое «⋯» — над «⋯» и ⠿ следующих строк (у них тоже z-10) */
+  details[data-schema-more][open] { z-index: 30; }
   /* FB-33 M5c-3 (макет M5cAdd): кнопки типов «＋ Block» — 56 px */
   .schema-add-type { min-height: 3.5rem; }
   /* FB-33 M5c-4: ссылки полос шапки и подвала схемы («Menü bearbeiten», «Design»,

@@ -174,6 +174,25 @@ def check_more_js(rep, pg, t, rs, lang):
         f"{t}: «⋯» Esc закрывает, фокус на ⋯",
         code="more-esc",
     )
+    # ревью a11y (HIGH): открытое меню — над «⋯»/⠿ следующих строк (щелчок по последнему пункту
+    # попадает в него, а не в строку ниже)
+    press(pg, summ)
+    hit = pg.evaluate(
+        f"""() => {{ const d = document.querySelector('{summ}').parentElement;
+        const items = d.querySelectorAll(':scope > div :is(button, a)');
+        const last = items[items.length - 1]; if (!last) return null;
+        const r = last.getBoundingClientRect();
+        const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return !!el && (el === last || last.contains(el)); }}"""
+    )
+    rep.check(hit is True, f"{t}: открытое «⋯» не перекрыто соседними строками", code="more-z")
+    pg.keyboard.press("Escape")
+    # ревью silent (HIGH): без текста сервера живая область молчит (не «Übernommen.»)
+    pg.evaluate("() => { document.querySelector('[data-schema-live]').textContent = ''; }")
+    pg.evaluate("(r) => window.aufbauMoved(r, '')", row["ref"])
+    pg.wait_for_timeout(450)
+    quiet = pg.evaluate("() => document.querySelector('[data-schema-live]').textContent")
+    rep.check(quiet == "", f"{t}: отказ не озвучен успехом ({quiet!r})", code="moved-quiet")
     down = pg.query_selector(f"{summ} ~ div button[value=down]")
     if down is None:
         rep.note(f"{t}: у строки нет «Nach unten»")
