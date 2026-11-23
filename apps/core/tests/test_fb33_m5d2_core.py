@@ -97,8 +97,6 @@ EXTRA_KINDS = ("combo", "post")
 #: якоря срезов стопки 12 в каждом `.po` (параллельные срезы пишут только после своего)
 ANCHORS = ("m5d2", "m5d3", "m5d4a", "m5d4b", "m5d4c", "m5d4d", "m5d4e", "m5d5", "kinder")
 
-new = pytest.mark.xfail(strict=True, reason="FB-33 M5d-2: поведения до кода нет")
-
 
 @pytest.fixture(autouse=True)
 def _env(settings, monkeypatch):
@@ -217,7 +215,6 @@ def test_product_related_on_type_as_before():
     _golden("product_related.html", _clean(_panel(html)))
 
 
-@new
 def test_object_only_source_skips_the_type_row(monkeypatch):
     """A1: источник `object_only` — только строке объекта; у типа окно «Seite» байт-в-байт,
     части «Inhalt» нет."""
@@ -256,7 +253,6 @@ def test_registry_equals_the_base():
     _golden("registry.json", got)
 
 
-@new
 def test_registry_is_written_out_for_parallel_slices():
     """A3: у каждого модуля — свой комментарий-якорь, генератора events нет (срезы правят
     непересекающиеся куски); новых импортов в модуле нет; P0 источников не заводит."""
@@ -266,7 +262,12 @@ def test_registry_is_written_out_for_parallel_slices():
     for module in detail_sections.DETAIL_SECTIONS:
         assert f"# --- {module} ---" in src, module
     tree = ast.parse(src)
-    assert not [n for n in ast.walk(tree) if isinstance(n, ast.GeneratorExp)]
+    registry = next(
+        n.value
+        for n in tree.body
+        if isinstance(n, ast.AnnAssign) and getattr(n.target, "id", "") == "DETAIL_SECTIONS"
+    )
+    assert not [n for n in ast.walk(registry) if isinstance(n, ast.GeneratorExp | ast.BinOp)]
     imports = sorted(
         ast.unparse(n) for n in ast.walk(tree) if isinstance(n, ast.Import | ast.ImportFrom)
     )
@@ -282,7 +283,6 @@ def test_registry_is_written_out_for_parallel_slices():
 # --- A11: слова вида объекта ---------------------------------------------------------------------
 
 
-@new
 def test_object_words_keys():
     words = site_schema.OBJECT_WORDS
     assert set(words) == set(site_schema.OBJECT_KINDS) | set(EXTRA_KINDS)
@@ -297,7 +297,6 @@ def test_object_words_keys():
 # --- A4/A5/A12: `screen_closed(…, target_url=)` -------------------------------------------------
 
 
-@new
 def test_screen_closed_checks_the_target_url(monkeypatch):
     """Видимость модуля — по записи экрана; пакет и право — по адресу цели (готовыми
     `packages.view_allowed` и `view_perms.url_allowed`); без цели — прежнее поведение."""
@@ -327,7 +326,6 @@ def test_screen_closed_checks_the_target_url(monkeypatch):
     assert nav_registry.screen_closed(req, "nope:missing", target_url=target) == "module"
 
 
-@new
 def test_package_aktionen_opens_the_object_form_not_the_list():
     """A12: пакет «Aktionen» пускает к форме товара (`catalog:product-edit`), но не к списку
     «Sortiment» — ответ по цели и по записи расходится."""
@@ -336,13 +334,12 @@ def test_package_aktionen_opens_the_object_form_not_the_list():
     req = _req(tenant)
     target = reverse("catalog:product-edit", args=[product.pk])
     assert nav_registry.screen_closed(req, "sellable-manage") == "package"
-    assert nav_registry.screen_closed(req, "sellable-manage", target_url=target) in ("", "module")
+    assert nav_registry.screen_closed(req, "sellable-manage", target_url=target) == ""
 
 
 # --- модель части: тип -----------------------------------------------------------------------------
 
 
-@new
 def test_type_row_model(monkeypatch):
     """Строка типа: «zeigt» — из источника, «Woher» — поле и слово вида, видимость и действия —
     из флагов строки (без запросов), ссылка — запись списка."""
@@ -366,7 +363,6 @@ def test_type_row_model(monkeypatch):
     }
 
 
-@new
 @pytest.mark.parametrize(
     "flags, visibility, actions",
     [
@@ -391,7 +387,6 @@ def test_visibility_and_actions_follow_the_row_flags(monkeypatch, flags, visibil
     assert "in der Liste" not in ct["actions"]
 
 
-@new
 def test_auto_and_setting_sources(monkeypatch):
     """`auto` — без ссылки и без слова вида в видимости; `setting` — запись реестра с
     `query` и «› sub»; `note` — рядом со сводкой."""
@@ -430,7 +425,6 @@ def test_auto_and_setting_sources(monkeypatch):
     assert ct["note"] == "Hinweis." and ct["link"]["only_here"] is False
 
 
-@new
 def test_food_locked_info_says_lmiv(monkeypatch):
     """A7a: у еды «Zutaten/Allergene» не скрывается — текст LMIV, и у типа, и раньше сводки
     объекта."""
@@ -460,7 +454,6 @@ def test_food_locked_info_says_lmiv(monkeypatch):
 # --- модель части: объект --------------------------------------------------------------------------
 
 
-@new
 @pytest.mark.parametrize(
     "description, filled",
     [
@@ -490,7 +483,6 @@ def test_object_row_model(monkeypatch, description, filled):
     assert str(link["label"]) == '<span lang="de">Darjeeling</span>'
 
 
-@new
 def test_details_field_path_and_missing_attribute(monkeypatch, caplog):
     """`fields` — путь через словарь (`details.idea`): нет ключа — «leer»; нет атрибута у
     объекта — в журнал, «заполнено ли» не утверждаем (окно живо)."""
@@ -514,7 +506,6 @@ def test_details_field_path_and_missing_attribute(monkeypatch, caplog):
     assert any("no_such_attribute" in r.getMessage() for r in caplog.records)
 
 
-@new
 def test_object_back_takes_the_resolved_object():
     """A6: `object_back(code, obj)` не ходит в базу; объект не от этого кода — резолв заново
     (ответ тот же, что без объекта)."""
@@ -548,7 +539,6 @@ def test_object_row_queries_as_on_the_base():
     assert count <= BASE_OBJECT_QUERIES, count
 
 
-@new
 def test_object_resolved_once(monkeypatch):
     """A6 / №3: с частью «Inhalt» на объектной строке — запросов не больше, чем на базе без
     неё: объект резолвится один раз (`object_back(code, obj)`), видимость — из флагов."""
@@ -561,7 +551,6 @@ def test_object_resolved_once(monkeypatch):
     assert count <= BASE_OBJECT_QUERIES, count
 
 
-@new
 def test_inhalt_queries_on_the_type_row(monkeypatch):
     """№31: часть «Inhalt» строки типа стоит не больше одного запроса поверх экрана без неё."""
     tenant, _product = _shop()
@@ -574,7 +563,6 @@ def test_inhalt_queries_on_the_type_row(monkeypatch):
 # --- №5, №6: точный ref, чужой и пропавший объект -------------------------------------------------
 
 
-@new
 def test_ref_exact(monkeypatch):
     """Часть получает только строка раздела с `ref == key`: общий блок объекта
     (`shared:<id>`), свой блок с тем же ключом и строка с похожим ref — нет."""
@@ -594,7 +582,6 @@ def test_ref_exact(monkeypatch):
     assert "content" in own
 
 
-@new
 @pytest.mark.parametrize("ghost", ["missing", "wrong_kind", "garbage", "deleted"])
 def test_foreign_or_missing_object_no_link(monkeypatch, ghost):
     """Мусорный hex, вид не совпал, удалённый объект: экран отвечает 200 (главной), ссылки на
@@ -614,7 +601,6 @@ def test_foreign_or_missing_object_no_link(monkeypatch, ghost):
     assert "data-inhalt-link" not in html and "data-schema-object-back" not in html
 
 
-@new
 def test_object_host_without_object_no_link(monkeypatch, caplog):
     """Модель: хост объекта есть, объекта нет — часть без ссылки и причины, запись в журнале."""
     tenant, _product = _shop()
@@ -631,7 +617,6 @@ def test_object_host_without_object_no_link(monkeypatch, caplog):
 # --- №8: ошибки построения ссылки — в журнал ------------------------------------------------------
 
 
-@new
 def test_link_errors_logged(monkeypatch, caplog):
     """Нет записи реестра у источника; адрес цели не строится; сбой проверки доступа — окно
     без ссылки и причины, запись в журнале (не молча)."""
@@ -660,7 +645,6 @@ def test_link_errors_logged(monkeypatch, caplog):
     assert any(r.exc_info for r in part())
 
 
-@new
 def test_page_source_links_the_page_editor(monkeypatch, caplog):
     """`page`: адрес — `content_pages.edit_url_for_code(code)`, подпись «Seiten › <имя>» с
     именем страницы в `lang`; страницы нет — без ссылки, с журналом."""
@@ -693,13 +677,13 @@ def test_page_source_links_the_page_editor(monkeypatch, caplog):
 # --- A2 / №28: право ссылки — открыть экран (GET) -------------------------------------------------
 
 
-def _staff(remove):
+def _staff(remove, add=()):
     from apps.core.models import Membership
     from apps.core.tests.test_staff_walk import _user
 
     staff = _user(Membership.ROLE_STAFF)
     Membership.objects.filter(user=staff).update(
-        permissions={"add": ["website.view", "website.edit"], "remove": list(remove)}
+        permissions={"add": ["website.view", "website.edit", *add], "remove": list(remove)}
     )
     return staff
 
@@ -712,7 +696,6 @@ def _staff_part(tenant, user, query):
     return _part(_panel(resp.content.decode()), "inhalt")
 
 
-@new
 def test_link_right_is_the_right_to_open_the_screen(monkeypatch):
     """A2 (ответ владельца §11): право ссылки — как у G2, открыть экран. Сотрудник без
     просмотра ассортимента — причина без ссылки; с просмотром, но без правки — ссылка."""
@@ -729,7 +712,6 @@ def test_link_right_is_the_right_to_open_the_screen(monkeypatch):
         assert "data-inhalt-link" in part and NO_RIGHT not in part, query
 
 
-@new
 def test_page_link_right_follows_the_target(monkeypatch):
     """A5 / §9 №6: у текстовой страницы право — по адресу цели (`seiten.edit`), не только по
     пункту «Seiten»."""
@@ -743,20 +725,20 @@ def test_page_link_right_follows_the_target(monkeypatch):
     )
     part = _staff_part(tenant, _staff(["seiten.edit"]), "?seite=text&block=pagetext")
     assert "data-inhalt-link" not in part and NO_RIGHT in part
-    part = _staff_part(tenant, _staff([]), "?seite=text&block=pagetext")
+    editor = _staff([], add=["seiten.edit"])
+    part = _staff_part(tenant, editor, "?seite=text&block=pagetext")
     assert "data-inhalt-link" in part and NO_RIGHT not in part
 
 
 # --- Y1–Y6: разметка -------------------------------------------------------------------------------
 
 
-@new
 def test_inhalt_dom_order(monkeypatch):
     """Y1: «Dieser Block zeigt» → `<dl>` («Woher», «Auf der Seite») → ссылка → подсказка; обе
     строки — в одном `<dl>`, подпись — `<dt>`."""
     tenant, _product = _shop()
     _description(monkeypatch)
-    part, _panel_html, _selected, _view = _inhalt(tenant, "?seite=product&block=description")
+    part, _panel_html, selected, _view = _inhalt(tenant, "?seite=product&block=description")
     order = [
         part.index("data-inhalt-summary"),
         part.index("<dl"),
@@ -773,7 +755,12 @@ def test_inhalt_dom_order(monkeypatch):
     woher = re.search(r"<dd\b[^>]*data-inhalt-woher[^>]*>(.*?)</dd>", part, re.S)
     assert _text(woher.group(1)) == f"Feld „Beschreibung“ bei jedem Produkt. {ONLY_IF_FILLED}"
     vis = re.search(r"<dd\b[^>]*data-inhalt-visibility[^>]*>(.*?)</dd>", part, re.S)
-    assert _text(vis.group(1)) == f"sichtbar — bei allen Produkten. {ACT_HIDE}"
+    # действия — по флагам строки: раздел товара в этой схеме двигается
+    moves = selected["can_up"] or selected["can_down"]
+    assert selected["can_hide"]
+    actions = ACT_HIDE_MOVE if moves else ACT_HIDE
+    assert _text(vis.group(1)) == f"sichtbar — bei allen Produkten. {actions}"
+    assert selected["content"]["actions"] == actions
     assert "break-words" in re.search(r"<dl\b[^>]*>", part).group(0)  # Y7
     assert "Dieser Block zeigt: die Beschreibung des Produkts." in _text(part)
     assert HINT in part
@@ -786,7 +773,6 @@ def test_g2_has_no_dl():
     assert "<dl" not in part and "data-inhalt-woher" not in part
 
 
-@new
 def test_window_without_tabs_has_no_empty_tablist(monkeypatch):
     """Y2: окно из одной части — без полосы вкладок и без пустого `role=tablist`; «Fertig» и
     «Abbrechen» есть; без скриптов раздел виден колонкой (Y8)."""
@@ -801,7 +787,6 @@ def test_window_without_tabs_has_no_empty_tablist(monkeypatch):
     assert "data-bw-preview" not in panel
 
 
-@new
 @pytest.mark.parametrize("lang", ["de", "ru"])
 def test_only_here_badge_after_the_link(monkeypatch, lang):
     """Y3: «nur hier» — отдельный `<span class="ui-badge">` ПОСЛЕ ссылки, не в её имени; у
@@ -830,7 +815,6 @@ def test_only_here_badge_after_the_link(monkeypatch, lang):
     assert "data-inhalt-only-here" not in part and 'lang="de"' not in part
 
 
-@new
 def test_fest_only_when_pinned(monkeypatch):
     """Y5: «🔒 fest» и фраза «Er gehört fest…» — только у закреплённой строки, по одному
     разу; у обычной строки раздела их нет."""
@@ -845,7 +829,6 @@ def test_fest_only_when_pinned(monkeypatch):
     assert part.count("data-inhalt-fixed") == 1 and part.count(FIXED) == 1
 
 
-@new
 def test_reason_is_one_paragraph_without_a_link(monkeypatch):
     """Y6: причина при источнике — одним абзацем с контекстом «Inhalt bearbeiten: <Bildschirm>
     — <Grund>», без `<a>` и без `aria-disabled`; у G2 вывод прежний (только причина)."""
@@ -872,7 +855,6 @@ def test_reason_is_one_paragraph_without_a_link(monkeypatch):
     assert selected["content"]["screen"] == ""
 
 
-@new
 def test_hidden_row_window_says_how_to_show(monkeypatch):
     """Ответ владельца §11: у скрытой строки — текст, кнопки «Einblenden» в окне нет."""
     tenant, _product = _shop()
@@ -889,7 +871,6 @@ def test_hidden_row_window_says_how_to_show(monkeypatch):
 # --- A8: окно без правок не оставляет черновика ---------------------------------------------------
 
 
-@new
 @pytest.mark.parametrize("close", ["window_done", "revert"])
 def test_open_and_close_without_edits_leaves_no_draft(monkeypatch, close):
     """Открыл окно «Inhalt» и закрыл («Fertig» или «Abbrechen») без правок — ни черновика, ни
@@ -909,13 +890,12 @@ def test_open_and_close_without_edits_leaves_no_draft(monkeypatch, close):
 # --- №16: строки и якоря `.po` --------------------------------------------------------------------
 
 
-@new
 def test_new_msgids_in_all_po():
     """Строки P0 и слова вида объекта есть во всех пяти каталогах (без дублей пары
     msgctxt/msgid), плейсхолдеры совпадают."""
-    words = [
-        str(t._proxy____args[0]) for f in site_schema.OBJECT_WORDS.values() for t in f.values()
-    ]
+    with translation.override(None):  # без языка ленивая строка отдаёт msgid
+        words = [str(t) for f in site_schema.OBJECT_WORDS.values() for t in f.values()]
+    assert "bei jedem Produkt" in words and len(words) == len(set(words)) == 21
     for lang in ("de", "en", "tr", "ru", "uk"):
         po = polib.pofile(str(ROOT / f"locale/{lang}/LC_MESSAGES/django.po"))
         entries = [e for e in po if not e.obsolete]
@@ -931,7 +911,6 @@ def test_new_msgids_in_all_po():
             assert sorted(re.findall(r"%\((\w+)\)s", got)) == names, (lang, msgid)
 
 
-@new
 def test_po_anchors_for_parallel_slices():
     """У каждого среза стопки 12 — свой якорь-комментарий в каждом `.po`, по порядку, между
     якорями — пустая строка (срезы пишут только после своего)."""
@@ -943,3 +922,47 @@ def test_po_anchors_for_parallel_slices():
         for name in ANCHORS:
             assert text.count(f"# fb33-stack-anchor-{name}\n") == 1, (lang, name)
             assert f"\n\n# fb33-stack-anchor-{name}\n" in text, (lang, name)
+
+
+# --- A10, A11: подпись поля из кода формы, вид объекта по хосту -----------------------------------
+
+
+def test_field_label_comes_from_the_form_code(monkeypatch):
+    """A10: где подпись поля есть в коде формы (блоки события и тура — `landing.form_fields`),
+    источник хранит ИМЯ поля, а не копию подписи."""
+    from apps.events import landing
+
+    label = str(landing.form_fields()["idea"].label)
+    assert site_schema.object_field_label("event", "idea") == label
+    assert site_schema.object_field_label("tour", "idea") == label
+    assert site_schema.object_field_label("event", "nope") == ""
+    assert site_schema.object_field_label("product", "description") == ""
+    tenant, _product = _shop()
+    _with_source(monkeypatch, "events", "idea", _source(kind="field", field="idea"), "events:list")
+    row = _row(ref="idea", key="idea")
+    window_parts.content_part(row, "event_detail", _req(tenant), code="event")
+    assert row["content"]["woher"] == f"Feld „{label}“ bei jeder Veranstaltung."
+
+
+def test_word_kind_by_host():
+    assert site_schema.word_kind("product_detail") == "product"
+    assert site_schema.word_kind(f"product:{uuid.uuid4().hex}") == "product"
+    assert site_schema.word_kind("event_detail") == "event"
+    assert site_schema.word_kind("event_detail", "tour") == "tour"
+    assert site_schema.word_kind(f"tour:{uuid.uuid4().hex}") == "tour"
+    assert site_schema.word_kind("blog_post") == "post"
+    assert site_schema.word_kind("combo_detail") == "combo"
+    assert site_schema.word_kind("promo_detail") == "promo"
+    assert site_schema.word_kind("cart") == "" and site_schema.word_kind("") == ""
+
+
+def test_broken_source_leaves_the_row_without_the_part(monkeypatch, caplog):
+    """Сбой сборки модели по источнику (битая строка формата) — экран 200, части нет, исключение
+    в журнале."""
+    tenant, _product = _shop()
+    _description(monkeypatch, shows="%(nope)s und %(page)s")
+    with caplog.at_level(logging.ERROR, logger="apps.core.window_parts"):
+        html, _view, selected = _capture(Browser(tenant), "?seite=product&block=description")
+    assert "content" not in selected and "data-schema-block" in html
+    assert 'data-window-part="inhalt"' not in html
+    assert any(r.exc_info for r in caplog.records)

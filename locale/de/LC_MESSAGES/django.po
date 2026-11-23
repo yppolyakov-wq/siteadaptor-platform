@@ -40079,3 +40079,187 @@ msgstr "Modul ist nicht aktiv"
 #. FB-33 M5d-1: часть окна «Inhalt» (ревью)
 msgid "Nicht in Ihrem Paket enthalten"
 msgstr "Nicht in Ihrem Paket enthalten"
+
+# fb33-stack-anchor-m5d2
+msgid "fb33-stack-anchor-m5d2"
+msgstr "fb33-stack-anchor-m5d2"
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Woher:"
+msgstr "Woher:"
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Auf der Seite:"
+msgstr "Auf der Seite:"
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "nur hier"
+msgstr "nur hier"
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Ausblenden und Verschieben über „⋯“."
+msgstr "Ausblenden und Verschieben über „⋯“."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Ausblenden über „⋯“."
+msgstr "Ausblenden über „⋯“."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Schließen Sie das Fenster; dann „Einblenden“ unter „Ausgeblendet“."
+msgstr "Schließen Sie das Fenster; dann „Einblenden“ unter „Ausgeblendet“."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "sichtbar."
+msgstr "sichtbar."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "sichtbar — %(all)s."
+msgstr "sichtbar — %(all)s."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "ausgeblendet."
+msgstr "ausgeblendet."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "sichtbar — bei Lebensmitteln Pflicht (LMIV)."
+msgstr "sichtbar — bei Lebensmitteln Pflicht (LMIV)."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "— ausgefüllt."
+msgstr "— ausgefüllt."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "— leer."
+msgstr "— leer."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Erscheint nur, wenn das Feld ausgefüllt ist."
+msgstr "Erscheint nur, wenn das Feld ausgefüllt ist."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Feld „%(field)s“ %(every)s."
+msgstr "Feld „%(field)s“ %(every)s."
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Feld „%(field)s“ %(this)s"
+msgstr "Feld „%(field)s“ %(this)s"
+
+#. FB-33 M5d-2: часть окна «Inhalt» (ядро)
+msgid "Inhalt bearbeiten: %(screen)s — %(reason)s"
+msgstr "Inhalt bearbeiten: %(screen)s — %(reason)s"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei jedem Produkt"
+msgstr "bei jedem Produkt"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "dieses Produkts"
+msgstr "dieses Produkts"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei allen Produkten"
+msgstr "bei allen Produkten"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei jeder Leistung"
+msgstr "bei jeder Leistung"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "dieser Leistung"
+msgstr "dieser Leistung"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei allen Leistungen"
+msgstr "bei allen Leistungen"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei jeder Unterkunft"
+msgstr "bei jeder Unterkunft"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "dieser Unterkunft"
+msgstr "dieser Unterkunft"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei allen Unterkünften"
+msgstr "bei allen Unterkünften"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei jeder Veranstaltung"
+msgstr "bei jeder Veranstaltung"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "dieser Veranstaltung"
+msgstr "dieser Veranstaltung"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei allen Veranstaltungen"
+msgstr "bei allen Veranstaltungen"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei jeder Reise"
+msgstr "bei jeder Reise"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "dieser Reise"
+msgstr "dieser Reise"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei allen Reisen"
+msgstr "bei allen Reisen"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei jeder Aktion"
+msgstr "bei jeder Aktion"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei allen Aktionen"
+msgstr "bei allen Aktionen"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei jedem Kombi-Angebot"
+msgstr "bei jedem Kombi-Angebot"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei allen Kombi-Angeboten"
+msgstr "bei allen Kombi-Angeboten"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei jedem Beitrag"
+msgstr "bei jedem Beitrag"
+
+#. FB-33 M5d-2: слова вида объекта (site_schema.OBJECT_WORDS)
+msgid "bei allen Beiträgen"
+msgstr "bei allen Beiträgen"
+
+# fb33-stack-anchor-m5d3
+msgid "fb33-stack-anchor-m5d3"
+msgstr "fb33-stack-anchor-m5d3"
+
+# fb33-stack-anchor-m5d4a
+msgid "fb33-stack-anchor-m5d4a"
+msgstr "fb33-stack-anchor-m5d4a"
+
+# fb33-stack-anchor-m5d4b
+msgid "fb33-stack-anchor-m5d4b"
+msgstr "fb33-stack-anchor-m5d4b"
+
+# fb33-stack-anchor-m5d4c
+msgid "fb33-stack-anchor-m5d4c"
+msgstr "fb33-stack-anchor-m5d4c"
+
+# fb33-stack-anchor-m5d4d
+msgid "fb33-stack-anchor-m5d4d"
+msgstr "fb33-stack-anchor-m5d4d"
+
+# fb33-stack-anchor-m5d4e
+msgid "fb33-stack-anchor-m5d4e"
+msgstr "fb33-stack-anchor-m5d4e"
+
+# fb33-stack-anchor-m5d5
+msgid "fb33-stack-anchor-m5d5"
+msgstr "fb33-stack-anchor-m5d5"
+
+# fb33-stack-anchor-kinder
+msgid "fb33-stack-anchor-kinder"
+msgstr "fb33-stack-anchor-kinder"

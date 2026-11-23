@@ -754,7 +754,21 @@ def site_schema_view(request):
     if page_ref == site_schema.PAGE_REF:
         title_hint = _title_hint(layout, blocks, site_schema.title_hint_at(host, blocks), host)
     confirm_remove = bool(selected) and request.GET.get("entfernen") == "1"
-    window_parts.content_part(selected, host, request)  # FB-33 M5d-1: «Inhalt» строки G2
+    # FB-33 M5d-2: объект строки «Nur diese Seite» ищем один раз — он же в ссылке «назад»
+    from apps.core import detail_parts
+
+    row_object = detail_parts.object_for_host(host) if site_schema.is_object_code(code) else None
+    object_back = site_schema.object_back(code, row_object)
+    # FB-33 M5d-1 / M5d-2: «Inhalt» — что показывает строка и где правится её содержимое
+    window_parts.content_part(
+        selected,
+        host,
+        request,
+        code=code,
+        obj=row_object,
+        back=object_back,
+        page_label=str(current.label) if current else "",
+    )
     # FB-33 M3-1: окно блока — части панели по вкладкам (`block_window`)
     window = block_window.tabs(
         selected, {"settings": settings, "design_rows": design_rows}, request.GET.get("tab", "")
@@ -811,7 +825,7 @@ def site_schema_view(request):
                 else None
             ),
             # FB-29.4b S8: со строки своих блоков объекта — ссылка назад к нему
-            "object_back": site_schema.object_back(code),
+            "object_back": object_back,
             # R8: общие блоки в схеме объекта — правятся на общей схеме его типа страницы
             "shared_url": site_schema.shared_schema_url(code),
             "add_groups": site_schema.add_groups(code, saved),

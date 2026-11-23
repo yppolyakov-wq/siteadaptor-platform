@@ -1393,12 +1393,18 @@ def entry_by_url(url_name: str) -> NavEntry | None:
     return next((e for e in found if not e.query), found[0] if found else None)
 
 
-def screen_closed(request, url_name: str) -> str:
+def screen_closed(request, url_name: str, target_url: str = "") -> str:
     """Почему экран закрыт ЭТОМУ пользователю здесь: "" — открыт; "module" — запись меню не
     видна тенанту (модуль, направление, тип бизнеса); "package" — экрана нет в пакете;
     "perm" — нет права (``view_perms``). Ссылки и счётчики показываем только при "" — иначе
     они ведут в 403 (перенесено из ``day_home._screen_open``). Экран без записи реестра —
-    "module" (закрыт: ссылку на неизвестный экран не даём; ревью M5d-1)."""
+    "module" (закрыт: ссылку на неизвестный экран не даём; ревью M5d-1).
+
+    `target_url` (FB-33 M5d-2) — готовый адрес, на который ведёт ссылка, когда это не сам
+    экран записи (форма объекта из списка, редактор страницы из «Seiten», вкладка с
+    «?tab=»): видимость модуля — по записи `url_name`, пакет и право — по цели, теми же
+    `packages.view_allowed` и `view_perms.url_allowed` (своей проверки здесь нет). Цель не
+    разбирается в экран — "module"."""
     from apps.core import packages
     from apps.core.templatetags.cabinet import can_open
 
@@ -1406,9 +1412,23 @@ def screen_closed(request, url_name: str) -> str:
     entry = entry_by_url(url_name)
     if entry is None or not entry_visible(entry, tenant):
         return "module"
-    if not packages.view_allowed(tenant, url_name):
+    if not target_url:
+        if not packages.view_allowed(tenant, url_name):
+            return "package"
+        return "" if can_open(url_name, request) else "perm"
+    from urllib.parse import urlsplit
+
+    from django.urls import Resolver404, resolve
+
+    from apps.core import view_perms
+
+    try:
+        target = resolve(urlsplit(target_url).path).view_name
+    except Resolver404:
+        return "module"
+    if not packages.view_allowed(tenant, target):
         return "package"
-    return "" if can_open(url_name, request) else "perm"
+    return "" if view_perms.url_allowed(getattr(request, "user", None), target_url) else "perm"
 
 
 def screen_open(request, url_name: str) -> bool:
