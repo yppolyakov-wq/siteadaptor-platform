@@ -39,7 +39,6 @@
   </div>
   <span class="flex-1"></span>
   <div class="contents" data-schema-status>
-  
   <a href="/dashboard/site/home/?page=%2F" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">Auf der Seite bearbeiten</a>
   <a href="/?preview=1&amp;stand=saved" target="_blank" rel="noopener" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">Vorschau<span class="sr-only"> (öffnet in neuem Tab)</span></a>
   
@@ -83,361 +82,603 @@
     <h2 id="schema-title" class="font-semibold mb-3"><span class="sr-only">Aufbau: </span>Startseite</h2>
     
     
-    <ul class="space-y-2" data-schema-blocks>
-      <li class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">
+    
+    <div class="space-y-2" data-schema-blocks>
+      
+      <div class="flex flex-wrap items-center justify-between gap-x-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-0.5 min-h-[44px] text-sm text-gray-600" data-schema-strip="head">
         <span>Kopfzeile & Menü</span>
-        <a href="/dashboard/site/menu/" class="inline-flex items-center min-h-[24px] text-indigo-700 underline hover:no-underline">Menü bearbeiten</a>
-      </li>
+        <span class="flex flex-wrap items-center gap-x-4"><a href="/dashboard/site/menu/" class="font-semibold text-indigo-700 underline hover:no-underline">Menü bearbeiten</a><a href="/dashboard/design/" class="font-semibold text-indigo-700 underline hover:no-underline">Design</a></span>
+      </div>
       
       
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <ol class="space-y-2" role="list" data-schema-lines>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="usp_bar">
         
-        <a href="?seite=home&amp;block=usp_bar&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="usp_bar">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">Vertrauensleiste</span>
-          
-          
-          <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
-        </a></li>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">1</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-usp_bar">
+</span>
+    <span class="block font-semibold">Vertrauensleiste</span>
+    
+    
+    <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=usp_bar&amp;wopen=W#schema-panel" id="schema-row-usp_bar" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="usp_bar" data-schema-gear="usp_bar" aria-label="Einstellungen: Vertrauensleiste" aria-describedby="schema-desc-usp_bar" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-usp_bar" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Vertrauensleiste</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="usp_bar">
+      
+      <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="faq">
         
-        <a href="?seite=home&amp;block=faq&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="faq">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">FAQ</span>
-          
-          
-          <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
-        </a></li>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">2</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-faq">
+</span>
+    <span class="block font-semibold">FAQ</span>
+    
+    
+    <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=faq&amp;wopen=W#schema-panel" id="schema-row-faq" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="faq" data-schema-gear="faq" aria-label="Einstellungen: FAQ" aria-describedby="schema-desc-faq" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-faq" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: FAQ</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="faq">
+      <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+      <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="t1">
         
-        <a href="?seite=home&amp;block=t1&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="t1">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">Text</span>
-          <span class="block text-xs text-gray-600 break-words">«Hallo»</span>
-          
-          <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
-        </a></li>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">3</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-t1">
+</span>
+    <span class="block font-semibold">Text</span>
+    <span class="block text-xs text-gray-600 break-words" id="schema-sum-t1">«Hallo»</span>
+    
+    <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=t1&amp;wopen=W#schema-panel" id="schema-row-t1" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="t1" data-schema-gear="t1" aria-label="Einstellungen: Text" aria-describedby="schema-desc-t1 schema-sum-t1" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-t1" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Text</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="t1">
+      <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+      <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    <a href="?seite=home&amp;block=t1&amp;entfernen=1&amp;wopen=W#schema-panel" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" data-schema-remove>Entfernen …</a>
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="bt1">
         
-        <a href="?seite=home&amp;block=bt1&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="bt1">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">Schaltfläche</span>
-          <span class="block text-xs text-gray-600 break-words">«Los»</span>
-          
-          
-        </a></li>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">4</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-bt1">
+</span>
+    <span class="block font-semibold">Schaltfläche</span>
+    <span class="block text-xs text-gray-600 break-words" id="schema-sum-bt1">«Los»</span>
+    
+    
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=bt1&amp;wopen=W#schema-panel" id="schema-row-bt1" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="bt1" data-schema-gear="bt1" aria-label="Einstellungen: Schaltfläche" aria-describedby="schema-desc-bt1 schema-sum-bt1" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-bt1" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Schaltfläche</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="bt1">
+      <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+      <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    <a href="?seite=home&amp;block=bt1&amp;entfernen=1&amp;wopen=W#schema-panel" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" data-schema-remove>Entfernen …</a>
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="l1">
         
-        <a href="?seite=home&amp;block=l1&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="l1">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">Liste</span>
-          <span class="block text-xs text-gray-600 break-words">Produkte · Raster</span>
-          
-          <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="3" data-thumb-out="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">5</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-l1">
+</span>
+    <span class="block font-semibold">Liste</span>
+    <span class="block text-xs text-gray-600 break-words" id="schema-sum-l1">Produkte · Raster</span>
+    
+    <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="3" data-thumb-out="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
 
-          
-        </a></li>
+    
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=l1&amp;wopen=W#schema-panel" id="schema-row-l1" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="l1" data-schema-gear="l1" aria-label="Einstellungen: Liste" aria-describedby="schema-desc-l1 schema-sum-l1" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-l1" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Liste</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="l1">
+      <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+      <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    <a href="?seite=home&amp;block=l1&amp;entfernen=1&amp;wopen=W#schema-panel" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" data-schema-remove>Entfernen …</a>
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="quicklinks">
         
-        <a href="?seite=home&amp;block=quicklinks&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="quicklinks">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">Schnellzugriff</span>
-          
-          
-          
-        </a></li>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">6</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-quicklinks">
+</span>
+    <span class="block font-semibold">Schnellzugriff</span>
+    
+    
+    
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=quicklinks&amp;wopen=W#schema-panel" id="schema-row-quicklinks" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="quicklinks" data-schema-gear="quicklinks" aria-label="Einstellungen: Schnellzugriff" aria-describedby="schema-desc-quicklinks" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-quicklinks" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Schnellzugriff</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="quicklinks">
+      <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+      <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    <a href="?seite=home&amp;block=quicklinks&amp;entfernen=1&amp;wopen=W#schema-panel" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" data-schema-remove>Entfernen …</a>
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="promotions">
         
-        <a href="?seite=home&amp;block=promotions&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="promotions">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">Aktuelle Angebote</span>
-          <span class="block text-xs text-gray-600 break-words">höchstens 9 · 3 Spalten · Raster</span>
-          
-          <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="3" data-thumb-out="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">7</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-promotions">
+</span>
+    <span class="block font-semibold">Aktuelle Angebote</span>
+    <span class="block text-xs text-gray-600 break-words" id="schema-sum-promotions">höchstens 9 · 3 Spalten · Raster</span>
+    
+    <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="3" data-thumb-out="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
 
-          
-        </a></li>
+    
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=promotions&amp;wopen=W#schema-panel" id="schema-row-promotions" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="promotions" data-schema-gear="promotions" aria-label="Einstellungen: Aktuelle Angebote" aria-describedby="schema-desc-promotions schema-sum-promotions" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-promotions" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Aktuelle Angebote</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="promotions">
+      <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+      <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="products">
         
-        <a href="?seite=home&amp;block=products&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="products">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">Produkte</span>
-          <span class="block text-xs text-gray-600 break-words">höchstens 8 · 4 Spalten · Raster</span>
-          
-          <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="4" data-thumb-out="grid" style="grid-template-columns: repeat(4, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">8</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-products">
+</span>
+    <span class="block font-semibold">Produkte</span>
+    <span class="block text-xs text-gray-600 break-words" id="schema-sum-products">höchstens 8 · 4 Spalten · Raster</span>
+    
+    <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="4" data-thumb-out="grid" style="grid-template-columns: repeat(4, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
 
-          
-        </a></li>
+    
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=products&amp;wopen=W#schema-panel" id="schema-row-products" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="products" data-schema-gear="products" aria-label="Einstellungen: Produkte" aria-describedby="schema-desc-products schema-sum-products" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-products" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Produkte</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="products">
+      <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+      <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
-      
-      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+      <li>
+      <ul class="flex flex-col md:flex-row gap-2" role="list" data-schema-row>
         
         <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="contact">
         
-        <a href="?seite=home&amp;block=contact&amp;wopen=W#schema-panel"
-           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
-           data-schema-block="contact">
-          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
-          
-          <span class="block font-semibold">Kontakt &amp; Öffnungszeiten</span>
-          
-          
-          
-        </a></li>
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50" data-schema-rowbox>
+  <span class="schema-num" aria-hidden="true">9</span>
+  <div class="min-w-0 flex-1">
+    
+    <span id="schema-desc-contact">
+</span>
+    <span class="block font-semibold">Kontakt &amp; Öffnungszeiten</span>
+    
+    
+    
+  </div>
+  <span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>
+  <a href="?seite=home&amp;block=contact&amp;wopen=W#schema-panel" id="schema-row-contact" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="contact" data-schema-gear="contact" aria-label="Einstellungen: Kontakt &amp; Öffnungszeiten" aria-describedby="schema-desc-contact" draggable="false"><span aria-hidden="true">⚙</span></a>
+  
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary id="schema-more-contact" class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Kontakt &amp; Öffnungszeiten</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
+
+      <input type="hidden" name="zeile" value="1">
+      <input type="hidden" name="ref" value="contact">
+      <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+      
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+    </form>
+    
+  </div>
+</details>
+
+</div>
+</li>
         
         
       </ul></li>
       
+      </ol>
       
-      <li><details class="rounded-xl border border-dashed border-gray-500" data-schema-add>
-      <summary class="flex items-center justify-center min-h-[44px] cursor-pointer list-none rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">＋&nbsp;</span>Block hinzufügen</summary>
-      <div class="space-y-3 border-t border-dashed border-gray-300 px-3 py-3">
-      <form method="post" class="flex flex-wrap items-end gap-2">
-        <input type="hidden" name="csrfmiddlewaretoken" value="X">
-        <input type="hidden" name="seite" value="home">
+      <div>
+<details class="rounded-xl border border-dashed border-gray-500" data-schema-add="end">
+  <summary id="schema-add-end" class="flex items-center justify-center min-h-[44px] cursor-pointer list-none rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">＋</span>&nbsp;Block<span class="sr-only"> am Ende einfügen</span></summary>
+  <div class="space-y-3 border-t border-dashed border-gray-300 px-3 py-3">
+    <form method="post" class="space-y-3">
+      <input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
 
-        <input type="hidden" name="op" value="add">
-        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">Einzelner Block</span>
-          <select name="type" class="ui-input w-full">
-            <optgroup label="Inhalt">
-            <option value="text">Text · Nur Text</option><option value="image">Bild</option><option value="image_text">Text · Foto + Text</option><option value="button">Aufruf zum Handeln · Nur Button</option><option value="spacer">Abstand</option><option value="stats">Zahlen</option><option value="banner">Banner</option><option value="quick_links">Schnellzugriff</option>
-            </optgroup><optgroup label="Listen &amp; Aktionen">
-            <option value="promo">Aktion</option><option value="list">Liste</option><option value="newsletter">Newsletter</option>
-            </optgroup><optgroup label="Von anderen Stellen">
-            <option value="textpage">Text · Von einer Seite</option><option value="contact_card">Kontakt &amp; Öffnungszeiten · Karte</option>
-            </optgroup>
-          </select></label>
-        <button class="ui-btn ui-btn-primary">Hinzufügen</button>
-      </form>
-      <form method="post" class="flex flex-wrap items-end gap-2" data-schema-add-row>
-        <input type="hidden" name="csrfmiddlewaretoken" value="X">
-        <input type="hidden" name="seite" value="home">
+      <input type="hidden" name="op" value="add">
+      
+      
+      <fieldset>
+        <legend class="mb-1 text-xs text-gray-600">Inhalt</legend>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button name="type" value="text" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Text · Nur Text</span><span class="text-xs text-gray-600">Überschrift + Absatz</span></button><button name="type" value="image" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Bild</span><span class="text-xs text-gray-600">Foto mit Bildunterschrift</span></button><button name="type" value="image_text" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Text · Foto + Text</span><span class="text-xs text-gray-600">Foto neben dem Text</span></button><button name="type" value="button" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Aufruf zum Handeln · Nur Button</span><span class="text-xs text-gray-600">Link-Schaltfläche</span></button><button name="type" value="spacer" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Abstand</span><span class="text-xs text-gray-600">Vertikaler Abstand</span></button><button name="type" value="stats" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Zahlen</span><span class="text-xs text-gray-600">2–4 Kennzahlen mit Beschriftung</span></button><button name="type" value="banner" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Banner</span><span class="text-xs text-gray-600">Bild mit Text und Link — auf jeder Seite, mit Zeitraum</span></button><button name="type" value="quick_links" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Schnellzugriff</span><span class="text-xs text-gray-600">Kacheln mit den wichtigsten Wegen — Termin, Anruf, Anfahrt</span></button>
+        </div>
+      </fieldset>
+      
+      <fieldset>
+        <legend class="mb-1 text-xs text-gray-600">Listen &amp; Aktionen</legend>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button name="type" value="promo" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Aktion</span><span class="text-xs text-gray-600">Laufende Aktion</span></button><button name="type" value="list" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Liste</span><span class="text-xs text-gray-600">Aktionen oder Produkte — Auswahl und Ansicht wählen Sie selbst</span></button><button name="type" value="newsletter" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Newsletter</span><span class="text-xs text-gray-600">Anmeldeformular mit Double-Opt-In</span></button>
+        </div>
+      </fieldset>
+      
+      <fieldset>
+        <legend class="mb-1 text-xs text-gray-600">Von anderen Stellen</legend>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button name="type" value="textpage" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Text · Von einer Seite</span></button><button name="type" value="contact_card" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">Kontakt &amp; Öffnungszeiten · Karte</span></button>
+        </div>
+      </fieldset>
+      
+    </form>
+    <form method="post" data-schema-add-row>
+      <input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="home">
 
-        <input type="hidden" name="op" value="add_row">
-        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">Fertige Zeile</span>
-          <select name="value" class="ui-input w-full">
-            <option value="text_image">Text + Foto</option><option value="image_text">Foto + Text</option><option value="three_cards">Drei Karten</option><option value="text_contact">Text + Kontakt</option>
-          </select></label>
-        <button class="ui-btn ui-btn-secondary">Zeile hinzufügen</button>
-      </form>
+      <input type="hidden" name="op" value="add_row">
+      
+      <fieldset>
+        <legend class="mb-1 text-xs text-gray-600">Fertige Zeile</legend>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button name="value" value="text_image" class="schema-add-type flex items-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm font-semibold hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Text + Foto</button><button name="value" value="image_text" class="schema-add-type flex items-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm font-semibold hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Foto + Text</button><button name="value" value="three_cards" class="schema-add-type flex items-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm font-semibold hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Drei Karten</button><button name="value" value="text_contact" class="schema-add-type flex items-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm font-semibold hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Text + Kontakt</button>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+</details>
+</div>
+      <div class="flex flex-wrap items-center justify-between gap-x-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-0.5 min-h-[44px] text-sm text-gray-600" data-schema-strip="foot">
+        <span>Fußzeile</span>
+        <a href="/dashboard/site/menu/?tab=footer" class="font-semibold text-indigo-700 underline hover:no-underline">Fußzeile bearbeiten</a>
       </div>
-      </details></li>
-      <li class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">Fußzeile</li>
-    </ul>
+    </div>
     
     <details class="mt-4 border-t border-gray-200 pt-3" data-schema-hidden>
       <summary class="flex items-center min-h-[44px] text-sm font-semibold text-gray-700 cursor-pointer">Ausgeblendet (20)</summary>
       <ul class="mt-2 space-y-2">
         
-        <li><a href="?seite=home&amp;block=hero&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-hero" href="?seite=home&amp;block=hero&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="hero">
             <span><span class="font-medium">Begrüßungsbanner</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="hero"><button name="op" value="toggle" id="schema-more-hero" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Begrüßungsbanner</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=finder&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-finder" href="?seite=home&amp;block=finder&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="finder">
             <span><span class="font-medium">Finder</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="finder"><button name="op" value="toggle" id="schema-more-finder" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Finder</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=stay_search&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-stay_search" href="?seite=home&amp;block=stay_search&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="stay_search">
             <span><span class="font-medium">Buchungssuche (Aufenthalte)</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="stay_search"><button name="op" value="toggle" id="schema-more-stay_search" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Buchungssuche (Aufenthalte)</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=stay_rooms&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-stay_rooms" href="?seite=home&amp;block=stay_rooms&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="stay_rooms">
             <span><span class="font-medium">Zimmer (Aufenthalte)</span> · 3 Spalten · Raster</span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="stay_rooms"><button name="op" value="toggle" id="schema-more-stay_rooms" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Zimmer (Aufenthalte)</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=services&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-services" href="?seite=home&amp;block=services&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="services">
             <span><span class="font-medium">Leistungen &amp; Preise</span> · 2 Spalten · Raster</span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="services"><button name="op" value="toggle" id="schema-more-services" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Leistungen &amp; Preise</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=categories&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-categories" href="?seite=home&amp;block=categories&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="categories">
             <span><span class="font-medium">Kategorien</span> · höchstens 30 · 4 Spalten · Raster</span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="categories"><button name="op" value="toggle" id="schema-more-categories" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Kategorien</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=events&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-events" href="?seite=home&amp;block=events&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="events">
             <span><span class="font-medium">Veranstaltungen</span> · höchstens 6 · 3 Spalten · Raster</span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="events"><button name="op" value="toggle" id="schema-more-events" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Veranstaltungen</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=tours&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-tours" href="?seite=home&amp;block=tours&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="tours">
             <span><span class="font-medium">Reisen</span> · höchstens 6 · 2 Spalten · Raster</span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="tours"><button name="op" value="toggle" id="schema-more-tours" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Reisen</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=blog&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-blog" href="?seite=home&amp;block=blog&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="blog">
             <span><span class="font-medium">Neuigkeiten</span> · höchstens 3 · 3 Spalten · Raster</span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="blog"><button name="op" value="toggle" id="schema-more-blog" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Neuigkeiten</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=archetypes&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-archetypes" href="?seite=home&amp;block=archetypes&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="archetypes">
             <span><span class="font-medium">Unser Angebot</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="archetypes"><button name="op" value="toggle" id="schema-more-archetypes" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Unser Angebot</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=about&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-about" href="?seite=home&amp;block=about&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="about">
             <span><span class="font-medium">Über uns</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="about"><button name="op" value="toggle" id="schema-more-about" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Über uns</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=process&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-process" href="?seite=home&amp;block=process&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="process">
             <span><span class="font-medium">So funktioniert es</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="process"><button name="op" value="toggle" id="schema-more-process" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: So funktioniert es</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=team&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-team" href="?seite=home&amp;block=team&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="team">
             <span><span class="font-medium">Team</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="team"><button name="op" value="toggle" id="schema-more-team" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Team</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=cta&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-cta" href="?seite=home&amp;block=cta&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="cta">
             <span><span class="font-medium">Aufruf zum Handeln</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="cta"><button name="op" value="toggle" id="schema-more-cta" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Aufruf zum Handeln</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=testimonials&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-testimonials" href="?seite=home&amp;block=testimonials&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="testimonials">
             <span><span class="font-medium">Kundenstimmen</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="testimonials"><button name="op" value="toggle" id="schema-more-testimonials" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Kundenstimmen</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=trust&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-trust" href="?seite=home&amp;block=trust&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="trust">
             <span><span class="font-medium">Vertrauen und Referenzen</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="trust"><button name="op" value="toggle" id="schema-more-trust" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Vertrauen und Referenzen</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=reviews&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-reviews" href="?seite=home&amp;block=reviews&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="reviews">
             <span><span class="font-medium">Kundenbewertungen</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="reviews"><button name="op" value="toggle" id="schema-more-reviews" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Kundenbewertungen</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=gallery&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-gallery" href="?seite=home&amp;block=gallery&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="gallery">
             <span><span class="font-medium">Fotogalerie</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="gallery"><button name="op" value="toggle" id="schema-more-gallery" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Fotogalerie</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=before_after&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-before_after" href="?seite=home&amp;block=before_after&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="before_after">
             <span><span class="font-medium">Vorher &amp; nachher</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="before_after"><button name="op" value="toggle" id="schema-more-before_after" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Vorher &amp; nachher</span></button></form></li>
         
-        <li><a href="?seite=home&amp;block=anfrage&amp;wopen=W#schema-panel"
-               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+        <li class="flex items-center gap-2"><a id="schema-row-anfrage" href="?seite=home&amp;block=anfrage&amp;wopen=W#schema-panel"
+               class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
                data-schema-block="anfrage">
             <span><span class="font-medium">Anfrage</span></span>
             <span class="ui-badge">ausgeblendet</span>
-          </a></li>
+          </a><form method="post" class="shrink-0"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home">
+<input type="hidden" name="zeile" value="1"><input type="hidden" name="ref" value="anfrage"><button name="op" value="toggle" id="schema-more-anfrage" class="ui-btn ui-btn-secondary min-h-[44px]">Einblenden<span class="sr-only">: Anfrage</span></button></form></li>
         
       </ul>
     </details>

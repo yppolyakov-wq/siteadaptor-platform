@@ -1,6 +1,6 @@
-<aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[70] max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:rounded-b-none max-md:shadow-[0_-10px_30px_rgba(22,24,29,0.25)]" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
+<aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
     
-    <p class="md:hidden -mt-1 mb-1 text-right"><a href="?seite=confirmation" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></a></p>
+    <p class="xl:hidden -mt-1 mb-1 text-right"><a href="?seite=confirmation#schema-row-recommend" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></a></p>
     
     
     
@@ -10,28 +10,24 @@
         <p class="text-xs text-amber-900">Ausgeblendet</p>
       </div>
       
-      <details class="relative shrink-0" data-schema-more>
-        <summary class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden" aria-label="Mehr zu „Empfehlungen“"><span aria-hidden="true">⋯</span></summary>
-        <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
-          <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
-            <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Empfehlungen</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
 
-            <input type="hidden" name="ref" value="recommend">
-            <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Einblenden</button>
-          </form>
-          
-          <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
-            <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
-
-            <input type="hidden" name="ref" value="recommend">
-            
-            
-          </form>
-          
-        </div>
-      </details>
       
+      <input type="hidden" name="ref" value="recommend">
+      
+      
+      <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Einblenden</button>
+    </form>
+    
+  </div>
+</details>
+
     </div>
+    
     
     
     
