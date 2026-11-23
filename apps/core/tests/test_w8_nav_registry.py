@@ -66,7 +66,8 @@ def test_every_registry_url_reverses():
 def _nav_literals():
     root = Path(__file__).resolve().parents[3] / "apps"
     seen = set()
-    pat = re.compile(r'"nav":\s*"([a-z_-]+)"|nav="([a-z_-]+)"')
+    # `(?<!\w)` — не цеплять поля с суффиксом `nav` (`DetailSection.content_nav`, FB-33 M5d-1)
+    pat = re.compile(r'"nav":\s*"([a-z_-]+)"|(?<!\w)nav="([a-z_-]+)"')
     for path in root.rglob("*.py"):
         if "/tests/" in str(path) or "/migrations/" in str(path):
             continue
