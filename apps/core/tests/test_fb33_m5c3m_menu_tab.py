@@ -160,9 +160,51 @@ def test_menu_post_top_redirect_as_before():
 
 
 def test_js_takes_initial_tab_from_dom_and_syncs_hidden_field():
+    """Замок НАЛИЧИЯ строк в скрипте (не поведения): поведение — стенд
+    `scripts/fb33_m5c3m_menu_tab_stand.py` (клик, «Save», адрес `?tab=`)."""
     import pathlib
 
     src = pathlib.Path("templates/tenant/site_menu.html").read_text()
     assert 'var tab = "top"' not in src
     assert '[data-tab][aria-selected="true"]' in src
     assert 'getElementById("menu-tab")' in src
+
+
+# --- Ревью C3m (django-reviewer + a11y-architect, 2026-11-23) ---
+
+
+@pytest.mark.xfail(strict=True, reason="ревью a11y №2–3: связка вкладка ↔ панель")
+@pytest.mark.parametrize("key", TABS)
+def test_tabs_aria_linked_to_panes(key):
+    """Вкладка знает свою панель (`aria-controls`), панель — `role=tabpanel` с именем
+    вкладки (`aria-labelledby`); список вкладок — `div role=tablist`, не `nav`
+    (роль снимала бы ориентир навигации)."""
+    tenant = TenantFactory(schema_name="public", slug=f"m5c3maria{key}", name="M")
+    body = _get(tenant, f"?tab={key}")
+    btn, pane = _tab_button(body, key), _pane(body, key)
+    assert f'id="menu-tab-{key}"' in btn
+    assert f'aria-controls="menu-pane-{key}"' in btn
+    assert 'role="tabpanel"' in pane
+    assert f'id="menu-pane-{key}"' in pane
+    assert f'aria-labelledby="menu-tab-{key}"' in pane
+    assert re.search(r'<div[^>]*role="tablist"', body)
+    assert not re.search(r'<nav[^>]*role="tablist"', body)
+
+
+@pytest.mark.xfail(strict=True, reason="ревью: мёртвый контекст menu_tabs")
+def test_no_dead_menu_tabs_context():
+    import pathlib
+
+    src = pathlib.Path("apps/core/views.py").read_text()
+    assert '"menu_tabs"' not in src
+
+
+@pytest.mark.xfail(strict=True, reason="ревью №25: hidden + flex у панели инструментов и превью")
+def test_hidden_flex_nodes_have_hidden_rule():
+    """`data-fold-tools` и `#bottom-preview` несут `hidden` вместе с классом `flex` — утилита
+    перебивает `[hidden]` Tailwind; правило `[hidden]` для них задаёт `static/src/app.css`."""
+    import pathlib
+
+    css = pathlib.Path("static/src/app.css").read_text()
+    assert "[data-fold-tools][hidden]" in css
+    assert "[data-bottom-preview][hidden]" in css
