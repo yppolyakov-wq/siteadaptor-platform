@@ -40306,6 +40306,10 @@ msgstr "Блок %(n)s:"
 msgid "Block „%(name)s“ ist jetzt Nummer %(n)s von %(total)s."
 msgstr "Блок «%(name)s» теперь номер %(n)s из %(total)s."
 
+# FB-33 M5c-4: ссылка полосы подвала схемы → «Menü» › «Fußzeile»
+msgid "Fußzeile bearbeiten"
+msgstr "Изменить подвал"
+
 msgid "fb33-stack-anchor-m5c3m"
 msgstr "fb33-stack-anchor-m5c3m"
 

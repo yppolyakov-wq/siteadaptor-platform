@@ -44,7 +44,6 @@ def _href(tag: str) -> str:
     return re.search(r'href="([^"]+)"', tag).group(1).replace("&amp;", "&")
 
 
-@pytest.mark.xfail(strict=True, reason="C3: полосы ещё без ссылок")
 def test_strip_links_via_can_open():
     html = Browser(_tenant()).get("?seite=text")
     head = _links(_strip(html, "head"))
@@ -56,7 +55,6 @@ def test_strip_links_via_can_open():
     assert re.search(r">Design</a>", _strip(html, "head"))
 
 
-@pytest.mark.xfail(strict=True, reason="C3: полосы ещё без ссылок")
 def test_strip_links_via_url_tag():
     """Адреса — через `{% url %}` под `can_open`, без вписанных путей."""
     src = TEMPLATE.read_text()
@@ -67,7 +65,6 @@ def test_strip_links_via_url_tag():
     assert "/dashboard/design/" not in src and "/dashboard/site/menu/" not in src
 
 
-@pytest.mark.xfail(strict=True, reason="C3: полосы ещё без ссылок")
 def test_staff_without_right_no_links(monkeypatch):
     """Сотрудник без права на «Menü»/«Design» — подписи полос остаются, ссылок нет."""
     monkeypatch.setattr(permissions, "is_member", lambda user: True)
@@ -82,10 +79,9 @@ def test_staff_without_right_no_links(monkeypatch):
     html = Browser(_tenant()).get("?seite=text")
     head, foot = _strip(html, "head"), _strip(html, "foot")
     assert _links(head) == [] and _links(foot) == []
-    assert "Kopfzeile &amp; Menü" in head and "Fußzeile" in foot
+    assert "Kopfzeile & Menü" in head and "Fußzeile" in foot
 
 
-@pytest.mark.xfail(strict=True, reason="C3: полосы ещё без ссылок")
 def test_strip_links_underlined():
     html = Browser(_tenant()).get("?seite=text")
     tags = _links(_strip(html, "head")) + _links(_strip(html, "foot"))
@@ -95,7 +91,6 @@ def test_strip_links_underlined():
         assert "min-h-[24px]" not in tag, "высота цели — правилом app.css, не классом 24 px"
 
 
-@pytest.mark.xfail(strict=True, reason="C3: полосы ещё без ссылок")
 def test_strip_targets_44_in_css():
     css = APP_CSS.read_text()
     rule = re.search(r"\[data-schema-strip\] a\s*\{([^}]*)\}", css)

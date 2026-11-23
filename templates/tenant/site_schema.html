@@ -125,9 +125,10 @@
     {% comment %}FB-33 M5c-2 (a11y B2): строки блоков — нумерованным списком `<ol>`; полосы шапки и
     подвала, ★-строка и «＋ Block» — вне него, метка заголовка — абзацем внутри ряда.{% endcomment %}
     <div class="space-y-2" data-schema-blocks>
-      <div class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">
+      {% comment %}FB-33 M5c-4 (макет M5cDesktop): полосы шапки и подвала — ссылки на экраны «Menü» и «Design» тому, кому они открыты (права — прежние); подчёркнуты, цель 44 px — правилом app.css.{% endcomment %}
+      <div class="flex flex-wrap items-center justify-between gap-x-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-0.5 min-h-[44px] text-sm text-gray-600" data-schema-strip="head">
         <span>{% trans "Kopfzeile & Menü" %}</span>
-        {% if 'site-menu'|can_open:request %}<a href="{% url 'site-menu' %}" class="inline-flex items-center min-h-[24px] text-indigo-700 underline hover:no-underline">{% trans "Menü bearbeiten" %}</a>{% endif %}
+        <span class="flex flex-wrap items-center gap-x-4">{% if 'site-menu'|can_open:request %}<a href="{% url 'site-menu' %}" class="font-semibold text-indigo-700 underline hover:no-underline">{% trans "Menü bearbeiten" %}</a>{% endif %}{% if 'design'|can_open:request %}<a href="{% url 'design' %}" class="font-semibold text-indigo-700 underline hover:no-underline">{% trans "Design" %}</a>{% endif %}</span>
       </div>
       {% if page_row %}{% comment %}FB-33 M5b-2 (макет V4, a11y Y-H3): ★-строка страницы — первой, неподвижна (без ручки и «⋯»); ★ скрыт от чтения, после названия — «feste Position».{% endcomment %}
       <div><a id="schema-row-{{ page_row.ref }}" href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel"
@@ -159,7 +160,10 @@
       {% endif %}
       {% comment %}FB-33 M5c-3: «＋ Block» в конце схемы (под выбранной строкой — в её ряду выше).{% endcomment %}
       <div>{% include "tenant/_schema_add.html" with after="" after_name="" place="end" %}</div>
-      <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">{% trans "Fußzeile" %}</div>
+      <div class="flex flex-wrap items-center justify-between gap-x-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-0.5 min-h-[44px] text-sm text-gray-600" data-schema-strip="foot">
+        <span>{% trans "Fußzeile" %}</span>
+        {% if 'site-menu'|can_open:request %}<a href="{% url 'site-menu' %}?tab=footer" class="font-semibold text-indigo-700 underline hover:no-underline">{% trans "Fußzeile bearbeiten" %}</a>{% endif %}
+      </div>
     </div>
     {% if layout.hidden %}
     <details class="mt-4 border-t border-gray-200 pt-3" data-schema-hidden{% if selected and not selected.enabled or moved_hidden %} open{% endif %}>

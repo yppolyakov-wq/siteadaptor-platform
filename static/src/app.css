@@ -1843,6 +1843,9 @@ input[type="datetime-local"] {
   .schema-grip.hidden { display: none; }
   /* FB-33 M5c-3 (макет M5cAdd): кнопки типов «＋ Block» — 56 px */
   .schema-add-type { min-height: 3.5rem; }
+  /* FB-33 M5c-4: ссылки полос шапки и подвала схемы («Menü bearbeiten», «Design»,
+     «Fußzeile bearbeiten») — отдельные цели, не ссылки в строке текста: 44 px */
+  [data-schema-strip] a { display: inline-flex; align-items: center; min-height: 2.75rem; }
   /* SP-10: <legend> карточки-fieldset браузер рисует НА верхней кромке (заголовок «висел»
      над карточкой). float — штатный способ вернуть его в поток; следующий блок — с новой строки. */
   fieldset.ui-card > legend:not(.sr-only) { float: left; width: 100%; padding: 0; margin-top: 0 !important; }
