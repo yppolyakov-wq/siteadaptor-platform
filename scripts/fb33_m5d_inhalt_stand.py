@@ -103,7 +103,20 @@ CASES_M5D4D = (
 )
 
 # --- cases: m5d4e ---
-CASES_M5D4E = ()
+# акция, Kombi, запись блога: тип страницы (у Kombi и блога своей схемы объекта нет)
+_G1E_SHOWN = {"pinned": False, "dl": True, "link": True}
+_G1E_AUTO = {"pinned": False, "dl": True, "link": False}
+_G1E_FIXED = {"pinned": True, "dl": True, "link": True}
+CASES_M5D4E = (
+    ("friseur", "promo", "share", _G1E_AUTO),
+    ("friseur", "promo", "card", _G1E_SHOWN),
+    ("friseur", "promo", "related", _G1E_AUTO),
+    ("restaurant-demo", "combo", "config", _G1E_FIXED),
+    ("restaurant-demo", "combo", "examples", _G1E_AUTO),
+    ("restaurant-demo", "combo", "related", _G1E_AUTO),
+    ("retreat", "blog_post", "article", _G1E_FIXED),
+    ("retreat", "blog_post", "more", _G1E_AUTO),
+)
 
 # --- cases: m5d5 ---
 CASES_M5D5 = ()
