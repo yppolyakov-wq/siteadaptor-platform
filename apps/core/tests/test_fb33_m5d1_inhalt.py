@@ -123,7 +123,7 @@ def test_content_nav_from_registry():
         (module, s.key): s.content_nav
         for module, sections in detail_sections.DETAIL_SECTIONS.items()
         for s in sections
-        if getattr(s, "content_nav", "")
+        if getattr(s, "content_nav", "") and s.source is None  # G2
     }
     assert with_nav == {(code if code != "contact" else "message", ref): url
                         for code, (ref, url) in G2.items()}  # fmt: skip
