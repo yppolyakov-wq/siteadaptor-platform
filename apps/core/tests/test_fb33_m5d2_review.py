@@ -477,6 +477,28 @@ def test_done_on_a_hidden_row_leaves_the_hidden_list_open(monkeypatch, hide_firs
     assert html.count('id="schema-row-description"') == 1
 
 
+def test_module_anchor_stands_above_its_own_paragraph():
+    """DJ-L4: якорь `# --- <module> ---` — прямо над абзацем своего модуля: между якорем и
+    ключом `"<module>": (` только комментарии. Абзацы про номера, корзину и «Versand» стоят
+    под своими якорями (раньше — под чужими)."""
+    from pathlib import Path
+
+    src = Path(detail_sections.__file__).read_text(encoding="utf-8").splitlines()
+    for module in detail_sections.DETAIL_SECTIONS:
+        at = src.index(f"    # --- {module} ---")
+        own = next(i for i in range(at + 1, len(src)) if not src[i].strip().startswith("#"))
+        assert src[own].strip().startswith(f'"{module}": ('), module
+    where = {
+        "stays.StayUnit": "stays",
+        "cart_show_upsell": "cart",
+        "Список снимается только галочкой": "versand",
+    }
+    for word, module in where.items():
+        line = next(i for i, text in enumerate(src) if word in text and text.strip()[0] == "#")
+        anchor = next(i for i in range(line, -1, -1) if src[i].startswith("    # --- "))
+        assert src[anchor] == f"    # --- {module} ---", (word, src[anchor])
+
+
 def test_ghost_object_host_still_has_no_link(monkeypatch):
     """Объекта нет — как и раньше: без ссылки, причины и «заполнено ли»."""
     tenant, _product = _shop()
