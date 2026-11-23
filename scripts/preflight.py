@@ -19,6 +19,7 @@
 
 import argparse
 import dataclasses
+import os
 import pathlib
 import shutil
 import subprocess
@@ -86,6 +87,16 @@ def core_importers(module: str) -> set[str]:
     }
 
 
+def golden_tests() -> set[str]:
+    """Все тесты с эталонами (`golden`) во всех приложениях.
+
+    Правка шаблона задевает наборы эталонов вне списка плана: трижды за стопки 8–10 срез гонял
+    их выборочно и получал красный CI (журнал находок, T-13.9). Искать grep-ом по разметке
+    ненадёжно — проще и дешевле прогнать все.
+    """
+    return _tests_mentioning("golden")
+
+
 def script_tests(script: str) -> set[str]:
     """Тесты скрипта лежат в приложениях (`test_backup_script.py` и т.п.) — ищем по имени."""
     return _tests_mentioning(pathlib.PurePosixPath(script).name)
@@ -95,7 +106,15 @@ def _apps() -> set[str]:
     return {p.name for p in (ROOT / "apps").iterdir() if (p / "__init__.py").exists()}
 
 
-def plan(files: list[str], importers=core_importers, tests_of=script_tests) -> Plan:
+OWNER_WALK = (
+    "вёрстка витрины: до мержа стопки — полный обход владельца "
+    "`scripts/fb33_m3_9_owner_stand.py` (стенд среза мерит только свои страницы)"
+)
+
+
+def plan(
+    files: list[str], importers=core_importers, tests_of=script_tests, goldens=golden_tests
+) -> Plan:
     apps = _apps()
     steps = ["ruff_check", "ruff_format"]
     targets: set[str] = set()
@@ -120,6 +139,9 @@ def plan(files: list[str], importers=core_importers, tests_of=script_tests) -> P
             step("css")
         if is_template:
             targets.update(LOCKS[k] for k in TEMPLATE_LOCKS)
+            targets.update(goldens())
+        if f.startswith(("templates/storefront/", "static/js/", "static/src/")):
+            notes.append(OWNER_WALK)
 
         if parts[0] == "apps" and len(parts) > 2 and parts[1] in apps:
             targets.add(f"apps/{parts[1]}")
@@ -179,11 +201,33 @@ def changed_files(base: str) -> list[str]:
     return sorted(set(files))
 
 
+def same_db_pytest(procs: list[tuple[str, str, str]], db_name: str) -> str:
+    """Из (pid, DB_NAME процесса, команда) — первый pytest на НАШЕЙ тест-БД.
+
+    Параллельные срезы в worktree гоняют pytest на своей `DB_NAME` — они не мешают. Процесс без
+    `DB_NAME` в окружении работает на базе по умолчанию, то есть на общей.
+    """
+    for _pid, their_db, cmd in procs:
+        if (their_db or "platform") == (db_name or "platform"):
+            return cmd[:120]
+    return ""
+
+
 def other_pytest() -> str:
     """Чужой pytest на той же тест-БД (грабля 2026-11-20: два прогона на одной `--reuse-db`
     дают ложные падения у обоих). Возвращает строку процесса или пусто."""
     out = subprocess.run(["pgrep", "-fa", "bin/pytest"], capture_output=True, text=True).stdout
-    return out.splitlines()[0][:120] if out.strip() else ""
+    procs = []
+    for line in out.splitlines():
+        pid, _, cmd = line.partition(" ")
+        their_db = ""
+        try:
+            env = pathlib.Path(f"/proc/{pid}/environ").read_bytes().split(b"\0")
+            their_db = next((e[8:].decode() for e in env if e.startswith(b"DB_NAME=")), "")
+        except OSError:  # процесс уже завершился или чужой — считаем, что на общей базе
+            pass
+        procs.append((pid, their_db, cmd))
+    return same_db_pytest(procs, os.environ.get("DB_NAME", ""))
 
 
 def _run(cmd: list[str]) -> bool:
