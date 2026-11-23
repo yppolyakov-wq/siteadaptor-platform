@@ -3213,6 +3213,86 @@ def _pinned_order_ok(items: list[dict], rows_host: str) -> bool:
     return all(k in pinned for k in seq[: last + 1])
 
 
+#: FB-33 M5c-1: потолок длины поля позиции `after` (id блока — 12 знаков, ключи короче)
+AFTER_MAX = 64
+
+
+def _check_after(after: str) -> None:
+    if len(after or "") > AFTER_MAX:
+        raise SchemaError("op")
+
+
+def place_item(
+    items: list[dict],
+    idx: int,
+    where: str,
+    target: str,
+    rows_host: str,
+    before: list[dict] | None = None,
+) -> None:
+    """FB-33 M5c-1: одна логика позиции — строка `items[idx]` встаёт перед строкой `target`
+    или после неё (`where` — "before"/"after"). Зовут перетаскивание (`move`) и вставка
+    (`add`/`add_row` с `after`). `target` — точным равенством с `id or key` строки или
+    `KAUF_REF` («Buchung», в `items` её нет); иное — `SchemaError("op")`, список не тронут.
+    Строки «на месте» и пара «форма — итог» корзины (§ 312j) поправляют место, как на
+    странице. `before` — копия списка до правки: порядок неподвижных строк нарушен — откат и
+    `SchemaError("fixed")`."""
+    from apps.core import detail_parts
+
+    ref = items[idx].get("id") or items[idx].get("key")
+    if target == detail_parts.KAUF_REF and rows_host in detail_parts.KAUF_FIRST:
+        # покупка в первом экране — блок встаёт в начало (над разделами)
+        items.insert(0, items.pop(idx))
+        return
+    if target == detail_parts.KAUF_REF:
+        # FB-31 P5 (ревью): «Buchung» стоит после последнего раздела — бросить на неё =
+        # встать после последнего раздела (до неё) или в хвост (после неё)
+        last = [
+            it.get("key")
+            for it in items
+            if it.get("key") in detail_parts.flow_section_keys(rows_host) and not it.get("id")
+        ]
+        if not last:
+            raise SchemaError("op")
+        if where == "before":
+            where, target = "after", last[-1]
+        else:
+            items.append(items.pop(idx))
+            return
+    at = next((i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target), None)
+    if where not in ("before", "after") or at is None or at == idx:
+        raise SchemaError("op")
+    moved = items.pop(idx)
+    at = next(i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target)
+    items.insert(at + (where == "after"), moved)
+    _past_in_place(items, ref, rows_host)  # FB-33 M2g: бросок на строку «на месте»
+    _pinned_slide(items, ref, rows_host, up=False)
+    if before is not None and not _pinned_order_ok(items, rows_host):
+        items[:] = before  # раздел не встаёт выше неподвижных строк корзины
+        raise SchemaError("fixed")
+
+
+def _insert(items: list[dict], new_blocks: list[dict], after: str, rows_host: str) -> None:
+    """FB-33 M5c-1: новые блоки — в хвост или после строки `after` (первый — через
+    `place_item`, остальные подряд за ним). Отказ позиции — список как был (атомарно:
+    черновик правится на месте)."""
+    before = list(items)
+    items.extend(new_blocks)
+    if not after:
+        return
+    try:
+        place_item(items, len(before), "after", after, rows_host)
+        prev = new_blocks[0]["id"]
+        for blk in new_blocks[1:]:
+            items.pop(next(i for i, it in enumerate(items) if it.get("id") == blk["id"]))
+            at = next(i for i, it in enumerate(items) if it.get("id") == prev)
+            items.insert(at + 1, blk)
+            prev = blk["id"]
+    except SchemaError:
+        items[:] = before
+        raise
+
+
 def mutate(
     items: list[dict],
     code: str,
@@ -3223,9 +3303,14 @@ def mutate(
     fields: dict | None = None,
     templates: dict | None = None,
     notes: list | None = None,
+    after: str = "",
 ) -> str:
     """Одна правка списка блоков НА МЕСТЕ (без записи): общая для немедленной правки
     и черновика. Возвращает ref блока (у `add` — id нового).
+
+    `after` — у `add`/`add_row` ref строки, ПОСЛЕ которой встаёт новый блок (FB-33 M5c-1;
+    пусто — в хвост, как раньше). Позиция — отдельным полем, не `value` (у `add_row` там
+    пресет); логика — та же, что у перетаскивания (`place_item`).
 
     `templates` — сохранённые шаблоны блоков (`config["block_templates"]`): тип
     `tpl:<id>` вставляет блок шаблона с его данными (FB-27 R8d). `notes` — сюда правка
@@ -3234,6 +3319,7 @@ def mutate(
 
     idx = next((i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == ref), None)
     if op == "add":
+        _check_after(after)
         template = None
         if block_type.startswith(TEMPLATE_PREFIX):
             template = (templates or {}).get(block_type[len(TEMPLATE_PREFIX) :])
@@ -3260,15 +3346,16 @@ def mutate(
             from apps.core import object_faq  # FB-33 M2b-2b: на детальной — свои вопросы
 
             object_faq.add_default(new, host_for(code))
-        items.append(new)
+        _insert(items, [new], after, _rows_host(code))
         return new["id"]
     if op == "add_row":
         # FB-27 R6: готовая строка — все блоки разом либо ни одного (потолок блоков).
+        _check_after(after)
         new_blocks = preset_blocks(value)
         own = sum(1 for it in items if it.get("id"))
         if own + len(new_blocks) > siteconfig._MAX_CBLOCKS:
             raise SchemaError("full")
-        items.extend(new_blocks)
+        _insert(items, new_blocks, after, _rows_host(code))
         return new_blocks[0]["id"]
     if idx is None:
         raise SchemaError("block")
@@ -3407,39 +3494,7 @@ def mutate(
         # FB-29.5b: перетаскивание — блок встаёт перед другим или после него. Та же
         # перестановка, что кнопками; мусор и «на себя» ничего не меняют.
         where, _sep, target = value.partition(":")
-        if target == detail_parts.KAUF_REF and rows_host in detail_parts.KAUF_FIRST:
-            # покупка в первом экране — блок встаёт в начало (над разделами)
-            items.insert(0, items.pop(idx))
-            return ref
-        if target == detail_parts.KAUF_REF:
-            # FB-31 P5 (ревью): «Buchung» стоит после последнего раздела — бросить на неё =
-            # встать после последнего раздела (до неё) или в хвост (после неё)
-            last = [
-                it.get("key")
-                for it in items
-                if it.get("key") in detail_parts.flow_section_keys(rows_host) and not it.get("id")
-            ]
-            if not last:
-                raise SchemaError("op")
-            if where == "before":
-                where, target = "after", last[-1]
-            else:
-                moved = items.pop(idx)
-                items.append(moved)
-                return ref
-        at = next(
-            (i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target), None
-        )
-        if where not in ("before", "after") or at is None or at == idx:
-            raise SchemaError("op")
-        moved = items.pop(idx)
-        at = next(i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target)
-        items.insert(at + (where == "after"), moved)
-        _past_in_place(items, ref, rows_host)  # FB-33 M2g: бросок на строку «на месте»
-        _pinned_slide(items, ref, rows_host, up=False)
-        if before_move is not None and not _pinned_order_ok(items, rows_host):
-            items[:] = before_move  # раздел не встаёт выше неподвижных строк корзины
-            raise SchemaError("fixed")
+        place_item(items, idx, where, target, rows_host, before=before_move)
     elif op == "delete":
         if main or not item.get("id"):
             raise SchemaError("fixed")  # фикс-секции и основной список не удаляются

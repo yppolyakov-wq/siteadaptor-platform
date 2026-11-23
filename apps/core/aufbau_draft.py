@@ -1082,10 +1082,12 @@ def op(
     fields: dict | None = None,
     token: str = "",
     notes: list | None = None,
+    after: str = "",
 ) -> str:
     """Одна правка схемы — в черновик (база не меняется). SchemaError на недопустимом.
     `token` — токен открытия окна блока (`wopen`, FB-33 M3-1b); `notes` — сюда правка
-    вкладки «Felder» кладёт сообщения владельцу (FB-33 M2i-5)."""
+    вкладки «Felder» кладёт сообщения владельцу (FB-33 M2i-5); `after` — позиция вставки
+    `add`/`add_row` (FB-33 M5c-1, `site_schema.mutate`)."""
     from apps.tenants import siteconfig
 
     _pt, host, home = site_schema.resolve(tenant, code)
@@ -1169,6 +1171,7 @@ def op(
             fields,
             config.get("block_templates"),
             notes,
+            after=after,
         )
     if wanted_scope is not None:
         _take_scope(request, draft, window_ref, wanted_scope)

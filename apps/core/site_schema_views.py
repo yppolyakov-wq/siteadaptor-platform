@@ -15,6 +15,9 @@ from apps.core import block_window, page_settings, site_schema
 
 logger = logging.getLogger(__name__)
 
+#: FB-33 M5c-1: вставка блока — читает поле позиции `after`
+INSERT_OPS = ("add", "add_row")
+
 
 def _keep(source) -> dict:
     """Вид схемы («Telefon») и открытый способ «Welche» — переживают действие с блоком.
@@ -305,6 +308,8 @@ def site_schema_view(request):
                     fields=_panel_fields(request.POST),
                     token=token,
                     notes=notes,
+                    # FB-33 M5c-1: позиция вставки — своим полем, только у вставки
+                    after=request.POST.get("after", "") if op in INSERT_OPS else "",
                 )
                 for note in notes:
                     messages.warning(request, note)
@@ -398,6 +403,13 @@ def site_schema_view(request):
         # FB-33 M3-1b: «Fertig» и «Abbrechen» закрывают окно блока
         closed = op in ("delete", "revert") or op in aufbau_draft.WINDOW_OPS
         keep = _keep(request.POST)
+        if op in INSERT_OPS:
+            # FB-33 M5c-1: новый блок — новое открытие окна (токен и вкладку выдаёт GET), а не
+            # продолжение окна, из которого пришла форма; отказ окно закрывает
+            for key in ("wopen", "tab", "sprache"):
+                keep.pop(key, None)
+            if not applied:
+                ref = ""
         # FB-33 M3-5a: на выбранную вкладку — только если правка прошла без отказа и без
         # сообщений (иначе владелец остаётся там, где видит, что не так)
         moved = bool(

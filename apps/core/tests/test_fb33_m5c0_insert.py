@@ -16,8 +16,6 @@ from apps.core.tests.test_fb29_banner_pick import _tenant
 from apps.tenants import siteconfig
 
 pytestmark = pytest.mark.django_db
-#: замок первого коммита: поведения ещё нет (снимается реализацией C0)
-_red = pytest.mark.xfail(strict=True, reason="FB-33 M5c-1: вставки в позицию ещё нет")
 
 
 @pytest.fixture(autouse=True)
@@ -50,7 +48,6 @@ def _query(resp):
 # --- №2: одна логика позиции -----------------------------------------------------------------
 
 
-@_red
 def test_add_after_uses_place(monkeypatch):
     calls = []
     real = site_schema.place_item
@@ -67,7 +64,6 @@ def test_add_after_uses_place(monkeypatch):
     assert calls == [("after", "a"), ("before", "a")], "вставка и бросок — одна функция"
 
 
-@_red
 def test_insert_goes_through_mutate(monkeypatch):
     seen = []
     real = site_schema.mutate
@@ -93,7 +89,6 @@ def test_empty_after_appends_to_tail():
 # --- №5: точное совпадение -------------------------------------------------------------------
 
 
-@_red
 @pytest.mark.parametrize(
     "after,ok",
     [("x", True), ("x_2", True), ("__page", False), ("__title", False), ("__title_x", False)],
@@ -119,7 +114,6 @@ def _full():
     return [_blk(f"b{i}") for i in range(siteconfig._MAX_CBLOCKS)]
 
 
-@_red
 @pytest.mark.parametrize("case", ["ok", "junk", "stale", "main", "kauf", "full", "long"])
 def test_add_after(case):
     code, items, after = "text", [_blk("a"), _blk("b")], "a"
@@ -154,7 +148,6 @@ def test_add_after(case):
         assert order[order.index(after) + 1] == new
 
 
-@_red
 def test_add_row_failed_place_rolls_back():
     items = [_blk("a"), _blk("b")]
     before = [dict(i) for i in items]
@@ -163,7 +156,6 @@ def test_add_row_failed_place_rolls_back():
     assert items == before
 
 
-@_red
 def test_junk_after_is_error_not_tail():
     b = Browser(_tenant())
     b.post(seite="text", op="add", type="text")
@@ -177,7 +169,6 @@ def test_junk_after_is_error_not_tail():
 # --- №11: токен окна ----------------------------------------------------------------------------
 
 
-@_red
 def test_add_gets_fresh_window_token():
     b = Browser(_tenant())
     b.post(seite="text", op="add", type="text")
@@ -193,7 +184,6 @@ def test_add_gets_fresh_window_token():
     assert resp["Location"].endswith("#schema-panel")
 
 
-@_red
 def test_add_row_gets_fresh_window_token():
     b = Browser(_tenant())
     resp, _m = b.post(seite="text", op="add_row", value="text_image", wopen="TOKa1", tab="karte")
@@ -201,7 +191,6 @@ def test_add_row_gets_fresh_window_token():
     assert "block" in q and "wopen" not in q and "tab" not in q
 
 
-@_red
 def test_failed_add_closes_window():
     b = Browser(_tenant())
     resp, _m = b.post(seite="text", op="add", type="text", after="nope", wopen="TOKa1", tab="karte")
@@ -223,7 +212,6 @@ def test_after_is_read_only_for_insert():
 # --- №12–13: позиция по ref на настоящих хостах ----------------------------------------------
 
 
-@_red
 def test_add_row_contiguous_after_ref():
     items = [_blk("a"), _blk("b")]
     site_schema.mutate(items, "text", "add_row", value="three_cards", after="a")
@@ -232,7 +220,6 @@ def test_add_row_contiguous_after_ref():
     assert len(order) == 5, order
 
 
-@_red
 def test_insert_on_detail_past_in_place():
     """Блок после раздела, за которым идут строки «на месте», встаёт после всей группы — как
     при броске (редактор = страница)."""
@@ -250,7 +237,6 @@ def test_insert_on_detail_past_in_place():
     assert _order(rows).index(new) > first
 
 
-@_red
 def test_insert_cart_slides():
     """§ 312j: между формой и итогом корзины блоков нет — вставка после формы идёт под итог."""
     items = [{"key": "items"}, {"key": "form"}, {"key": "summary"}, _blk("t")]
@@ -271,7 +257,6 @@ def test_add_under_legal_row(code, after):
     assert "block" in _query(resp), "блок вставлен и открыт"
 
 
-@_red
 def test_add_under_gift_form():
     """H1: форма ваучера — правовая строка; вставка после неё — по `after` (у магазина без
     продажи ваучеров страницы нет — проверка на списке строк)."""
@@ -280,7 +265,6 @@ def test_add_under_gift_form():
     assert _order(items).index(new) == _order(items).index("form") + 1
 
 
-@_red
 def test_insert_after_categories():
     """M2: вставка после «Kategorien» — как бросок туда сегодня."""
     b = Browser(_tenant())
@@ -296,7 +280,6 @@ def test_insert_after_categories():
     assert _order(items).index(new) == _order(moved).index(mover)
 
 
-@_red
 def test_insert_on_inherited_category():
     """L5: категория без своей схемы — `after` только из её собственных строк (неявного
     `adopt` нет): блок каталога в позиции — отказ, без `after` — как прежде."""
