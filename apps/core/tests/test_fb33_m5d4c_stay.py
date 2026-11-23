@@ -45,8 +45,6 @@ from apps.core.tests.test_fb33_m5d4a_product import (
 from apps.stays.models import StayUnit
 
 pytestmark = pytest.mark.django_db
-#: замки первого коммита: на базе красные (записей реестра ещё нет)
-RED = pytest.mark.xfail(strict=True, reason="M5d-4c: источников у разделов номера ещё нет")
 
 #: раздел → (вид источника, экран ссылки, «Dieser Block zeigt», «Woher» строки типа)
 EXPECT = {
@@ -102,7 +100,6 @@ def _hotel(**fields):
 # --- №2: строк без окна нет -----------------------------------------------------------------------
 
 
-@RED
 def test_no_g1_row_without_window(monkeypatch):
     tenant, unit = _hotel()
     code = object_structure.schema_code("stay", unit)
@@ -114,7 +111,6 @@ def test_no_g1_row_without_window(monkeypatch):
 # --- реестр ----------------------------------------------------------------------------------------
 
 
-@RED
 def test_sources_table():
     assert set(sources("stays")) == set(EXPECT)
     with translation.override("de"):
@@ -141,7 +137,6 @@ def test_content_nav_is_an_unambiguous_entry():
         assert reverse("stays:units")
 
 
-@RED
 def test_gated_sections_have_only_if():
     """A7б: раздел с presence-гейтом говорит, когда он появляется; поля «заполнено ли» —
     настоящие поля модели (у оснащения — те же три, по которым витрина решает показ)."""
@@ -156,7 +151,6 @@ def test_gated_sections_have_only_if():
 # --- строка типа -----------------------------------------------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize("key", sorted(EXPECT))
 def test_type_row_window(key):
     kind, nav, shows, woher = EXPECT[key]
@@ -191,7 +185,6 @@ def test_reviews_window_untouched():
 # --- №6, №12: строка одного номера -----------------------------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize(
     "key, fields, filled",
     [
@@ -219,7 +212,6 @@ def test_object_filled_state(key, fields, filled):
     assert name == f"Inhalt bearbeiten: {unit.name}" and "data-inhalt-only-here" in part
 
 
-@RED
 def test_object_and_type_answer_by_ref():
     tenant, unit = _hotel()
     code = object_structure.schema_code("stay", unit)
@@ -234,7 +226,6 @@ def test_object_and_type_answer_by_ref():
 # --- №13: подписи полей есть на форме номера ------------------------------------------------------
 
 
-@RED
 def test_field_label_on_cabinet_form():
     """A10: подписи полей в окне — те же строки (msgid), что на странице номера: «Beschreibung»
     — подпись поля, «Ausstattung» — заголовок группы галочек; рядом — «Bettart»."""
@@ -253,7 +244,6 @@ def test_field_label_on_cabinet_form():
 # --- причина вместо ссылки -------------------------------------------------------------------------
 
 
-@RED
 def test_link_closed_screen_gives_a_reason(monkeypatch):
     from apps.core import packages
 
@@ -271,12 +261,10 @@ def test_link_closed_screen_gives_a_reason(monkeypatch):
 # --- переводы --------------------------------------------------------------------------------------
 
 
-@RED
 def test_new_msgids_in_all_po():
     assert_msgids_in_all_po(source_msgids("stays", sorted(sources("stays"))))
 
 
-@RED
 def test_window_in_russian_has_no_german_texts():
     tenant, _unit = _hotel()
     with translation.override("ru"):
@@ -297,7 +285,6 @@ def test_window_in_russian_has_no_german_texts():
 # --- Y8: без скриптов ------------------------------------------------------------------------------
 
 
-@RED
 def test_inhalt_nojs_column():
     tenant, unit = _hotel()
     code = object_structure.schema_code("stay", unit)
@@ -312,7 +299,6 @@ def test_inhalt_nojs_column():
 # --- №31: запросы ----------------------------------------------------------------------------------
 
 
-@RED
 def test_inhalt_queries_not_above_the_base(monkeypatch):
     tenant, unit = _hotel()
     code = object_structure.schema_code("stay", unit)

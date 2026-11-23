@@ -129,7 +129,19 @@ CASES_M5D4B = (
 )
 
 # --- cases: m5d4c ---
-CASES_M5D4C = ()
+#: окна разделов страницы номера (тип) и одного номера; код объекта — pk первого номера кита в
+#: шаблоне стенд-БД (в другой базе строки нет — заметка «пропущено»)
+_M5D4C_FIELD = {"pinned": False, "dl": True, "link": True}
+_M5D4C_AUTO = {"pinned": False, "dl": True, "link": False}
+_M5D4C_OBJECT = "stay@stay:7234d38bb44448ee9cbc357e24c7c445"
+CASES_M5D4C = (
+    ("hotel", "stay", "description", _M5D4C_FIELD),
+    ("hotel", "stay", "amenities", _M5D4C_FIELD),
+    ("hotel", "stay", "similar", _M5D4C_AUTO),
+    ("hotel", _M5D4C_OBJECT, "description", {**_M5D4C_FIELD, "only_here": True}),
+    ("hotel", _M5D4C_OBJECT, "amenities", {**_M5D4C_FIELD, "only_here": True}),
+    ("hotel", _M5D4C_OBJECT, "similar", _M5D4C_AUTO),
+)
 
 # --- cases: m5d4d ---
 # событие и тур (общий тип «Veranstaltungen»): поля формы — ссылка на список событий;

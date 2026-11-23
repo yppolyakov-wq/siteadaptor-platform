@@ -40295,6 +40295,26 @@ msgstr "Appears only if there are active products."
 msgid "fb33-stack-anchor-m5d4c"
 msgstr "fb33-stack-anchor-m5d4c"
 
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "die Beschreibung der Unterkunft"
+msgstr "the accommodation description"
+
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "Ausstattung, Bettart und Fläche der Unterkunft"
+msgstr "amenities, bed type and area of the accommodation"
+
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "bis zu 3 andere Unterkünfte — gleiche Art zuerst, dann nach Preis"
+msgstr "up to 3 other accommodations — same type first, then by price"
+
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "automatisch — aus Ihren aktiven Unterkünften. Nichts zu pflegen."
+msgstr "automatic — from your active accommodations. Nothing to maintain."
+
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "Erscheint nur, wenn es weitere aktive Unterkünfte gibt."
+msgstr "Appears only if there are other active accommodations."
+
 # fb33-stack-anchor-m5d4d
 msgid "fb33-stack-anchor-m5d4d"
 msgstr "fb33-stack-anchor-m5d4d"
