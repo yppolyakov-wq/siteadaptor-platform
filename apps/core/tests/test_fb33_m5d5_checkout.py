@@ -43,11 +43,7 @@ from apps.core.tests.test_fb33_m5d2_core import (
     _warm_count,
 )
 
-pytestmark = [
-    pytest.mark.django_db,
-    # коммит замков: на базе все красные; снимается коммитом записей реестра
-    pytest.mark.xfail(strict=True, reason="FB-33 M5d-5: записи реестра — следующим коммитом"),
-]
+pytestmark = pytest.mark.django_db
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -271,7 +267,12 @@ def test_recommend_link_module_off(monkeypatch):
 
     tenant, _product = _shop()
     query = "?seite=confirmation&block=recommend"
-    monkeypatch.setattr(nav_registry, "entry_visible", lambda entry, t: entry.url_name != "sellable-manage")  # fmt: skip
+    visible = nav_registry.entry_visible
+
+    def without_assortment(entry, *args, **kwargs):
+        return entry.url_name != "sellable-manage" and visible(entry, *args, **kwargs)
+
+    monkeypatch.setattr(nav_registry, "entry_visible", without_assortment)
     part, _panel_html, selected, _view = _inhalt(tenant, query)
     assert selected["content"]["link"] is None
     para = re.search(r"<p\b[^>]*data-inhalt-reason[^>]*>(.*?)</p>", part, re.S)

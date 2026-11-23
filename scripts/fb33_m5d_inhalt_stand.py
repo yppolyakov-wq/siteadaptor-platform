@@ -138,7 +138,19 @@ CASES_M5D4E = (
 )
 
 # --- cases: m5d5 ---
-CASES_M5D5 = ()
+# G4: «Positionen» корзины и «Bestätigung» — закреплены, «Woher» есть, ссылки нет (авто);
+# «Empfehlungen» скрыта по умолчанию — строка в «Ausgeblendet», ссылка на «Sortiment»
+_G4_AUTO = {"pinned": True, "dl": True, "link": False}
+_G4_RECOMMEND = {"pinned": False, "dl": True, "link": True}
+CASES_M5D5 = (
+    ("shop", "cart", "items", _G4_AUTO),
+    ("shop", "confirmation", "summary", _G4_AUTO),
+    ("shop", "confirmation", "recommend", _G4_RECOMMEND),
+    ("friseur", "cart", "items", _G4_AUTO),
+    ("friseur", "confirmation", "recommend", _G4_RECOMMEND),
+    ("retreat", "confirmation", "summary", _G4_AUTO),
+    ("retreat", "confirmation", "recommend", _G4_RECOMMEND),
+)
 
 # --- cases: end ---
 CASE_GROUPS = (

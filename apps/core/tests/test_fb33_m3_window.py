@@ -118,7 +118,9 @@ def test_one_tab_needs_no_tab_bar_and_banner_shows_choice_and_page():
     assert [t for t, _h in _tabs_of(b.get("?seite=home&block=l1"))] == ["was", "wie", "karte"]
     # FB-33 M2h-5: «Was passiert jetzt» — свой текст, одна вкладка «Texte»
     assert _tabs_of(b.get("?seite=confirmation&block=next")) == [("texte", "")]
-    assert _tabs_of(b.get("?seite=confirmation&block=summary")) == []
+    # FB-33 M5d-5 (план стопки 12 §4 «G4»): у «Bestätigung» — окно из одной части «Inhalt»
+    summary = b.get("?seite=confirmation&block=summary")
+    assert _tabs_of(summary) == [("was", "")] and "data-window-tabs" not in summary
 
 
 def test_pinned_and_confirm_have_no_tabs():

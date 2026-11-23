@@ -40320,6 +40320,31 @@ msgstr "Appears only when there are more published posts."
 msgid "fb33-stack-anchor-m5d5"
 msgstr "fb33-stack-anchor-m5d5"
 
+#. FB-33 M5d-5: окно «Inhalt» у строк корзины и подтверждения
+msgid "die Artikel, die der Kunde in den Warenkorb gelegt hat — mit Menge und Preis"
+msgstr "the items the customer has put in the cart — with quantity and price"
+
+msgid "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
+msgstr "automatically — from the customer's cart. Nothing to maintain."
+
+msgid "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
+msgstr "the confirmation after the purchase — number, items, total, payment"
+
+msgid "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."
+msgstr "Applies to orders, appointments, rooms, tickets and tables."
+
+msgid "automatisch — aus der Bestellung oder Buchung."
+msgstr "automatically — from the order or booking."
+
+msgid "bis zu 4 Produkte unter der Bestätigung — empfohlene zuerst, ohne die gerade gekauften"
+msgstr "up to 4 products below the confirmation — recommended ones first, without those just bought"
+
+msgid "Produkte mit Häkchen „Empfohlen“."
+msgstr "Products with the “Recommended” checkbox."
+
+msgid "Erscheint nur, wenn es Produkte gibt."
+msgstr "Appears only if there are products."
+
 # fb33-stack-anchor-kinder
 msgid "fb33-stack-anchor-kinder"
 msgstr "fb33-stack-anchor-kinder"
