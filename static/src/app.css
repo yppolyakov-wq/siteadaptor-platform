@@ -1846,6 +1846,22 @@ input[type="datetime-local"] {
   /* FB-33 M5c-4: ссылки полос шапки и подвала схемы («Menü bearbeiten», «Design»,
      «Fußzeile bearbeiten») — отдельные цели, не ссылки в строке текста: 44 px */
   [data-schema-strip] a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+  /* FB-33 M5c-5: панель блока ушла в окно-диалог (aufbau.js ставит флаг в dress(), снимает в
+     closeWindow) — схема одной колонкой 760 px по центру, без пустой колонки справа */
+  [data-site-schema][data-schema-solo] { grid-template-columns: minmax(0, 1fr); max-width: 760px; margin-inline: auto; }
+  /* FB-33 M5c-5 (a11y A3, WCAG 2.4.11 / 1.4.10): черновик на высоком телефоне — полоса у низа
+     экрана («Entwurf · n» и кнопки вместе), над таб-баром кабинета (как .sticky-save); фокус и
+     последняя строка не уходят под неё: scroll-padding и нижний отступ — по её высоте
+     (`--schema-draft-h`: фолбэк здесь, реальную ставит aufbau.js). Низкий экран (телефон
+     боком, 400 %) — полоса в шапке, в потоке. */
+  @media (max-width: 47.99rem) and (min-height: 30rem) {
+    :root:has([data-schema-draftbar]) { --schema-draft-h: 5.5rem; --schema-draft-at: 0px; scroll-padding-bottom: calc(var(--schema-draft-at) + var(--schema-draft-h) + 0.5rem); }
+    :root:has([data-schema-draftbar]):has(nav[data-tabbar]) { --schema-draft-at: calc(5.25rem + env(safe-area-inset-bottom)); }
+    [data-schema-draftbar] { position: fixed; left: 0; right: 0; bottom: var(--schema-draft-at, 0px); z-index: 21; justify-content: space-between; padding: 0.5rem 1rem max(0.75rem, env(safe-area-inset-bottom)); border-top: 1px solid #FCD34D; background: #FFFBEB; box-shadow: 0 -6px 18px rgba(22, 24, 29, 0.12); }
+    body:has(nav[data-tabbar]) [data-schema-draftbar] { padding-bottom: 0.5rem; }
+    body:has([data-schema-draftbar]) #main { padding-bottom: calc(var(--schema-draft-at) + var(--schema-draft-h) + 1.5rem); }
+    body:has([data-schema-draftbar]) [data-assistant-fab] { bottom: calc(var(--schema-draft-at) + var(--schema-draft-h) + 0.75rem); }
+  }
   /* SP-10: <legend> карточки-fieldset браузер рисует НА верхней кромке (заголовок «висел»
      над карточкой). float — штатный способ вернуть его в поток; следующий блок — с новой строки. */
   fieldset.ui-card > legend:not(.sr-only) { float: left; width: 100%; padding: 0; margin-top: 0 !important; }

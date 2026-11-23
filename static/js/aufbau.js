@@ -467,6 +467,9 @@ function aufbauSubmitCopy(form, submitter) {
       closeWindow();
       return;
     }
+    // FB-33 M5c-5: панель в окне — схема одной колонкой (правило app.css по флагу; снимает closeWindow)
+    var grid = document.querySelector("[data-site-schema]");
+    if (grid) grid.setAttribute("data-schema-solo", "");
     // a11y M2: в окне панель — не второй landmark с тем же именем
     if (panel.hasAttribute("aria-labelledby")) {
       panel.setAttribute("data-bwin-lb", panel.getAttribute("aria-labelledby"));
@@ -848,6 +851,8 @@ function aufbauSubmitCopy(form, submitter) {
     if (mark && mark.parentNode) mark.parentNode.removeChild(mark);
     win.remove();
     win = null;
+    var grid = document.querySelector("[data-site-schema]");
+    if (grid) grid.removeAttribute("data-schema-solo");
     document.dispatchEvent(new CustomEvent("aufbau:window-close"));  // FB-33 M3-7: кадр убрать
     mark = null;
     closing = false;
@@ -860,6 +865,27 @@ function aufbauSubmitCopy(form, submitter) {
   hideApply();
   if (aufbauWindowWanted()) openWindow(document.querySelector("[data-schema-panel]"));
   if (!win) langNote();  // окно зовёт её само (openWindow)
+})();
+
+/* FB-33 M5c-5 (a11y A3): реальная высота липкой полосы черновика (перенос подписи, крупный
+   шрифт, safe-area) — в `--schema-draft-h` на <html>: по ней scroll-padding и нижний отступ
+   страницы (app.css). Полосу подменяет автосохранение — следим за шапкой. */
+(function () {
+  "use strict";
+  var head = document.querySelector("[data-schema-head]");
+  if (!head) return;
+  var root = document.documentElement;
+  function measure() {
+    var bar = head.querySelector("[data-schema-draftbar]");
+    if (bar && getComputedStyle(bar).position === "fixed") {
+      root.style.setProperty("--schema-draft-h", Math.ceil(bar.getBoundingClientRect().height) + "px");
+    } else {
+      root.style.removeProperty("--schema-draft-h");
+    }
+  }
+  measure();
+  window.addEventListener("resize", measure);
+  if (window.MutationObserver) new MutationObserver(measure).observe(head, { childList: true, subtree: true });
 })();
 
 /* FB-33 M5c-2 (a11y A2): после перестановки из «⋯» строки (и броска ⠿) — фокус на «⋯» этой

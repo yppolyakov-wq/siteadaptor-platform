@@ -314,11 +314,13 @@ def test_home_banner_settings_live_in_the_banner_row_not_in_a_page_row():
     assert 'data-schema-block="__page"' in b.get("?seite=text")
 
 
-def test_phone_gets_a_bottom_sheet_with_done_and_a_view_switch():
+def test_phone_gets_done_and_a_view_switch():
+    """FB-33 M5c-5 (ответ владельца 10): лист снизу снят — без скриптов панель под схемой
+    («Fertig» — назад к строке), со скриптами — окно-диалог."""
     import pathlib
 
     tpl = pathlib.Path("templates/tenant/site_schema.html").read_text()
-    assert "max-md:fixed" in tpl and "data-schema-done" in tpl and "data-schema-view" in tpl
+    assert "max-md:fixed" not in tpl and "data-schema-done" in tpl and "data-schema-view" in tpl
     b = Browser(_tenant())
     assert "md:flex-row" in b.get("?seite=home")
     assert "md:flex-row" not in b.get("?seite=home&ansicht=telefon")

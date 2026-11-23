@@ -31,7 +31,7 @@ def _urlconf(settings):
 
 
 def _aside(html: str) -> str:
-    return re.search(r"<aside\b[^>]*>", html).group(0)
+    return re.search(r"<aside\b[^>]*data-schema-panel[^>]*>", html).group(0)
 
 
 def _bar(html: str) -> str | None:
@@ -58,7 +58,6 @@ def _selected(b):
     return b.get(f"?seite=text&block={ref}")
 
 
-@pytest.mark.xfail(strict=True, reason="C4: панель без JS ещё лист поверх схемы")
 def test_nojs_panel_below_schema():
     """Без JS ниже 1280 px панель выбранного блока — под схемой (одна колонка сетки), не лист."""
     b = Browser(_tenant())
@@ -73,7 +72,6 @@ def test_nojs_panel_below_schema():
     assert aside.index('id="schema-panel"') < aside.index("data-schema-panel")
 
 
-@pytest.mark.xfail(strict=True, reason="C4: полосы черновика ещё нет")
 def test_draft_bar_only_with_draft():
     b = Browser(_tenant())
     assert "data-schema-draftbar" not in b.get("?seite=text"), "без черновика полосы нет"
@@ -90,7 +88,6 @@ def test_draft_bar_only_with_draft():
     )
 
 
-@pytest.mark.xfail(strict=True, reason="C4: правил полосы черновика ещё нет")
 def test_draft_bar_sticky_only_on_tall_phone():
     css = APP_CSS.read_text()
     body = _media(css, PHONE)
@@ -106,7 +103,6 @@ def test_draft_bar_sticky_only_on_tall_phone():
     assert not re.search(r"\[data-schema-draftbar\]\s*\{[^}]*position:\s*fixed", outside)
 
 
-@pytest.mark.xfail(strict=True, reason="C4: флага одной колонки ещё нет")
 def test_solo_flag_rule_in_css():
     css = APP_CSS.read_text()
     rule = re.search(r"\[data-site-schema\]\[data-schema-solo\]\s*\{([^}]*)\}", css)
@@ -115,7 +111,6 @@ def test_solo_flag_rule_in_css():
     assert "max-width: 760px" in rule.group(1) and "margin-inline: auto" in rule.group(1)
 
 
-@pytest.mark.xfail(strict=True, reason="C4: флага одной колонки ещё нет")
 def test_solo_flag_set_and_cleared_in_js():
     js = AUFBAU_JS.read_text()
     dress = js[js.index("function dress()") : js.index("function tabLinks()")]
@@ -127,7 +122,6 @@ def test_solo_flag_set_and_cleared_in_js():
     assert "closeWindow();" in head
 
 
-@pytest.mark.xfail(strict=True, reason="C4: высоту полосы ещё не меряют")
 def test_draft_bar_height_measured():
     js = AUFBAU_JS.read_text()
     assert "--schema-draft-h" in js, "скрипт ставит реальную высоту полосы (перенос, крупный шрифт)"
