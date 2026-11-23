@@ -343,7 +343,8 @@ def test_object_filled_state(details, filled):
     assert ct["visibility"] == "Standard: sichtbar."
     link = ct["link"]
     assert link["url"] == reverse("events:edit", args=[event.pk]) and link["only_here"] is True
-    assert str(link["label"]) == '<span lang="de">Yoga am See</span>'
+    # правки ревью P0 (a11y M2): `lang` — только когда язык имени не совпадает с языком окна
+    assert str(link["label"]) == "Yoga am See"
     # №22: «nur hier» — плашкой после ссылки, не в её имени
     assert re.search(r"</a>\s*<span[^>]*data-inhalt-only-here", part)
     assert "Inhalt bearbeiten: Yoga am See" in _text(part)
