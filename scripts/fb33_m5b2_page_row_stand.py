@@ -108,13 +108,17 @@ MARKUP_JS = """() => {
       deco: getComputedStyle(a).textDecorationLine,
       name: acc(a), visible: a.innerText.replace(/\\s+/g, ' ').trim(), text: acc(h),
       href: a.getAttribute('href'),
-      direct: h.parentElement === ul, inRow: !!h.closest('[data-schema-row]'),
+      // FB-33 M5c-2: метка — абзацем в пункте ряда `<ol>` (вне `ul[data-schema-row]`)
+      direct: h.parentElement === ul || !!h.closest('ol[data-schema-lines] > li'),
+      inRow: !!h.closest('[data-schema-row]'),
       movable: !!h.closest('[data-schema-drag],[data-schema-pinned]') || !!h.querySelector('[data-schema-block]'),
       after: lis.indexOf(h),
     };
   }
-  out.rows = [...document.querySelectorAll('a[data-schema-block]')].map(a => ({
-    ref: a.getAttribute('data-schema-block'), text: a.innerText.replace(/\\s+/g, ' ').trim()}));
+  // FB-33 M5c-2: строка блока — `data-schema-rowbox` с одной ссылкой ⚙ (подпись — текст строки)
+  out.rows = [...document.querySelectorAll('a[data-schema-block]')].map(a => {
+    const box = a.closest('[data-schema-rowbox]') || a;
+    return {ref: a.getAttribute('data-schema-block'), text: box.innerText.replace(/\\s+/g, ' ').trim()}; });
   out.overflow = document.documentElement.scrollWidth - window.innerWidth;
   return out; }"""
 
@@ -415,7 +419,7 @@ def old_link(rep, pg, tag, js, slug, seite, ref, lang):
 def js_behaviour(rep, pg, tag, lang, slug, seite, ref, hint, head):
     """Только с JS: правка по change, «Fertig»/«Abbrechen», фокус, метка, бросок."""
     t = f"{tag} {slug}/{seite}"
-    star_sel = f'[data-schema-blocks] > li:has(> a[data-schema-block="{ref}"])'
+    star_sel = f'[data-schema-blocks] > :is(li, div):has(> a[data-schema-block="{ref}"])'
     # Esc → фокус на ★ (окно открыто адресом)
     pg.goto(aufbau(slug, seite, f"&block={ref}"))
     sl.settle(pg, True, rep)
@@ -766,9 +770,14 @@ def main():
                 if slug not in sessions:
                     page = sl.open_page(b, w, h, js=js, lang=lang, url=base_of(slug))
                     em, pw = creds(slug)
-                    if not rep.check(
-                        sl.login(page, base_of(slug), em, pw), f"{tag} {slug}: вход", code="login"
-                    ):
+                    try:
+                        entered = sl.login(page, base_of(slug), em, pw)
+                    except Exception as exc:  # noqa: BLE001 — нет тенанта в стенд-БД
+                        rep.note(f"{tag} {slug}: вход не открылся ({type(exc).__name__}) — пропуск")
+                        page.context.close()
+                        sessions[slug] = None
+                        continue
+                    if not rep.check(entered, f"{tag} {slug}: вход", code="login"):
                         page.context.close()
                         continue
                     sessions[slug] = page
@@ -804,7 +813,7 @@ def main():
                     code="js-errors",
                 )
                 pg.js_errors.clear()
-            for pg in sessions.values():
+            for pg in filter(None, sessions.values()):
                 pg.context.close()
         print("— телефон (окно ★)")
         for w, h in ((390, 844), (844, 390), (320, 700)):

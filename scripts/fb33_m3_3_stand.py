@@ -155,9 +155,8 @@ def add_text(pg, w):
         if done.count() and done.first.is_visible():
             done.first.click()
             pg.wait_for_load_state()
-    pg.click("[data-schema-add] summary")
-    pg.select_option("select[name=type]", "text")
-    pg.click("form:has(select[name=type]) button")
+    pg.click("#schema-add-end")
+    pg.click('details[data-schema-add="end"] button[name=type][value=text]')
     pg.wait_for_load_state()
     return pg.url.split("block=")[1].split("&")[0].split("#")[0]
 

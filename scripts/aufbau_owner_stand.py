@@ -141,9 +141,8 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                         # сценарий владельца без скриптов: блок → сохранить → сайт → убрать
                         pg.goto(url + "/dashboard/site/aufbau/?seite=text")
                         close_sheet(pg)
-                        pg.click("[data-schema-add] summary")
-                        pg.select_option("select[name=type]", "text")
-                        pg.click("form:has(select[name=type]) button")
+                        pg.click("#schema-add-end")
+                        pg.click('details[data-schema-add="end"] button[name=type][value=text]')
                         pg.wait_for_load_state()
                         title = f"R9 {slug} {width}"
                         open_tab(pg, "texte")

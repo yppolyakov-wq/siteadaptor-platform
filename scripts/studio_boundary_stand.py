@@ -61,9 +61,8 @@ with sync_playwright() as p:
         # в «Seitenaufbau» добавляем свой блок на главную — Студия должна его показать
         pg.goto(U + "/dashboard/site/aufbau/?seite=home")
         close_sheet(pg)
-        pg.click("[data-schema-add] summary")
-        pg.select_option("select[name=type]", "text")
-        pg.click("form:has(select[name=type]) button")
+        pg.click("#schema-add-end")
+        pg.click('details[data-schema-add="end"] button[name=type][value=text]')
         pg.wait_for_load_state()
         pg.fill("[data-schema-fields] input[name=f_title]", "Stand Grenze")
         # правка в панели уходит в черновик сама (без «Übernehmen») — ждём, пока доедет

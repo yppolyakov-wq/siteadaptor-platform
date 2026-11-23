@@ -111,7 +111,12 @@ def m32(pg, w, ref):
         DLG,
     )
     check(not small, f"цели в окне не ниже 44 px ({small[:4]})")
-    y = pg.evaluate("() => { window.scrollTo(0, 400); return window.scrollY; }")
+    # FB-33 M5c-2: колёсиком, как владелец (overflow: hidden не держит программный scrollTo —
+    # схема стала длиннее экрана 390, и scrollTo двигал её под окном без всякого дефекта)
+    y0 = pg.evaluate("window.scrollY")
+    pg.mouse.wheel(0, 400)
+    pg.wait_for_timeout(300)
+    y = pg.evaluate("window.scrollY") - y0
     check(y == 0, f"страница под окном не прокручивается ({y})")
     pg.wait_for_timeout(300)
     pg.screenshot(path=f"{OUT}/m32_open_{w}.png")
@@ -237,9 +242,8 @@ def m32(pg, w, ref):
     )
     # переключатель → Esc раньше 350 мс: выбор уходит до «Fertig»
     pg.goto(page)
-    pg.click("[data-schema-add] summary")
-    pg.select_option("select[name=type]", "list")
-    pg.click("form:has(select[name=type]) button")
+    pg.click("#schema-add-end")
+    pg.click('details[data-schema-add="end"] button[name=type][value=list]')
     pg.wait_for_load_state()
     lref = parse_qs(urlparse(pg.url).query)["block"][0]
     # стопка 2: «Ausgabe» (f_out) с M3-3c — во вкладке «Wie anordnen», новое окно открыто на «Was»
@@ -525,15 +529,14 @@ with sync_playwright() as p:
         pg.click("button[type=submit]")
         pg.wait_for_load_state()
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")
-        pg.click("[data-schema-add] summary") if w > 500 else None
+        pg.click("#schema-add-end") if w > 500 else None
         if w <= 500:
             done = pg.locator("[data-schema-done]")
             if done.count() and done.first.is_visible():
                 done.first.click()
                 pg.wait_for_load_state()
-            pg.click("[data-schema-add] summary")
-        pg.select_option("select[name=type]", "text")
-        pg.click("form:has(select[name=type]) button")
+            pg.click("#schema-add-end")
+        pg.click('details[data-schema-add="end"] button[name=type][value=text]')
         pg.wait_for_load_state()
         tabs = pg.locator("[data-window-tab-link]")
         check(tabs.count() == 2, f"у текста две вкладки ({tabs.count()})")
