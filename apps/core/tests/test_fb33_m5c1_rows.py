@@ -21,10 +21,9 @@ from apps.core.tests.test_fb27_r2_draft import Browser
 from apps.core.tests.test_fb29_banner_pick import _tenant
 from apps.core.tests.test_fb33_m5c0_insert import _draft_items, _order
 from apps.tenants import siteconfig
+from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замок первого коммита: поведения ещё нет (снимается реализацией)
-_red = pytest.mark.xfail(strict=True, reason="FB-33 M5c-2: строк схемы по C1 ещё нет")
 
 ROOT = Path(__file__).resolve().parents[3]
 TEMPLATE = ROOT / "templates/tenant/site_schema.html"
@@ -79,7 +78,6 @@ def _query(resp):
 # --- номера ------------------------------------------------------------------------------------
 
 
-@_red
 def test_numbers_follow_layout():
     a, b, c, d = (
         {"ref": r, "enabled": True, "width": "", "newline": False, "shared": r == "s"}
@@ -90,7 +88,6 @@ def test_numbers_follow_layout():
     assert site_schema.row_numbers(layout) == {"a": 1, "c": 2, "d": 3}
 
 
-@_red
 def test_rows_are_ol_numbers_match():
     b = _browser(3)
     html = b.get("?seite=text")
@@ -100,7 +97,6 @@ def test_rows_are_ol_numbers_match():
     assert "__page" not in lines and "data-schema-title-hint" not in lines.split("<ul")[0]
 
 
-@_red
 def test_number_aria_hidden():
     html = _browser(1).get("?seite=text")
     spans = re.findall(r'<span class="schema-num"[^>]*>', html)
@@ -109,7 +105,6 @@ def test_number_aria_hidden():
         assert 'aria-hidden="true"' in span
 
 
-@_red
 def test_window_by_ref_not_number():
     b = _browser(3)
     ids = _ids(b)
@@ -128,13 +123,13 @@ def test_window_by_ref_not_number():
 # --- одна ссылка на строку ----------------------------------------------------------------------
 
 
-@_red
 def test_row_single_link():
     b = _browser(2)
     ref = _ids(b)[0]
     html = b.get("?seite=text")
     box = _rowbox(html, ref)
-    links = re.findall(r"<a\b[^>]*>", box)
+    # ссылки в Tab-порядке строки: «Entfernen …» — внутри закрытого «⋯», не стоп строки
+    links = re.findall(r"<a\b[^>]*>", re.sub(r"<details\b.*?</details>", "", box, flags=re.S))
     assert len(links) == 1, links
     gear = links[0]
     assert f'data-schema-block="{ref}"' in gear and f'data-schema-gear="{ref}"' in gear
@@ -143,7 +138,6 @@ def test_row_single_link():
     assert f'id="{desc}"' in box
 
 
-@_red
 def test_gear_no_title():
     html = _browser(1).get("?seite=text")
     gears = re.findall(r"<a\b[^>]*data-schema-gear[^>]*>", html)
@@ -152,7 +146,6 @@ def test_gear_no_title():
         assert " title=" not in gear
 
 
-@_red
 def test_selected_row_aria_current():
     b = _browser(2)
     ref = _ids(b)[0]
@@ -161,7 +154,6 @@ def test_selected_row_aria_current():
     assert 'aria-current="true"' in gear
 
 
-@_red
 def test_grip_not_focusable():
     html = _browser(2).get("?seite=text")
     grips = re.findall(r"<span\b[^>]*schema-grip[^>]*>", html)
@@ -184,16 +176,17 @@ def test_grip_hidden_no_display_class():
 # --- «⋯» строки -----------------------------------------------------------------------------------
 
 
-@_red
 def test_more_single_partial():
     src = TEMPLATE.read_text()
-    assert src.count('include "tenant/_schema_more.html"') >= 2
-    assert "data-schema-more>" not in src and 'data-schema-more"' not in src, (
+    row = (ROOT / "templates/tenant/_schema_row.html").read_text()
+    assert 'include "tenant/_schema_row.html"' in src
+    assert src.count('include "tenant/_schema_more.html"') == 1, "шапка окна"
+    assert row.count('include "tenant/_schema_more.html"') == 1, "строка схемы"
+    assert "data-schema-more>" not in src + row and 'data-schema-more"' not in src + row, (
         "«⋯» — только партиалом"
     )
 
 
-@_red
 def test_more_summary_no_haspopup():
     b = _browser(2)
     ref = _ids(b)[0]
@@ -206,7 +199,6 @@ def test_more_summary_no_haspopup():
     assert re.search(r'<span class="sr-only">Weitere Aktionen: [^<]+</span>', summary.group(1))
 
 
-@_red
 def test_can_hide_from_blocks_for():
     cfg = siteconfig.normalize({})
     rows = {r["ref"]: r for r in site_schema.blocks_for(cfg, "product")}
@@ -218,11 +210,10 @@ def test_can_hide_from_blocks_for():
     assert "can_hide" in block_window.ROW_KEYS
 
 
-@_red
 @pytest.mark.parametrize("code", ["home", "text", "catalog", "cart", "product", "event"])
 def test_more_actions_match_mutate(code):
     """M3: «⋯» строки предлагает «Ausblenden» ровно там, где его примет `mutate`."""
-    tenant = _tenant()
+    tenant = TenantFactory()  # все модули — все типы страниц
     cfg = siteconfig.normalize(tenant.site_config)
     _pt, host, home = site_schema.resolve(tenant, code)
     items = site_schema.load_items(cfg, home, host)
@@ -238,7 +229,6 @@ def test_more_actions_match_mutate(code):
         assert row["can_hide"] == ok, (code, row["ref"])
 
 
-@_red
 def test_more_absent_without_actions():
     html = Browser(_tenant()).get("?seite=product")
     box = _rowbox(html, detail_parts.KAUF_REF)
@@ -254,7 +244,6 @@ def test_no_duplicate_ids():
     assert not dup, dup
 
 
-@_red
 def test_row_more_nojs_post():
     b = _browser(3)
     a, m, c = _ids(b)
@@ -267,7 +256,6 @@ def test_row_more_nojs_post():
     assert _ids(b) == [a, c, m]
 
 
-@_red
 def test_row_more_redirect_no_block():
     b = _browser(3)
     a, m, _c = _ids(b)
@@ -277,7 +265,6 @@ def test_row_more_redirect_no_block():
     assert q["bewegt"] == [m] and frag == f"schema-more-{m}"
 
 
-@_red
 def test_row_more_no_window_snapshot():
     """H2: форма строки не продолжает чужое окно — снимка «Abbrechen» по её токену нет."""
     b = _browser(3)
@@ -288,20 +275,19 @@ def test_row_more_no_window_snapshot():
     assert m not in window, window
 
 
-@_red
 def test_hide_from_row_focuses_show_button():
     b = _browser(2)
     a, _c = _ids(b)
     resp, _m = b.post(seite="text", op="toggle", ref=a, zeile="1")
     q, frag = _query(resp)
-    assert frag == f"schema-show-{a}"
+    assert frag == f"schema-more-{a}", "фокус — «Einblenden» этой строки"
     html = b.get(f"?seite=text&bewegt={a}")
     hidden = html[html.index("data-schema-hidden") :]
     assert re.search(r"<details\b[^>]*data-schema-hidden[^>]*\sopen", html)
-    assert f'id="schema-show-{a}"' in hidden and 'value="toggle"' in hidden
+    button = re.search(rf'<button\b[^>]*id="schema-more-{a}"[^>]*>', hidden)
+    assert button and 'value="toggle"' in button.group(0)
 
 
-@_red
 def test_moved_status():
     b = _browser(3)
     a, m, _c = _ids(b)
@@ -314,7 +300,6 @@ def test_moved_status():
     assert "data-schema-moved" not in b.get("?seite=text&bewegt=nope")
 
 
-@_red
 def test_moved_status_ru():
     b = _browser(2)
     a, c = _ids(b)
@@ -344,7 +329,6 @@ NEW_MSGIDS = (
 )
 
 
-@_red
 def test_new_msgids_in_all_po():
     for po in sorted((ROOT / "locale").glob("*/LC_MESSAGES/django.po")):
         cat = {(e.msgctxt, e.msgid): e for e in polib.pofile(str(po))}

@@ -1,0 +1,22 @@
+{% load i18n %}{% comment %}FB-33 M5c-2 (a11y A1): строка блока схемы — одна ссылка ⚙ «Einstellungen: <Name>» (её
+`::after` накрывает всю строку: клик по строке = ⚙, и без скриптов); подпись и сводка — текст,
+ссылке — `aria-describedby`. Номер — только показ (`aria-hidden`, в окне — sr «Block n:»).
+⠿ — вне ссылки, без фокуса, видим только классом (`aufbau.js` — на широком экране); «⋯» — поверх
+ссылки, у строк без действий не рисуется. Параметр: b (строка `blocks_for` с `num`).{% endcomment %}
+<div class="schema-row relative flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] {% if selected and selected.ref == b.ref %}border-2 border-indigo-700 bg-white{% else %}border-gray-500 bg-white hover:bg-gray-50{% endif %}" data-schema-rowbox>
+  {% if b.num %}<span class="schema-num" aria-hidden="true">{{ b.num }}</span>{% endif %}
+  <div class="min-w-0 flex-1">
+    {% if b.pinned %}<span class="float-right ml-2 select-none" aria-hidden="true" data-schema-lock>🔒</span>{% endif %}
+    <span id="schema-desc-{{ b.ref }}">{% if b.pinned %}<span class="sr-only">{% trans "feste Position" %}{% if b.width_label or b.summary %}, {% endif %}</span>{% endif %}{% if b.width_label %}<span class="sr-only">{% trans "Breite" %} </span><span class="ui-badge mb-1">{{ b.width_label }}</span>{% endif %}
+    <span class="block font-semibold" aria-hidden="true">{{ b.label }}</span>
+    {% if b.summary %}<span class="block text-xs text-gray-600 break-words">{{ b.summary }}</span>{% endif %}</span>
+    {% comment %}FB-27 V1 (макет Main): схематичная миниатюра — что это за блок, без текста.{% endcomment %}
+    {% if b.thumb == "bar" %}<span class="mt-2 block h-8 rounded-md bg-emerald-100" aria-hidden="true" data-schema-thumb="bar"></span>
+    {% elif b.thumb == "cards" and b.shape %}{% include "tenant/_schema_thumb.html" with shape=b.shape %}
+    {% elif b.thumb == "cards" %}<span class="mt-2 grid grid-cols-4 gap-1.5" aria-hidden="true" data-schema-thumb="cards"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
+    {% elif b.thumb == "lines" %}<span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>{% endif %}
+  </div>
+  {% if not b.pinned %}<span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>{% endif %}
+  <a href="?seite={{ code|urlencode }}&amp;block={{ b.ref|urlencode }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="{{ b.ref }}" data-schema-gear="{{ b.ref }}" aria-label="{% blocktrans with name=b.label %}Einstellungen: {{ name }}{% endblocktrans %}" aria-describedby="schema-desc-{{ b.ref }}"{% if selected and selected.ref == b.ref %} aria-current="true"{% endif %}><span aria-hidden="true">⚙</span></a>
+  {% if b.can_up or b.can_down or b.can_hide or b.cblock %}{% include "tenant/_schema_more.html" with row=True %}{% endif %}
+</div>

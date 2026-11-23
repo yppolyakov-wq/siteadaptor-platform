@@ -1253,6 +1253,8 @@ def blocks_for(
                 # своей страницы не скрывается вовсе
                 "fixed": _fixed_section(host, item),
                 "pinned": _fixed_section(host, item) and not _sec_parts.hideable(host or "", key),
+                # FB-33 M5c-2: «Ausblenden» в «⋯» строки — по правилу `mutate`
+                "can_hide": toggle_allowed(item, host or ""),
                 "width": item.get("width") or "",
                 "newline": bool(item.get("newline")),
                 "width_label": WIDTH_LABELS.get(item.get("width") or "", ""),
@@ -1344,6 +1346,7 @@ def blocks_for(
     if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
         _textpage_summaries(out, items)
     for b in out:
+        b.setdefault("can_hide", False)  # «Buchung», общие строки объекта — не строки `items`
         b.setdefault("width", "")
         b.setdefault("thumb", "")
         b.setdefault("newline", False)
@@ -2271,6 +2274,18 @@ def schema_layout(blocks: list[dict]) -> dict:
             {"blocks": row, "slot": {"ref": row[-1]["ref"], "label": label} if label else None}
         )
     return {"rows": rows, "lines": lines, "hidden": [b for b in blocks if not b["enabled"]]}
+
+
+def row_numbers(layout: dict) -> dict[str, int]:
+    """FB-33 M5c-2: номера строк схемы по порядку рядов `layout["lines"]` (1, 2, …). ★-строки
+    и метки заголовка в рядах нет; скрытые и общие строки объекта (`shared`) номера не
+    получают. Номер — только показ: окно и действия строки — по ref. Чистая функция."""
+    out: dict[str, int] = {}
+    for line in layout.get("lines") or ():
+        for b in line["blocks"]:
+            if not b.get("shared"):
+                out[b["ref"]] = len(out) + 1
+    return out
 
 
 def add_options(code: str) -> list[tuple[str, str]]:
@@ -3213,6 +3228,28 @@ def _pinned_order_ok(items: list[dict], rows_host: str) -> bool:
     return all(k in pinned for k in seq[: last + 1])
 
 
+def toggle_allowed(item, rows_host: str) -> bool:
+    """FB-33 M5c-2: строку можно скрыть и снова показать (`mutate` op=toggle) — одно правило
+    для правки и для кнопки «Ausblenden/Einblenden» в «⋯» строки (`blocks_for` → `can_hide`).
+    Нельзя: главный список; раздел детали, который не скрывается (текст своей страницы, LMIV);
+    неподвижные строки корзины (§ 312j); встроенная строка, прикреплённая к ★ («Kategorien»)."""
+    from apps.core import detail_parts
+    from apps.tenants import siteconfig
+
+    if not isinstance(item, dict) or siteconfig.is_main_marker(item):
+        return False
+    if item.get("id"):
+        return True
+    key = item.get("key")
+    anchor = key in detail_parts.anchor_keys(rows_host)
+    if anchor and not detail_parts.hideable(rows_host, key):
+        return False
+    if key in detail_parts.pinned_keys(rows_host):
+        return False
+    in_place = key in detail_parts.in_place_keys(rows_host)
+    return anchor or in_place or key not in siteconfig.page_builtin_keys(rows_host)
+
+
 #: FB-33 M5c-1: потолок длины поля позиции `after` (id блока — 12 знаков, ключи короче)
 AFTER_MAX = 64
 
@@ -3373,8 +3410,6 @@ def mutate(
         raise SchemaError("fixed")
     if anchor and detail_parts.fixed_order(rows_host) and op != "toggle":
         raise SchemaError("fixed")  # товар/номер: порядок разделов постоянный — только скрыть
-    if anchor and op == "toggle" and not detail_parts.hideable(rows_host, item.get("key")):
-        raise SchemaError("fixed")  # FB-32 S6a: текст своей страницы не скрывается
     # FB-33 M2g: раздел «на месте» только скрывается (не двигается, ширины и полей нет)
     in_place = not item.get("id") and item.get("key") in detail_parts.in_place_keys(rows_host)
     if in_place and op != "toggle":
@@ -3397,7 +3432,6 @@ def mutate(
         "own_row",
         "newline",
         "update",
-        "toggle",
         "up",
         "down",
         "move",
@@ -3463,8 +3497,8 @@ def mutate(
         item["data"] = data
         return ref
     if op == "toggle":
-        if main:
-            raise SchemaError("main")
+        if not toggle_allowed(item, rows_host):  # FB-33 M5c-2: то же правило, что у «⋯»
+            raise SchemaError("main" if main else "fixed")
         item["enabled"] = not item.get("enabled", True)
     elif op in ("up", "down"):
         step = -1 if op == "up" else 1

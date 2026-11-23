@@ -824,6 +824,40 @@ function aufbauSubmitCopy(form, submitter) {
   if (!win) langNote();  // окно зовёт её само (openWindow)
 })();
 
+/* FB-33 M5c-2 (a11y A2): после перестановки из «⋯» строки (и броска ⠿) — фокус на «⋯» этой
+   строки (у скрытой — на её «Einblenden»: тот же id), через ~300 мс текст «ist jetzt Nummer n»
+   в пустую живую область (готовый текст после перезагрузки сам не прозвучит). */
+window.aufbauMoved = function (ref, text) {
+  var target = ref ? document.getElementById("schema-more-" + ref) : null;
+  if (target) target.focus({ preventScroll: false });
+  var live = document.querySelector("[data-schema-live]");
+  if (!live) return;
+  live.textContent = "";
+  setTimeout(function () { live.textContent = text || live.getAttribute("data-done") || ""; }, 300);
+};
+(function () {
+  "use strict";
+  var ref = new URLSearchParams(location.search).get("bewegt");
+  if (!ref || location.hash !== "#schema-more-" + ref) return;
+  var said = document.querySelector("[data-schema-moved]");
+  // браузер ставит фокус по якорю после скрипта — якорь снимаем, фокус ставим сами
+  if (window.history && history.replaceState) history.replaceState(history.state, "", location.pathname + location.search);
+  window.aufbauMoved(ref, said ? said.textContent.trim() : "");
+})();
+
+/* FB-33 M5c-2 (a11y B1): «⋯» строк — открыт один; щелчок мимо закрывает (Esc — в шаблоне). */
+document.addEventListener("toggle", function (e) {
+  var d = e.target;
+  if (!d || !d.matches || !d.matches("details[data-schema-more]") || !d.open) return;
+  document.querySelectorAll("details[data-schema-more][open]").forEach(function (o) { if (o !== d) o.open = false; });
+}, true);
+document.addEventListener("click", function (e) {
+  if (!e.target.closest) return;
+  document.querySelectorAll("details[data-schema-more][open]").forEach(function (d) {
+    if (!d.contains(e.target)) d.open = false;
+  });
+});
+
 /* FB-29.5b (макет A): строку схемы можно перетащить мышью — она встаёт перед строкой, на
    которую её бросили, или после неё. Поверх кнопок «Nach oben / Nach unten»: с клавиатуры,
    на телефоне и без скриптов перестановка — ими. */
@@ -838,13 +872,27 @@ function aufbauSubmitCopy(form, submitter) {
     return target && target.closest ? target.closest("[data-schema-drag],[data-schema-slot],[data-schema-pinned]") : null;
   }
 
+  // FB-33 M5c-2: ⠿ и перетаскивание — только на широком экране (на телефоне — «⋯»); ширину
+  // спрашиваем в момент вызова, при сужении окна ручки снимаются. Видимость — только классом.
+  var wide = window.matchMedia ? window.matchMedia("(min-width: 48rem)") : null;
   function arm() {
+    var on = !wide || wide.matches;
     document.querySelectorAll("[data-schema-drag]").forEach(function (li) {
-      li.setAttribute("draggable", "true");
-      li.style.cursor = "grab";
       var grip = li.querySelector(".schema-grip");
-      if (grip) { grip.classList.remove("hidden"); grip.style.touchAction = "none"; }
+      if (on) {
+        li.setAttribute("draggable", "true");
+        li.style.cursor = "grab";
+        if (grip) { grip.classList.remove("hidden"); grip.style.touchAction = "none"; }
+      } else {
+        li.removeAttribute("draggable");
+        li.style.cursor = "";
+        if (grip) grip.classList.add("hidden");
+      }
     });
+  }
+  if (wide) {
+    if (wide.addEventListener) wide.addEventListener("change", arm);
+    else if (wide.addListener) wide.addListener(arm);
   }
 
   function clear() {
@@ -944,6 +992,7 @@ function aufbauSubmitCopy(form, submitter) {
     data.set("seite", new URLSearchParams(location.search).get("seite") || "home");
     data.set("op", slot ? "beside" : "move");
     data.set("ref", ref);
+    data.set("zeile", "1");  // FB-33 M5c-2: бросок — действие строки, окно не открывается
     data.set("value", slot ? slot : where + ":" + (li.getAttribute("data-schema-drag") || li.getAttribute("data-schema-pinned")));
     if (new URLSearchParams(location.search).get("ansicht") === "telefon") data.set("ansicht", "telefon");
     fetch(location.pathname, { method: "POST", body: data, credentials: "same-origin" })
@@ -957,13 +1006,9 @@ function aufbauSubmitCopy(form, submitter) {
         document.querySelectorAll('[data-schema-fields] button[value="update"],[data-schema-list] button[value="update"]').forEach(function (b) { b.style.display = "none"; });
         document.querySelectorAll("[data-window-hint]").forEach(function (p) { p.hidden = true; });
         arm();
-        // фокус — на перенесённую строку (после замены схемы он иначе уходил в начало страницы)
-        var moved = document.querySelector("[data-schema-drag]")
-          ? Array.prototype.find.call(document.querySelectorAll("[data-schema-block]"), function (a) { return a.getAttribute("data-schema-block") === ref; })
-          : null;
-        if (moved) moved.focus({ preventScroll: true });
-        var live = document.querySelector("[data-schema-live]");
-        if (live) { live.textContent = ""; setTimeout(function () { live.textContent = live.getAttribute("data-done") || ""; }, 100); }
+        // FB-33 M5c-2 (a11y A2): фокус — на «⋯» перенесённой строки, затем — её новый номер
+        var said = document.querySelector("[data-schema-moved]");
+        window.aufbauMoved(ref, said ? said.textContent.trim() : "");
       })
       .catch(function () { aufbauError(); })  // ревью 2: перетаскивание не удалось — видно
       .then(function () { document.documentElement.setAttribute("data-schema-busy", "0"); });

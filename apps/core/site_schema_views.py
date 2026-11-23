@@ -206,6 +206,11 @@ def site_schema_view(request):
         applied, notes = False, []
         # FB-27 R2: правки копятся в черновике, на сайт попадают по «Speichern».
         token = request.POST.get("wopen", "")  # FB-33 M3-1b: токен открытия окна
+        # FB-33 M5c-2 (ревью H2): форма «⋯» строки схемы — не действие открытого окна: его
+        # токен не продолжает окно (снимок «Abbrechen» чужого окна не вытесняется)
+        row_form = request.POST.get("zeile") == "1"
+        if row_form:
+            token = ""
         try:
             if op == "revert":
                 # FB-33 M3-1b: «Abbrechen» — блок как на момент открытия окна; итог честный
@@ -418,6 +423,13 @@ def site_schema_view(request):
         if moved:
             keep["tab"] = goto
         target = _url(code, "" if closed else ref, keep)
+        if row_form:
+            # FB-33 M5c-2: из «⋯» строки — окно не открывается; фокус и сообщение «ist jetzt
+            # Nummer n» — у строки (`bewegt`: GET сверяет его со строками схемы). Тот же id
+            # (`schema-more-<ref>`) у «⋯» видимой строки и у «Einblenden» скрытой
+            target = _url(code, "", keep)
+            if applied and ref:
+                target = f"{target}&{urlencode({'bewegt': ref})}#schema-more-{ref}"
         lang = request.POST.get("f_sprache", "")
         if "#" in target and lang and _keep({"f_sprache": lang}).get("sprache") == lang:
             # FB-33 M2i-5b (ревью a11y): после кнопки языка фокус — на ней (`#schema-tab-…`
@@ -689,6 +701,20 @@ def site_schema_view(request):
         if c != code and c in labels
     ]
     layout = site_schema.schema_layout(blocks)
+    # FB-33 M5c-2: номера строк — только показ (окно и действия — по ref)
+    numbers = site_schema.row_numbers(layout)
+    for b in blocks:
+        b["num"] = numbers.get(b["ref"])
+    # после перестановки из «⋯» строки: что с ней стало — по этой же схеме (белый список)
+    wanted_moved = request.GET.get("bewegt", "")
+    moved = next((b for b in blocks if b["ref"] == wanted_moved), None) if wanted_moved else None
+    moved_msg = ""
+    if moved is not None and moved.get("num"):
+        moved_msg = _("Block „%(name)s“ ist jetzt Nummer %(n)s von %(total)s.") % {
+            "name": moved["label"],
+            "n": moved["num"],
+            "total": len(numbers),
+        }
     # FB-33 M5b-2 (V4, a11y Y-H2): серая метка «Überschrift der Seite» — только в разметке,
     # после ряда с последним видимым блоком над заголовком (не строка: не в `blocks`/рядах)
     title_hint = None
@@ -720,6 +746,9 @@ def site_schema_view(request):
             "blocks": blocks,
             "layout": layout,
             "title_hint": title_hint,
+            # FB-33 M5c-2: сообщение после перестановки и раскрытый «Ausgeblendet» после скрытия
+            "moved_msg": moved_msg,
+            "moved_hidden": moved is not None and not moved["enabled"],
             **_row_ops(layout, selected),
             "selected": selected,
             "confirm_remove": confirm_remove,

@@ -1,0 +1,20 @@
+{% load i18n %}{% comment %}FB-33 M5c-2: меню «⋯» строки схемы — один список действий у строки и в шапке окна блока.
+`<details>` работает без скриптов (POST-кнопки), без `aria-haspopup`/`role=menu` (a11y B1); имя —
+sr-only в `summary`, глиф скрыт. Кнопки — по флагам строки `can_up`, `can_down`, `can_hide`
+(правило `site_schema.toggle_allowed`), «Entfernen …» — у своих блоков. Параметры: b (строка),
+row — у строки схемы: `id` на `summary` (цель фрагмента после перестановки) и `zeile=1`
+(окно не открывается, токен окна не уходит); в шапке окна — без `id` и без `zeile`.{% endcomment %}
+<details class="relative z-10 shrink-0" data-schema-more>
+  <summary{% if row %} id="schema-more-{{ b.ref }}"{% endif %} class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">{% blocktrans with name=b.label %}Weitere Aktionen: {{ name }}{% endblocktrans %}</span></summary>
+  <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    {% if b.can_up or b.can_down or b.can_hide %}<form method="post">{% csrf_token %}
+      {% include "tenant/_schema_keep.html" with row_form=row %}
+      {% if row %}<input type="hidden" name="zeile" value="1">{% endif %}
+      <input type="hidden" name="ref" value="{{ b.ref }}">
+      {% if b.can_up %}<button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">{% trans "Nach oben" %}</button>{% endif %}
+      {% if b.can_down %}<button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">{% trans "Nach unten" %}</button>{% endif %}
+      {% if b.can_hide %}<button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">{% if b.enabled %}{% trans "Ausblenden" %}{% else %}{% trans "Einblenden" %}{% endif %}</button>{% endif %}
+    </form>{% endif %}
+    {% if b.cblock %}<a href="?seite={{ code|urlencode }}&amp;block={{ b.ref|urlencode }}&amp;entfernen=1{% if row %}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{% elif wopen %}&amp;wopen={{ wopen }}{% endif %}{{ keep_q }}#schema-panel" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" data-schema-remove>{% trans "Entfernen …" %}</a>{% endif %}
+  </div>
+</details>

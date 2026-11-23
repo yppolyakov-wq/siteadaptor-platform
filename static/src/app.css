@@ -1829,6 +1829,16 @@ input[type="datetime-local"] {
     .ui-bwin[open] { animation: ui-bwin-in 160ms ease-out; }
   }
   @keyframes ui-bwin-in { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; } }
+  /* FB-33 M5c-2 (a11y A1): строка схемы — одна ссылка ⚙, её ::after накрывает всю строку
+     (клик по строке = ⚙); «⋯» и ⠿ — поверх (relative z-10); кольцо фокуса — на строке. */
+  .schema-gear::after { content: ""; position: absolute; inset: 0; border-radius: 0.75rem; }
+  .schema-gear:focus-visible { outline: none; }
+  [data-schema-rowbox]:has(> .schema-gear:focus-visible) { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+  /* номер строки — только показ (aria-hidden); в заголовке окна — тот же кружок */
+  .schema-num { display: inline-flex; flex: none; align-items: center; justify-content: center; min-width: 1.5rem; height: 1.5rem; padding: 0 0.375rem; margin-right: 0.25rem; border-radius: 9999px; background: #EEF2FF; color: #312E81; font-size: 0.75rem; font-weight: 700; line-height: 1; vertical-align: 0.125em; }
+  /* ⠿ — цель не меньше 24 px (a11y B6); видна только на широком экране (aufbau.js, matchMedia) */
+  .schema-grip { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem; min-height: 2.75rem; cursor: grab; }
+  .schema-grip.hidden { display: none; }
   /* SP-10: <legend> карточки-fieldset браузер рисует НА верхней кромке (заголовок «висел»
      над карточкой). float — штатный способ вернуть его в поток; следующий блок — с новой строки. */
   fieldset.ui-card > legend:not(.sr-only) { float: left; width: 100%; padding: 0; margin-top: 0 !important; }

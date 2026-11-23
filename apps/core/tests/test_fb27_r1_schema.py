@@ -283,5 +283,5 @@ def test_v3_one_add_button_holds_blocks_ready_rows_and_templates():
 
     tpl = pathlib.Path("templates/tenant/site_schema.html").read_text()
     assert tpl.count("data-schema-add>") == 1
-    box = tpl[tpl.index("data-schema-add>") : tpl.index("</details></li>")]
+    box = tpl[tpl.index("data-schema-add>") : tpl.index("</details></div>")]  # M5c-2: вне <ol>
     assert 'name="type"' in box and "data-schema-add-row" in box and "<summary" in box

@@ -40074,6 +40074,26 @@ msgstr ""
 msgid "fb33-stack-anchor-m5c"
 msgstr "fb33-stack-anchor-m5c"
 
+# FB-33 M5c-2: имя ссылки ⚙ строки схемы (одна ссылка на строку)
+#, python-format
+msgid "Einstellungen: %(name)s"
+msgstr "Ayarlar: %(name)s"
+
+# FB-33 M5c-2: имя «⋯» строки схемы и шапки окна
+#, python-format
+msgid "Weitere Aktionen: %(name)s"
+msgstr "Diğer işlemler: %(name)s"
+
+# FB-33 M5c-2: номер блока в заголовке окна (для чтения с экрана)
+#, python-format
+msgid "Block %(n)s:"
+msgstr "Blok %(n)s:"
+
+# FB-33 M5c-2: после перестановки из «⋯» строки
+#, python-format
+msgid "Block „%(name)s“ ist jetzt Nummer %(n)s von %(total)s."
+msgstr "“%(name)s” bloğu artık %(total)s blok içinde %(n)s numara."
+
 msgid "fb33-stack-anchor-m5c3m"
 msgstr "fb33-stack-anchor-m5c3m"
 

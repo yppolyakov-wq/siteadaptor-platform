@@ -153,6 +153,8 @@ ROW_KEYS = frozenset(
         "with_title",  # FB-33 M5b-2: на «Seite» — «Überschrift der Seite» и «…dieser Seitenart»
         "can_up",  # меню «⋯» в шапке
         "can_down",
+        "can_hide",  # FB-33 M5c-2: «Ausblenden» в «⋯» — по правилу `mutate`
+        "num",  # FB-33 M5c-2: номер строки схемы (только показ)
     }
 )
 
