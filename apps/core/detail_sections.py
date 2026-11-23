@@ -25,6 +25,46 @@ from django.utils.translation import gettext_lazy as _
 
 
 @dataclass(frozen=True)
+class ContentSource:
+    """FB-33 M5d-2: откуда содержимое раздела и где оно правится — для части окна «Inhalt»
+    (`apps/core/window_parts.py::content_part`). Только описание: ссылку, право и тексты
+    видимости строит часть окна. Куда ведёт ссылка — по-прежнему `DetailSection.content_nav`
+    (экран у `setting`, СПИСОК объектов у `field`, «Seiten» у `page`); второго списка экранов
+    здесь нет. Все тексты — `gettext_lazy`."""
+
+    #: "field" — поле объекта (у типа — ссылка на список, у объекта — на его форму);
+    #: "setting" — экран настроек; "page" — редактор текстовой страницы; "auto" — править нечего
+    kind: str
+    #: после «Dieser Block zeigt:» (без точки; «%(page)s» — имя текстовой страницы);
+    #: пусто — сводка или подпись строки, как у G2
+    shows: object = ""
+    #: после «Woher:» целой фразой с точкой; у "field" — собирается из подписи поля и
+    #: `site_schema.OBJECT_WORDS`
+    woher: object = ""
+    #: имя поля формы объекта, если подпись есть в коде формы
+    #: (`site_schema.object_field_label`); иначе — `field_label` и замок «подпись есть на форме»
+    field: str = ""
+    field_label: object = ""
+    #: что считать «ausgefüllt» у объекта: атрибуты и ключи словаря ("description",
+    #: "details.idea"); хватает одного заполненного
+    fields: tuple = ()
+    #: добавка к адресу экрана («?tab=lieferung») и её подпись («Lieferung» → «… › Lieferung»)
+    query: str = ""
+    sub: object = ""
+    #: фраза после сводки («Hierhin führt „zzgl. Versandkosten“ bei jedem Preis.»)
+    note: object = ""
+    #: у типа после «Woher»: когда раздел вообще появляется (`ONLY_IF_FILLED` или свой текст);
+    #: у раздела с presence-гейтом обязателен
+    only_if: object = ""
+    #: источник только у строки ОБЪЕКТА: у типа у этой строки своё окно («Ähnliche Produkte»)
+    object_only: bool = False
+
+
+#: FB-33 M5d-2: обычное «когда появляется» раздела-поля
+ONLY_IF_FILLED = _("Erscheint nur, wenn das Feld ausgefüllt ist.")
+
+
+@dataclass(frozen=True)
 class DetailSection:
     """Дескриптор одной секции детальной страницы (мета, не данные).
 
@@ -44,6 +84,9 @@ class DetailSection:
     #: FB-33 M5d-1: имя URL экрана кабинета, где правится содержимое неподвижной строки
     #: (часть окна «Inhalt»); подпись ссылки и доступ — из записи `nav_registry` по этому имени
     content_nav: str = ""
+    #: FB-33 M5d-2: откуда содержимое (поле объекта, настройка, текст страницы, авто); None и
+    #: `content_nav` — прежняя строка G2 (экран настроек, сводка — из строки)
+    source: ContentSource | None = None
 
 
 # UC5-1: граница канвы — buy-box (выбор дат/слотов/количества, POST-движки
@@ -57,6 +100,7 @@ BUYBOX_CONFIGURABLE = "form"
 # module → секции детальной в дефолтном порядке рендера. Ключи совпадают с
 # `siteconfig.{EVENT,PRODUCT}_DETAIL_SECTION_KEYS` (Slice B сведёт и их к реестру).
 DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+    # --- catalog ---
     "catalog": (
         DetailSection("description", _("Description")),
         DetailSection("info", _("Product info (origin/ingredients/allergens)")),
@@ -72,31 +116,28 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         # FB-33 M2f: «Zuletzt angesehen» — только в браузере посетителя (localStorage)
         DetailSection("recent", _("Zuletzt angesehen")),
     ),
-    "events": tuple(
-        DetailSection(key, label, hideable=True, orderable=True)
-        for key, label in (
-            ("for_whom", _("For whom")),
-            ("idea", _("The idea")),
-            ("includes", _("What's included")),
-            ("program", _("Schedule")),
-            ("venue", _("Venue")),
-            ("accommodation", _("Accommodation")),
-            ("food", _("Food")),
-            ("hosts", _("Hosts")),
-            ("price", _("Price")),
-            ("bring", _("What to bring")),
-            ("faq", _("FAQ")),
-            ("testimonials", _("Testimonials")),
-            ("before_after", _("Before & after")),
-            ("certifications", _("Certifications")),
-        )
-    )
-    # FB-33 M2g: после «Buchung», скрываются на месте (у тура — свой раздел приватного выезда)
-    + (
+    # --- events ---
+    "events": (
+        DetailSection("for_whom", _("For whom"), orderable=True),
+        DetailSection("idea", _("The idea"), orderable=True),
+        DetailSection("includes", _("What's included"), orderable=True),
+        DetailSection("program", _("Schedule"), orderable=True),
+        DetailSection("venue", _("Venue"), orderable=True),
+        DetailSection("accommodation", _("Accommodation"), orderable=True),
+        DetailSection("food", _("Food"), orderable=True),
+        DetailSection("hosts", _("Hosts"), orderable=True),
+        DetailSection("price", _("Price"), orderable=True),
+        DetailSection("bring", _("What to bring"), orderable=True),
+        DetailSection("faq", _("FAQ"), orderable=True),
+        DetailSection("testimonials", _("Testimonials"), orderable=True),
+        DetailSection("before_after", _("Before & after"), orderable=True),
+        DetailSection("certifications", _("Certifications"), orderable=True),
+        # FB-33 M2g: после «Buchung», скрываются на месте (у тура — свой раздел приватного выезда)
         DetailSection("groups", _("Groups & companies"), in_place=True, only="event"),
         DetailSection("more_dates", _("Weitere Termine"), in_place=True, only="event"),
         DetailSection("private_tour", _("Request a private tour"), in_place=True, only="tour"),
     ),
+    # --- booking ---
     # UA4-1 slice C: секции детальной УСЛУГИ (booking.Service) — ключи по факту
     # service_detail.html (описание/атрибуты/FAQ/команда/отзывы). Hide-only.
     "booking": (
@@ -112,6 +153,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         # catalog и наличии товаров; скрываемо в билдере как любая секция.
         DetailSection("upsell", _("Goes well with this")),
     ),
+    # --- confirmation ---
     # UA4-1 slice C: секции детальной НОМЕРА (stays.StayUnit) — по факту stay_detail.html
     # (описание/оснащение/отзывы/похожие). Hide-only.
     # FB-32 S4: страница корзины — «Passt gut dazu» строкой схемы (двигается, скрывается,
@@ -126,19 +168,23 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("next", _("Was passiert jetzt"), hideable=False),
         DetailSection("recommend", _("Empfehlungen")),
     ),
+    # --- cart ---
     "cart": (
         DetailSection("items", _("Positionen"), hideable=False),
         DetailSection("form", _("Bestellformular"), hideable=False),
         DetailSection("summary", _("Summe und Bestellbutton"), hideable=False),
         DetailSection("upsell", _("Goes well with this")),
     ),
+    # --- info ---
     # FB-32 S6a: «Über uns» — текст (всегда на странице) и карточка контактов (видимость —
     # прежний ключ `about_contact`); своя страница «Seite» — только текст. Порядок постоянный.
     "info": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("contact", _("Kontakt & Öffnungszeiten")),
     ),
+    # --- page ---
     "page": (DetailSection("pagetext", _("Text"), hideable=False),),
+    # --- message ---
     # FB-32 S6b: «Versand» — свой текст и список Versandkosten (§ 6 PAngV: сюда ведёт
     # «zzgl. Versandkosten»). Список снимается только галочкой у страницы «Versand» (один
     # писатель; без своего текста список виден всегда) — в схеме строка не скрывается.
@@ -147,7 +193,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     "message": (
         DetailSection("form", _("Kontaktformular"), hideable=False, content_nav="settings"),
     ),
+    # --- anfrage ---
     "anfrage": (DetailSection("form", _("Anfrage-Formular"), hideable=False),),
+    # --- gift ---
     # FB-32 S6d: «Gutschein» — форма покупки (деньги, кнопка «Zahlungspflichtig bestellen»,
     # § 312j BGB) и «Treue» — программы; одной неподвижной строкой, свои блоки над ней и под ней
     "gift": (
@@ -155,6 +203,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
             "form", _("Gift voucher"), hideable=False, content_nav="promotions:voucher-list"
         ),
     ),
+    # --- loyalty ---
     "loyalty": (
         DetailSection(
             "programs",
@@ -163,15 +212,18 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
             content_nav="promotions:loyalty-list",
         ),
     ),
+    # --- blog_post ---
     # FB-32 S6e: запись блога — статья (не скрывается) и «More posts» (скрывается, прежний
     # список из 4); Finder — опросник одной строкой
     "blog_post": (
         DetailSection("article", _("Text"), hideable=False),
         DetailSection("more", _("More posts")),
     ),
+    # --- finder ---
     "finder": (
         DetailSection("wizard", _("Finder"), hideable=False, content_nav="finder-settings"),
     ),
+    # --- promo ---
     # FB-32 S6f: деталь акции — «Angebot» (строка оси P3: цена, условия, купон, бронь —
     # деньги и PAngV, не скрывается и не делится) и «Weitere Aktionen» (скрывается,
     # `promo_show_related`). Порядок постоянный.
@@ -182,25 +234,30 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("card", _("So finden Sie uns"), in_place=True),
         DetailSection("related", _("Weitere Aktionen")),
     ),
+    # --- teachers ---
     # FB-32 S6g-1: страницы, у которых блоков не было, — содержимое одной неподвижной строкой
     "teachers": (
         DetailSection(
             "teacherlist", _("Teachers"), hideable=False, content_nav="events:teacher-list"
         ),
     ),
+    # --- event_calendar ---
     "event_calendar": (
         DetailSection("calendar", _("Retreat calendar"), hideable=False, content_nav="events:list"),
     ),
+    # --- passes ---
     "passes": (
         DetailSection(
             "plans", _("Multi-visit cards"), hideable=False, content_nav="booking:passes"
         ),
     ),
+    # --- booking_slots ---
     # FB-32 S6g-2: выбор времени (ресурс или «Tisch reservieren») — вся коробка календаря и
     # формы брони одной неподвижной строкой
     "booking_slots": (
         DetailSection("slots", _("Book a slot"), hideable=False, content_nav="booking:resources"),
     ),
+    # --- combo ---
     # FB-32 S6g-3: Kombi-Detail — конфигуратор (форма и цена, PAngV: не скрывается) и блоки
     # под ним (MEN-21), каждый скрывается (`combo_show_*`, presence-minimal). Порядок постоянный.
     "combo": (
@@ -210,10 +267,12 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("cta", _("Sie planen eine Veranstaltung?")),
         DetailSection("related", _("Weitere Menüs aus dieser Kategorie")),
     ),
+    # --- versand ---
     "versand": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("costs", _("Versandkosten"), hideable=False),
     ),
+    # --- stays ---
     "stays": (
         DetailSection("description", _("Description")),
         DetailSection("amenities", _("Amenities")),

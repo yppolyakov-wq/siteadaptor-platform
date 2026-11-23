@@ -521,6 +521,71 @@ CATEGORY = "category"
 OBJECT_KINDS = ("product", "service", "stay", "event", "promo", "tour")
 #: T1: вид объекта без своего типа страницы → тип, чьи блоки и настройки он делит.
 OBJECT_PAGE_TYPES = {"tour": "event"}
+#: FB-33 M5d-2: слова вида объекта в текстах окна «Inhalt» (род и число — по виду, не по
+#: разделу): «Feld „…“ bei jedem Produkt», «… dieses Produkts», «sichtbar — bei allen Produkten».
+#: Ключи — `OBJECT_KINDS` плюс виды только с типом страницы (Kombi, запись блога); «this» —
+#: только у видов со своей схемой объекта (`detail_parts.OBJECT_SHARED`).
+OBJECT_WORDS = {
+    "product": {
+        "every": gettext_lazy("bei jedem Produkt"),
+        "this": gettext_lazy("dieses Produkts"),
+        "all": gettext_lazy("bei allen Produkten"),
+    },
+    "service": {
+        "every": gettext_lazy("bei jeder Leistung"),
+        "this": gettext_lazy("dieser Leistung"),
+        "all": gettext_lazy("bei allen Leistungen"),
+    },
+    "stay": {
+        "every": gettext_lazy("bei jeder Unterkunft"),
+        "this": gettext_lazy("dieser Unterkunft"),
+        "all": gettext_lazy("bei allen Unterkünften"),
+    },
+    "event": {
+        "every": gettext_lazy("bei jeder Veranstaltung"),
+        "this": gettext_lazy("dieser Veranstaltung"),
+        "all": gettext_lazy("bei allen Veranstaltungen"),
+    },
+    "tour": {
+        "every": gettext_lazy("bei jeder Reise"),
+        "this": gettext_lazy("dieser Reise"),
+        "all": gettext_lazy("bei allen Reisen"),
+    },
+    "promo": {"every": gettext_lazy("bei jeder Aktion"), "all": gettext_lazy("bei allen Aktionen")},
+    "combo": {
+        "every": gettext_lazy("bei jedem Kombi-Angebot"),
+        "all": gettext_lazy("bei allen Kombi-Angeboten"),
+    },
+    "post": {
+        "every": gettext_lazy("bei jedem Beitrag"),
+        "all": gettext_lazy("bei allen Beiträgen"),
+    },
+}
+#: общий хост детали → вид объекта для `OBJECT_WORDS` (у событий и туров хост один — вид
+#: раздела тура задаёт `DetailSection.only`)
+_HOST_WORD_KIND = {
+    "product_detail": "product",
+    "service_detail": "service",
+    "stay_detail": "stay",
+    "event_detail": "event",
+    "promo_detail": "promo",
+    "combo_detail": "combo",
+    "blog_post": "post",
+}
+
+
+def word_kind(host: str, only: str = "") -> str:
+    """FB-33 M5d-2: вид объекта (ключ `OBJECT_WORDS`) по хосту строк — общему или одного
+    объекта; "" — у страницы объектов нет (корзина, текст). `only` — чей раздел на общем
+    хосте событий и туров."""
+    from apps.core import detail_parts
+
+    kind = detail_parts.object_kind(host) or _HOST_WORD_KIND.get(host or "", "")
+    if kind == "event" and only in OBJECT_WORDS:
+        return only
+    return kind
+
+
 #: Адрес витрины объекта, у которого он не строится по pk маршрутом типа: (маршрут, поле).
 #: FB-33 M3-9a: и образец типа «Kategorie» — по pk его адрес ловил маршрут товара (404).
 _OBJECT_PREVIEW_ROUTES = {
@@ -586,19 +651,56 @@ def shared_schema_url(code: str) -> str:
     return f"{reverse('site-schema')}?seite={OBJECT_PAGE_TYPES.get(kind, kind)}"
 
 
-def object_back(code: str) -> dict | None:
-    """S8: ссылка «назад к объекту» со строки его своих блоков: {url, label} либо None."""
+def object_back(code: str, obj=None) -> dict | None:
+    """S8: ссылка «назад к объекту» со строки его своих блоков: {url, label} либо None.
+
+    `obj` — уже найденный объект этой строки (FB-33 M5d-2: экран резолвит его один раз);
+    None или объект не от этого кода — ищем сами."""
     if not is_object_code(code):
         return None
-    obj = _object_for(code)
+    kind, host = code.split("@", 1)
+    if obj is None or not is_object_of(obj, kind, host):
+        obj = _object_for(code)
     if obj is None:
         return None
-    kind = code.split("@", 1)[0]
     try:
         url = reverse(_OBJECT_EDIT_URLS[kind], args=[obj.pk])
     except NoReverseMatch:
         return None
     return {"url": url, "label": _object_label(obj)}
+
+
+def is_object_of(obj, kind: str, host: str) -> bool:
+    """Объект — того вида и с тем ключом, что в хосте строки (`<kind>:<hex>`)."""
+    prefix, _sep, key = host.partition(":")
+    pk = getattr(obj, "pk", None)
+    return (
+        prefix == kind
+        and isinstance(obj, object_model(kind))
+        and isinstance(pk, uuid.UUID)
+        and pk.hex == key
+    )
+
+
+#: FB-33 M5d-2 (A10): где в коде формы объекта лежат подписи полей — чтобы окно «Inhalt» не
+#: держало их копию. Вид → путь к функции «{имя поля: поле формы}».
+_OBJECT_FORM_FIELDS = {
+    "event": "apps.events.landing.form_fields",
+    "tour": "apps.events.landing.form_fields",
+}
+
+
+def object_field_label(kind: str, field: str) -> str:
+    """Подпись поля формы объекта из кода формы; "" — у вида такого источника нет или поля
+    в нём нет (тогда подпись задаёт `ContentSource.field_label`)."""
+    import importlib
+
+    path = _OBJECT_FORM_FIELDS.get(kind)
+    if not path or not field:
+        return ""
+    module, _dot, name = path.rpartition(".")
+    found = getattr(importlib.import_module(module), name)().get(field)
+    return str(found.label) if found is not None and found.label else ""
 
 
 def _object_label(obj) -> str:

@@ -120,7 +120,7 @@ def faq_anchor(post, count: int, opened=None) -> str:
     return ""
 
 
-# --- FB-33 M5d-1 (D1): часть «Inhalt» неподвижных строк страниц-форм (G2) ---------------------
+# --- FB-33 M5d-1 (D1) / M5d-2: часть «Inhalt» — что показывает строка и где это правится -------
 
 
 #: почему ссылки нет — видимой строкой (решение владельца; ревью M5d-1); ключ — ответ
@@ -131,33 +131,248 @@ _CLOSED_REASONS = {
     "package": gettext_lazy("Nicht in Ihrem Paket enthalten"),
 }
 
+#: FB-33 M5d-2 (Y4): что можно сделать со строкой — по её флагам; «⋯» есть и в шапке окна,
+#: поэтому без «in der Liste» (список под модальным окном инертен)
+_ACT_HIDE_MOVE = gettext_lazy("Ausblenden und Verschieben über „⋯“.")
+_ACT_HIDE = gettext_lazy("Ausblenden über „⋯“.")
+#: ответ владельца (план стопки 12 §11): у скрытой строки — текст, кнопки в окне нет
+_ACT_SHOW = gettext_lazy("Schließen Sie das Fenster; dann „Einblenden“ unter „Ausgeblendet“.")
+_VISIBLE = gettext_lazy("sichtbar.")
+_VISIBLE_ALL = gettext_lazy("sichtbar — %(all)s.")
+_HIDDEN = gettext_lazy("ausgeblendet.")
+#: A7a: раздел, который у еды скрыть нельзя (`detail_parts.FOOD_LOCKED`)
+_VISIBLE_LMIV = gettext_lazy("sichtbar — bei Lebensmitteln Pflicht (LMIV).")
+_FILLED = gettext_lazy("— ausgefüllt.")
+_EMPTY = gettext_lazy("— leer.")
+_FIELD_EVERY = gettext_lazy("Feld „%(field)s“ %(every)s.")
+_FIELD_THIS = gettext_lazy("Feld „%(field)s“ %(this)s")
 
-def content_part(selected: dict | None, host: str, request) -> None:
-    """Часть окна «Inhalt» у неподвижной строки, чьё содержимое правится на экране кабинета
-    (`DetailSection.content_nav`): `selected["content"] = {"summary", "link", "reason"}`.
 
-    Сводка — `summary` строки (своих запросов нет), пусто — подпись строки. Ссылка
-    `{"label", "url"}` — подпись и адрес записи `nav_registry` (своего списка экранов нет); экран
-    закрыт этому пользователю — `link` None и видимая причина `reason` (право, модуль, пакет).
-    Записи нет или адрес не строится — ошибка конфигурации в журнал, без ссылки и причины; сбой
-    проверки доступа — `logger.exception`, окно без ссылки (экран не падает)."""
+def content_part(
+    selected: dict | None,
+    host: str,
+    request,
+    *,
+    code: str = "",
+    obj=None,
+    back: dict | None = None,
+    page_label: str = "",
+) -> None:
+    """Часть окна «Inhalt» у строки раздела: что блок показывает, откуда содержимое и где оно
+    правится. Описание — в реестре (`DetailSection.content_nav` и `.source`, своих списков
+    здесь нет): `selected["content"] = {summary, note, woher, filled, visibility, actions,
+    fixed, link, reason, screen}`.
+
+    Без `source` — неподвижная строка G2 (M5d-1): сводка — `summary` строки (пусто — подпись),
+    ссылка `{"label", "url", "only_here"}` — запись `nav_registry`. С `source` (M5d-2):
+    - `setting` — запись реестра (+ `query`, подпись «… › sub»);
+    - `field` у типа — запись списка объектов; у объекта — его форма (`back`, подпись — имя
+      объекта) и `only_here`;
+    - `page` — редактор страницы (`content_pages.edit_url_for_code(code)`), подпись
+      «Seiten › <имя>»;
+    - `auto` — без ссылки.
+    Видимость и действия — из флагов строки (`enabled`, `can_hide`, `can_up`, `can_down`,
+    `pinned`) и её `summary` у объекта — без запросов. `obj` и `back` — объект строки и ссылка
+    на его форму, уже найденные экраном (один резолв); не переданы — ищем сами.
+
+    Экран закрыт этому пользователю (право открыть — GET, модуль, пакет) — `link` None и
+    причина `reason` (с `source` — ещё `screen`, чтобы причина читалась с контекстом). Записи
+    нет, адрес не строится, объекта нет — ошибка в журнал, без ссылки и причины; сбой проверки
+    доступа — `logger.exception`, окно без ссылки (экран не падает)."""
     if not selected or selected.get("cblock"):
         return
-    from django.urls import NoReverseMatch, reverse
-
-    from apps.core import detail_parts, detail_sections, nav_registry
+    from apps.core import detail_parts, detail_sections
 
     key = selected.get("key") or ""
-    module = detail_parts.module_of(detail_parts.shared_host(host or ""))
+    host = host or ""
+    module = detail_parts.module_of(detail_parts.shared_host(host))
     section = next(
-        (s for s in detail_sections.sections_for(module) if s.key == key and s.content_nav),
+        (
+            s
+            for s in detail_sections.sections_for(module)
+            if s.key == key and (s.content_nav or s.source)
+        ),
         None,
     )
     if section is None or selected.get("ref") != key:
         return
-    summary = str(selected.get("summary") or selected.get("label") or section.label)
-    link, reason = None, ""
-    entry = nav_registry.entry_by_url(section.content_nav)
+    source = section.source
+    kind = detail_parts.object_kind(host)  # строка одного объекта
+    if source is not None and source.object_only and not kind:
+        return  # A1: у типа у этой строки своё окно
+    content = {
+        "summary": str(selected.get("summary") or selected.get("label") or section.label),
+        "note": "",
+        "woher": "",
+        "filled": "",
+        "visibility": "",
+        "actions": "",
+        "fixed": bool(selected.get("pinned")),
+        "link": None,
+        "reason": "",
+        "screen": "",
+    }
+    if source is None:
+        link, reason, _screen = _content_link(section, None, host, request, code, "", None, "")
+        content.update(link=link, reason=reason)
+        selected["content"] = content
+        return
+    try:
+        _source_content(
+            content, selected, section, host, request, code, kind, obj, back, page_label
+        )
+    except Exception:  # noqa: BLE001 — строка без окна «Inhalt» лучше упавшего экрана
+        logger.exception("window_parts: content part of %s/%s failed - no part", host, key)
+        return
+    selected["content"] = content
+
+
+def _source_content(
+    content: dict,
+    selected: dict,
+    section,
+    host: str,
+    request,
+    code: str,
+    kind: str,
+    obj,
+    back,
+    page_label: str,
+) -> None:
+    """Заполнить модель части по источнику раздела (`DetailSection.source`)."""
+    from apps.core import detail_parts, site_schema
+
+    source, key = section.source, section.key
+    module = detail_parts.module_of(detail_parts.shared_host(host))
+    if kind:
+        if obj is not None and not site_schema.is_object_of(obj, kind, host):
+            obj = back = None  # объект не от этой строки — не верим ни ему, ни ссылке
+        if obj is None:
+            obj = detail_parts.object_for_host(host)
+            back = None
+        if back is None and obj is not None:
+            back = site_schema.object_back(f"{kind}@{host}", obj)
+        if obj is None:
+            logger.error("window_parts: no object for the content of %s/%s - no link", host, key)
+    words = site_schema.OBJECT_WORDS.get(site_schema.word_kind(host, section.only), {})
+    if source.shows:
+        shows = str(source.shows)
+        content["summary"] = shows % {"page": page_label} if "%(page)s" in shows else shows
+    content["note"] = str(source.note or "")
+    content["woher"], content["filled"] = _content_woher(source, host, key, kind, obj, words)
+    content["visibility"], content["actions"] = _content_visibility(
+        selected, source, module, key, bool(kind), words, getattr(request, "tenant", None)
+    )
+    content["link"], content["reason"], content["screen"] = _content_link(
+        section, source, host, request, code, kind, back if obj is not None else None, page_label
+    )
+
+
+def _content_woher(source, host: str, key: str, kind: str, obj, words: dict) -> tuple[str, str]:
+    """(«Woher», «заполнено ли» у объекта). У поля — подпись поля и слово вида объекта."""
+    from apps.core import site_schema
+
+    only_if = str(source.only_if or "")
+    if source.kind != "field":
+        return " ".join(t for t in (str(source.woher or ""), only_if) if t), ""
+    label = str(source.field_label or "") or site_schema.object_field_label(
+        site_schema.word_kind(host), source.field
+    )
+    if not label or "every" not in words:
+        logger.error(
+            "window_parts: field source of %s/%s has no field label or object words", host, key
+        )
+        return str(source.woher or ""), ""
+    if kind and "this" in words:
+        base = _FIELD_THIS % {"field": label, "this": words["this"]}
+        filled = _filled(obj, source.fields, host, key)
+        return (f"{base} {filled}" if filled else f"{base}."), filled
+    woher = _FIELD_EVERY % {"field": label, "every": words["every"]}
+    return " ".join(t for t in (woher, only_if) if t), ""
+
+
+def _has_content(value) -> bool:
+    if isinstance(value, dict):
+        return any(_has_content(v) for v in value.values())
+    if isinstance(value, list | tuple):
+        return any(_has_content(v) for v in value)
+    if isinstance(value, str):
+        return bool(value.strip())
+    return bool(value)
+
+
+def _filled(obj, fields, host: str, key: str) -> str:
+    """«— ausgefüllt.» / «— leer.» по полям объекта (`ContentSource.fields`: атрибут и ключи
+    словаря через точку; хватает одного заполненного). "" — сказать нечего: полей нет, объекта
+    нет, атрибута нет (ошибка конфигурации — в журнал)."""
+    if obj is None or not fields:
+        return ""
+    for path in fields:
+        head, *rest = str(path).split(".")
+        if not hasattr(obj, head):
+            logger.error(
+                "window_parts: object of %s/%s has no attribute %r - filled state unknown",
+                host,
+                key,
+                head,
+            )
+            return ""
+        value = getattr(obj, head)
+        if callable(value):
+            value = value()
+        for part in rest:
+            value = value.get(part) if isinstance(value, dict) else None
+        if _has_content(value):
+            return str(_FILLED)
+    return str(_EMPTY)
+
+
+def _content_visibility(
+    selected: dict, source, module: str, key: str, is_object: bool, words: dict, tenant
+) -> tuple[str, str]:
+    """(«Auf der Seite», что можно сделать) — только из флагов и сводки строки, без запросов.
+    Закреплённая строка — пусто (за неё говорит фраза «Er gehört fest…»)."""
+    from apps.core import detail_parts
+
+    if selected.get("pinned"):
+        return "", ""
+    enabled = bool(selected.get("enabled", True))
+    can_hide = bool(selected.get("can_hide"))
+    if not enabled:
+        actions = str(_ACT_SHOW) if can_hide else ""
+    elif can_hide and (selected.get("can_up") or selected.get("can_down")):
+        actions = str(_ACT_HIDE_MOVE)
+    elif can_hide:
+        actions = str(_ACT_HIDE)
+    else:
+        actions = ""
+    if key in detail_parts.food_locked(module, getattr(tenant, "business_type", None)):
+        return str(_VISIBLE_LMIV), actions  # A7a: раньше сводки объекта
+    if is_object and selected.get("summary"):
+        return f"{selected['summary']}.", actions  # «nur hier ausgeblendet», «Standard: …»
+    if not enabled:
+        return str(_HIDDEN), actions
+    if source.kind == "field" and "all" in words:
+        return _VISIBLE_ALL % {"all": words["all"]}, actions
+    return str(_VISIBLE), actions
+
+
+def _content_link(
+    section, source, host: str, request, code: str, kind: str, back, page_label: str
+) -> tuple[dict | None, str, str]:
+    """(ссылка, причина, экран причины). Ссылка — `{"label", "url", "only_here"}`; имя объекта
+    и страницы в подписи — в `<span lang>` (язык контента, Y3)."""
+    from django.conf import settings
+    from django.urls import NoReverseMatch, reverse
+    from django.utils.html import format_html
+
+    from apps.core import content_pages, nav_registry
+
+    mode = source.kind if source is not None else ""
+    if mode == "auto":
+        return None, "", ""
+    key = section.key
+    entry = nav_registry.entry_by_url(section.content_nav) if section.content_nav else None
     if entry is None:
         logger.error(
             "window_parts: no nav entry %r for the content of %s/%s - no link",
@@ -165,24 +380,51 @@ def content_part(selected: dict | None, host: str, request) -> None:
             host,
             key,
         )
-    else:
-        try:
+        return None, "", ""
+    lang = settings.LANGUAGE_CODE.split("-")[0]
+    try:
+        if source is None:
+            # G2 (M5d-1): сам экран записи — прежняя проверка и прежняя подпись
             closed = nav_registry.screen_closed(request, section.content_nav)
-            if not closed:
-                link = {"label": entry.label, "url": reverse(entry.url_name) + entry.query}
-            else:
-                reason = str(_CLOSED_REASONS.get(closed, ""))
-        except NoReverseMatch:
-            logger.error(
-                "window_parts: nav entry %r does not reverse - no content link", entry.url_name
+            if closed:
+                return None, str(_CLOSED_REASONS.get(closed, "")), ""
+            url = reverse(entry.url_name) + entry.query
+            return {"label": entry.label, "url": url, "only_here": False}, "", ""
+        only_here = False
+        if mode == "field" and kind:
+            if back is None:
+                return None, "", ""  # объекта нет — в журнале у вызывающего
+            label = format_html('<span lang="{}">{}</span>', lang, back["label"])
+            url, only_here = back["url"], True
+        elif mode == "page":
+            url = content_pages.edit_url_for_code(code)
+            if not url:
+                logger.error(
+                    "window_parts: no page editor for %r (%s/%s) - no link", code, host, key
+                )
+                return None, "", ""
+            label = (
+                format_html('{} › <span lang="{}">{}</span>', entry.label, lang, page_label)
+                if page_label
+                else str(entry.label)
             )
-            link, reason = None, ""
-        except Exception:  # noqa: BLE001 — окно без ссылки лучше упавшего экрана
-            logger.exception(
-                "window_parts: content link for %r failed (%s/%s) - no link",
-                section.content_nav,
-                host,
-                key,
-            )
-            link, reason = None, ""
-    selected["content"] = {"summary": summary, "link": link, "reason": reason}
+        else:
+            url = reverse(entry.url_name) + (source.query or entry.query)
+            label = f"{entry.label} › {source.sub}" if source.sub else str(entry.label)
+        # A4: видимость модуля — по записи; пакет и право — по адресу цели
+        closed = nav_registry.screen_closed(request, section.content_nav, target_url=url)
+        if closed:
+            return None, str(_CLOSED_REASONS.get(closed, "")), label
+        return {"label": label, "url": url, "only_here": only_here}, "", ""
+    except NoReverseMatch:
+        logger.error(
+            "window_parts: nav entry %r does not reverse - no content link", entry.url_name
+        )
+    except Exception:  # noqa: BLE001 — окно без ссылки лучше упавшего экрана
+        logger.exception(
+            "window_parts: content link for %r failed (%s/%s) - no link",
+            section.content_nav,
+            host,
+            key,
+        )
+    return None, "", ""

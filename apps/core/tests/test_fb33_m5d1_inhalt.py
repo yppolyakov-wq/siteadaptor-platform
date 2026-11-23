@@ -492,7 +492,8 @@ def test_inhalt_window_queries(monkeypatch):
         query = f"?seite={code}&block={ref}"
         monkeypatch.setattr(window_parts, "content_part", real)
         with_part = count(query)
-        monkeypatch.setattr(window_parts, "content_part", lambda selected, host, request: None)
+        # FB-33 M5d-2: экран передаёт части ещё код страницы, объект и ссылку на него
+        monkeypatch.setattr(window_parts, "content_part", lambda *args, **kwargs: None)
         extra[code] = with_part - count(query)
     assert max(extra.values()) <= 1, extra
     assert len(set(extra.values())) == 1, extra
