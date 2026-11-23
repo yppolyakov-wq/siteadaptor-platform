@@ -66,7 +66,19 @@ function aufbauSubmitCopy(form, submitter) {
       row = document.getElementById("schema-title");
       if (row) row.setAttribute("tabindex", "-1");
     }
-    if (row) { row.focus(); return; }
+    if (row) {
+      // FB-33 M5b-2 (стенд): адрес после «Fertig» несёт #schema-panel — браузер ставит фокус
+      // на якорь уже после скрипта и уводит его со строки. Якорь снять; после load — вернуть.
+      if (location.hash && window.history && history.replaceState) {
+        history.replaceState(history.state, "", location.pathname + location.search);
+      }
+      row.focus();
+      window.addEventListener("load", function () {
+        var at = document.activeElement;
+        if (at !== row && (!at || at === document.body || at.id === "schema-panel")) row.focus();
+      }, { once: true });
+      return;
+    }
   }
   // После выбора блока или действия фокус — в панель (на телефоне она под схемой).
   if (location.hash === "#schema-panel") {
