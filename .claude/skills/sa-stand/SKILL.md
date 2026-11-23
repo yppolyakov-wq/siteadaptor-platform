@@ -119,3 +119,11 @@ metadata:
 `e2e-runner` — новый стенд и правка `static/js` (Python-Playwright стендами, без npm);
 `a11y-architect` — новый элемент интерфейса (фокус, цели касания, роли); `django-reviewer` —
 каждый срез; `silent-failure-hunter` — стенд, который глотает исключения или таймауты.
+- Сверка «до/после» — базовый коммит (`git archive`) сервером рядом на ТОЙ ЖЕ стенд-БД в то же
+  время: витрина зависит от часа (слоты, отель); хэш тела — без `csrfmiddlewaretoken`, `form_token`,
+  `nonce` · посл. 2026-11-22.
+- Демо-киты стенда владельца: `seed_demo_tenants --kit shop restaurant friseur hotel retreat`
+  (ключи китов, не типы); владельцы `<slug>@example.com` — в схеме бизнеса (`set_tenant` до
+  поиска); копия стенд-БД — `CREATE DATABASE … TEMPLATE …` вместо пересева · посл. 2026-11-22.
+- Скрипт без браузера под владельцем (`scripts/fb33_m5d_inventory.py`): только настройки стенда,
+  сессию удалять в `finally` · посл. 2026-11-23.
