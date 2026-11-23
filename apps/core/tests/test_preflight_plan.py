@@ -19,8 +19,13 @@ def _mod():
     return mod
 
 
-def _plan(*files, importers=lambda module: set(), tests_of=lambda script: set()):
-    return _mod().plan(list(files), importers=importers, tests_of=tests_of)
+def _plan(
+    *files,
+    importers=lambda module: set(),
+    tests_of=lambda script: set(),
+    goldens=lambda: set(),
+):
+    return _mod().plan(list(files), importers=importers, tests_of=tests_of, goldens=goldens)
 
 
 def test_ruff_runs_always_and_on_whole_tree():
@@ -142,3 +147,41 @@ def test_every_lock_file_named_by_the_plan_exists_or_is_scheduled():
     mod = _mod()
     for path in mod.LOCKS.values():
         assert (ROOT / path).exists(), f"preflight называет несуществующий замок {path}"
+
+
+# --- T-13.9 (2026-11-23): находки «правило было, не сработало» стопок 8–10 → механизм ----------
+
+
+def test_template_change_runs_every_golden_suite_of_every_app():
+    # Журнал находок, трижды за стопки 8–10 (M3-9c ×2, M5b-2) и красный CI 4445: правка шаблона
+    # задевала наборы эталонов вне списка плана, срез гонял их выборочно. Текст в скилле не помог.
+    extra = {"apps/promotions/tests/test_fb31p3_golden.py", "apps/orders/tests/test_x_golden.py"}
+    p = _plan("templates/storefront/_card.html", goldens=lambda: extra)
+    assert extra <= set(p.pytest_targets)
+    assert not (extra & set(_plan("apps/orders/views.py", goldens=lambda: extra).pytest_targets))
+
+
+def test_real_golden_suites_are_found_across_apps():
+    found = _mod().golden_tests()
+    apps = {path.split("/")[1] for path in found}
+    assert {"core", "tenants", "promotions"} <= apps, apps
+    assert all(path.endswith(".py") and "/tests/" in path for path in found)
+
+
+def test_storefront_layout_change_reminds_about_the_owner_walk():
+    # Находка «после мержа» стопки 8: мелкие цели нашёл обход владельца, который до мержа не гоняли.
+    notes = " ".join(_plan("templates/storefront/home.html").notes)
+    assert "fb33_m3_9_owner_stand.py" in notes
+    assert "owner_stand" not in " ".join(_plan("apps/orders/views.py").notes)
+
+
+def test_parallel_pytest_guard_looks_only_at_the_same_test_database():
+    # Находка стопки 9: гейт отказывал при ЛЮБОМ чужом pytest, даже на другой `DB_NAME` —
+    # параллельные срезы в worktree гоняли pytest вручную, мимо гейта.
+    mod = _mod()
+    procs = [("101", "platform", "pytest apps/core"), ("102", "platform_m5c", "pytest apps/orders")]
+    assert mod.same_db_pytest(procs, "platform") == "pytest apps/core"
+    assert mod.same_db_pytest(procs, "platform_m5d") == ""
+    assert (
+        mod.same_db_pytest([("7", "", "pytest x")], "platform") == "pytest x"
+    )  # без DB_NAME — общая
