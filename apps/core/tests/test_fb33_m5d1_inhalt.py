@@ -44,14 +44,26 @@ G2 = {
     "booking_slots": ("slots", "booking:resources"),
 }
 NO_RIGHT = "Nur mit Berechtigung bearbeitbar"
+#: ревью D1 (решение владельца): модуль или пакет закрыты — видимая причина без ссылки
+MODULE_OFF = "Modul ist nicht aktiv"
+NO_PACKAGE = "Nicht in Ihrem Paket enthalten"
+#: ревью a11y: подсказка называет кнопку её доступным именем («Block hinzufügen»,
+#: `site_schema.html`), без полноширинного «＋» и без мест, которых владелец не видит
+HINT = "Eigene Blöcke darüber oder darunter fügen Sie mit „Block hinzufügen“ in der Liste ein."
+OLD_HINT = (
+    "Eigene Blöcke darüber oder darunter: „＋ Block“ unter dieser Zeile oder unter dem Block davor."
+)
 MSGIDS = (
     "Inhalt bearbeiten: %(screen)s",
     "Dieser Block zeigt: %(summary)s.",
     "Er gehört fest zur Seite und lässt sich nicht ausblenden oder verschieben.",
-    "Eigene Blöcke darüber oder darunter: „＋ Block“ unter dieser Zeile oder unter dem Block "
-    "davor.",
+    HINT,
     NO_RIGHT,
+    MODULE_OFF,
+    NO_PACKAGE,
 )
+#: замки ревью D1 до правки (снимаются коммитом правки)
+XF = pytest.mark.xfail(strict=True, reason="FB-33 M5d-1 ревью: замок до правки")
 
 
 @pytest.fixture(autouse=True)
@@ -220,8 +232,9 @@ def test_inhalt_summary_is_row_summary(monkeypatch):
     assert "content" not in cb
 
 
+@XF
 def test_missing_nav_logged(monkeypatch, caplog):
-    """Нет записи реестра — ссылки нет, предупреждение в журнале (не молча)."""
+    """Нет записи реестра — ссылки нет, ошибка конфигурации в журнале (не молча)."""
     from apps.core import window_parts
 
     broken = tuple(
@@ -234,7 +247,51 @@ def test_missing_nav_logged(monkeypatch, caplog):
     with caplog.at_level(logging.WARNING, logger="apps.core.window_parts"):
         window_parts.content_part(row, "loyalty", req)
     assert row["content"]["link"] is None and not row["content"]["reason"]
-    assert any("nope:missing" in r.getMessage() for r in caplog.records)
+    assert any(
+        "nope:missing" in r.getMessage() and r.levelno >= logging.ERROR for r in caplog.records
+    )
+
+
+def test_every_content_nav_is_configured():
+    """Каждый `content_nav`: запись реестра есть, адрес строится, у экрана есть правило
+    `view_perms`, `screen_closed` владельца отвечает без исключения (открыт)."""
+    from apps.core import view_perms
+
+    tenant = _tenant()
+    req = SimpleNamespace(tenant=tenant, user=SimpleNamespace(is_authenticated=True))
+    for sections in detail_sections.DETAIL_SECTIONS.values():
+        for s in sections:
+            if not s.content_nav:
+                continue
+            entry = nav_registry.entry_by_url(s.content_nav)
+            assert entry is not None, s.content_nav
+            assert reverse(entry.url_name), s.content_nav
+            assert view_perms.rule_for(entry.url_name) is not None, s.content_nav
+            assert nav_registry.screen_closed(req, s.content_nav) == "", s.content_nav
+
+
+@XF
+def test_screen_closed_without_entry_is_module():
+    """Экран без записи реестра закрыт («module»), а не открыт молча."""
+    req = SimpleNamespace(tenant=_tenant(), user=SimpleNamespace(is_authenticated=True))
+    assert nav_registry.screen_closed(req, "nope:missing") == "module"
+    assert not nav_registry.screen_open(req, "nope:missing")
+
+
+@XF
+def test_content_part_survives_errors(monkeypatch, caplog):
+    """Сбой проверки доступа — экран 200, ссылки и причины нет, исключение в журнале."""
+
+    def boom(request, url_name):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(nav_registry, "screen_closed", boom)
+    with caplog.at_level(logging.ERROR, logger="apps.core.window_parts"):
+        html, _view, selected = _open("loyalty")
+    assert selected["content"]["link"] is None and selected["content"]["reason"] == ""
+    part = _part(_panel(html), "inhalt")
+    assert "data-inhalt-link" not in part and "Dieser Block zeigt" in part
+    assert any(r.exc_info for r in caplog.records)
 
 
 def test_message_form_no_felder():
@@ -250,6 +307,7 @@ def test_message_form_no_felder():
 # --- окно ---------------------------------------------------------------------------------------
 
 
+@XF
 @pytest.mark.parametrize("code", sorted(G2))
 def test_every_g2_row_has_the_inhalt_window(code):
     html, view, selected = _open(code)
@@ -258,7 +316,7 @@ def test_every_g2_row_has_the_inhalt_window(code):
     part = _part(panel, "inhalt")
     url = reverse(G2[code][1])
     assert f'href="{url}"' in part and "data-inhalt-link" in part
-    assert "Er gehört fest zur Seite" in part and "„＋ Block“" in part
+    assert "Er gehört fest zur Seite" in part and HINT in part and "＋" not in part
     assert "Dieser Block zeigt: " in part
     if code != "gift":
         # одна вкладка — полосы вкладок нет
@@ -284,12 +342,28 @@ def test_inhalt_link_and_texts_in_russian():
     assert "Изменить содержимое: " in part and "Inhalt bearbeiten" not in part
 
 
+@XF
 def test_lock_icon_aria_hidden():
+    """Ревью a11y: значок «🔒 fest» целиком `aria-hidden` («fest» уже в заголовке окна и в
+    следующей фразе), нефокусируемый; точка `ui-badge` у него спрятана правилом app.css."""
     html, _view, _selected = _open("loyalty")
     part = _part(_panel(html), "inhalt")
-    assert '<span aria-hidden="true">🔒</span>' in part
-    assert re.search(r"🔒</span>\s*fest\b", part)  # «fest» — видимым текстом
+    badge = re.search(r"<span\b([^>]*\bdata-inhalt-fixed\b[^>]*)>(.*?)</span>", part, re.S)
+    assert badge and 'aria-hidden="true"' in badge.group(1)
+    assert "tabindex" not in badge.group(1) and "<a" not in badge.group(2)
+    assert re.search(r"🔒\s*fest\b", re.sub(r"<[^>]+>", "", part))  # видно глазами
     assert part.count("🔒") == 1
+    css = (ROOT / "static/src/app.css").read_text(encoding="utf-8")
+    assert re.search(r"\[data-inhalt-fixed\]::before\s*\{\s*display:\s*none", css)
+
+
+@XF
+def test_link_target_44px_in_panel_and_window():
+    css = (ROOT / "static/src/app.css").read_text(encoding="utf-8")
+    rule = re.search(r"([^{}]*a\[data-inhalt-link\][^{}]*)\{([^}]*)\}", css)
+    assert rule and "min-height: 2.75rem" in rule.group(2)
+    assert "[data-schema-panel] a[data-inhalt-link]" in rule.group(1)
+    assert ".ui-bwin a[data-inhalt-link]" in rule.group(1)
 
 
 def test_inhalt_no_more_platz_preview():
@@ -355,14 +429,31 @@ def test_cart_pinned_rows_unchanged():
     assert ctx["bw_preview"] is not None
 
 
+@XF
 def test_link_hidden_when_module_off():
-    """Модуль экрана выключен (гутшайны без «loyalty») — ссылки нет и строки «без права» нет."""
+    """Модуль экрана выключен (гутшайны без «loyalty») — ссылки нет, видимая причина
+    «Modul ist nicht aktiv» (решение владельца, ревью D1)."""
     tenant = _tenant(disabled=["loyalty"])
     html, _view, selected = _open("gift", tenant)
     part = _part(_panel(html), "inhalt")
     assert selected["content"]["link"] is None
     assert "data-inhalt-link" not in part and NO_RIGHT not in part
+    assert MODULE_OFF in part and "data-inhalt-reason" in part
     assert "Er gehört fest zur Seite" in part
+
+
+@XF
+def test_link_hidden_when_package_closed(monkeypatch):
+    """Экрана нет в пакете — ссылки нет, видимая причина «Nicht in Ihrem Paket enthalten»."""
+    from apps.core import packages
+
+    monkeypatch.setattr(
+        packages, "view_allowed", lambda tenant, name: name != "promotions:loyalty-list"
+    )
+    html, _view, selected = _open("loyalty")
+    part = _part(_panel(html), "inhalt")
+    assert selected["content"]["link"] is None
+    assert "data-inhalt-link" not in part and NO_PACKAGE in part and MODULE_OFF not in part
 
 
 def test_employee_without_right_text_without_link():
@@ -391,26 +482,36 @@ def test_employee_without_right_text_without_link():
     assert "data-inhalt-link" in part and NO_RIGHT not in part
 
 
-def test_inhalt_window_queries():
-    """Часть «Inhalt» стоит не больше одного запроса поверх окна без неё (№31)."""
+def test_inhalt_window_queries(monkeypatch):
+    """Часть «Inhalt» стоит не больше одного запроса поверх окна без неё (№31) — и одинаково
+    у всех восьми строк G2."""
     from apps.core import window_parts
 
     tenant = _tenant()
     b = Browser(tenant)
-    b.get("?seite=loyalty&block=programs")  # прогрев сессии и кэшей
-    with CaptureQueriesContext(connection) as with_part:
-        b.get("?seite=loyalty&block=programs")
     real = window_parts.content_part
-    try:
-        window_parts.content_part = lambda selected, host, request: None
-        with CaptureQueriesContext(connection) as without:
-            b.get("?seite=loyalty&block=programs")
-    finally:
-        window_parts.content_part = real
-    assert len(with_part.captured_queries) <= len(without.captured_queries) + 1
+
+    def count(query):
+        b.get(query)  # прогрев сессии и кэшей
+        with CaptureQueriesContext(connection) as q:
+            b.get(query)
+        return len(q.captured_queries)
+
+    extra = {}
+    for code, (ref, _url) in G2.items():
+        query = f"?seite={code}&block={ref}"
+        monkeypatch.setattr(window_parts, "content_part", real)
+        with_part = count(query)
+        monkeypatch.setattr(window_parts, "content_part", lambda selected, host, request: None)
+        extra[code] = with_part - count(query)
+    assert max(extra.values()) <= 1, extra
+    assert len(set(extra.values())) == 1, extra
 
 
+@XF
 def test_new_msgids_in_all_po():
+    """Строки D1 есть во всех пяти каталогах, плейсхолдеры `%(…)s` совпадают; старая подсказка
+    снята."""
     for lang in ("de", "en", "tr", "ru", "uk"):
         po = polib.pofile(str(ROOT / f"locale/{lang}/LC_MESSAGES/django.po"))
         have = {(e.msgctxt, e.msgid): e.msgstr for e in po if not e.obsolete}
@@ -418,3 +519,42 @@ def test_new_msgids_in_all_po():
             assert (None, msgid) in have, (lang, msgid)
             if lang != "de":
                 assert have[(None, msgid)], (lang, msgid)
+            got = have[(None, msgid)] or msgid
+            names = sorted(re.findall(r"%\((\w+)\)s", msgid))
+            assert sorted(re.findall(r"%\((\w+)\)s", got)) == names, (lang, msgid)
+        assert (None, OLD_HINT) not in have, lang
+
+
+def test_day_home_staff_without_stock_right_sees_no_low_stock(monkeypatch):
+    """Поведение `nav_registry.screen_open` в сводке дня: без права на «stock» счётчик
+    «мало на складе» скрыт (у владельца — виден)."""
+    from uuid import uuid4
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import day_home
+    from apps.core.models import Membership
+
+    tenant = TenantFactory(business_type="bakery", disabled_modules=[])
+    monkeypatch.setattr(day_home, "_low_stock", lambda t: 5)
+
+    def req(role, perms=None):
+        r = RequestFactory().get("/dashboard/")
+        SessionMiddleware(lambda x: None).process_request(r)
+        MessageMiddleware(lambda x: None).process_request(r)
+        r.tenant = tenant
+        r.user = get_user_model().objects.create_user(
+            username=f"m5d1-{uuid4().hex[:8]}", password="pw12345678"
+        )
+        Membership.objects.create(user=r.user, role=role, permissions=perms or {})
+        return r
+
+    owner = day_home.summary(req(Membership.ROLE_OWNER), "order")
+    assert owner["dh_low_stock"] == 5
+    staff = day_home.summary(
+        req(Membership.ROLE_STAFF, {"remove": ["lager.view", "lager.edit"]}), "order"
+    )
+    assert staff["dh_low_stock"] == 0
