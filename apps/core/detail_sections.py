@@ -102,19 +102,131 @@ BUYBOX_CONFIGURABLE = "form"
 DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # --- catalog ---
     "catalog": (
-        DetailSection("description", _("Description")),
-        DetailSection("info", _("Product info (origin/ingredients/allergens)")),
+        # FB-33 M5d-4a: источники окна «Inhalt» (тексты — артборд M5dG1; список товаров —
+        # запись «Sortiment», ответ владельца). `trust` и `reviews` — со своим окном, без источника.
+        DetailSection(
+            "description",
+            _("Description"),
+            content_nav="sellable-manage",
+            source=ContentSource(
+                "field",
+                shows=_("die Beschreibung des Produkts"),
+                field_label=_("Beschreibung"),
+                fields=("description",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        DetailSection(
+            "info",
+            _("Product info (origin/ingredients/allergens)"),
+            content_nav="sellable-manage",
+            source=ContentSource(
+                "field",
+                shows=_(
+                    "die Kennzeichnung des Produkts: Marke, Zustand, Material, Pflege, "
+                    "Herkunft, Zutaten, Allergene und Zusatzstoffe"
+                ),
+                # подпись вкладки формы товара (тот же msgid, что в `product_form.html`)
+                field_label=_("Labeling"),
+                fields=(
+                    "brand",
+                    "condition",
+                    "material",
+                    "care",
+                    "origin",
+                    "ingredients",
+                    "allergens",
+                    "additives",
+                ),
+                only_if=_("Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."),
+            ),
+        ),
         # FB-33 M2f: разделы первого экрана, которые раньше были зашиты в страницу товара
-        DetailSection("sizes", _("Größentabelle")),
+        DetailSection(
+            "sizes",
+            _("Größentabelle"),
+            content_nav="catalog:category-list",
+            source=ContentSource(
+                "setting",
+                shows=_("die Größentabelle der Kategorie, zu der das Produkt gehört"),
+                woher=_("Feld „Größentabelle“ bei der Kategorie."),
+                only_if=_("Erscheint nur, wenn die Kategorie eine Größentabelle hat."),
+            ),
+        ),
         DetailSection("trust", _("Vertrauensleiste")),
-        DetailSection("anprobe", _("In der Anprobe zurücklegen")),
-        DetailSection("waitlist", _("Warteliste")),
-        DetailSection("instore", _("Im Geschäft erhältlich")),
-        DetailSection("question", _("Frage stellen")),
+        DetailSection(
+            "anprobe",
+            _("In der Anprobe zurücklegen"),
+            source=ContentSource(
+                "auto",
+                shows=_(
+                    "das Formular „In der Anprobe zurücklegen“ — unverbindlich reservieren, "
+                    "48 Stunden"
+                ),
+                woher=_("automatisch — aus Bestand und Größen des Produkts. Nichts zu pflegen."),
+                only_if=_(
+                    "Erscheint nur, wenn die Anprobe-Reservierung eingeschaltet, die "
+                    "Online-Bestellung aktiv und das Produkt vorrätig ist."
+                ),
+            ),
+        ),
+        DetailSection(
+            "waitlist",
+            _("Warteliste"),
+            source=ContentSource(
+                "auto",
+                shows=_(
+                    "das Formular „Ausverkauft? Benachrichtigen lassen“ — eine E-Mail, sobald "
+                    "das Produkt wieder da ist"
+                ),
+                woher=_("automatisch — aus dem Bestand des Produkts. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn das Produkt oder eine Größe ausverkauft ist."),
+            ),
+        ),
+        DetailSection(
+            "instore",
+            _("Im Geschäft erhältlich"),
+            content_nav="settings",
+            source=ContentSource(
+                "setting",
+                shows=_("den Hinweis „Im Laden erhältlich“ mit Öffnungszeiten und Adresse"),
+                woher=_("Ihre Geschäftsdaten (Adresse, Öffnungszeiten)."),
+            ),
+        ),
+        DetailSection(
+            "question",
+            _("Frage stellen"),
+            source=ContentSource(
+                "auto",
+                shows=_("den Link zum Nachrichtenformular — mit dem Namen des Produkts"),
+                woher=_("automatisch — die Frage kommt in „Nachrichten“ an. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn das Modul „Nachrichten“ aktiv ist."),
+            ),
+        ),
         DetailSection("reviews", _("Customer reviews")),
-        DetailSection("related", _("Related products")),
+        # у типа у «Ähnliche Produkte» своё окно («Seite») — источник только строке объекта
+        DetailSection(
+            "related",
+            _("Related products"),
+            source=ContentSource(
+                "auto",
+                shows=_("weitere Produkte derselben Kategorie — empfohlene zuerst"),
+                woher=_("automatisch — aus der Kategorie des Produkts. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn die Kategorie weitere aktive Produkte hat."),
+                object_only=True,
+            ),
+        ),
         # FB-33 M2f: «Zuletzt angesehen» — только в браузере посетителя (localStorage)
-        DetailSection("recent", _("Zuletzt angesehen")),
+        DetailSection(
+            "recent",
+            _("Zuletzt angesehen"),
+            source=ContentSource(
+                "auto",
+                shows=_("die Produkte, die sich der Besucher zuletzt angesehen hat"),
+                woher=_("automatisch — im Browser des Besuchers. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn der Besucher schon andere Produkte angesehen hat."),
+            ),
+        ),
     ),
     # --- events ---
     "events": (

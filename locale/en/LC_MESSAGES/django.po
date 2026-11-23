@@ -40153,6 +40153,98 @@ msgstr "fb33-stack-anchor-m5d3"
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"
 
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "die Beschreibung des Produkts"
+msgstr "the product description"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "die Kennzeichnung des Produkts: Marke, Zustand, Material, Pflege, Herkunft, Zutaten, Allergene und Zusatzstoffe"
+msgstr "the product labeling: brand, condition, material, care, origin, ingredients, allergens and additives"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."
+msgstr "Appears only if at least one of these details is filled in."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "die Größentabelle der Kategorie, zu der das Produkt gehört"
+msgstr "the size chart of the category the product belongs to"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Feld „Größentabelle“ bei der Kategorie."
+msgstr "Field “Size chart” of the category."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Erscheint nur, wenn die Kategorie eine Größentabelle hat."
+msgstr "Appears only if the category has a size chart."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "das Formular „In der Anprobe zurücklegen“ — unverbindlich reservieren, 48 Stunden"
+msgstr "the “Reserve for fitting in store” form — a non-binding reservation for 48 hours"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "automatisch — aus Bestand und Größen des Produkts. Nichts zu pflegen."
+msgstr "automatic — from the product’s stock and sizes. Nothing to maintain."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Erscheint nur, wenn die Anprobe-Reservierung eingeschaltet, die Online-Bestellung aktiv und das Produkt vorrätig ist."
+msgstr "Appears only if fitting reservations are switched on, online ordering is active and the product is in stock."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "das Formular „Ausverkauft? Benachrichtigen lassen“ — eine E-Mail, sobald das Produkt wieder da ist"
+msgstr "the “Sold out? Get notified” form — an e-mail as soon as the product is back"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "automatisch — aus dem Bestand des Produkts. Nichts zu pflegen."
+msgstr "automatic — from the product’s stock. Nothing to maintain."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Erscheint nur, wenn das Produkt oder eine Größe ausverkauft ist."
+msgstr "Appears only if the product or one of its sizes is sold out."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "den Hinweis „Im Laden erhältlich“ mit Öffnungszeiten und Adresse"
+msgstr "the note “Available in store” with opening hours and address"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Ihre Geschäftsdaten (Adresse, Öffnungszeiten)."
+msgstr "Your business details (address, opening hours)."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "den Link zum Nachrichtenformular — mit dem Namen des Produkts"
+msgstr "the link to the message form — with the product name"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "automatisch — die Frage kommt in „Nachrichten“ an. Nichts zu pflegen."
+msgstr "automatic — the question arrives in “Messages”. Nothing to maintain."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Erscheint nur, wenn das Modul „Nachrichten“ aktiv ist."
+msgstr "Appears only if the “Messages” module is active."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "weitere Produkte derselben Kategorie — empfohlene zuerst"
+msgstr "more products from the same category — recommended ones first"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "automatisch — aus der Kategorie des Produkts. Nichts zu pflegen."
+msgstr "automatic — from the product’s category. Nothing to maintain."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Erscheint nur, wenn die Kategorie weitere aktive Produkte hat."
+msgstr "Appears only if the category has other active products."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "die Produkte, die sich der Besucher zuletzt angesehen hat"
+msgstr "the products the visitor viewed most recently"
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "automatisch — im Browser des Besuchers. Nichts zu pflegen."
+msgstr "automatic — in the visitor’s browser. Nothing to maintain."
+
+#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
+msgid "Erscheint nur, wenn der Besucher schon andere Produkte angesehen hat."
+msgstr "Appears only if the visitor has already viewed other products."
+
 # fb33-stack-anchor-m5d4b
 msgid "fb33-stack-anchor-m5d4b"
 msgstr "fb33-stack-anchor-m5d4b"

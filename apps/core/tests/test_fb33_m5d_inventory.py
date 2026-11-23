@@ -6,7 +6,8 @@
 «Ähnliche Produkte» (строка раздела со своими настройками) пропали бы.
 
 (а) ответ скрипта = разметка окна вьюхи на фикстуре: главная `about` («Platz») — окно есть;
-    товар `description` — нет; товар `kauf` и `related` — есть, хотя «наивный» счёт без вьюхи
+    товар `description` — есть (часть «Inhalt», M5d-4a), раздел без источника — нет; товар
+    `kauf` и `related` — есть, хотя «наивный» счёт без вьюхи
     говорит «нет» (фикстура различает подмену);
 (б) скрипт не держит своего списка видов блоков (ast: ни одной строки-ключа блока);
     страницы и строки — те же, что у стенда владельца (`DUMP` `fb33_m3_9_owner_stand.py`);
@@ -15,6 +16,7 @@
 
 import ast
 import contextlib
+import dataclasses
 import importlib.util
 import io
 import json
@@ -111,14 +113,31 @@ def _naive(tenant, code, key) -> bool:
 # --- (а) ответ скрипта = разметка вьюхи ------------------------------------------------------
 
 
-def test_window_answer_follows_the_view_markup():
+def _bare_section(monkeypatch, key="recent"):
+    """Раздел товара без источника — строка «без окна» (план стопки 12 §10 A8: после M5d-4a у
+    разделов товара окно «Inhalt» есть, негативный пример задаёт фикстура)."""
+    monkeypatch.setitem(
+        detail_sections.DETAIL_SECTIONS,
+        "catalog",
+        tuple(
+            dataclasses.replace(s, source=None, content_nav="") if s.key == key else s
+            for s in detail_sections.DETAIL_SECTIONS["catalog"]
+        ),
+    )
+    return key
+
+
+def test_window_answer_follows_the_view_markup(monkeypatch):
     tenant = _tenant()
+    bare = _bare_section(monkeypatch)
     lines = _lines(tenant)
     assert not [ln for ln in lines if ln.get("skipped")]
     about = _by(lines, "home", "about")
     assert about["window"] is True and "wie" in about["tabs"]  # «Platz» главной
     desc = _by(lines, "product", "description")
-    assert desc["window"] is False and desc["tabs"] == []
+    assert desc["window"] is True and desc["tabs"] == ["was"]  # M5d-4a: часть «Inhalt»
+    none = _by(lines, "product", bare)
+    assert none["window"] is False and none["tabs"] == []
     for key in ("kauf", "related"):
         line = _by(lines, "product", key)
         assert line["window"] is True and line["tabs"], line
@@ -133,13 +152,16 @@ def test_fixture_tells_the_view_from_the_naive_count():
     assert _naive(tenant, "product", "description") is False
 
 
-def test_window_tabs_reads_the_panel_of_the_view():
+def test_window_tabs_reads_the_panel_of_the_view(monkeypatch):
     tenant = _tenant()
+    bare = _bare_section(monkeypatch)
     fetch = view_fetch(tenant)
     window_tabs = _script().window_tabs
     _status, html = fetch("product", _block(tenant, "product", "kauf")["ref"])
     assert window_tabs(html) == ["texte"]
     _status, html = fetch("product", _block(tenant, "product", "description")["ref"])
+    assert window_tabs(html) == ["was"] and 'value="window_done"' in html
+    _status, html = fetch("product", _block(tenant, "product", bare)["ref"])
     assert window_tabs(html) is None
     assert 'value="window_done"' not in html  # тот же признак, что `aufbauWindowWanted`
 
