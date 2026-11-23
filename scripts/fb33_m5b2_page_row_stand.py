@@ -555,6 +555,8 @@ def js_behaviour(rep, pg, tag, lang, slug, seite, ref, hint, head):
         )
     # контроль: бросок на соседний двигаемый блок запрос шлёт (иначе проверка выше ничего не стоит)
     n0 = len(posts)
+    # на телефоне с черновиком низ экрана занят полосой черновика (M5c-5) — цель в середину
+    movable.nth(1).evaluate("e => e.scrollIntoView({block: 'center'})")
     movable.first.drag_to(movable.nth(1))
     pg.wait_for_timeout(1200)
     rep.check(
