@@ -1,12 +1,17 @@
 /* FB-33 M3-1b (ревью 2): сбой правки виден всегда — сообщение в блоке сообщений экрана,
-   без него — в панели блока, без неё — обычным окном браузера; молчаливой перезагрузки нет.
+   без него — в панели блока, без неё — обычным окном браузера. Нет и текста ошибки
+   (`data-schema-error`) — причина в консоль и перезагрузка: страница покажет то, что записано.
    Отключённая (подменённая) форма уходит своей копией обычной отправкой — с теми же полями
    (ref нажатого блока, токен открытия окна). */
 function aufbauError(text) {
   var box = document.querySelector("[data-schema-messages]");
   text = text || (box && box.getAttribute("data-schema-error")) || "";
   // ревью M5c (silent): без текста ошибки не молчать — страница покажет состояние сервера
-  if (!text) { location.reload(); return; }
+  if (!text) {
+    if (window.console) console.error("aufbau: Fehler ohne Meldungstext – Seite wird neu geladen");
+    location.reload();
+    return;
+  }
   // FB-33 M3-2: при открытом окне блока фон под inert — сообщение пишется в само окно
   var inWindow = document.querySelector("dialog.ui-bwin[open] [data-bwin-msgs]");
   var host = inWindow || box || document.querySelector("[data-schema-panel]");
@@ -123,6 +128,8 @@ function aufbauSubmitCopy(form, submitter) {
     // FB-33 M3-5a: со скриптами правки применяются сами — подсказка «erst übernehmen» не нужна
     document.querySelectorAll("[data-window-hint]").forEach(function (p) { p.hidden = true; });
   }
+
+  var saidTimer = 0;
 
   function draftNote() {
     var n = document.querySelector("[data-schema-draft-note]");
@@ -243,6 +250,7 @@ function aufbauSubmitCopy(form, submitter) {
         var live = liveRegion();
         if (refused) {
           // Отказ читает сам role="alert"; на телефоне лист не должен его закрывать.
+          clearTimeout(saidTimer);
           if (live) live.textContent = "";
           var box = (win && win.querySelector("[data-bwin-msgs]")) || document.querySelector("[data-schema-messages]");
           if (box) box.scrollIntoView({ block: "start" });
@@ -251,7 +259,13 @@ function aufbauSubmitCopy(form, submitter) {
           live.textContent = "";
           var said = live.getAttribute("data-done") || "";
           if (noteNow && noteNow !== noteBefore) said = (said + " " + noteNow).trim();
-          setTimeout(function () { live.textContent = said; }, 100);
+          // ревью e2e: один таймер; живая область — та, что есть к его срабатыванию (окно могли
+          // закрыть или подменить)
+          clearTimeout(saidTimer);
+          saidTimer = setTimeout(function () {
+            var now = liveRegion();
+            if (now) now.textContent = said;
+          }, 100);
         }
       })
       .catch(function (err) {
@@ -724,10 +738,12 @@ function aufbauSubmitCopy(form, submitter) {
         win.querySelector('[data-schema-panel] button[value="window_done"]');
       if (first) {
         first.focus();
-        window.addEventListener("load", function () {
-          var at = document.activeElement;
-          if (win && at !== first && (!at || at === document.body || at.id === "schema-panel")) first.focus();
-        }, { once: true });
+        if (document.readyState !== "complete") {
+          window.addEventListener("load", function () {
+            var at = document.activeElement;
+            if (win && at !== first && (!at || at === document.body || at.id === "schema-panel")) first.focus();
+          }, { once: true });
+        }
         return;
       }
     }
@@ -809,7 +825,8 @@ function aufbauSubmitCopy(form, submitter) {
     self.addEventListener("focusin", function (e) { lastFocus = e.target; });
     self.addEventListener("close", function (e) {
       // ревью C3–C4: окно закрыто скриптом или подменено — схема снова в две колонки
-      if (e.target === self && (ours || win !== self)) unsolo();
+      // ревью e2e: флаг нового окна (уже открытого, пока шло событие) не снимать
+      if (e.target === self && !win) unsolo();
       // закрыл не скрипт (CloseWatcher, «назад» на Android) — окно остаётся, как Esc
       if (e.target !== self || ours || win !== self) return;
       try {
@@ -913,9 +930,23 @@ function aufbauSubmitCopy(form, submitter) {
     root.style.setProperty("--schema-draft-h", h + "px");
     if (tabBox) root.style.setProperty("--schema-draft-at", at + "px");
   }
+  // ревью e2e: высота полосы меняется и без resize окна (перенос подписи, шрифт) — следим за
+  // самой полосой; её подменяет автосохранение — наблюдатель переезжает на новую
+  var ro = window.ResizeObserver ? new ResizeObserver(function () { measure(); }) : null;
+  var watched = null;
+  function watch() {
+    var bar = head.querySelector("[data-schema-draftbar]");
+    if (!ro || bar === watched) return;
+    if (watched) ro.unobserve(watched);
+    watched = bar;
+    if (bar) ro.observe(bar);
+  }
   measure();
+  watch();
   window.addEventListener("resize", measure);
-  if (window.MutationObserver) new MutationObserver(measure).observe(head, { childList: true, subtree: true });
+  if (window.MutationObserver) {
+    new MutationObserver(function () { measure(); watch(); }).observe(head, { childList: true, subtree: true });
+  }
 })();
 
 /* FB-33 M5c-2 (a11y A2): после перестановки из «⋯» строки (и броска ⠿) — фокус на «⋯» этой
@@ -932,11 +963,16 @@ window.aufbauMoved = function (ref, text) {
     target.focus({ preventScroll: false });
   }
   // ревью M5c (silent HIGH): озвучивается только готовый текст сервера — не «Übernommen.»
-  // по умолчанию (отказ иначе звучал бы успехом)
+  // по умолчанию (отказ иначе звучал бы успехом). Ревью e2e: один таймер, живая область —
+  // перечитать к срабатыванию
+  clearTimeout(window.aufbauMoved.timer);
   var live = document.querySelector("[data-schema-live]");
   if (!live || !text) return;
   live.textContent = "";
-  setTimeout(function () { live.textContent = text; }, 300);
+  window.aufbauMoved.timer = setTimeout(function () {
+    var now = document.querySelector("[data-schema-live]");
+    if (now) now.textContent = text;
+  }, 300);
 };
 (function () {
   "use strict";
@@ -993,6 +1029,8 @@ document.addEventListener("click", function (e) {
   var wide = window.matchMedia ? window.matchMedia("(min-width: 48rem)") : null;
   function arm() {
     var on = !wide || wide.matches;
+    // ревью e2e: MutationObserver зовёт часто — если все строки уже в нужном состоянии, выход
+    if (!document.querySelector(on ? "[data-schema-drag]:not([draggable])" : "[data-schema-drag][draggable]")) return;
     document.querySelectorAll("[data-schema-drag]").forEach(function (li) {
       var grip = li.querySelector(".schema-grip");
       if (on) {
