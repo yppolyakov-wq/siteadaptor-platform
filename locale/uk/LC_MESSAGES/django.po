@@ -40587,6 +40587,38 @@ msgstr "З’являється, лише якщо відвідувач уже �
 msgid "fb33-stack-anchor-m5d4b"
 msgstr "fb33-stack-anchor-m5d4b"
 
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "die Beschreibung der Leistung"
+msgstr "опис послуги"
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "den Knopf „Per Video zeigen lassen“ — er öffnet einen WhatsApp-Chat"
+msgstr "кнопку «Подивитися по відео» — вона відкриває чат у WhatsApp"
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "Der Chat geht an Ihre WhatsApp-Nummer aus „Mein Geschäft“."
+msgstr "Чат іде на ваш номер WhatsApp із розділу «Мій бізнес»."
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "Erscheint nur, wenn das Häkchen gesetzt und eine WhatsApp-Nummer eingetragen ist."
+msgstr "З’являється, лише якщо галочку поставлено і вказано номер WhatsApp."
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "die Details der Leistung als Liste — bis zu 12 Punkte"
+msgstr "деталі послуги списком — до 12 пунктів"
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "bis zu 4 Produkte unter der Leistung — empfohlene zuerst"
+msgstr "до 4 товарів під послугою — спочатку рекомендовані"
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "Ihre Produkte — die mit Häkchen „Empfohlen“ stehen vorn."
+msgstr "Ваші товари — з галочкою «Рекомендовано» йдуть першими."
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "Erscheint nur, wenn es aktive Produkte gibt."
+msgstr "З’являється, лише якщо є активні товари."
+
 # fb33-stack-anchor-m5d4c
 msgid "fb33-stack-anchor-m5d4c"
 msgstr "fb33-stack-anchor-m5d4c"

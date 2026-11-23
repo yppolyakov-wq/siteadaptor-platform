@@ -95,7 +95,19 @@ CASES_M5D4A = (
 )
 
 # --- cases: m5d4b ---
-CASES_M5D4B = ()
+#: окна разделов страницы услуги (тип) и одной услуги; код объекта — pk первой услуги кита в
+#: шаблоне стенд-БД (в другой базе строки нет — заметка «пропущено»)
+_M5D4B_FIELD = {"pinned": False, "dl": True, "link": True}
+_M5D4B_OBJECT = "service@service:0fdcafc728a6447d871cbdbc8a059345"
+CASES_M5D4B = (
+    ("friseur", "service", "description", _M5D4B_FIELD),
+    ("friseur", "service", "video", _M5D4B_FIELD),
+    ("friseur", "service", "attributes", _M5D4B_FIELD),
+    ("friseur", "service", "upsell", _M5D4B_FIELD),
+    ("friseur", _M5D4B_OBJECT, "description", {**_M5D4B_FIELD, "only_here": True}),
+    ("friseur", _M5D4B_OBJECT, "video", {**_M5D4B_FIELD, "only_here": True}),
+    ("friseur", _M5D4B_OBJECT, "upsell", _M5D4B_FIELD),
+)
 
 # --- cases: m5d4c ---
 CASES_M5D4C = ()
