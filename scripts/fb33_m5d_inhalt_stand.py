@@ -11,7 +11,14 @@
   абзац без ссылки (Y6); «nur hier» — плашкой ПОСЛЕ ссылки (Y3);
 - с JS: при открытии фокус — на заголовке окна (не на ссылке); Esc и «Fertig» возвращают фокус
   на строку блока; Tab по окну заходит на ссылку ровно один раз (Y2, Y7);
-- нет горизонтальной прокрутки; ru — без немецких подписей части.
+- нет горизонтальной прокрутки; ru — без немецких подписей части;
+- скрытая строка (ожидание `hidden`, ревью M5d-2 a11y H1): окно открыто из «Ausgeblendet» и
+  закрыто Esc или «Fertig» без правок — список «Ausgeblendet» раскрыт, фокус на ссылке строки
+  (без JS — раскрыт, и адрес ведёт к ссылке строки); общая проверка — `hidden_state`;
+- крайние размеры (`run_extremes`, ревью M5d-2 a11y Y7; с JS, de, по первому случаю каждого
+  среза): 320×568 — без горизонтальной прокрутки документа и окна; `html{font-size:200%}` на
+  1440 и 390 — «Fertig» и × достижимы; 844×390 — окно в пределах экрана, прокручивается,
+  ссылка при фокусе видна.
 
 Следующие срезы дописывают свои случаи ПОСЛЕ своего комментария-якоря `# --- cases: … ---`
 (кортежи в `CASES_*`), общий обход — `run_case`; чужие куски не трогать.
@@ -57,7 +64,8 @@ MIN_WINDOWS = 4
 #   pinned — строка закреплена («🔒 fest» и фраза про «fest» есть);
 #   dl     — есть `<dl>` «Woher / Auf der Seite» (источник `ContentSource`);
 #   link   — True: ссылка обязательна; False: её нет (auto); None: ссылка или причина;
-#   only_here — плашка «nur hier» после ссылки (строка одного объекта).
+#   only_here — плашка «nur hier» после ссылки (строка одного объекта);
+#   hidden — строка скрыта (лежит в «Ausgeblendet»): после закрытия окна список раскрыт.
 
 # --- cases: m5d2 ---
 CASES_M5D2 = (
@@ -122,16 +130,17 @@ CASES_M5D4E = (
 CASES_M5D5 = ()
 
 # --- cases: end ---
-CASES = (
-    *CASES_M5D2,
-    *CASES_M5D3,
-    *CASES_M5D4A,
-    *CASES_M5D4B,
-    *CASES_M5D4C,
-    *CASES_M5D4D,
-    *CASES_M5D4E,
-    *CASES_M5D5,
+CASE_GROUPS = (
+    CASES_M5D2,
+    CASES_M5D3,
+    CASES_M5D4A,
+    CASES_M5D4B,
+    CASES_M5D4C,
+    CASES_M5D4D,
+    CASES_M5D4E,
+    CASES_M5D5,
 )
+CASES = tuple(case for group in CASE_GROUPS for case in group)
 
 PART_JS = """() => {
   const root = document.querySelector('dialog.ui-bwin[open]') || document.querySelector('[data-schema-panel]');
@@ -174,6 +183,50 @@ PART_JS = """() => {
   out.reasonLink = reason ? !!reason.querySelector('a,[aria-disabled]') : false;
   return out; }"""
 
+#: ревью M5d-2 (a11y H1): строка в «Ausgeblendet» после закрытия её окна
+HIDDEN_JS = """(ref) => { const d = document.querySelector('details[data-schema-hidden]');
+  const row = document.getElementById('schema-row-' + ref);
+  const a = document.activeElement;
+  return {open: !!d && d.open, rowIn: !!d && !!row && d.contains(row),
+    focusIn: !!d && !!a && a !== document.body && d.contains(a),
+    target: !!row && row.matches(':target')}; }"""
+
+#: ревью M5d-2 (a11y Y7): крайние размеры — (код, ширина, высота, корневой кегль в %)
+EXTREMES = (
+    ("x320", 320, 568, 0),
+    ("zoom1440", 1440, 900, 200),
+    ("zoom390", 390, 844, 200),
+    ("land", 844, 390, 0),
+)
+ZOOM_INIT = """document.addEventListener('DOMContentLoaded', () => {
+  const s = document.createElement('style'); s.textContent = 'html{font-size:%d%%}';
+  document.head.appendChild(s); });"""
+#: довести элемент окна до экрана (фокусом, нефокусируемый — прокруткой) и сказать, виден ли
+REACH_JS = """(sel) => { const win = document.querySelector('dialog.ui-bwin[open]');
+  const el = win && win.querySelector(sel);
+  if (!el) return {found: false};
+  el.focus();
+  if (document.activeElement !== el) el.scrollIntoView({block: 'nearest', inline: 'nearest'});
+  const r = el.getBoundingClientRect();
+  const x = Math.min(Math.max(r.left + r.width / 2, 0), window.innerWidth - 1);
+  const top = document.elementFromPoint(x, r.top + r.height / 2);
+  return {found: true, focused: document.activeElement === el,
+    box: [r.left, r.top, r.right, r.bottom].map(Math.round),
+    inView: r.top >= -0.5 && r.left >= -0.5 && r.bottom <= window.innerHeight + 0.5 &&
+      r.right <= window.innerWidth + 0.5,
+    hit: !!top && (top === el || el.contains(top))}; }"""
+WINDOW_BOX_JS = """() => { const win = document.querySelector('dialog.ui-bwin[open]');
+  if (!win) return null;
+  const r = win.getBoundingClientRect();
+  const scrollers = [win, ...win.querySelectorAll('*')].filter(e =>
+    /(auto|scroll)/.test(getComputedStyle(e).overflowY));
+  return {fits: r.top >= -0.5 && r.left >= -0.5 && r.bottom <= window.innerHeight + 0.5 &&
+      r.right <= window.innerWidth + 0.5,
+    box: [r.left, r.top, r.right, r.bottom].map(Math.round),
+    scrollable: scrollers.length > 0,
+    clipped: scrollers.every(e => e.scrollHeight <= e.clientHeight + 1) &&
+      win.scrollHeight > win.clientHeight + 1}; }"""
+
 FOCUS_JS = """() => { const a = document.activeElement; if (!a) return {};
   const win = document.querySelector('dialog.ui-bwin[open]');
   return {id: a.id || '', tag: a.tagName, block: a.getAttribute('data-schema-block') || '',
@@ -197,7 +250,11 @@ def row_selector(ref):
 
 
 def open_row(pg, ref, js) -> bool:
-    """Клик по строке: с JS — окно `<dialog>`, без — панель той же страницей."""
+    """Клик по строке: с JS — окно `<dialog>`, без — панель той же страницей. Скрытая
+    строка лежит в свёрнутом «Ausgeblendet» — сначала раскрыть список."""
+    row = pg.query_selector(row_selector(ref))
+    if row is not None and not row.is_visible():
+        pg.click("details[data-schema-hidden] > summary")
     pg.click(row_selector(ref))
     if js:
         try:
@@ -209,6 +266,20 @@ def open_row(pg, ref, js) -> bool:
         return True
     pg.wait_for_load_state()
     return True
+
+
+def hidden_state(rep, pg, t, ref, how, js) -> None:
+    """Ревью M5d-2 (a11y H1): окно скрытой строки закрыто без правок — «Ausgeblendet» раскрыт,
+    ссылка строки в нём; с JS фокус на ней, без JS к ней ведёт адрес (`:target`). Общая
+    проверка случаев со скрытой строкой (`hidden` в ожиданиях)."""
+    st = pg.evaluate(HIDDEN_JS, ref)
+    rep.check(
+        st["open"] and st["rowIn"],
+        f"{t}: {how} → «Ausgeblendet» раскрыт, строка в нём ({st})",
+        code="hidden-open",
+    )
+    at = st["focusIn"] if js else st["target"]
+    rep.check(at, f"{t}: {how} → фокус (без JS — якорь) на ссылке строки ({st})", code="hidden-at")
 
 
 def back_on_row(pg, ref) -> bool:
@@ -293,8 +364,9 @@ def tab_walk(pg) -> list[dict]:
     return stops
 
 
-def run_focus(rep, pg, t, ref, m):
+def run_focus(rep, pg, t, ref, m, want):
     """С JS: фокус при открытии, обход Tab, Esc и «Fertig» возвращают на строку (Y2, Y7)."""
+    hidden = bool(want.get("hidden"))
     at = pg.evaluate(FOCUS_JS)
     rep.check(
         at.get("id") == "schema-panel-title" and not at.get("link"),
@@ -319,11 +391,99 @@ def run_focus(rep, pg, t, ref, m):
         )
     pg.keyboard.press("Escape")
     rep.check(back_on_row(pg, ref), f"{t}: Esc → фокус на строке блока", code="focus-esc")
+    if hidden:
+        hidden_state(rep, pg, t, ref, "Esc", True)
     if not open_row(pg, ref, True):
         rep.check(False, f"{t}: окно открылось повторно", code="reopen")
         return
     pg.click(f'{DLG}[open] [data-window-actions] button[value="window_done"]')
     rep.check(back_on_row(pg, ref), f"{t}: «Fertig» → фокус на строке блока", code="focus-done")
+    if hidden:
+        hidden_state(rep, pg, t, ref, "«Fertig»", True)
+
+
+def run_hidden_nojs(rep, pg, t, ref):
+    """Без JS: «Fertig» в панели скрытой строки — список «Ausgeblendet» раскрыт, адрес ведёт
+    к ссылке строки."""
+    pg.click('[data-schema-panel] [data-window-actions] button[value="window_done"]')
+    pg.wait_for_load_state()
+    hidden_state(rep, pg, t, ref, "«Fertig»", False)
+
+
+def reach(rep, pg, t, selector, what, code):
+    """Элемент окна достижим: после фокуса (или прокрутки) он целиком на экране и не перекрыт."""
+    r = pg.evaluate(REACH_JS, selector)
+    rep.check(
+        r["found"] and r["inView"] and r["hit"],
+        f"{t}: {what} достижим — на экране и не перекрыт ({r})",
+        code=code,
+    )
+
+
+def run_extreme(rep, browser, extreme, case) -> None:
+    """Ревью M5d-2 (a11y Y7): одно окно на крайнем размере (с JS, de)."""
+    tag, w, h, zoom = extreme
+    slug, seite, ref, _want = case
+    t = f"{tag} {slug}/{seite}/{ref}"
+    pg = sl.open_page(browser, w, h, js=True, lang="de")
+    try:
+        if zoom:
+            pg.add_init_script(ZOOM_INIT % zoom)
+        email, password = creds(slug)
+        if not rep.check(sl.login(pg, base_of(slug), email, password), f"{t}: вход", code="login"):
+            return
+        pg.goto(aufbau(slug, seite))
+        sl.settle(pg, True, rep)
+        if not pg.query_selector(row_selector(ref)):
+            rep.note(f"{t}: строки нет у кита — пропущено")
+            return
+        if not rep.check(open_row(pg, ref, True), f"{t}: окно открылось", code="open"):
+            return
+        m = pg.evaluate(PART_JS)
+        if not rep.check(bool(m and m["part"]), f"{t}: часть «Inhalt» есть", code="part"):
+            return
+        sl.shot(pg, OUT, f"{slug}_{seite}_{ref}_{tag}")
+        if tag == "x320":
+            rep.check(
+                m["overflow"] <= 0, f"{t}: без гор. скролла ({m['overflow']}px)", code="overflow"
+            )
+            rep.check(
+                m["inner"] <= 0, f"{t}: окно без гор. скролла ({m['inner']}px)", code="overflow-in"
+            )
+        box = pg.evaluate(WINDOW_BOX_JS)
+        rep.check(
+            bool(box) and box["fits"], f"{t}: окно в пределах экрана ({box})", code="window-fits"
+        )
+        if tag == "land":
+            rep.check(
+                bool(box) and box["scrollable"] and not box["clipped"],
+                f"{t}: окно прокручивается, содержимое не обрезано ({box})",
+                code="window-scroll",
+            )
+            if m["link"]:
+                reach(rep, pg, t, "a[data-inhalt-link]", "ссылка «Inhalt bearbeiten»", "reach-link")
+        done = '[data-window-actions] button[value="window_done"]'
+        reach(rep, pg, t, done, "«Fertig»", "reach-done")
+        # на телефоне (уже 768 px) × скрыт стилями: его место — верхняя «Fertig» панели
+        shown = pg.evaluate(
+            "() => { const x = document.querySelector('dialog.ui-bwin[open] [data-bwin-close]');"
+            " return !!x && x.getClientRects().length > 0; }"
+        )
+        if shown:
+            reach(rep, pg, t, "[data-bwin-close]", "×", "reach-close")
+        else:
+            reach(rep, pg, t, "[data-schema-done]", "верхняя «Fertig» (× скрыт)", "reach-close")
+        rep.check(not pg.js_errors, f"{t}: без ошибок JS ({pg.js_errors[:2]})", code="js-errors")
+    finally:
+        pg.context.close()
+
+
+def run_extremes(rep, browser) -> None:
+    """Крайние размеры — по первому случаю каждого среза (своего якоря `# --- cases: … ---`)."""
+    for group in CASE_GROUPS:
+        for case in group[:1]:
+            for extreme in EXTREMES:
+                run_extreme(rep, browser, extreme, case)
 
 
 def run_case(rep, pg, tag, lang, js, case) -> bool:
@@ -346,7 +506,9 @@ def run_case(rep, pg, tag, lang, js, case) -> bool:
     expect(rep, m, t, lang, want)
     sl.shot(pg, OUT, f"{slug}_{seite}_{ref}_{tag.replace(' ', '_')}")
     if js and m["part"]:
-        run_focus(rep, pg, t, ref, m)
+        run_focus(rep, pg, t, ref, m, want)
+    elif m["part"] and want.get("hidden"):
+        run_hidden_nojs(rep, pg, t, ref)
     rep.check(not pg.js_errors, f"{t}: без ошибок JS ({pg.js_errors[:2]})", code="js-errors")
     return True
 
@@ -369,6 +531,7 @@ def main():
                         if case[0] == slug:
                             seen += run_case(rep, pg, tag, lang, js, case)
                 pg.context.close()
+        run_extremes(rep, browser)
     combos = len(list(sl.matrix()))
     rep.check(
         seen >= MIN_WINDOWS * combos,
