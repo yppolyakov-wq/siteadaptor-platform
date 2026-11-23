@@ -62,8 +62,6 @@ MSGIDS = (
     MODULE_OFF,
     NO_PACKAGE,
 )
-#: замки ревью D1 до правки (снимаются коммитом правки)
-XF = pytest.mark.xfail(strict=True, reason="FB-33 M5d-1 ревью: замок до правки")
 
 
 @pytest.fixture(autouse=True)
@@ -232,7 +230,6 @@ def test_inhalt_summary_is_row_summary(monkeypatch):
     assert "content" not in cb
 
 
-@XF
 def test_missing_nav_logged(monkeypatch, caplog):
     """Нет записи реестра — ссылки нет, ошибка конфигурации в журнале (не молча)."""
     from apps.core import window_parts
@@ -270,7 +267,6 @@ def test_every_content_nav_is_configured():
             assert nav_registry.screen_closed(req, s.content_nav) == "", s.content_nav
 
 
-@XF
 def test_screen_closed_without_entry_is_module():
     """Экран без записи реестра закрыт («module»), а не открыт молча."""
     req = SimpleNamespace(tenant=_tenant(), user=SimpleNamespace(is_authenticated=True))
@@ -278,7 +274,6 @@ def test_screen_closed_without_entry_is_module():
     assert not nav_registry.screen_open(req, "nope:missing")
 
 
-@XF
 def test_content_part_survives_errors(monkeypatch, caplog):
     """Сбой проверки доступа — экран 200, ссылки и причины нет, исключение в журнале."""
 
@@ -307,7 +302,6 @@ def test_message_form_no_felder():
 # --- окно ---------------------------------------------------------------------------------------
 
 
-@XF
 @pytest.mark.parametrize("code", sorted(G2))
 def test_every_g2_row_has_the_inhalt_window(code):
     html, view, selected = _open(code)
@@ -342,7 +336,6 @@ def test_inhalt_link_and_texts_in_russian():
     assert "Изменить содержимое: " in part and "Inhalt bearbeiten" not in part
 
 
-@XF
 def test_lock_icon_aria_hidden():
     """Ревью a11y: значок «🔒 fest» целиком `aria-hidden` («fest» уже в заголовке окна и в
     следующей фразе), нефокусируемый; точка `ui-badge` у него спрятана правилом app.css."""
@@ -357,7 +350,6 @@ def test_lock_icon_aria_hidden():
     assert re.search(r"\[data-inhalt-fixed\]::before\s*\{\s*display:\s*none", css)
 
 
-@XF
 def test_link_target_44px_in_panel_and_window():
     css = (ROOT / "static/src/app.css").read_text(encoding="utf-8")
     rule = re.search(r"([^{}]*a\[data-inhalt-link\][^{}]*)\{([^}]*)\}", css)
@@ -429,7 +421,6 @@ def test_cart_pinned_rows_unchanged():
     assert ctx["bw_preview"] is not None
 
 
-@XF
 def test_link_hidden_when_module_off():
     """Модуль экрана выключен (гутшайны без «loyalty») — ссылки нет, видимая причина
     «Modul ist nicht aktiv» (решение владельца, ревью D1)."""
@@ -442,7 +433,6 @@ def test_link_hidden_when_module_off():
     assert "Er gehört fest zur Seite" in part
 
 
-@XF
 def test_link_hidden_when_package_closed(monkeypatch):
     """Экрана нет в пакете — ссылки нет, видимая причина «Nicht in Ihrem Paket enthalten»."""
     from apps.core import packages
@@ -508,7 +498,6 @@ def test_inhalt_window_queries(monkeypatch):
     assert len(set(extra.values())) == 1, extra
 
 
-@XF
 def test_new_msgids_in_all_po():
     """Строки D1 есть во всех пяти каталогах, плейсхолдеры `%(…)s` совпадают; старая подсказка
     снята."""

@@ -40121,9 +40121,17 @@ msgid "Er gehört fest zur Seite und lässt sich nicht ausblenden oder verschieb
 msgstr "Sayfanın sabit bir parçasıdır; gizlenemez veya taşınamaz."
 
 #. FB-33 M5d-1: часть окна «Inhalt»
-msgid "Eigene Blöcke darüber oder darunter: „＋ Block“ unter dieser Zeile oder unter dem Block davor."
-msgstr "Üstüne veya altına kendi bloklarınız: bu satırın ya da önceki bloğun altındaki „＋ Blok ekle“."
-
-#. FB-33 M5d-1: часть окна «Inhalt»
 msgid "Nur mit Berechtigung bearbeitbar"
 msgstr "Yalnızca yetkiyle düzenlenebilir"
+
+#. FB-33 M5d-1: часть окна «Inhalt» (ревью)
+msgid "Eigene Blöcke darüber oder darunter fügen Sie mit „Block hinzufügen“ in der Liste ein."
+msgstr "Üstüne veya altına kendi bloklarınızı listedeki „Blok ekle“ ile eklersiniz."
+
+#. FB-33 M5d-1: часть окна «Inhalt» (ревью)
+msgid "Modul ist nicht aktiv"
+msgstr "Modül etkin değil"
+
+#. FB-33 M5d-1: часть окна «Inhalt» (ревью)
+msgid "Nicht in Ihrem Paket enthalten"
+msgstr "Paketinize dahil değil"

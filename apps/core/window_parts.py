@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import logging
 
+from django.utils.translation import gettext_lazy
+
 logger = logging.getLogger(__name__)
 
 
@@ -121,18 +123,27 @@ def faq_anchor(post, count: int, opened=None) -> str:
 # --- FB-33 M5d-1 (D1): часть «Inhalt» неподвижных строк страниц-форм (G2) ---------------------
 
 
+#: почему ссылки нет — видимой строкой (решение владельца; ревью M5d-1); ключ — ответ
+#: `nav_registry.screen_closed`
+_CLOSED_REASONS = {
+    "perm": gettext_lazy("Nur mit Berechtigung bearbeitbar"),
+    "module": gettext_lazy("Modul ist nicht aktiv"),
+    "package": gettext_lazy("Nicht in Ihrem Paket enthalten"),
+}
+
+
 def content_part(selected: dict | None, host: str, request) -> None:
     """Часть окна «Inhalt» у неподвижной строки, чьё содержимое правится на экране кабинета
     (`DetailSection.content_nav`): `selected["content"] = {"summary", "link", "reason"}`.
 
     Сводка — `summary` строки (своих запросов нет), пусто — подпись строки. Ссылка
     `{"label", "url"}` — подпись и адрес записи `nav_registry` (своего списка экранов нет); экран
-    закрыт этому пользователю — `link` None, при «нет права» видимая причина `reason`
-    (модуль или пакет — без ссылки и без причины). Записи нет — без ссылки, в журнал."""
+    закрыт этому пользователю — `link` None и видимая причина `reason` (право, модуль, пакет).
+    Записи нет или адрес не строится — ошибка конфигурации в журнал, без ссылки и причины; сбой
+    проверки доступа — `logger.exception`, окно без ссылки (экран не падает)."""
     if not selected or selected.get("cblock"):
         return
     from django.urls import NoReverseMatch, reverse
-    from django.utils.translation import gettext
 
     from apps.core import detail_parts, detail_sections, nav_registry
 
@@ -148,22 +159,30 @@ def content_part(selected: dict | None, host: str, request) -> None:
     link, reason = None, ""
     entry = nav_registry.entry_by_url(section.content_nav)
     if entry is None:
-        logger.warning(
+        logger.error(
             "window_parts: no nav entry %r for the content of %s/%s - no link",
             section.content_nav,
             host,
             key,
         )
     else:
-        closed = nav_registry.screen_closed(request, section.content_nav)
-        if not closed:
-            try:
+        try:
+            closed = nav_registry.screen_closed(request, section.content_nav)
+            if not closed:
                 link = {"label": entry.label, "url": reverse(entry.url_name) + entry.query}
-            except NoReverseMatch:
-                logger.warning(
-                    "window_parts: nav entry %r does not reverse - no content link",
-                    entry.url_name,
-                )
-        elif closed == "perm":
-            reason = gettext("Nur mit Berechtigung bearbeitbar")
+            else:
+                reason = str(_CLOSED_REASONS.get(closed, ""))
+        except NoReverseMatch:
+            logger.error(
+                "window_parts: nav entry %r does not reverse - no content link", entry.url_name
+            )
+            link, reason = None, ""
+        except Exception:  # noqa: BLE001 — окно без ссылки лучше упавшего экрана
+            logger.exception(
+                "window_parts: content link for %r failed (%s/%s) - no link",
+                section.content_nav,
+                host,
+                key,
+            )
+            link, reason = None, ""
     selected["content"] = {"summary": summary, "link": link, "reason": reason}

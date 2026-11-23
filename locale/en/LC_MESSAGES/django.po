@@ -39974,9 +39974,17 @@ msgid "Er gehört fest zur Seite und lässt sich nicht ausblenden oder verschieb
 msgstr "It is a fixed part of the page and cannot be hidden or moved."
 
 #. FB-33 M5d-1: часть окна «Inhalt»
-msgid "Eigene Blöcke darüber oder darunter: „＋ Block“ unter dieser Zeile oder unter dem Block davor."
-msgstr "Your own blocks above or below: “＋ Add block” under this row or under the block before it."
-
-#. FB-33 M5d-1: часть окна «Inhalt»
 msgid "Nur mit Berechtigung bearbeitbar"
 msgstr "Editable only with permission"
+
+#. FB-33 M5d-1: часть окна «Inhalt» (ревью)
+msgid "Eigene Blöcke darüber oder darunter fügen Sie mit „Block hinzufügen“ in der Liste ein."
+msgstr "Add your own blocks above or below with “Add block” in the list."
+
+#. FB-33 M5d-1: часть окна «Inhalt» (ревью)
+msgid "Modul ist nicht aktiv"
+msgstr "Module is not active"
+
+#. FB-33 M5d-1: часть окна «Inhalt» (ревью)
+msgid "Nicht in Ihrem Paket enthalten"
+msgstr "Not included in your plan"
