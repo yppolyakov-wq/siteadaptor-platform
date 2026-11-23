@@ -79,7 +79,7 @@ def test_snapshot_row_joins_commits_with_journal_findings_of_the_same_steps():
         "| 2026-11-22 | T-99 | после мержа | владелец | другое | q | — | нет правила | строка |\n"
     )
     row = mod.snapshot_row("FB-33 стопка 5", COMMITS[:6], found, "2", "2026-11-22")
-    assert row == "| 2026-11-22 | FB-33 стопка 5 | 6 | 3 | 50 % | 1 | 2 | 0 | 2 |"
+    assert row == "| 2026-11-22 | FB-33 стопка 5 | 6 | 3 | 50 % | 0 | 1 | 2 | 0 | 2 |"
 
 
 def test_real_report_builds_and_names_the_indicator():
@@ -94,3 +94,63 @@ def test_datasets_rows_carry_share_and_match_the_report():
     for row in data["steps"] + data["weeks"]:
         assert row["share"] == round(100 * row["review"] / row["commits"])
     assert all(row["kb"] > 0 for row in data["context"])
+
+
+# --- T-13.8b (2026-11-23): счётчик считает переделкой только правки ПОСЛЕ кода --------------
+
+
+def test_preview_is_not_review():
+    # «превью» содержит «ревью»: срезы «Vorschau» и страница 404 с превью считались переделкой.
+    mod = _mod()
+    assert mod.kind("FB-33 M5a: страница 404 с блоками, тип и превью") == "work"
+    assert mod.kind("FB-33 M3-7: стенд «Vorschau» — превью черновика") == "work"
+    assert not mod.is_review("FB-33 M5a: замки страницы 404 — cookie и кэш, превью")
+
+
+def test_plan_review_is_counted_apart_from_rework():
+    # Ревью плана — работа ДО кода, которой мы и добивались; в долю переделки она не входит.
+    mod = _mod()
+    for subject in (
+        "FB-33 стопка 10: план — правки по ревью architect и a11y-architect (§8: 7 HIGH)",
+        "FB-33 стопка 8: план — поправки ревью planner к срезу M5a (R1–R8)",
+        "FB-33 стопка 10: черновик плана (planner) — M5b-2 W0–W3 по V4",
+    ):
+        assert mod.kind(subject) == "plan", subject
+        assert not mod.is_review(subject), subject
+
+
+def test_journal_docs_and_skill_updates_are_not_rework():
+    mod = _mod()
+    for subject in (
+        "FB-33 стопка 8: журнал находок — девять находок ревью плана и разведки (до кода)",
+        "FB-33 стопка 9: журнал находок — ревью планов и диффов срезов M3-9d, M5a-2, M5b-1",
+        "FB-33 стопка 8: скиллы sa-* — правила по находкам стопки",
+        "FB-33 стопка 10: снимок статистики стопки (dev_stats --snapshot)",
+        "FB-33 стопка 7: доки — срезы M4c, M3-9a/b (журнал, каталог, ревью)",
+        "FB-33: передача стопки 11 — очередь срезов, находки ревью",
+    ):
+        assert mod.kind(subject) == "docs", subject
+
+
+def test_rework_is_a_fix_or_lock_after_code_review():
+    mod = _mod()
+    for subject in (
+        "FB-33 M5b-2 ревью: замки по ревью, раунд 2 (strict xfail до правки)",
+        "FB-33 M5a: правки ревью — третий рубеж 404 (ответ без шаблона)",
+        "FB-33 M3-9c: цели 24 px — остальные ссылки секций главной (находка стенда)",
+        "FB-33 стопка 8: правки финального ревью — замки 404 не зависят от кэша",
+    ):
+        assert mod.kind(subject) == "rework", subject
+        assert mod.is_review(subject), subject
+
+
+def test_snapshot_row_reports_plan_review_commits_in_their_own_column():
+    mod = _mod()
+    commits = [
+        ("2026-11-22", "FB-33 стопка 8: план — поправки ревью planner к срезу M5a"),
+        ("2026-11-22", "FB-33 стопка 8: журнал находок — девять находок ревью плана"),
+        ("2026-11-22", "FB-33 M5a: страница 404 с блоками и превью"),
+        ("2026-11-22", "FB-33 M5a: правки ревью — третий рубеж 404"),
+    ]
+    row = mod.snapshot_row("FB-33 стопка 8", commits, {"rows": []}, "1", "2026-11-22")
+    assert row == "| 2026-11-22 | FB-33 стопка 8 | 4 | 1 | 25 % | 1 | 0 | 0 | 0 | 1 |"
