@@ -40239,6 +40239,73 @@ msgstr "the offer to request the trip for your own group"
 msgid "fb33-stack-anchor-m5d4e"
 msgstr "fb33-stack-anchor-m5d4e"
 
+#. FB-33 M5d-4e: окно «Inhalt» — разделы акции, Kombi и записи блога
+msgid "Knöpfe zum Teilen und den QR-Code der Aktion"
+msgstr "share buttons and the QR code of the offer"
+
+msgid "automatisch — aus der Adresse der Aktion. Nichts zu pflegen."
+msgstr "automatic — from the address of the offer. Nothing to maintain."
+
+msgid "Adresse, Öffnungszeiten, Route und Telefon Ihres Geschäfts"
+msgstr "address, opening hours, route and phone of your business"
+
+msgid "Ihre Geschäftsdaten — Adresse, Öffnungszeiten, Telefon und WhatsApp."
+msgstr "Your business details — address, opening hours, phone and WhatsApp."
+
+msgid "Bei einer Aktion, die nur gezeigt wird (ohne Bestellung oder Anfrage), bleibt er immer sichtbar."
+msgstr "For an offer that is only shown (no order or enquiry), it always stays visible."
+
+msgid "Erscheint nur, wenn Adresse oder Telefon eingetragen ist."
+msgstr "Appears only when an address or phone number is entered."
+
+msgid "bis zu 8 weitere Aktionen — zuerst aus derselben Gruppe"
+msgstr "up to 8 more offers — first from the same group"
+
+msgid "automatisch — Ihre anderen laufenden Aktionen. Nichts zu pflegen."
+msgstr "automatic — your other running offers. Nothing to maintain."
+
+msgid "Erscheint nur, wenn es weitere laufende Aktionen gibt."
+msgstr "Appears only when there are other running offers."
+
+msgid "das Kombi-Angebot zum Zusammenstellen — Auswahl, Preis und Bestellknopf"
+msgstr "the combo offer to put together — selection, price and order button"
+
+msgid "Das jeweilige Kombi-Angebot mit seinen Gruppen und Preisen."
+msgstr "The respective combo offer with its groups and prices."
+
+msgid "bis zu 6 Fotos aus der Galerie Ihrer Website"
+msgstr "up to 6 photos from your website gallery"
+
+msgid "automatisch — die ersten Fotos der Galerie Ihrer Website."
+msgstr "automatic — the first photos of your website gallery."
+
+msgid "Erscheint nur, wenn die Galerie Fotos hat."
+msgstr "Appears only when the gallery has photos."
+
+msgid "bis zu 8 weitere Kombi-Angebote derselben Kategorie"
+msgstr "up to 8 more combo offers of the same category"
+
+msgid "automatisch — aus derselben Kategorie. Nichts zu pflegen."
+msgstr "automatic — from the same category. Nothing to maintain."
+
+msgid "Erscheint nur, wenn es in der Kategorie weitere Kombi-Angebote gibt."
+msgstr "Appears only when the category has more combo offers."
+
+msgid "den Beitrag — Titelbild, Datum, Titel, Kurztext und Text"
+msgstr "the post — cover image, date, title, excerpt and text"
+
+msgid "Der jeweilige Beitrag aus Ihrem Blog."
+msgstr "The respective post from your blog."
+
+msgid "bis zu 4 weitere veröffentlichte Beiträge"
+msgstr "up to 4 more published posts"
+
+msgid "automatisch — die neuesten anderen Beiträge. Nichts zu pflegen."
+msgstr "automatic — the newest other posts. Nothing to maintain."
+
+msgid "Erscheint nur, wenn es weitere veröffentlichte Beiträge gibt."
+msgstr "Appears only when there are more published posts."
+
 # fb33-stack-anchor-m5d5
 msgid "fb33-stack-anchor-m5d5"
 msgstr "fb33-stack-anchor-m5d5"

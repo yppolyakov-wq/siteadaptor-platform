@@ -497,7 +497,7 @@
   false,
   false,
   "",
-  ""
+  "blog-list"
  ],
  [
   "blog_post",
@@ -547,7 +547,7 @@
   false,
   true,
   "",
-  ""
+  "settings"
  ],
  [
   "promo",
@@ -607,7 +607,7 @@
   false,
   false,
   "",
-  ""
+  "catalog:combo-list"
  ],
  [
   "combo",

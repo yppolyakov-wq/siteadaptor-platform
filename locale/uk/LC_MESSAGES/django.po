@@ -40577,6 +40577,73 @@ msgstr "пропозицію замовити подорож для своєї �
 msgid "fb33-stack-anchor-m5d4e"
 msgstr "fb33-stack-anchor-m5d4e"
 
+#. FB-33 M5d-4e: окно «Inhalt» — разделы акции, Kombi и записи блога
+msgid "Knöpfe zum Teilen und den QR-Code der Aktion"
+msgstr "кнопки «Поділитися» та QR-код акції"
+
+msgid "automatisch — aus der Adresse der Aktion. Nichts zu pflegen."
+msgstr "автоматично — з адреси сторінки акції. Заповнювати нічого."
+
+msgid "Adresse, Öffnungszeiten, Route und Telefon Ihres Geschäfts"
+msgstr "адресу, години роботи, маршрут і телефон вашого бізнесу"
+
+msgid "Ihre Geschäftsdaten — Adresse, Öffnungszeiten, Telefon und WhatsApp."
+msgstr "Дані вашого бізнесу — адреса, години роботи, телефон і WhatsApp."
+
+msgid "Bei einer Aktion, die nur gezeigt wird (ohne Bestellung oder Anfrage), bleibt er immer sichtbar."
+msgstr "В акції, яку лише показують (без замовлення чи заявки), його видно завжди."
+
+msgid "Erscheint nur, wenn Adresse oder Telefon eingetragen ist."
+msgstr "З’являється, лише якщо вказано адресу або телефон."
+
+msgid "bis zu 8 weitere Aktionen — zuerst aus derselben Gruppe"
+msgstr "до 8 інших акцій — спершу з тієї самої групи"
+
+msgid "automatisch — Ihre anderen laufenden Aktionen. Nichts zu pflegen."
+msgstr "автоматично — ваші інші чинні акції. Заповнювати нічого."
+
+msgid "Erscheint nur, wenn es weitere laufende Aktionen gibt."
+msgstr "З’являється, лише якщо є інші чинні акції."
+
+msgid "das Kombi-Angebot zum Zusammenstellen — Auswahl, Preis und Bestellknopf"
+msgstr "комбо-пропозицію зі складанням — вибір, ціну та кнопку замовлення"
+
+msgid "Das jeweilige Kombi-Angebot mit seinen Gruppen und Preisen."
+msgstr "Відповідна комбо-пропозиція з її групами та цінами."
+
+msgid "bis zu 6 Fotos aus der Galerie Ihrer Website"
+msgstr "до 6 фото з галереї вашого сайту"
+
+msgid "automatisch — die ersten Fotos der Galerie Ihrer Website."
+msgstr "автоматично — перші фото галереї вашого сайту."
+
+msgid "Erscheint nur, wenn die Galerie Fotos hat."
+msgstr "З’являється, лише якщо в галереї є фото."
+
+msgid "bis zu 8 weitere Kombi-Angebote derselben Kategorie"
+msgstr "до 8 інших комбо-пропозицій тієї самої категорії"
+
+msgid "automatisch — aus derselben Kategorie. Nichts zu pflegen."
+msgstr "автоматично — з тієї самої категорії. Заповнювати нічого."
+
+msgid "Erscheint nur, wenn es in der Kategorie weitere Kombi-Angebote gibt."
+msgstr "З’являється, лише якщо в категорії є інші комбо-пропозиції."
+
+msgid "den Beitrag — Titelbild, Datum, Titel, Kurztext und Text"
+msgstr "запис — обкладинку, дату, заголовок, анонс і текст"
+
+msgid "Der jeweilige Beitrag aus Ihrem Blog."
+msgstr "Відповідний запис вашого блогу."
+
+msgid "bis zu 4 weitere veröffentlichte Beiträge"
+msgstr "до 4 інших опублікованих записів"
+
+msgid "automatisch — die neuesten anderen Beiträge. Nichts zu pflegen."
+msgstr "автоматично — найновіші з решти записів. Заповнювати нічого."
+
+msgid "Erscheint nur, wenn es weitere veröffentlichte Beiträge gibt."
+msgstr "З’являється, лише якщо є інші опубліковані записи."
+
 # fb33-stack-anchor-m5d5
 msgid "fb33-stack-anchor-m5d5"
 msgstr "fb33-stack-anchor-m5d5"

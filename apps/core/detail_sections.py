@@ -394,9 +394,29 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # --- blog_post ---
     # FB-32 S6e: запись блога — статья (не скрывается) и «More posts» (скрывается, прежний
     # список из 4); Finder — опросник одной строкой
+    # FB-33 M5d-4e: своей схемы у одной записи нет — источник только у типа страницы
     "blog_post": (
-        DetailSection("article", _("Text"), hideable=False),
-        DetailSection("more", _("More posts")),
+        DetailSection(
+            "article",
+            _("Text"),
+            hideable=False,
+            content_nav="blog-list",
+            source=ContentSource(
+                "setting",
+                shows=_("den Beitrag — Titelbild, Datum, Titel, Kurztext und Text"),
+                woher=_("Der jeweilige Beitrag aus Ihrem Blog."),
+            ),
+        ),
+        DetailSection(
+            "more",
+            _("More posts"),
+            source=ContentSource(
+                "auto",
+                shows=_("bis zu 4 weitere veröffentlichte Beiträge"),
+                woher=_("automatisch — die neuesten anderen Beiträge. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn es weitere veröffentlichte Beiträge gibt."),
+            ),
+        ),
     ),
     # --- finder ---
     "finder": (
@@ -409,9 +429,44 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     "promo": (
         DetailSection("offer", _("Angebot"), hideable=False),
         # FB-33 M2g: внутри колонки «Angebot» — скрываются на месте (цены в них нет)
-        DetailSection("share", _("Teilen und QR-Code"), in_place=True),
-        DetailSection("card", _("So finden Sie uns"), in_place=True),
-        DetailSection("related", _("Weitere Aktionen")),
+        # FB-33 M5d-4e: откуда содержимое (окно «Inhalt»); строка одной акции части не получает
+        DetailSection(
+            "share",
+            _("Teilen und QR-Code"),
+            in_place=True,
+            source=ContentSource(
+                "auto",
+                shows=_("Knöpfe zum Teilen und den QR-Code der Aktion"),
+                woher=_("automatisch — aus der Adresse der Aktion. Nichts zu pflegen."),
+            ),
+        ),
+        # визитка: при отклике «только показать» остаётся и скрытой (единственный путь к бизнесу)
+        DetailSection(
+            "card",
+            _("So finden Sie uns"),
+            in_place=True,
+            content_nav="settings",
+            source=ContentSource(
+                "setting",
+                shows=_("Adresse, Öffnungszeiten, Route und Telefon Ihres Geschäfts"),
+                woher=_("Ihre Geschäftsdaten — Adresse, Öffnungszeiten, Telefon und WhatsApp."),
+                note=_(
+                    "Bei einer Aktion, die nur gezeigt wird (ohne Bestellung oder Anfrage), "
+                    "bleibt er immer sichtbar."
+                ),
+                only_if=_("Erscheint nur, wenn Adresse oder Telefon eingetragen ist."),
+            ),
+        ),
+        DetailSection(
+            "related",
+            _("Weitere Aktionen"),
+            source=ContentSource(
+                "auto",
+                shows=_("bis zu 8 weitere Aktionen — zuerst aus derselben Gruppe"),
+                woher=_("automatisch — Ihre anderen laufenden Aktionen. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn es weitere laufende Aktionen gibt."),
+            ),
+        ),
     ),
     # --- teachers ---
     # FB-32 S6g-1: страницы, у которых блоков не было, — содержимое одной неподвижной строкой
@@ -439,12 +494,43 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # --- combo ---
     # FB-32 S6g-3: Kombi-Detail — конфигуратор (форма и цена, PAngV: не скрывается) и блоки
     # под ним (MEN-21), каждый скрывается (`combo_show_*`, presence-minimal). Порядок постоянный.
+    # FB-33 M5d-4e: своей схемы у одного Kombi нет — источник только у типа страницы
     "combo": (
-        DetailSection("config", _("Kombi"), hideable=False),
+        DetailSection(
+            "config",
+            _("Kombi"),
+            hideable=False,
+            content_nav="catalog:combo-list",
+            source=ContentSource(
+                "setting",
+                shows=_("das Kombi-Angebot zum Zusammenstellen — Auswahl, Preis und Bestellknopf"),
+                woher=_("Das jeweilige Kombi-Angebot mit seinen Gruppen und Preisen."),
+            ),
+        ),
         DetailSection("reviews", _("Customer reviews")),
-        DetailSection("examples", _("Beispiele unserer Arbeit")),
+        # фото — галерея сайта (`site_config["gallery"]`, пополняется в Студии): записи
+        # `nav_registry` у этого экрана нет — без ссылки
+        DetailSection(
+            "examples",
+            _("Beispiele unserer Arbeit"),
+            source=ContentSource(
+                "auto",
+                shows=_("bis zu 6 Fotos aus der Galerie Ihrer Website"),
+                woher=_("automatisch — die ersten Fotos der Galerie Ihrer Website."),
+                only_if=_("Erscheint nur, wenn die Galerie Fotos hat."),
+            ),
+        ),
         DetailSection("cta", _("Sie planen eine Veranstaltung?")),
-        DetailSection("related", _("Weitere Menüs aus dieser Kategorie")),
+        DetailSection(
+            "related",
+            _("Weitere Menüs aus dieser Kategorie"),
+            source=ContentSource(
+                "auto",
+                shows=_("bis zu 8 weitere Kombi-Angebote derselben Kategorie"),
+                woher=_("automatisch — aus derselben Kategorie. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn es in der Kategorie weitere Kombi-Angebote gibt."),
+            ),
+        ),
     ),
     # --- versand ---
     # FB-32 S6b: «Versand» — свой текст и список Versandkosten (§ 6 PAngV: сюда ведёт

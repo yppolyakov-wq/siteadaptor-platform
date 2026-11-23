@@ -136,7 +136,6 @@ def test_registry_flags_as_on_the_base():
     assert got == base and len(got) == 11
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_sources_follow_the_map():
     sources = _sources()
     assert set(sources) == set(MAP)
@@ -149,7 +148,6 @@ def test_sources_follow_the_map():
         assert section.source is None and not section.content_nav, (module, key)
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_source_texts_are_well_formed():
     """Тексты — ленивые; «zeigt» без точки в конце; «Woher» — фразой с точкой; A7б: у раздела
     с presence-гейтом на витрине есть `only_if`, у раздела без гейта его нет."""
@@ -173,7 +171,6 @@ def test_source_texts_are_well_formed():
 # --- №2: строк без окна нет -----------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 @pytest.mark.parametrize("code", sorted(PAGES))
 def test_no_g1_row_without_window(code):
     """Логикой `scripts/fb33_m5d_inventory.py` (ответ — разметка вьюхи): у каждой строки
@@ -199,7 +196,6 @@ def test_no_g1_row_without_window(code):
 # --- свои замки G1e: только тип ---------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_blog_type_only():
     """Запись блога — только тип страницы: своей схемы объекта нет, слов «dieses …» нет;
     «Text» закреплён (фраза «fest», без «Auf der Seite»), ссылка — список «Blog»."""
@@ -220,7 +216,6 @@ def test_blog_type_only():
     assert ct["woher"].startswith("automatisch") and "Erscheint nur" in ct["woher"]
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_combo_type_only():
     """Kombi — только тип страницы: конфигуратор закреплён, ссылка — список «Kombi»;
     «Beispiele» и «Weitere Menüs» — авто, без ссылки, только скрываются."""
@@ -244,7 +239,6 @@ def test_combo_type_only():
         assert ct["woher"].startswith("automatisch") and "Erscheint nur" in ct["woher"], key
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_promo_rows():
     """Акция: «Teilen» и «Weitere Aktionen» — авто; визитка — экран «Mein Geschäft»; «на
     месте» и лента — только скрываются (A13)."""
@@ -261,7 +255,6 @@ def test_promo_rows():
     assert "Erscheint" not in _inhalt(tenant, "?seite=promo&block=share")[1]["woher"]
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_promo_object_row_gets_no_part():
     """Строка одной акции части «Inhalt» не получает — как до среза (у неё только свои
     блоки); экран отвечает."""
@@ -278,7 +271,6 @@ def test_promo_object_row_gets_no_part():
         assert 'data-window-part="inhalt"' not in html, key
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 @pytest.mark.parametrize(
     "code, key, flag",
     [
@@ -299,7 +291,6 @@ def test_hidden_row_window_says_how_to_show(code, key, flag):
 # --- экраны ссылок: записи реестра ---------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_content_nav_entries_are_unambiguous():
     """Каждый `content_nav` среза — имя URL однозначной записи `nav_registry`, экран открыт
     владельцу; подпись ссылки — подпись записи. У галереи сайта записи нет — «Beispiele»
@@ -323,7 +314,6 @@ def test_content_nav_entries_are_unambiguous():
     assert nav_registry.entry_by_url("site-home") is None
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_link_closed_without_the_right():
     """№28: сотрудник без права открыть «Mein Geschäft» — причина одним абзацем, без ссылки."""
     from apps.core.models import Membership
@@ -356,7 +346,6 @@ def _warm_count(browser, query) -> int:
     return len(q.captured_queries)
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 @pytest.mark.parametrize(
     "code, key", [("promo", "card"), ("combo", "config"), ("blog_post", "article")]
 )
@@ -379,7 +368,6 @@ def test_inhalt_queries_not_above_the_base(monkeypatch, code, key):
 # --- №13, №16: строки `.po` -----------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_new_msgids_in_all_po():
     """Тексты источников среза есть во всех пяти каталогах, переведены (кроме de), без дублей
     пары msgctxt/msgid; новые записи — сразу после якоря среза."""
@@ -402,7 +390,6 @@ def test_new_msgids_in_all_po():
         assert own and own <= {m.replace('"', '\\"') for m in msgids} | {ANCHOR}, (lang, own)
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4e: записи реестра — следующим коммитом")
 def test_window_in_russian_has_no_german_source_text():
     """№13: окно на русском — тексты источника переведены."""
     tenant = _tenant()

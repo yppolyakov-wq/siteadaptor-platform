@@ -40386,6 +40386,73 @@ msgstr "geziyi kendi grubunuz için talep etme teklifini"
 msgid "fb33-stack-anchor-m5d4e"
 msgstr "fb33-stack-anchor-m5d4e"
 
+#. FB-33 M5d-4e: окно «Inhalt» — разделы акции, Kombi и записи блога
+msgid "Knöpfe zum Teilen und den QR-Code der Aktion"
+msgstr "paylaşım düğmelerini ve kampanyanın QR kodunu"
+
+msgid "automatisch — aus der Adresse der Aktion. Nichts zu pflegen."
+msgstr "otomatik — kampanyanın adresinden. Bakım gerektirmez."
+
+msgid "Adresse, Öffnungszeiten, Route und Telefon Ihres Geschäfts"
+msgstr "işletmenizin adresini, çalışma saatlerini, yol tarifini ve telefonunu"
+
+msgid "Ihre Geschäftsdaten — Adresse, Öffnungszeiten, Telefon und WhatsApp."
+msgstr "İşletme bilgileriniz — adres, çalışma saatleri, telefon ve WhatsApp."
+
+msgid "Bei einer Aktion, die nur gezeigt wird (ohne Bestellung oder Anfrage), bleibt er immer sichtbar."
+msgstr "Yalnızca gösterilen (sipariş veya talep olmadan) bir kampanyada her zaman görünür kalır."
+
+msgid "Erscheint nur, wenn Adresse oder Telefon eingetragen ist."
+msgstr "Yalnızca adres veya telefon girilmişse görünür."
+
+msgid "bis zu 8 weitere Aktionen — zuerst aus derselben Gruppe"
+msgstr "en fazla 8 başka kampanyayı — önce aynı gruptan"
+
+msgid "automatisch — Ihre anderen laufenden Aktionen. Nichts zu pflegen."
+msgstr "otomatik — devam eden diğer kampanyalarınız. Bakım gerektirmez."
+
+msgid "Erscheint nur, wenn es weitere laufende Aktionen gibt."
+msgstr "Yalnızca devam eden başka kampanyalar varsa görünür."
+
+msgid "das Kombi-Angebot zum Zusammenstellen — Auswahl, Preis und Bestellknopf"
+msgstr "birleştirilecek kombo teklifini — seçim, fiyat ve sipariş düğmesi"
+
+msgid "Das jeweilige Kombi-Angebot mit seinen Gruppen und Preisen."
+msgstr "İlgili kombo teklifi, grupları ve fiyatlarıyla."
+
+msgid "bis zu 6 Fotos aus der Galerie Ihrer Website"
+msgstr "web sitenizin galerisinden en fazla 6 fotoğrafı"
+
+msgid "automatisch — die ersten Fotos der Galerie Ihrer Website."
+msgstr "otomatik — web sitenizin galerisindeki ilk fotoğraflar."
+
+msgid "Erscheint nur, wenn die Galerie Fotos hat."
+msgstr "Yalnızca galeride fotoğraf varsa görünür."
+
+msgid "bis zu 8 weitere Kombi-Angebote derselben Kategorie"
+msgstr "aynı kategoriden en fazla 8 başka kombo teklifini"
+
+msgid "automatisch — aus derselben Kategorie. Nichts zu pflegen."
+msgstr "otomatik — aynı kategoriden. Bakım gerektirmez."
+
+msgid "Erscheint nur, wenn es in der Kategorie weitere Kombi-Angebote gibt."
+msgstr "Yalnızca kategoride başka kombo teklifleri varsa görünür."
+
+msgid "den Beitrag — Titelbild, Datum, Titel, Kurztext und Text"
+msgstr "yazıyı — kapak görseli, tarih, başlık, özet ve metin"
+
+msgid "Der jeweilige Beitrag aus Ihrem Blog."
+msgstr "Blogunuzdaki ilgili yazı."
+
+msgid "bis zu 4 weitere veröffentlichte Beiträge"
+msgstr "en fazla 4 yayımlanmış başka yazıyı"
+
+msgid "automatisch — die neuesten anderen Beiträge. Nichts zu pflegen."
+msgstr "otomatik — en yeni diğer yazılar. Bakım gerektirmez."
+
+msgid "Erscheint nur, wenn es weitere veröffentlichte Beiträge gibt."
+msgstr "Yalnızca başka yayımlanmış yazılar varsa görünür."
+
 # fb33-stack-anchor-m5d5
 msgid "fb33-stack-anchor-m5d5"
 msgstr "fb33-stack-anchor-m5d5"

@@ -40326,6 +40326,73 @@ msgstr "das Angebot, die Reise für die eigene Gruppe anzufragen"
 msgid "fb33-stack-anchor-m5d4e"
 msgstr "fb33-stack-anchor-m5d4e"
 
+#. FB-33 M5d-4e: окно «Inhalt» — разделы акции, Kombi и записи блога
+msgid "Knöpfe zum Teilen und den QR-Code der Aktion"
+msgstr "Knöpfe zum Teilen und den QR-Code der Aktion"
+
+msgid "automatisch — aus der Adresse der Aktion. Nichts zu pflegen."
+msgstr "automatisch — aus der Adresse der Aktion. Nichts zu pflegen."
+
+msgid "Adresse, Öffnungszeiten, Route und Telefon Ihres Geschäfts"
+msgstr "Adresse, Öffnungszeiten, Route und Telefon Ihres Geschäfts"
+
+msgid "Ihre Geschäftsdaten — Adresse, Öffnungszeiten, Telefon und WhatsApp."
+msgstr "Ihre Geschäftsdaten — Adresse, Öffnungszeiten, Telefon und WhatsApp."
+
+msgid "Bei einer Aktion, die nur gezeigt wird (ohne Bestellung oder Anfrage), bleibt er immer sichtbar."
+msgstr "Bei einer Aktion, die nur gezeigt wird (ohne Bestellung oder Anfrage), bleibt er immer sichtbar."
+
+msgid "Erscheint nur, wenn Adresse oder Telefon eingetragen ist."
+msgstr "Erscheint nur, wenn Adresse oder Telefon eingetragen ist."
+
+msgid "bis zu 8 weitere Aktionen — zuerst aus derselben Gruppe"
+msgstr "bis zu 8 weitere Aktionen — zuerst aus derselben Gruppe"
+
+msgid "automatisch — Ihre anderen laufenden Aktionen. Nichts zu pflegen."
+msgstr "automatisch — Ihre anderen laufenden Aktionen. Nichts zu pflegen."
+
+msgid "Erscheint nur, wenn es weitere laufende Aktionen gibt."
+msgstr "Erscheint nur, wenn es weitere laufende Aktionen gibt."
+
+msgid "das Kombi-Angebot zum Zusammenstellen — Auswahl, Preis und Bestellknopf"
+msgstr "das Kombi-Angebot zum Zusammenstellen — Auswahl, Preis und Bestellknopf"
+
+msgid "Das jeweilige Kombi-Angebot mit seinen Gruppen und Preisen."
+msgstr "Das jeweilige Kombi-Angebot mit seinen Gruppen und Preisen."
+
+msgid "bis zu 6 Fotos aus der Galerie Ihrer Website"
+msgstr "bis zu 6 Fotos aus der Galerie Ihrer Website"
+
+msgid "automatisch — die ersten Fotos der Galerie Ihrer Website."
+msgstr "automatisch — die ersten Fotos der Galerie Ihrer Website."
+
+msgid "Erscheint nur, wenn die Galerie Fotos hat."
+msgstr "Erscheint nur, wenn die Galerie Fotos hat."
+
+msgid "bis zu 8 weitere Kombi-Angebote derselben Kategorie"
+msgstr "bis zu 8 weitere Kombi-Angebote derselben Kategorie"
+
+msgid "automatisch — aus derselben Kategorie. Nichts zu pflegen."
+msgstr "automatisch — aus derselben Kategorie. Nichts zu pflegen."
+
+msgid "Erscheint nur, wenn es in der Kategorie weitere Kombi-Angebote gibt."
+msgstr "Erscheint nur, wenn es in der Kategorie weitere Kombi-Angebote gibt."
+
+msgid "den Beitrag — Titelbild, Datum, Titel, Kurztext und Text"
+msgstr "den Beitrag — Titelbild, Datum, Titel, Kurztext und Text"
+
+msgid "Der jeweilige Beitrag aus Ihrem Blog."
+msgstr "Der jeweilige Beitrag aus Ihrem Blog."
+
+msgid "bis zu 4 weitere veröffentlichte Beiträge"
+msgstr "bis zu 4 weitere veröffentlichte Beiträge"
+
+msgid "automatisch — die neuesten anderen Beiträge. Nichts zu pflegen."
+msgstr "automatisch — die neuesten anderen Beiträge. Nichts zu pflegen."
+
+msgid "Erscheint nur, wenn es weitere veröffentlichte Beiträge gibt."
+msgstr "Erscheint nur, wenn es weitere veröffentlichte Beiträge gibt."
+
 # fb33-stack-anchor-m5d5
 msgid "fb33-stack-anchor-m5d5"
 msgstr "fb33-stack-anchor-m5d5"
