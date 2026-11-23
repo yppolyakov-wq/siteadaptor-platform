@@ -95,7 +95,23 @@ CASES_M5D3 = (
 )
 
 # --- cases: m5d4a ---
-CASES_M5D4A = ()
+#: окна разделов страницы товара (тип) и одного товара («Nur diese Seite»). Код объекта — pk
+#: первого товара кита в шаблоне стенд-БД (`platform_m39_stand`); в другой базе такой строки
+#: нет — случай уходит заметкой «пропущено», не ✗.
+_M5D4A_FIELD = {"pinned": False, "dl": True, "link": True}
+_M5D4A_AUTO = {"pinned": False, "dl": True, "link": False}
+_M5D4A_OBJECT = "product@product:36cf4c0bc22441179970cd7dda4083ac"
+CASES_M5D4A = (
+    ("shop", "product", "description", _M5D4A_FIELD),
+    ("shop", "product", "info", _M5D4A_FIELD),
+    ("shop", "product", "sizes", {"pinned": False, "dl": True, "link": None}),
+    ("shop", "product", "instore", _M5D4A_FIELD),
+    ("shop", "product", "waitlist", _M5D4A_AUTO),
+    ("shop", "product", "recent", _M5D4A_AUTO),
+    ("shop", _M5D4A_OBJECT, "description", {**_M5D4A_FIELD, "only_here": True}),
+    ("shop", _M5D4A_OBJECT, "instore", _M5D4A_FIELD),
+    ("shop", _M5D4A_OBJECT, "related", _M5D4A_AUTO),
+)
 
 # --- cases: m5d4b ---
 CASES_M5D4B = ()

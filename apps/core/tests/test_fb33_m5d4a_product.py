@@ -42,8 +42,6 @@ from apps.core.tests.test_fb33_m5d2_core import (
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замки первого коммита: на базе красные (записей реестра ещё нет)
-RED = pytest.mark.xfail(strict=True, reason="M5d-4a: источников у разделов товара ещё нет")
 
 ROOT = Path(__file__).resolve().parents[3]
 LANGS = ("de", "en", "tr", "ru", "uk")
@@ -244,7 +242,6 @@ def link_of(part: str):
 # --- №2: строк без окна нет -----------------------------------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize("bt", ["online_shop", "bakery"])
 def test_no_g1_row_without_window(monkeypatch, bt):
     """У страницы товара (тип и «Nur diese Seite») окно есть у каждой строки."""
@@ -258,7 +255,6 @@ def test_no_g1_row_without_window(monkeypatch, bt):
 # --- реестр: таблица источников --------------------------------------------------------------------
 
 
-@RED
 def test_sources_table():
     """Источник — у восьми разделов и у «Ähnliche Produkte» (только объект); виды, экраны и
     тексты — по таблице; `trust` и `reviews` — без источника."""
@@ -304,7 +300,6 @@ def test_content_navs_are_unambiguous_entries():
             assert reverse(nav), key
 
 
-@RED
 def test_gated_sections_have_only_if():
     """A7б: раздел с presence-гейтом говорит, когда он появляется."""
     for key in GATED:
@@ -315,7 +310,6 @@ def test_gated_sections_have_only_if():
 # --- строка типа: окно -----------------------------------------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize("key", sorted(EXPECT))
 def test_type_row_window(key):
     """Окно строки типа: «zeigt», «Woher», видимость и действия — по флагам строки; ссылка —
@@ -352,7 +346,6 @@ def test_rows_with_own_window_untouched(key):
     assert 'data-window-part="inhalt"' not in _panel(html)
 
 
-@RED
 def test_related_part_only_on_the_object_row():
     """A1: «Ähnliche Produkte» — у типа окно «Seite» без «Inhalt» (эталон `product|related`
     держит замок P0), у одного товара — «Inhalt» без ссылки."""
@@ -372,7 +365,6 @@ def test_related_part_only_on_the_object_row():
 # --- №6, №12: строка одного товара -----------------------------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize(
     "fields, filled",
     [
@@ -398,7 +390,6 @@ def test_object_filled_state(fields, filled):
     assert selected["content"]["filled"] == filled
 
 
-@RED
 @pytest.mark.parametrize(
     "fields, filled",
     [
@@ -418,7 +409,6 @@ def test_object_info_filled_by_any_field(fields, filled):
     assert dd(part, "woher") == f"Feld „Kennzeichnung“ dieses Produkts {filled}"
 
 
-@RED
 def test_info_fields_are_the_storefront_gate():
     """Поля «заполнено ли» у «Kennzeichnung» — поля модели, по которым витрина решает показ."""
     fields = set(section("catalog", "info").source.fields)
@@ -441,7 +431,6 @@ def test_info_fields_are_the_storefront_gate():
     assert "product.allergen_labels" in gate and "product.additive_labels" in gate
 
 
-@RED
 def test_object_and_type_answer_by_ref():
     """№12: у типа и у одного товара окно отвечает на тот же ref раздела; свой блок с тем же
     видом и общий блок части не получают (точный ref — замок P0)."""
@@ -457,7 +446,6 @@ def test_object_and_type_answer_by_ref():
     assert "content" not in row
 
 
-@RED
 def test_object_settings_and_auto_rows():
     """У одного товара настройка ведёт на экран настройки (без «nur hier»), авто — без ссылки."""
     tenant, product = _shop()
@@ -473,7 +461,6 @@ def test_object_settings_and_auto_rows():
 # --- свой замок G1a: у еды «Kennzeichnung» не скрывается ------------------------------------------
 
 
-@RED
 def test_food_info_not_hideable_text():
     """У еды раздел «Kennzeichnung» скрыть нельзя (LMIV): видимость — текст LMIV, действий
     нет — и у типа, и у одного товара; у магазина — обычный текст."""
@@ -502,7 +489,6 @@ def cabinet_page(tenant, path) -> str:
     return resp.content.decode()
 
 
-@RED
 def test_field_label_on_cabinet_form():
     """A10: подписи полей в окне — те же строки (msgid), что на форме товара: «Beschreibung»
     — подпись поля, «Kennzeichnung» — вкладка формы (у еды видна)."""
@@ -526,7 +512,6 @@ def test_field_label_on_cabinet_form():
 # --- №22 / Y3, Y6: ссылка и причина ----------------------------------------------------------------
 
 
-@RED
 def test_link_closed_screen_gives_a_reason(monkeypatch):
     """Экран ссылки закрыт (пакет) — причина одним абзацем с именем экрана, без ссылки."""
     from apps.core import packages
@@ -543,12 +528,10 @@ def test_link_closed_screen_gives_a_reason(monkeypatch):
 # --- №13 (язык), №16: переводы ---------------------------------------------------------------------
 
 
-@RED
 def test_new_msgids_in_all_po():
     assert_msgids_in_all_po(source_msgids("catalog", sorted(sources("catalog"))))
 
 
-@RED
 def test_window_in_russian_has_no_german_texts():
     tenant, _product = _shop()
     with translation.override("ru"):
@@ -569,7 +552,6 @@ def test_window_in_russian_has_no_german_texts():
 # --- Y8: без скриптов — та же часть колонкой -------------------------------------------------------
 
 
-@RED
 def test_inhalt_nojs_column():
     tenant, product = _shop()
     code = object_structure.schema_code("product", product)
@@ -584,7 +566,6 @@ def test_inhalt_nojs_column():
 # --- №31: запросы ----------------------------------------------------------------------------------
 
 
-@RED
 def test_inhalt_queries_not_above_the_base(monkeypatch):
     """Окно «Inhalt» строки типа и строки товара не добавляет запросов к экрану без него."""
     tenant, product = _shop()

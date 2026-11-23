@@ -224,7 +224,7 @@ def test_inhalt_summary_is_row_summary(monkeypatch):
     window_parts.content_part(bare, "loyalty", req)
     assert bare["content"]["summary"] == "Treueprogramm"
     # свои блоки и строки других страниц части не получают
-    other = {"ref": "description", "key": "description", "label": "Beschreibung"}
+    other = {"ref": "trust", "key": "trust", "label": "Vertrauensleiste"}
     window_parts.content_part(other, "product_detail", req)
     assert "content" not in other
     cb = {"ref": "programs", "key": "programs", "label": "x", "cblock": True}

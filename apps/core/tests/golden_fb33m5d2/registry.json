@@ -7,7 +7,7 @@
   false,
   false,
   "",
-  ""
+  "sellable-manage"
  ],
  [
   "catalog",
@@ -17,7 +17,7 @@
   false,
   false,
   "",
-  ""
+  "sellable-manage"
  ],
  [
   "catalog",
@@ -27,7 +27,7 @@
   false,
   false,
   "",
-  ""
+  "catalog:category-list"
  ],
  [
   "catalog",
@@ -67,7 +67,7 @@
   false,
   false,
   "",
-  ""
+  "settings"
  ],
  [
   "catalog",
