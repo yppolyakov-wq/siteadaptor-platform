@@ -407,7 +407,7 @@ def test_confirm_links_and_phone_done_keep_the_opening():
     confirm = b.get("?seite=home&block=t1&entfernen=1&wopen=keepMe1")
     back = re.search(r'<a href="([^"]*)" class="ui-btn ui-btn-secondary">', confirm).group(1)
     assert "wopen=keepMe1" in back
-    done = re.search(r"<form[^>]*md:hidden[^>]*>.*?</form>", html, re.S).group(0)
+    done = re.search(r"<form[^>]*xl:hidden[^>]*>.*?</form>", html, re.S).group(0)
     assert 'value="window_done"' in done and "data-schema-done" in done
     assert 'name="wopen" value="keepMe1"' in done
 

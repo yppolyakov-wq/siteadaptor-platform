@@ -114,7 +114,7 @@ def _old_panel(panel: str) -> str:
     panel = re.sub(r"<form[^>]*data-window-actions.*?</form>", "", panel, flags=re.S)
     # мобильная «Fertig» окна — теперь та же форма «window_done» (ревью 2 M3-1b)
     return re.sub(
-        r'<form method="post" class="md:hidden[^"]*">(?:(?!</form>).)*?data-schema-done.*?</form>',
+        r'<form method="post" class="(?:md|xl):hidden[^"]*">(?:(?!</form>).)*?data-schema-done.*?</form>',
         "",
         panel,
         flags=re.S,
