@@ -719,7 +719,26 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir, seen_keys=None):
     ctx.close()
 
 
+def stale_mo(root=None):
+    """Языки, у которых `.mo` старше `.po` (или нет `.mo`): сервер стенда покажет немецкие
+    строки вместо переводов, и проход ru даст ложные ✗ «немецкое в ru» (стопка 11: 806 ✗)."""
+    import glob
+
+    root = root or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    bad = []
+    for po in sorted(glob.glob(os.path.join(root, "locale", "*", "LC_MESSAGES", "django.po"))):
+        mo = po[:-2] + "mo"
+        if not os.path.exists(mo) or os.path.getmtime(mo) < os.path.getmtime(po):
+            bad.append(po.split(os.sep)[-3])
+    return bad
+
+
 def main_walk(argv):
+    bad = stale_mo()
+    if bad:
+        sys.exit(
+            f".mo старше .po ({', '.join(bad)}): собрать polib-ом и перезапустить сервер стенда"
+        )
     out_dir = argv[0]
     os.makedirs(out_dir, exist_ok=True)
     only = None
