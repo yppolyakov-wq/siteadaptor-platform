@@ -239,7 +239,7 @@ def insert(rep, pg, t, js, lang, rs, where):
     if where not in rows(pg)["adds"]:
         rep.check(False, f"{t}: «＋ Block» {where} есть", code=f"add-{where}")
         return
-    # клавиатурой: на 390 без JS лист панели снизу перекрывает схему (C4) — щелчок не дойдёт
+    # клавиатурой (как владелец с клавиатуры; без JS панель теперь под схемой — C4)
     press(pg, f"#schema-add-{where}")
     with pg.expect_navigation():
         press(pg, f'details[data-schema-add="{where}"] button[name=type][value=text]')
