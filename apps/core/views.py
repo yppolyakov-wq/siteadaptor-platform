@@ -4344,6 +4344,15 @@ def pages_view(request):
     return redirect("site-home")
 
 
+# FB-33 M5c-4m: вкладки экрана «Menü» — белый список для `?tab=` и скрытого поля формы.
+MENU_TABS = ("top", "bottom", "footer")
+
+
+def _menu_tab(value):
+    """Вкладка экрана «Menü» из адреса или формы; чужое значение — первая вкладка."""
+    return value if value in MENU_TABS else MENU_TABS[0]
+
+
 @login_required
 def menu_builder_view(request):
     """FB-23c: экран «Website › Menü» — шапка, нижняя панель (телефон) и подвал.
@@ -4378,7 +4387,10 @@ def menu_builder_view(request):
             messages.success(request, _("Gespeichert."))
         else:
             messages.error(request, _("Das Menü konnte nicht gespeichert werden."))
-        return redirect("site-menu")
+        tab = _menu_tab(request.POST.get("tab"))
+        if tab == MENU_TABS[0]:
+            return redirect("site-menu")
+        return redirect(f"{reverse('site-menu')}?tab={tab}")
 
     from apps.core.i18n_input import form_locales
     from apps.core.models import MediaAsset
@@ -4412,7 +4424,16 @@ def menu_builder_view(request):
         "locales": form_locales(tenant)[1:],
         "media": media,
     }
-    return render(request, "tenant/site_menu.html", {"nav": "site-menu", "builder": builder})
+    return render(
+        request,
+        "tenant/site_menu.html",
+        {
+            "nav": "site-menu",
+            "builder": builder,
+            "menu_tab": _menu_tab(request.GET.get("tab")),
+            "menu_tabs": MENU_TABS,
+        },
+    )
 
 
 @login_required

@@ -7,7 +7,9 @@
 Слева — дерево пунктов (до 3 уровней: перетаскивание выше/ниже/внутрь, кнопки
 «вложить/вынуть»), справа — панель выбранного пункта (подпись и переводы, куда ведёт,
 иконка, фото, подпись, вид панели). Вкладки: шапка · нижняя панель (телефон) · подвал.
-Модель — JSON в скрытом поле; схему держит siteconfig.normalize на сервере.{% endcomment %}
+Модель — JSON в скрытом поле; схему держит siteconfig.normalize на сервере.
+FB-33 M5c-4m: открытую вкладку выбирает сервер (`?tab=`, белый список во вьюхе) — и без JS;
+скрытое поле `tab` возвращает «Speichern» на ту же вкладку.{% endcomment %}
 <div class="max-w-6xl">
   <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
     <h1 class="ui-h1">{% trans "Menü" %}</h1>
@@ -27,17 +29,18 @@
   {{ builder|json_script:"builder-data" }}
 
   <nav class="ui-tabs mb-4" aria-label="{% trans "Menü-Bereiche" %}" role="tablist">
-    <button type="button" class="ui-tab" role="tab" data-tab="top" aria-selected="true">{% trans "Kopfzeile" %}</button>
-    <button type="button" class="ui-tab" role="tab" data-tab="bottom" aria-selected="false">{% trans "Untere Leiste (Handy)" %}</button>
-    <button type="button" class="ui-tab" role="tab" data-tab="footer" aria-selected="false">{% trans "Fußzeile" %}</button>
+    <button type="button" class="ui-tab" role="tab" data-tab="top" aria-selected="{% if menu_tab == "top" %}true{% else %}false{% endif %}">{% trans "Kopfzeile" %}</button>
+    <button type="button" class="ui-tab" role="tab" data-tab="bottom" aria-selected="{% if menu_tab == "bottom" %}true{% else %}false{% endif %}">{% trans "Untere Leiste (Handy)" %}</button>
+    <button type="button" class="ui-tab" role="tab" data-tab="footer" aria-selected="{% if menu_tab == "footer" %}true{% else %}false{% endif %}">{% trans "Fußzeile" %}</button>
   </nav>
 
   <form method="post" id="menu-form">
     {% csrf_token %}
     <input type="hidden" name="menus_json" id="menus_json">
+    <input type="hidden" name="tab" value="{{ menu_tab }}" id="menu-tab">
     <div class="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-4 items-start">
       <section class="ui-card p-5 min-w-0" aria-label="{% trans "Menüpunkte" %}">
-        <div data-pane="top">
+        <div data-pane="top"{% if menu_tab != "top" %} hidden{% endif %}>
           <div class="flex flex-wrap items-center gap-4 mb-4 text-sm">
             <label class="flex items-center gap-2">{% trans "Kopfzeile" %}
               <select id="top-style" class="ui-input !w-auto">
@@ -60,7 +63,7 @@
             <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm" id="from-categories">＋ {% trans "Menü aus Kategorien" %}</button>
           </div>
         </div>
-        <div data-pane="bottom" hidden>
+        <div data-pane="bottom"{% if menu_tab != "bottom" %} hidden{% endif %}>
           <label class="flex items-center gap-2 text-sm mb-3"><input type="checkbox" id="bottom-enabled"> {% trans "Eigene untere Leiste verwenden (sonst automatisch)" %}</label>
           <ul id="tree-bottom" class="space-y-1.5" data-tree="bottom"></ul>
           <button type="button" class="mt-3 ui-btn ui-btn-secondary ui-btn-sm" data-add="bottom">＋ {% trans "Punkt" %}</button>
@@ -68,7 +71,7 @@
           <p class="text-xs ui-muted mt-3 mb-1">{% trans "So sieht die Leiste auf dem Handy aus:" %}</p>
           <div id="bottom-preview" class="ui-card flex max-w-sm gap-1 px-2 py-2" data-bottom-preview hidden></div>
         </div>
-        <div data-pane="footer" hidden>
+        <div data-pane="footer"{% if menu_tab != "footer" %} hidden{% endif %}>
           <p class="text-sm ui-muted mb-3">{% trans "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)." %}</p>
           <div id="footer-cols" class="grid sm:grid-cols-2 gap-3" data-footer-builder></div>
           <button type="button" class="mt-3 ui-btn ui-btn-secondary ui-btn-sm" id="add-column">＋ {% trans "Spalte" %}</button>
@@ -144,7 +147,9 @@
     { k: "strip", label: "{% trans "Symbolleiste" %}", hint: "{% trans "Runde Bilder unter der Kopfzeile" %}" }
   ];
   var ICONS = ["", "🛍", "🍞", "☕", "🍰", "🥗", "🧀", "🎁", "⭐", "🔥", "🏷", "📅", "🏨", "✂️", "🚲", "📞", "ℹ️", "❤️"];
-  var tab = "top", sel = null, dirty = false;
+  // FB-33 M5c-4m: начальную вкладку выбрал сервер (`?tab=`) — берём её из разметки.
+  var tabBtn = document.querySelector('[data-tab][aria-selected="true"]');
+  var tab = tabBtn ? tabBtn.dataset.tab : "top", sel = null, dirty = false;
 
   function el(tag, attrs, text) {
     var e = document.createElement(tag);
@@ -647,6 +652,7 @@
   document.querySelectorAll("[data-tab]").forEach(function (b) {
     b.addEventListener("click", function () {
       tab = b.dataset.tab; sel = null;
+      document.getElementById("menu-tab").value = tab;  // «Speichern» вернёт на эту вкладку
       document.querySelectorAll("[data-tab]").forEach(function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); });
       document.querySelectorAll("[data-pane]").forEach(function (p) { p.hidden = p.dataset.pane !== tab; });
       render();

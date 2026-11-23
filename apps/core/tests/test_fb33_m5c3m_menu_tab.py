@@ -92,7 +92,6 @@ def _open_panes(body):
     return [k for k in TABS if not re.search(r"\shidden(\s|>|=)", _pane(body, k))]
 
 
-@pytest.mark.xfail(strict=True, reason="C3m: вкладка из адреса — до кода")
 @pytest.mark.parametrize("key", TABS)
 def test_menu_tab_from_address(key):
     tenant = TenantFactory(schema_name="public", slug=f"m5c3m{key}", name="M")
@@ -103,7 +102,6 @@ def test_menu_tab_from_address(key):
     assert f'<input type="hidden" name="tab" value="{key}"' in body
 
 
-@pytest.mark.xfail(strict=True, reason="C3m: вкладка из адреса — до кода")
 @pytest.mark.parametrize("junk", ["", "zzz", "Footer", "footer ", "<x>", "panel-body"])
 def test_menu_tab_whitelist(junk):
     tenant = TenantFactory(schema_name="public", slug="m5c3mjunk", name="M")
@@ -117,7 +115,6 @@ def test_menu_tab_whitelist(junk):
     assert resp["Location"] == "/dashboard/site/menu/"
 
 
-@pytest.mark.xfail(strict=True, reason="C3m: вкладка из адреса — до кода")
 def test_menu_footer_tab_nojs():
     tenant = TenantFactory(schema_name="public", slug="m5c3mfoot", name="M")
     body = _get(tenant, "?tab=footer")
@@ -143,7 +140,6 @@ def test_default_tab_unchanged():
     assert _get(tenant, "?tab=top").count(BEFORE_TABS) == 1
 
 
-@pytest.mark.xfail(strict=True, reason="C3m: вкладка из адреса — до кода")
 @pytest.mark.parametrize("key", ["bottom", "footer"])
 def test_menu_post_redirect_keeps_tab(key):
     tenant = TenantFactory(schema_name="public", slug=f"m5c3mpost{key}", name="M")
@@ -163,7 +159,6 @@ def test_menu_post_top_redirect_as_before():
     assert _post(tenant, {})["Location"] == "/dashboard/site/menu/"
 
 
-@pytest.mark.xfail(strict=True, reason="C3m: вкладка из адреса — до кода")
 def test_js_takes_initial_tab_from_dom_and_syncs_hidden_field():
     import pathlib
 
