@@ -154,13 +154,6 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("upsell", _("Goes well with this")),
     ),
     # --- confirmation ---
-    # UA4-1 slice C: секции детальной НОМЕРА (stays.StayUnit) — по факту stay_detail.html
-    # (описание/оснащение/отзывы/похожие). Hide-only.
-    # FB-32 S4: страница корзины — «Passt gut dazu» строкой схемы (двигается, скрывается,
-    # свои блоки выше/ниже). Видимость — прежний ключ `cart_show_upsell`.
-    # FB-33 M2h: оформление — строки корзины: позиции, форма и итог с кнопкой неподвижны и не
-    # скрываются (§ 312j BGB: кнопка сразу после итога); свои блоки — над корзиной, «Hinweise»
-    # над формой (после позиций), под сеткой и в хвосте
     # FB-33 M2h: подтверждение (заказ, запись, номер, билет, стол) — карточка сделки неподвижна;
     # «Was passiert jetzt» — только при своём тексте; «Empfehlungen» включает владелец (K3)
     "confirmation": (
@@ -169,6 +162,11 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("recommend", _("Empfehlungen")),
     ),
     # --- cart ---
+    # FB-32 S4: страница корзины — «Passt gut dazu» строкой схемы (двигается, скрывается,
+    # свои блоки выше/ниже). Видимость — прежний ключ `cart_show_upsell`.
+    # FB-33 M2h: оформление — строки корзины: позиции, форма и итог с кнопкой неподвижны и не
+    # скрываются (§ 312j BGB: кнопка сразу после итога); свои блоки — над корзиной, «Hinweise»
+    # над формой (после позиций), под сеткой и в хвосте
     "cart": (
         DetailSection("items", _("Positionen"), hideable=False),
         DetailSection("form", _("Bestellformular"), hideable=False),
@@ -185,9 +183,6 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # --- page ---
     "page": (DetailSection("pagetext", _("Text"), hideable=False),),
     # --- message ---
-    # FB-32 S6b: «Versand» — свой текст и список Versandkosten (§ 6 PAngV: сюда ведёт
-    # «zzgl. Versandkosten»). Список снимается только галочкой у страницы «Versand» (один
-    # писатель; без своего текста список виден всегда) — в схеме строка не скрывается.
     # FB-32 S6c: «Kontakt» и «Anfrage» — форма (с визиткой и Rückruf в боковой колонке, раскладка
     # SP-9 не делится) одной строкой: свои блоки над ней или под ней. Не скрывается.
     "message": (
@@ -268,11 +263,16 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("related", _("Weitere Menüs aus dieser Kategorie")),
     ),
     # --- versand ---
+    # FB-32 S6b: «Versand» — свой текст и список Versandkosten (§ 6 PAngV: сюда ведёт
+    # «zzgl. Versandkosten»). Список снимается только галочкой у страницы «Versand» (один
+    # писатель; без своего текста список виден всегда) — в схеме строка не скрывается.
     "versand": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("costs", _("Versandkosten"), hideable=False),
     ),
     # --- stays ---
+    # UA4-1 slice C: секции детальной НОМЕРА (stays.StayUnit) — по факту stay_detail.html
+    # (описание/оснащение/отзывы/похожие). Hide-only.
     "stays": (
         DetailSection("description", _("Description")),
         DetailSection("amenities", _("Amenities")),
