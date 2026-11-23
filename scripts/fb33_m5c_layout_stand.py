@@ -265,7 +265,9 @@ def check_draft(rep, pg, t, w, h, js, slug):
     rep.check(not under, f"{t}: фокус не под полосой ({under[:3]})", code="tab-under")
     # конец схемы докручивается выше полосы
     pg.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
-    pg.wait_for_timeout(100)
+    pg.wait_for_function(
+        "() => Math.abs(scrollY + innerHeight - document.documentElement.scrollHeight) <= 2"
+    )
     end = pg.evaluate(
         "() => { const f = document.querySelector('[data-schema-strip=\"foot\"]').getBoundingClientRect();"
         "const b = document.querySelector('[data-schema-draftbar]').getBoundingClientRect();"
@@ -287,7 +289,12 @@ def check_big_font(rep, pg, t, slug):
     make_draft(pg, True, slug)
     pg.evaluate("() => { document.documentElement.style.fontSize = '200%'; }")
     pg.evaluate("() => window.dispatchEvent(new Event('resize'))")
-    pg.wait_for_timeout(200)
+    try:
+        pg.wait_for_function(
+            "() => document.documentElement.hasAttribute('data-schema-draft-flow')", timeout=3000
+        )
+    except Exception:  # noqa: BLE001 — итог — проверка ниже
+        pass
     bar = pg.evaluate(BAR_JS)
     rep.check(
         bar is not None and bar["flow"] and bar["pos"] == "static",

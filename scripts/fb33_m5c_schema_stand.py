@@ -25,6 +25,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from urllib.parse import parse_qs, urlparse
 
@@ -36,6 +37,8 @@ PORT = urlparse(sl.BASE_URL).port or 80
 DEMO_PASSWORD = "demo-12345678"
 DLG = "dialog.ui-bwin"
 SEITE = "home"
+#: только бросок ⠿ (1440 с JS) — быстрый прогон и негативный контроль: `M5C_ONLY=drop`
+DROP_ONLY = os.environ.get("M5C_ONLY") == "drop"
 GERMAN = ("eingefügt", "ist jetzt Nummer")
 
 ROWS_JS = """() => {
@@ -189,8 +192,11 @@ def check_more_js(rep, pg, t, rs, lang):
     pg.keyboard.press("Escape")
     # ревью silent (HIGH): без текста сервера живая область молчит (не «Übernommen.»)
     pg.evaluate("() => { document.querySelector('[data-schema-live]').textContent = ''; }")
-    pg.evaluate("(r) => window.aufbauMoved(r, '')", row["ref"])
-    pg.wait_for_timeout(450)
+    pg.evaluate(
+        "(r) => { window.__t0 = performance.now(); window.aufbauMoved(r, ''); }", row["ref"]
+    )
+    # таймер озвучки aufbauMoved — 300 мс: ждём, пока он точно прошёл бы
+    pg.wait_for_function("() => performance.now() - window.__t0 > 400")
     quiet = pg.evaluate("() => document.querySelector('[data-schema-live]').textContent")
     rep.check(quiet == "", f"{t}: отказ не озвучен успехом ({quiet!r})", code="moved-quiet")
     down = pg.query_selector(f"{summ} ~ div button[value=down]")
@@ -201,7 +207,12 @@ def check_more_js(rep, pg, t, rs, lang):
     with pg.expect_navigation():
         press(pg, f"{summ} ~ div button[value=down]")
     sl.settle(pg, True)
-    pg.wait_for_timeout(700)
+    pg.wait_for_function(
+        "(id) => document.activeElement && document.activeElement.id === id"
+        " && window.__m5c && window.__m5c.liveAt !== null",
+        arg=row["more"],
+        timeout=5000,
+    )
     q = parse_qs(urlparse(pg.url).query)
     rep.check(
         "block" not in q and not pg.query_selector(f"{DLG}[open]"),
@@ -265,7 +276,11 @@ def insert(rep, pg, t, js, lang, rs, where):
     if js:
         pg.wait_for_selector(f"{DLG}[open]", timeout=10000)
         sl.settle(pg, True)
-        pg.wait_for_timeout(400)
+        pg.wait_for_function(
+            "() => { const d = document.querySelector('dialog.ui-bwin[open]');"
+            " return !!d && d.contains(document.activeElement); }",
+            timeout=5000,
+        )
     else:
         pg.wait_for_load_state()
     new = parse_qs(urlparse(pg.url).query).get("block", [""])[0]
@@ -341,9 +356,157 @@ def insert(rep, pg, t, js, lang, rs, where):
         )
 
 
+GRIPS_JS = """(want) => [...document.querySelectorAll('[data-schema-drag]')].every(li => {
+  const g = li.querySelector('.schema-grip');
+  const shown = !!g && g.getClientRects().length > 0;
+  return want ? shown && li.getAttribute('draggable') === 'true' : !shown && !li.hasAttribute('draggable');
+})"""
+
+
+def check_grip_resize(rep, pg, t, w, h):
+    """⠿: сужение 1440 → 390 прячет ручки и снимает draggable, обратное расширение — возвращает."""
+    pg.set_viewport_size({"width": 390, "height": 844})
+    try:
+        pg.wait_for_function(GRIPS_JS, arg=False, timeout=3000)
+        narrow = True
+    except Exception:  # noqa: BLE001 — стенд: итог проверки
+        narrow = False
+    rep.check(narrow, f"{t}: сужение → ⠿ скрыт, draggable снят", code="grip-narrow")
+    pg.set_viewport_size({"width": w, "height": h})
+    try:
+        pg.wait_for_function(GRIPS_JS, arg=True, timeout=3000)
+        wide = True
+    except Exception:  # noqa: BLE001
+        wide = False
+    rep.check(wide, f"{t}: расширение → ⠿ снова виден, draggable=true", code="grip-wide")
+
+
+ORDER_JS = (
+    "() => [...document.querySelectorAll('a[data-schema-gear]')].map(a => a.dataset.schemaGear)"
+)
+
+
+def _drag(pg, src_ref, dst_ref):
+    """Бросок ⠿ мышью: строку `src_ref` — на нижнюю половину строки `dst_ref` (после неё)."""
+    src = pg.locator(f'[data-schema-drag="{src_ref}"]')
+    dst = pg.locator(f'[data-schema-drag="{dst_ref}"]')
+    box = dst.bounding_box()
+    src.drag_to(dst, target_position={"x": box["width"] / 2, "y": box["height"] * 0.8})
+
+
+def _settled_drop(pg):
+    pg.wait_for_function(
+        "() => document.documentElement.getAttribute('data-schema-busy') === '0'", timeout=15000
+    )
+
+
+#: отказы ответа на бросок: (подпись, ответ для route.fulfill)
+DROP_FAILURES = (
+    ("302 на вход", {"status": 302, "headers": {"Location": "/accounts/login/"}}),
+    ("200 без схемы", {"status": 200, "body": "<!doctype html><html><body>x</body></html>",
+                       "content_type": "text/html"}),
+    ("500", {"status": 500, "body": "boom", "content_type": "text/plain"}),
+)  # fmt: skip
+
+
+def check_drop(rep, pg, t, slug, lang):
+    """Бросок ⠿ на 1440 с JS: успех — порядок, номер в живой области, фокус на «⋯»; отказы
+    (вход, ответ без схемы, 500) — без «успеха», видна ошибка, busy снят, порядок прежний."""
+    pg.goto(aufbau(slug))
+    sl.settle(pg, True)
+    drags = pg.evaluate(
+        "() => [...document.querySelectorAll('[data-schema-drag]')].map(li => li.dataset.schemaDrag)"
+    )
+    if len(drags) < 3:
+        rep.note(f"{t}: двигаемых строк < 3 — бросок не проверен")
+        return
+    src, dst = drags[0], drags[2]
+    before = pg.evaluate(ORDER_JS)
+    pg.evaluate("() => { document.querySelector('[data-schema-live]').textContent = ''; }")
+    _drag(pg, src, dst)
+    _settled_drop(pg)
+    try:
+        pg.wait_for_function(
+            "() => document.querySelector('[data-schema-live]').textContent.trim() !== ''",
+            timeout=3000,
+        )
+    except Exception:  # noqa: BLE001
+        pass
+    after = pg.evaluate(ORDER_JS)
+    st = pg.evaluate(
+        "() => ({live: document.querySelector('[data-schema-live]').textContent.trim(),"
+        " said: (document.querySelector('[data-schema-moved]') || {}).textContent || '',"
+        " focus: document.activeElement && document.activeElement.id})"
+    )
+    rep.check(
+        after != before and after.index(src) > after.index(dst),
+        f"{t}: бросок ⠿ — порядок изменился",
+        code="drop-order",
+    )
+    rep.check(
+        bool(st["said"]) and st["live"] == st["said"].strip(),
+        f"{t}: бросок — номер в живой области ({st['live'][:50]})",
+        code="drop-live",
+    )
+    rep.check(
+        st["focus"] == f"schema-more-{src}",
+        f"{t}: бросок — фокус на «⋯» строки ({st['focus']})",
+        code="drop-focus",
+    )
+    if lang == "ru":
+        rep.check(
+            not any(g in st["live"] for g in GERMAN), f"{t}: бросок — по-русски", code="ru-drop"
+        )
+    for what, answer in DROP_FAILURES:
+        pg.goto(aufbau(slug))
+        sl.settle(pg, True)
+        before = pg.evaluate(ORDER_JS)
+        drags = pg.evaluate(
+            "() => [...document.querySelectorAll('[data-schema-drag]')].map(li => li.dataset.schemaDrag)"
+        )
+        pg.evaluate("() => { document.querySelector('[data-schema-live]').textContent = ''; }")
+
+        def fulfil(route, _request=None, answer=answer):
+            if route.request.method == "POST":
+                route.fulfill(**answer)
+            else:
+                route.continue_()
+
+        pg.route("**/dashboard/site/aufbau/**", fulfil)
+        try:
+            _drag(pg, drags[0], drags[2])
+            _settled_drop(pg)
+            # озвучка aufbauMoved идёт таймером 300 мс — читать живую область после него
+            pg.evaluate("() => { window.__t0 = performance.now(); }")
+            pg.wait_for_function("() => performance.now() - window.__t0 > 400")
+            st = pg.evaluate(
+                "() => ({live: document.querySelector('[data-schema-live]').textContent.trim(),"
+                " alert: !!document.querySelector('[data-schema-messages] [role=alert]'),"
+                " busy: document.documentElement.getAttribute('data-schema-busy')})"
+            )
+            st["order"] = pg.evaluate(ORDER_JS) == before
+        finally:
+            pg.unroute("**/dashboard/site/aufbau/**", fulfil)
+        ok = st["live"] == "" and st["alert"] and st["busy"] == "0" and st["order"]
+        rep.check(
+            ok,
+            f"{t}: отказ броска ({what}) — без «успеха», ошибка видна, порядок прежний ({st})",
+            code="drop-fail",
+        )
+
+
 def press(pg, selector):
     pg.focus(selector)
     pg.keyboard.press("Enter")
+
+
+def login(pg, slug):
+    """Вход владельца кита; лимит входов allauth (≈30 в минуту с адреса) — переждать и ещё раз."""
+    email = f"{HOSTS.get(slug, slug)}@example.com"
+    if sl.login(pg, base_of(slug), email, DEMO_PASSWORD):
+        return True
+    pg.wait_for_timeout(61000)
+    return sl.login(pg, base_of(slug), email, DEMO_PASSWORD)
 
 
 def guarded(rep, t, fn, *args):
@@ -364,16 +527,17 @@ def main():
     with sl.launch() as browser:
         for slug in KITS:
             for w, h, lang, js in sl.matrix():
+                if DROP_ONLY and not (js and w >= 768):
+                    continue
                 pg = sl.open_page(browser, w, h, js=js, lang=lang)
                 if js:
                     pg.add_init_script(INSTRUMENT)
                 t = f"{slug} {w} {lang} {'js' if js else 'nojs'}"
-                if not rep.check(
-                    sl.login(
-                        pg, base_of(slug), f"{HOSTS.get(slug, slug)}@example.com", DEMO_PASSWORD
-                    ),
-                    f"{t}: вход",
-                ):
+                if not rep.check(login(pg, slug), f"{t}: вход"):
+                    pg.context.close()
+                    continue
+                if DROP_ONLY:
+                    guarded(rep, t, check_drop, rep, pg, t, slug, lang)
                     pg.context.close()
                     continue
                 pg.goto(aufbau(slug))
@@ -384,16 +548,11 @@ def main():
                     if js:
                         guarded(rep, t, check_tab, rep, pg, t, rs)
                         if w >= 768:
-                            pg.set_viewport_size({"width": 390, "height": 844})
-                            pg.wait_for_timeout(200)
-                            narrow = [r["grip"] for r in rows(pg)["rows"] if r["grip"] is not None]
-                            rep.check(
-                                narrow and not any(narrow),
-                                f"{t}: сужение → ⠿ скрыт",
-                                code="grip-narrow",
-                            )
-                            pg.set_viewport_size({"width": w, "height": h})
-                            pg.wait_for_timeout(200)
+                            guarded(rep, t, check_grip_resize, rep, pg, t, w, h)
+                            guarded(rep, t, check_drop, rep, pg, t, slug, lang)
+                            pg.goto(aufbau(slug))
+                            sl.settle(pg, True)
+                            rs = rows(pg)["rows"]
                         guarded(rep, t, check_more_js, rep, pg, t, rs, lang)
                     else:
                         guarded(rep, t, check_more_nojs, rep, pg, t, rs, lang)
