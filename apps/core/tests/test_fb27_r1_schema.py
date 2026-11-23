@@ -278,10 +278,12 @@ def test_v1_head_holds_the_draft_buttons_and_the_page_choice_has_no_counter():
 
 
 def test_v3_one_add_button_holds_blocks_ready_rows_and_templates():
-    """Макет Main: одна кнопка «+ Block hinzufügen»; выбор блока и готовой строки — внутри."""
+    """Макет Main: кнопка «+ Block»; выбор блока и готовой строки — внутри. FB-33 M5c-3: одна
+    разметка — партиал `_schema_add.html` (под выбранной строкой и в конце)."""
     import pathlib
 
     tpl = pathlib.Path("templates/tenant/site_schema.html").read_text()
-    assert tpl.count("data-schema-add>") == 1
-    box = tpl[tpl.index("data-schema-add>") : tpl.index("</details></div>")]  # M5c-2: вне <ol>
+    assert tpl.count('include "tenant/_schema_add.html"') == 2 and "data-schema-add>" not in tpl
+    box = pathlib.Path("templates/tenant/_schema_add.html").read_text()
+    assert box.count("<details class") == 1
     assert 'name="type"' in box and "data-schema-add-row" in box and "<summary" in box

@@ -2335,6 +2335,12 @@ def add_groups(code: str, config: dict | None = None) -> list[dict]:
     ]
     if saved:
         out.append({"key": "vorlagen", "title": str(_("Eigene Vorlagen")), "options": saved})
+    # FB-33 M5c-3: кнопки «＋ Block» — те же пункты с подсказкой каталога (`LibraryEntry.hint`)
+    for g in out:
+        g["buttons"] = [
+            {"key": k, "label": lab, "hint": group_of[k].hint if group_of.get(k) else ""}
+            for k, lab in g["options"]
+        ]
     return out
 
 

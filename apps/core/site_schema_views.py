@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from urllib.parse import quote
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -415,6 +416,8 @@ def site_schema_view(request):
                 keep.pop(key, None)
             if not applied:
                 ref = ""
+            elif ref:
+                keep["neu"] = ref  # FB-33 M5c-3: окно нового блока — фокус и сообщение о вставке
         # FB-33 M3-5a: на выбранную вкладку — только если правка прошла без отказа и без
         # сообщений (иначе владелец остаётся там, где видит, что не так)
         moved = bool(
@@ -422,7 +425,13 @@ def site_schema_view(request):
         )
         if moved:
             keep["tab"] = goto
+        if op in aufbau_draft.WINDOW_OPS and ref:
+            # FB-33 M5c-3 (a11y B4): после «Fertig» «＋ Block» остаётся под этой строкой
+            keep["zuletzt"] = ref
         target = _url(code, "" if closed else ref, keep)
+        if op in aufbau_draft.WINDOW_OPS and ref:
+            # FB-33 M5c-3 (a11y B3): «Fertig» без скриптов — к строке блока (её ⚙)
+            target = f"{target}#schema-row-{quote(ref, safe='')}"
         if row_form:
             # FB-33 M5c-2: из «⋯» строки — окно не открывается; фокус и сообщение «ist jetzt
             # Nummer n» — у строки (`bewegt`: GET сверяет его со строками схемы). Тот же id
@@ -709,6 +718,28 @@ def site_schema_view(request):
     wanted_moved = request.GET.get("bewegt", "")
     moved = next((b for b in blocks if b["ref"] == wanted_moved), None) if wanted_moved else None
     moved_msg = ""
+    # FB-33 M5c-3: «＋ Block» под выбранной видимой строкой — после ПОСЛЕДНЕГО блока её ряда,
+    # который есть в строках страницы (общие строки объекта — нет; «Buchung» — цель позиции)
+    add_at = None
+    anchor = selected
+    if anchor is None and request.GET.get("zuletzt"):
+        # после «Fertig» — строка, чьё окно только что закрыли (белый список — строки схемы)
+        anchor = next((b for b in blocks if b["ref"] == request.GET["zuletzt"]), None)
+    if anchor is not None and anchor.get("num"):
+        for line_no, li in enumerate(layout["lines"]):
+            if not any(b["ref"] == anchor["ref"] for b in li["blocks"]):
+                continue
+            last = next((b for b in reversed(li["blocks"]) if not b.get("shared")), None)
+            if last is not None:
+                add_at = {"line": line_no, "ref": last["ref"], "name": last["label"]}
+            break
+    # FB-33 M5c-3 (a11y B3): после вставки — что вставили и под каким номером (белый список:
+    # `neu` = выбранный блок)
+    inserted_msg = ""
+    if selected is not None and selected.get("num") and request.GET.get("neu") == selected["ref"]:
+        inserted_msg = _(
+            "Block „%(name)s“ eingefügt, Nummer %(n)s. Der Block bleibt — entfernen über „⋯“."
+        ) % {"name": selected["label"], "n": selected["num"]}
     if moved is not None and moved.get("num"):
         moved_msg = _("Block „%(name)s“ ist jetzt Nummer %(n)s von %(total)s.") % {
             "name": moved["label"],
@@ -749,6 +780,8 @@ def site_schema_view(request):
             # FB-33 M5c-2: сообщение после перестановки и раскрытый «Ausgeblendet» после скрытия
             "moved_msg": moved_msg,
             "moved_hidden": moved is not None and not moved["enabled"],
+            "add_at": add_at,  # FB-33 M5c-3
+            "inserted_msg": inserted_msg,
             **_row_ops(layout, selected),
             "selected": selected,
             "confirm_remove": confirm_remove,

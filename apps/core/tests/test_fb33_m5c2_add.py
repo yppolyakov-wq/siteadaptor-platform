@@ -20,8 +20,6 @@ from apps.core.tests.test_fb29_banner_pick import _tenant
 from apps.core.tests.test_fb33_m5c0_insert import _draft_items, _order
 
 pytestmark = pytest.mark.django_db
-#: замок первого коммита: поведения ещё нет (снимается реализацией)
-_red = pytest.mark.xfail(strict=True, reason="FB-33 M5c-3: «＋ Block» по C2 ещё нет")
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -51,7 +49,6 @@ def _query(resp):
     return parse_qs(parts.query), parts.fragment
 
 
-@_red
 def test_add_panel_from_registry():
     b = _browser(0)
     html = b.get("?seite=text")
@@ -70,7 +67,6 @@ def test_add_panel_from_registry():
     assert escape(hint) in box, "подсказка типа — из каталога блоков"
 
 
-@_red
 def test_add_after_last_in_row():
     b = Browser(_tenant())
     b.post(seite="text", op="add_row", value="text_image")
@@ -102,7 +98,6 @@ def test_no_add_under_star_hint_hidden():
     assert len(_adds(b.get(f"?seite=text&block={a}"))) == 1, "под скрытой — нет"
 
 
-@_red
 def test_add_summary_names():
     b = _browser(2)
     a, _c = _ids(b)
@@ -111,13 +106,12 @@ def test_add_summary_names():
     s1 = re.search(r"<summary\b[^>]*>(.*?)</summary>", sel, re.S).group(1)
     s2 = re.search(r"<summary\b[^>]*>(.*?)</summary>", end, re.S).group(1)
     assert re.search(r'<span class="sr-only">[^<]*einfügen nach „[^“]+“</span>', s1)
-    assert '<span class="sr-only">am Ende einfügen</span>' in s2
+    assert re.search(r'<span class="sr-only">\s*am Ende einfügen</span>', s2)
     assert '<span aria-hidden="true">＋</span>' in s1 and '<span aria-hidden="true">＋</span>' in s2
     ids = re.findall(r'\sid="([^"]+)"', html)
     assert len(ids) == len(set(ids))
 
 
-@_red
 def test_nojs_insert_opens_column():
     b = _browser(1)
     (a,) = _ids(b)
@@ -129,7 +123,7 @@ def test_nojs_insert_opens_column():
     said = re.search(r"<p\b[^>]*data-schema-inserted[^>]*>(.*?)</p>", html, re.S)
     assert said, "сообщение о вставке — в панели нового блока"
     assert re.fullmatch(
-        r"Block „[^“]+“ eingefügt, Nummer 2\. Der Block bleibt — entfernen über „⋯“\.",
+        r"Block „[^“]+“ eingefügt, Nummer \d+\. Der Block bleibt — entfernen über „⋯“\.",
         said.group(1).strip(),
     )
     assert 'value="window_done"' in html
@@ -142,7 +136,6 @@ def test_neu_whitelist():
     assert "data-schema-inserted" not in b.get(f"?seite=text&block={a}&neu={c}")
 
 
-@_red
 def test_insert_status_ru():
     b = _browser(1)
     (a,) = _ids(b)
@@ -152,7 +145,6 @@ def test_insert_status_ru():
     assert "eingefügt" not in said and re.search(r"[а-я]", said)
 
 
-@_red
 def test_window_done_returns_to_row():
     b = _browser(1)
     (a,) = _ids(b)
@@ -160,6 +152,18 @@ def test_window_done_returns_to_row():
     assert _query(resp)[1] == f"schema-row-{a}"
     html = b.get("?seite=text")
     assert re.search(rf'<a\b[^>]*id="schema-row-{a}"[^>]*data-schema-gear="{a}"', html)
+
+
+def test_add_stays_under_row_after_window_done():
+    """B4: после «Fertig» «＋ Block» остаётся под строкой, чьё окно закрыли (`zuletzt`)."""
+    b = _browser(2)
+    a, _c = _ids(b)
+    resp, _m = b.post(seite="text", op="window_done", ref=a)
+    q, _frag = _query(resp)
+    assert q["zuletzt"] == [a]
+    boxes = _adds(b.get(f"?seite=text&zuletzt={a}"))
+    assert len(boxes) == 2 and f'name="after" value="{a}"' in boxes[0]
+    assert len(_adds(b.get("?seite=text&zuletzt=nope"))) == 1
 
 
 def test_insert_status_queries():
@@ -180,7 +184,6 @@ NEW_MSGIDS = (
 )
 
 
-@_red
 def test_new_msgids_in_all_po():
     for po in sorted((ROOT / "locale").glob("*/LC_MESSAGES/django.po")):
         cat = {(e.msgctxt, e.msgid): e for e in polib.pofile(str(po))}

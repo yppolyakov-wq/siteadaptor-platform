@@ -118,7 +118,7 @@ def test_star_row_first_on_list_pages(bt, code):
     assert refs[0] == PAGE, refs
     assert refs.count(PAGE) == 1
     assert TITLE not in refs, "строки «Seitentitel» больше нет"
-    first = _map(html).index("<li")
+    first = _map(html).index("<div")  # FB-33 M5c-2: полосы и ★ — вне <ol>
     assert "Kopfzeile & Menü" in _map(html)[first : _map(html).index(f'"{PAGE}"')]
 
 
@@ -126,8 +126,8 @@ def test_star_row_markup():
     """Y-H3: ★-строка — ссылка в `li`, ≥ 44 px; ★ скрыт от чтения, после названия sr «, feste
     Position»; сводка внутри ссылки; без ручки, «⋯» и `data-schema-pinned`."""
     html = Browser(_tenant()).get("?seite=services")
-    m = re.search(r'<li><a [^>]*data-schema-block="__page"[^>]*>(.*?)</a></li>', _map(html), re.S)
-    assert m, "ссылка ★-строки — прямо в li"
+    m = re.search(r'<div><a [^>]*data-schema-block="__page"[^>]*>(.*?)</a></div>', _map(html), re.S)
+    assert m, "ссылка ★-строки — прямо в блоке строки (FB-33 M5c-2: вне <ol>)"
     link, inner = m.group(0), m.group(1)
     assert "min-h-[44px]" in link
     assert '<span aria-hidden="true">★</span>' in inner
@@ -168,7 +168,8 @@ def test_star_row_summary_is_own_title_in_quotes():
 
 
 def _hint(html: str) -> str:
-    m = re.search(r"<li[^>]*data-schema-title-hint[^>]*>.*?</li>", _map(html), re.S)
+    # FB-33 M5c-2: метка — абзацем в ряду `<ol>` (не пункт списка блоков)
+    m = re.search(r"<p[^>]*data-schema-title-hint[^>]*>.*?</p>", _map(html), re.S)
     return m.group(0) if m else ""
 
 

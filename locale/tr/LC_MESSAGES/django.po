@@ -37424,9 +37424,6 @@ msgstr "Hangi sayfa"
 msgid "Wie viel Text"
 msgstr "Ne kadar metin"
 
-msgid "Zeile hinzufügen"
-msgstr "Satır ekle"
-
 msgid "Auf dieser Seite ist kein Platz für weitere Blöcke."
 msgstr "Bu sayfada daha fazla blok için yer yok."
 
@@ -37618,9 +37615,6 @@ msgstr "“Tek tek” altında kayıt seçili olduğu sürece blok tam olarak bu
 
 msgid "Texte und Fotos auf der Seite bearbeiten"
 msgstr "Metinleri ve fotoğrafları sayfada düzenle"
-
-msgid "Einzelner Block"
-msgstr "Tek blok"
 
 msgid "Fertige Zeile"
 msgstr "Hazır satır"
@@ -40073,6 +40067,20 @@ msgstr ""
 
 msgid "fb33-stack-anchor-m5c"
 msgstr "fb33-stack-anchor-m5c"
+
+# FB-33 M5c-3: «＋ Block» под выбранной строкой (для чтения с экрана)
+#, python-format
+msgid "einfügen nach „%(name)s“"
+msgstr "“%(name)s” sonrasına ekle"
+
+# FB-33 M5c-3: «＋ Block» в конце схемы (для чтения с экрана)
+msgid "am Ende einfügen"
+msgstr "sona ekle"
+
+# FB-33 M5c-3: окно нового блока после вставки
+#, python-format
+msgid "Block „%(name)s“ eingefügt, Nummer %(n)s. Der Block bleibt — entfernen über „⋯“."
+msgstr "“%(name)s” bloğu eklendi, numara %(n)s. Blok kalır — “⋯” ile kaldırın."
 
 # FB-33 M5c-2: имя ссылки ⚙ строки схемы (одна ссылка на строку)
 #, python-format

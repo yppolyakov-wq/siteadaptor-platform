@@ -130,7 +130,7 @@
         {% if 'site-menu'|can_open:request %}<a href="{% url 'site-menu' %}" class="inline-flex items-center min-h-[24px] text-indigo-700 underline hover:no-underline">{% trans "Menü bearbeiten" %}</a>{% endif %}
       </div>
       {% if page_row %}{% comment %}FB-33 M5b-2 (макет V4, a11y Y-H3): ★-строка страницы — первой, неподвижна (без ручки и «⋯»); ★ скрыт от чтения, после названия — «feste Position».{% endcomment %}
-      <div><a href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel"
+      <div><a id="schema-row-{{ page_row.ref }}" href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel"
              class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] {% if page_row.active %}border-2 border-indigo-700 bg-white{% else %}border-indigo-400 bg-indigo-50{% endif %}"
              data-schema-block="{{ page_row.ref }}"{% if page_row.active %} aria-current="true"{% endif %}>
           <span class="font-medium"><span aria-hidden="true">★</span> {{ page_row.label }}</span><span class="sr-only">, {% trans "feste Position" %}{% if page_row.summary %}.{% endif %}</span>
@@ -151,41 +151,14 @@
         {% comment %}FB-30.8 (макет 4): в ряду есть место — сюда можно перетащить блок; он займёт столько, сколько помещается.{% endcomment %}
         <li class="hidden md:flex min-w-[6rem] flex-1 items-center justify-center rounded-xl border-2 border-dashed border-indigo-400 px-2 text-center text-xs font-semibold text-indigo-800" aria-hidden="true" data-schema-slot="{{ line.slot.ref }}">{% blocktrans with w=line.slot.label %}Hierher ziehen – bis {{ w }}{% endblocktrans %}</li>
         {% endif %}
-      </ul>{% endwith %}{% if title_hint and forloop.counter0 == title_hint.after %}{% comment %}FB-33 M5b-2 (макет V4, a11y Y-H1/Y-H2): здесь на странице заголовок — только подсказка (не строка: не выбирается, не двигается); ссылка открывает окно ★-строки на вкладке «Seite».{% endcomment %}
+      </ul>{% endwith %}{% if add_at and forloop.counter0 == add_at.line %}<div class="mt-2">{% include "tenant/_schema_add.html" with after=add_at.ref after_name=add_at.name place="sel" %}</div>{% endif %}{% if title_hint and forloop.counter0 == title_hint.after %}{% comment %}FB-33 M5b-2 (макет V4, a11y Y-H1/Y-H2): здесь на странице заголовок — только подсказка (не строка: не выбирается, не двигается); ссылка открывает окно ★-строки на вкладке «Seite».{% endcomment %}
       <p class="mt-2 flex flex-wrap items-center gap-x-1 rounded-xl border border-dashed border-gray-400 bg-gray-50 px-3 text-sm text-gray-700" data-schema-title-hint>{% trans "Überschrift der Seite" %} <span aria-hidden="true">·</span> <a href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}&amp;tab=seite{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 underline hover:no-underline">{% blocktrans with where=title_hint.where %}in {{ where }} bearbeiten{% endblocktrans %}</a></p>{% endif %}</li>
       {% endfor %}
       </ol>{% else %}
       <p class="text-sm ui-muted">{% trans "Noch keine eigenen Blöcke auf dieser Seite." %}</p>
       {% endif %}
-      {% comment %}FB-27 V3 (макет Main): одна кнопка «+ Block hinzufügen»; выбор блока, готовой строки и
-      своего шаблона — внутри. `<details>` работает без скриптов.{% endcomment %}
-      <div><details class="rounded-xl border border-dashed border-gray-500" data-schema-add>
-      <summary class="flex items-center justify-center min-h-[44px] cursor-pointer list-none rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">＋&nbsp;</span>{% trans "Block hinzufügen" %}</summary>
-      <div class="space-y-3 border-t border-dashed border-gray-300 px-3 py-3">
-      <form method="post" class="flex flex-wrap items-end gap-2">
-        {% csrf_token %}
-        {% include "tenant/_schema_keep.html" %}
-        <input type="hidden" name="op" value="add">
-        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Einzelner Block" %}</span>
-          <select name="type" class="ui-input w-full">
-            {% for g in add_groups %}<optgroup label="{{ g.title }}">
-            {% for key, label in g.options %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
-            </optgroup>{% endfor %}
-          </select></label>
-        <button class="ui-btn ui-btn-primary">{% trans "Hinzufügen" %}</button>
-      </form>
-      <form method="post" class="flex flex-wrap items-end gap-2" data-schema-add-row>
-        {% csrf_token %}
-        {% include "tenant/_schema_keep.html" %}
-        <input type="hidden" name="op" value="add_row">
-        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Fertige Zeile" %}</span>
-          <select name="value" class="ui-input w-full">
-            {% for key, label in row_options %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
-          </select></label>
-        <button class="ui-btn ui-btn-secondary">{% trans "Zeile hinzufügen" %}</button>
-      </form>
-      </div>
-      </details></div>
+      {% comment %}FB-33 M5c-3: «＋ Block» в конце схемы (под выбранной строкой — в её ряду выше).{% endcomment %}
+      <div>{% include "tenant/_schema_add.html" with after="" after_name="" place="end" %}</div>
       <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">{% trans "Fußzeile" %}</div>
     </div>
     {% if layout.hidden %}
@@ -193,7 +166,7 @@
       <summary class="flex items-center min-h-[44px] text-sm font-semibold text-gray-700 cursor-pointer">{% trans "Ausgeblendet" %} ({{ layout.hidden|length }})</summary>
       <ul class="mt-2 space-y-2">
         {% for b in layout.hidden %}
-        <li class="flex items-center gap-2"><a href="?seite={{ code|urlencode }}&amp;block={{ b.ref|urlencode }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel"
+        <li class="flex items-center gap-2"><a id="schema-row-{{ b.ref }}" href="?seite={{ code|urlencode }}&amp;block={{ b.ref|urlencode }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel"
                class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] {% if selected and selected.ref == b.ref %}border-2 border-indigo-700{% else %}border-gray-500 hover:bg-gray-50{% endif %} bg-white text-gray-700"
                data-schema-block="{{ b.ref }}"{% if selected and selected.ref == b.ref %} aria-current="true"{% endif %}>
             <span><span class="font-medium">{{ b.label }}</span>{% if b.summary %} · {{ b.summary }}{% endif %}</span>
@@ -210,7 +183,7 @@
   <aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600{% if selected %} max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[70] max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:rounded-b-none max-md:shadow-[0_-10px_30px_rgba(22,24,29,0.25)]{% endif %}" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
     {% if selected %}
     {% if selected and window %}<form method="post" class="md:hidden -mt-1 mb-1 text-right">{% csrf_token %}{% include "tenant/_schema_keep.html" %}<input type="hidden" name="ref" value="{{ selected.ref }}"><button name="op" value="window_done" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>{% trans "Fertig" %}<span class="sr-only"> – {% trans "Einstellungen des Blocks schließen" %}</span></button></form>
-    {% else %}<p class="md:hidden -mt-1 mb-1 text-right"><a href="?seite={{ code|urlencode }}{{ keep_q }}" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>{% trans "Fertig" %}<span class="sr-only"> – {% trans "Einstellungen des Blocks schließen" %}</span></a></p>{% endif %}
+    {% else %}<p class="md:hidden -mt-1 mb-1 text-right"><a href="?seite={{ code|urlencode }}{{ keep_q }}#schema-row-{{ selected.ref }}" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>{% trans "Fertig" %}<span class="sr-only"> – {% trans "Einstellungen des Blocks schließen" %}</span></a></p>{% endif %}
     {% endif %}
     {% if selected %}
     {% comment %}FB-27 V2 (макет Main): заголовок блока и меню «⋯» (Ausblenden · Entfernen); порядок
@@ -222,6 +195,7 @@
       </div>
       {% if not confirm_remove and not selected.pinned %}{% if selected.can_up or selected.can_down or selected.can_hide or selected.cblock %}{% include "tenant/_schema_more.html" with b=selected row=False %}{% endif %}{% endif %}
     </div>
+    {% if inserted_msg %}{% comment %}FB-33 M5c-3 (a11y B3): что вставили и под каким номером; со скриптами — ещё описание окна при открытии.{% endcomment %}<p id="schema-inserted" class="mt-2 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800" data-schema-inserted>{{ inserted_msg }}</p>{% endif %}
     {% if confirm_remove and selected.cblock %}
     {% include "tenant/_bw_views.html" %}{% include "tenant/_bw_settings.html" %}
     <form method="post" class="mt-4 rounded-xl bg-red-50 p-3 space-y-3" data-schema-confirm>

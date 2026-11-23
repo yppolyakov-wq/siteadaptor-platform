@@ -90,8 +90,12 @@ def _map(html: str) -> str:
 
 
 def _row(html: str, ref: str) -> tuple[str, str]:
-    """(открывающий тег, содержимое) ссылки строки `ref` в колонке схемы."""
-    m = re.search(rf'(<a [^>]*data-schema-block="{ref}"[^>]*>)(.*?)</a>', _map(html), re.S)
+    """(открывающий тег, содержимое) строки `ref` в колонке схемы. FB-33 M5c-2: строка —
+    `data-schema-rowbox` с одной ссылкой ⚙; подпись и сводка — текст строки."""
+    cols = _map(html)
+    at = cols.index(f'data-schema-gear="{ref}"')
+    start = cols.rindex("<div", 0, cols.rindex("data-schema-rowbox", 0, at))
+    m = re.match(r"(<div [^>]*>)(.*)", cols[start:at], re.S)
     assert m, ref
     return m.group(1), m.group(2)
 

@@ -8,7 +8,7 @@
   <div class="min-w-0 flex-1">
     {% if b.pinned %}<span class="float-right ml-2 select-none" aria-hidden="true" data-schema-lock>🔒</span>{% endif %}
     <span id="schema-desc-{{ b.ref }}">{% if b.pinned %}<span class="sr-only">{% trans "feste Position" %}{% if b.width_label or b.summary %}, {% endif %}</span>{% endif %}{% if b.width_label %}<span class="sr-only">{% trans "Breite" %} </span><span class="ui-badge mb-1">{{ b.width_label }}</span>{% endif %}
-    <span class="block font-semibold" aria-hidden="true">{{ b.label }}</span>
+    <span class="block font-semibold">{{ b.label }}</span>
     {% if b.summary %}<span class="block text-xs text-gray-600 break-words">{{ b.summary }}</span>{% endif %}</span>
     {% comment %}FB-27 V1 (макет Main): схематичная миниатюра — что это за блок, без текста.{% endcomment %}
     {% if b.thumb == "bar" %}<span class="mt-2 block h-8 rounded-md bg-emerald-100" aria-hidden="true" data-schema-thumb="bar"></span>
@@ -17,6 +17,6 @@
     {% elif b.thumb == "lines" %}<span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>{% endif %}
   </div>
   {% if not b.pinned %}<span class="schema-grip hidden relative z-10 select-none text-gray-500" aria-hidden="true">⠿</span>{% endif %}
-  <a href="?seite={{ code|urlencode }}&amp;block={{ b.ref|urlencode }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="{{ b.ref }}" data-schema-gear="{{ b.ref }}" aria-label="{% blocktrans with name=b.label %}Einstellungen: {{ name }}{% endblocktrans %}" aria-describedby="schema-desc-{{ b.ref }}"{% if selected and selected.ref == b.ref %} aria-current="true"{% endif %}><span aria-hidden="true">⚙</span></a>
+  <a href="?seite={{ code|urlencode }}&amp;block={{ b.ref|urlencode }}{% if wopen_link %}&amp;wopen={{ wopen_link }}{% endif %}{{ keep_q }}#schema-panel" id="schema-row-{{ b.ref }}" class="schema-gear inline-flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-700" data-schema-block="{{ b.ref }}" data-schema-gear="{{ b.ref }}" aria-label="{% blocktrans with name=b.label %}Einstellungen: {{ name }}{% endblocktrans %}" aria-describedby="schema-desc-{{ b.ref }}"{% if selected and selected.ref == b.ref %} aria-current="true"{% endif %}><span aria-hidden="true">⚙</span></a>
   {% if b.can_up or b.can_down or b.can_hide or b.cblock %}{% include "tenant/_schema_more.html" with row=True %}{% endif %}
 </div>

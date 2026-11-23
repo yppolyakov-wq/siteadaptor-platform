@@ -1,0 +1,37 @@
+{% load i18n %}{% comment %}FB-33 M5c-3 (макеты M5cAdd/M5cNoJs): «＋ Block» — под выбранной видимой строкой и в конце
+схемы. Кнопки типов из `add_groups` (подсказка — из каталога блоков) и «Fertige Zeile» из
+`row_options`, одной разметкой с JS и без (обычные POST-формы в `<details>`). Позиция — полем
+`after` (последний блок ряда выбранной строки), в конце — без него. Новый блок сразу открывает
+своё окно (сервер: `?block=<новый>&neu=…`). Параметры: after (ref или ""), after_name, place
+(суффикс id: sel | end).{% endcomment %}
+<details class="rounded-xl border border-dashed border-gray-500" data-schema-add="{{ place }}">
+  <summary id="schema-add-{{ place }}" class="flex items-center justify-center min-h-[44px] cursor-pointer list-none rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">＋</span>&nbsp;{% trans "Block" %}<span class="sr-only"> {% if after %}{% blocktrans with name=after_name %}einfügen nach „{{ name }}“{% endblocktrans %}{% else %}{% trans "am Ende einfügen" %}{% endif %}</span></summary>
+  <div class="space-y-3 border-t border-dashed border-gray-300 px-3 py-3">
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      {% include "tenant/_schema_keep.html" with row_form=True %}
+      <input type="hidden" name="op" value="add">
+      {% if after %}<input type="hidden" name="after" value="{{ after }}">{% endif %}
+      {% for g in add_groups %}
+      <fieldset>
+        <legend class="mb-1 text-xs text-gray-600">{{ g.title }}</legend>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {% for o in g.buttons %}<button name="type" value="{{ o.key }}" class="schema-add-type flex flex-col items-start justify-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><span class="font-semibold">{{ o.label }}</span>{% if o.hint %}<span class="text-xs text-gray-600">{{ o.hint }}</span>{% endif %}</button>{% endfor %}
+        </div>
+      </fieldset>
+      {% endfor %}
+    </form>
+    {% if row_options %}<form method="post" data-schema-add-row>
+      {% csrf_token %}
+      {% include "tenant/_schema_keep.html" with row_form=True %}
+      <input type="hidden" name="op" value="add_row">
+      {% if after %}<input type="hidden" name="after" value="{{ after }}">{% endif %}
+      <fieldset>
+        <legend class="mb-1 text-xs text-gray-600">{% trans "Fertige Zeile" %}</legend>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {% for key, label in row_options %}<button name="value" value="{{ key }}" class="schema-add-type flex items-center rounded-lg border border-gray-400 bg-white px-3 py-2 text-left text-sm font-semibold hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">{{ label }}</button>{% endfor %}
+        </div>
+      </fieldset>
+    </form>{% endif %}
+  </div>
+</details>

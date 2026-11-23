@@ -37365,9 +37365,6 @@ msgstr "Welche Seite"
 msgid "Wie viel Text"
 msgstr "Wie viel Text"
 
-msgid "Zeile hinzufügen"
-msgstr "Zeile hinzufügen"
-
 msgid "Auf dieser Seite ist kein Platz für weitere Blöcke."
 msgstr "Auf dieser Seite ist kein Platz für weitere Blöcke."
 
@@ -37559,9 +37556,6 @@ msgstr "Solange unter „Einzeln“ Einträge gewählt sind, zeigt der Block gen
 
 msgid "Texte und Fotos auf der Seite bearbeiten"
 msgstr "Texte und Fotos auf der Seite bearbeiten"
-
-msgid "Einzelner Block"
-msgstr "Einzelner Block"
 
 msgid "Fertige Zeile"
 msgstr "Fertige Zeile"
@@ -40013,6 +40007,20 @@ msgstr "Blöcke davor stehen über der Liste, danach unter ihr."
 
 msgid "fb33-stack-anchor-m5c"
 msgstr "fb33-stack-anchor-m5c"
+
+# FB-33 M5c-3: «＋ Block» под выбранной строкой (для чтения с экрана)
+#, python-format
+msgid "einfügen nach „%(name)s“"
+msgstr "einfügen nach „%(name)s“"
+
+# FB-33 M5c-3: «＋ Block» в конце схемы (для чтения с экрана)
+msgid "am Ende einfügen"
+msgstr "am Ende einfügen"
+
+# FB-33 M5c-3: окно нового блока после вставки
+#, python-format
+msgid "Block „%(name)s“ eingefügt, Nummer %(n)s. Der Block bleibt — entfernen über „⋯“."
+msgstr "Block „%(name)s“ eingefügt, Nummer %(n)s. Der Block bleibt — entfernen über „⋯“."
 
 # FB-33 M5c-2: имя ссылки ⚙ строки схемы (одна ссылка на строку)
 #, python-format

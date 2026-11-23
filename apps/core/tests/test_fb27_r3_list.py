@@ -246,6 +246,8 @@ def test_card_form_is_chosen_by_tiles_with_a_preview():
 
 def test_order_moves_into_the_more_menu():
     src = open("templates/tenant/site_schema.html").read()
-    more = src.split("data-schema-more>", 1)[1].split("</details>", 1)[0]
+    # FB-33 M5c-2: «⋯» — один партиал у строки и в шапке окна
+    more = open("templates/tenant/_schema_more.html").read()
+    more = more.split("data-schema-more>", 1)[1].split("</details>", 1)[0]
     assert 'value="up"' in more and 'value="down"' in more
     assert "data-schema-foot" not in src

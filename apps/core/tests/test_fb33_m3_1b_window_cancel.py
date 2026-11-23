@@ -400,7 +400,9 @@ def test_reload_keeps_the_opening_so_cancel_goes_back_to_the_first_edit():
 def test_confirm_links_and_phone_done_keep_the_opening():
     b = Browser(_shop())
     html = b.get("?seite=home&block=t1&wopen=keepMe1")
-    remove = re.search(r'href="([^"]*entfernen=1[^"]*)"', html).group(1)
+    # FB-33 M5c-2: «⋯» строки схемы — новое открытие; в шапке окна — то же открытие
+    panel = html[html.index('id="schema-panel"') :]
+    remove = re.search(r'href="([^"]*entfernen=1[^"]*)"', panel).group(1)
     assert "wopen=keepMe1" in remove
     confirm = b.get("?seite=home&block=t1&entfernen=1&wopen=keepMe1")
     back = re.search(r'<a href="([^"]*)" class="ui-btn ui-btn-secondary">', confirm).group(1)

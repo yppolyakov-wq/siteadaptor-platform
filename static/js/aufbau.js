@@ -59,7 +59,10 @@ function aufbauSubmitCopy(form, submitter) {
   if (aufbauWindowWanted()) return;  // фокус ставит само окно
   var seite = new URLSearchParams(location.search).get("seite") || "home";
   if (back && back.seite === seite && Date.now() - back.ts < 30000) {
-    var row = Array.prototype.find.call(document.querySelectorAll("[data-schema-block]"), function (a) {
+    // FB-33 M5c-3: «Fertig» и × — на ⚙ строки блока (у ★ и скрытых строк — их ссылка)
+    var row = Array.prototype.find.call(document.querySelectorAll("[data-schema-gear]"), function (a) {
+      return a.getAttribute("data-schema-gear") === back.ref;
+    }) || Array.prototype.find.call(document.querySelectorAll("[data-schema-block]"), function (a) {
       return a.getAttribute("data-schema-block") === back.ref;
     });
     if (!row) {
@@ -691,7 +694,28 @@ function aufbauSubmitCopy(form, submitter) {
     form.requestSubmit(btn);
   }
 
+  // FB-33 M5c-3 (ревью M7): окно только что вставленного блока — фокус на первое видимое поле,
+  // нет поля — на заголовок окна, нет и его — на «Fertig»
+  function firstField() {
+    var fields = win.querySelectorAll('[data-schema-panel] :is(input:not([type="hidden"]), select, textarea)');
+    return Array.prototype.find.call(fields, function (f) {
+      return !f.disabled && f.getClientRects().length > 0 && !f.closest("[hidden],[inert]");
+    }) || null;
+  }
+
   function focusIn() {
+    if (win.querySelector("[data-schema-inserted]")) {
+      var first = firstField() || win.querySelector("#schema-panel-title") ||
+        win.querySelector('[data-schema-panel] button[value="window_done"]');
+      if (first) {
+        first.focus();
+        window.addEventListener("load", function () {
+          var at = document.activeElement;
+          if (win && at !== first && (!at || at === document.body || at.id === "schema-panel")) first.focus();
+        }, { once: true });
+        return;
+      }
+    }
     var hash = location.hash;
     var tab = null;
     if (hash.indexOf("#schema-tab-") === 0) {
@@ -733,6 +757,20 @@ function aufbauSubmitCopy(form, submitter) {
     var headLive = document.querySelector("[data-schema-live]");
     status.setAttribute("data-done", headLive ? headLive.getAttribute("data-done") || "" : "");
     msgs.appendChild(status);
+    // FB-33 M5c-3 (a11y B3): после вставки статус — описание окна при открытии (живая область
+    // после перезагрузки сама не звучит); `neu` из адреса снимается — F5 не повторяет его
+    var inserted = panel.querySelector("[data-schema-inserted]");
+    if (inserted) {
+      status.id = "schema-bwin-status";
+      status.textContent = inserted.textContent.trim();
+      win.setAttribute("aria-describedby", status.id);
+      try {
+        var u = new URL(location.href);
+        u.searchParams.delete("neu");
+        // и якорь #schema-panel: браузер ставит фокус по нему ПОСЛЕ скрипта (грабля M5b-2)
+        history.replaceState(history.state, "", u.pathname + u.search);
+      } catch (err) { /* без URL/history — без этого удобства */ }
+    }
     mark = document.createComment("schema-panel");
     panel.parentNode.insertBefore(mark, panel);
     win.appendChild(x);

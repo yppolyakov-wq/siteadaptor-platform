@@ -108,13 +108,14 @@ def test_row_thumbnail_follows_columns_and_output():
     b = Browser(_tenant())
     b.post(seite="home", op="update", ref="products", panel_present="1", f_cols="2", f_out="grid")
     html = b.get("?seite=home&block=products")
-    row = html[html.index('data-schema-block="products"') :]
-    row = row[: row.index("</a>")]
+    # FB-33 M5c-2: миниатюра — в строке (`data-schema-rowbox`), ссылка строки — только ⚙
+    at = html.index('data-schema-gear="products"')
+    row = html[html.rindex("data-schema-rowbox", 0, at) : at]
     assert 'data-schema-thumb="cards"' in row and 'data-thumb-cols="2"' in row
     b.post(seite="home", op="update", ref="products", panel_present="1", f_out="slider")
     html = b.get("?seite=home&block=products")
-    row = html[html.index('data-schema-block="products"') :]
-    assert 'data-thumb-out="slider"' in row[: row.index("</a>")]
+    at = html.index('data-schema-gear="products"')
+    assert 'data-thumb-out="slider"' in html[html.rindex("data-schema-rowbox", 0, at) : at]
 
 
 def test_panel_has_no_separate_preview_of_the_block():
@@ -178,7 +179,8 @@ def test_rows_are_draggable_only_with_scripts_and_buttons_stay():
     import pathlib
 
     tpl = pathlib.Path("templates/tenant/site_schema.html").read_text()
-    assert "data-schema-drag" in tpl and 'value="up"' in tpl and 'value="down"' in tpl
+    more = pathlib.Path("templates/tenant/_schema_more.html").read_text()  # FB-33 M5c-2
+    assert "data-schema-drag" in tpl and 'value="up"' in more and 'value="down"' in more
     js = pathlib.Path("static/js/aufbau.js").read_text()
     assert "dragstart" in js and '"move"' in js
 
