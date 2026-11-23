@@ -255,7 +255,9 @@ def test_registry_equals_the_base():
 
 def test_registry_is_written_out_for_parallel_slices():
     """A3: у каждого модуля — свой комментарий-якорь, генератора events нет (срезы правят
-    непересекающиеся куски); новых импортов в модуле нет; P0 источников не заводит."""
+    непересекающиеся куски); новых импортов в модуле нет. Источники разделов заводят срезы
+    стопки 12 (ревью M5d-2, DJ-M2: условия «источников нет» здесь больше нет — их проверяют
+    замки реестра `test_fb33_m5d2_review.py`)."""
     import ast
 
     src = (ROOT / "apps/core/detail_sections.py").read_text(encoding="utf-8")
@@ -274,9 +276,6 @@ def test_registry_is_written_out_for_parallel_slices():
     assert imports == [
         "from dataclasses import dataclass",
         "from django.utils.translation import gettext_lazy as _",
-    ]
-    assert not [
-        (m, s.key) for m, secs in detail_sections.DETAIL_SECTIONS.items() for s in secs if s.source
     ]
 
 
@@ -465,7 +464,8 @@ def test_food_locked_info_says_lmiv(monkeypatch):
 )
 def test_object_row_model(monkeypatch, description, filled):
     """Строка объекта: «Woher» — поле ЭТОГО объекта и заполнено ли; видимость — сводка строки;
-    ссылка — форма объекта, подпись — его имя, «nur hier»."""
+    ссылка — форма объекта, подпись — его имя, «nur hier». Интерфейс на языке содержимого —
+    имя без `lang` (ревью M5d-2, a11y M2; с `lang` — `test_fb33_m5d2_review.py`)."""
     tenant, product = _shop(description=description)
     _description(monkeypatch)
     host = object_structure.object_host("product", product)
@@ -480,14 +480,15 @@ def test_object_row_model(monkeypatch, description, filled):
     link = ct["link"]
     assert link["url"] == reverse("catalog:product-edit", args=[product.pk])
     assert link["only_here"] is True
-    assert str(link["label"]) == '<span lang="de">Darjeeling</span>'
+    assert str(link["label"]) == "Darjeeling"
 
 
 def test_details_field_path_and_missing_attribute(monkeypatch, caplog):
-    """`fields` — путь через словарь (`details.idea`): нет ключа — «leer»; нет атрибута у
-    объекта — в журнал, «заполнено ли» не утверждаем (окно живо)."""
+    """`fields` — путь через словарь поля модели (`description.idea`): нет ключа — «leer»; нет
+    такого поля у модели объекта — в журнал, «заполнено ли» не утверждаем (окно живо).
+    Ревью M5d-2 (DJ-M1): путь — только поле модели, не произвольный атрибут."""
     tenant, product = _shop()
-    product.details = {"idea": "Ruhe", "empty": []}
+    product.description = {"idea": "Ruhe", "empty": []}
     host = object_structure.object_host("product", product)
     code = object_structure.schema_code("product", product)
     back = {"url": "/x/", "label": "Darjeeling"}
@@ -498,9 +499,9 @@ def test_details_field_path_and_missing_attribute(monkeypatch, caplog):
         window_parts.content_part(row, host, _req(tenant), code=code, obj=product, back=back)
         return row["content"]["filled"]
 
-    assert filled(("details.idea",)) == FILLED
-    assert filled(("details.nope",)) == EMPTY
-    assert filled(("details.empty", "details.idea")) == FILLED  # хватает одного
+    assert filled(("description.idea",)) == FILLED
+    assert filled(("description.nope",)) == EMPTY
+    assert filled(("description.empty", "description.idea")) == FILLED  # хватает одного
     with caplog.at_level(logging.ERROR, logger="apps.core.window_parts"):
         assert filled(("no_such_attribute",)) == ""
     assert any("no_such_attribute" in r.getMessage() for r in caplog.records)
@@ -646,8 +647,9 @@ def test_link_errors_logged(monkeypatch, caplog):
 
 
 def test_page_source_links_the_page_editor(monkeypatch, caplog):
-    """`page`: адрес — `content_pages.edit_url_for_code(code)`, подпись «Seiten › <имя>» с
-    именем страницы в `lang`; страницы нет — без ссылки, с журналом."""
+    """`page`: адрес — `content_pages.edit_url_for_code(code)`, подпись «Seiten › <имя>»
+    (имя страницы в `lang` — только при другом языке интерфейса, ревью M5d-2); страницы нет —
+    без ссылки, с журналом."""
     from apps.core import content_pages
 
     tenant, _product = _shop()
@@ -664,7 +666,7 @@ def test_page_source_links_the_page_editor(monkeypatch, caplog):
     ct = row["content"]
     assert ct["summary"] == "den Text der Seite „Über uns“"
     assert ct["link"]["url"] == content_pages.edit_url_for_code("text")
-    assert str(ct["link"]["label"]) == f'{entry.label} › <span lang="de">Über uns</span>'
+    assert str(ct["link"]["label"]) == f"{entry.label} › Über uns"
     assert ct["fixed"] is True and ct["visibility"] == "" and ct["link"]["only_here"] is False
     monkeypatch.setattr(content_pages, "edit_url_for_code", lambda code: "")
     row = _row(ref="pagetext", key="pagetext", pinned=True, can_hide=False)
@@ -790,7 +792,8 @@ def test_window_without_tabs_has_no_empty_tablist(monkeypatch):
 @pytest.mark.parametrize("lang", ["de", "ru"])
 def test_only_here_badge_after_the_link(monkeypatch, lang):
     """Y3: «nur hier» — отдельный `<span class="ui-badge">` ПОСЛЕ ссылки, не в её имени; у
-    ссылки нет `aria-hidden` и `aria-label`; имя объекта — в `<span lang="de">`."""
+    ссылки нет `aria-hidden` и `aria-label`; имя объекта — в `<span lang="de">`, когда
+    интерфейс не на языке содержимого (ревью M5d-2, a11y M2)."""
     tenant, product = _shop()
     _description(monkeypatch)
     code = object_structure.schema_code("product", product)
@@ -800,7 +803,8 @@ def test_only_here_badge_after_the_link(monkeypatch, lang):
     a = re.search(r"<a\b([^>]*)>(.*?)</a>", part, re.S)
     assert a and "data-inhalt-link" in a.group(1)
     assert "aria-hidden" not in a.group(1) and "aria-label" not in a.group(1)
-    assert '<span lang="de">Darjeeling</span>' in a.group(2)
+    assert ('<span lang="de">Darjeeling</span>' in a.group(2)) is (lang == "ru")
+    assert _text(a.group(2)).endswith("Darjeeling")
     assert "ui-badge" not in a.group(2) and badge_text not in _text(a.group(2))
     after = part[a.end() :]
     badge = re.search(r'<span class="ui-badge"([^>]*)>(.*?)</span>', after, re.S)

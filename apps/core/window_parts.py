@@ -161,18 +161,22 @@ def content_part(
     """Часть окна «Inhalt» у строки раздела: что блок показывает, откуда содержимое и где оно
     правится. Описание — в реестре (`DetailSection.content_nav` и `.source`, своих списков
     здесь нет): `selected["content"] = {summary, note, woher, filled, visibility, actions,
-    fixed, link, reason, screen}`.
+    fixed, link, reason, screen, sourced}`.
 
     Без `source` — неподвижная строка G2 (M5d-1): сводка — `summary` строки (пусто — подпись),
-    ссылка `{"label", "url", "only_here"}` — запись `nav_registry`. С `source` (M5d-2):
+    ссылка `{"label", "url", "only_here"}` — запись `nav_registry`. С `source` (M5d-2,
+    `sourced`) сводка — `source.shows`, иначе подпись раздела (не сводка строки: у объекта
+    это её статус), а ссылка — по виду источника:
     - `setting` — запись реестра (+ `query`, подпись «… › sub»);
     - `field` у типа — запись списка объектов; у объекта — его форма (`back`, подпись — имя
       объекта) и `only_here`;
     - `page` — редактор страницы (`content_pages.edit_url_for_code(code)`), подпись
       «Seiten › <имя>»;
     - `auto` — без ссылки.
-    Видимость и действия — из флагов строки (`enabled`, `can_hide`, `can_up`, `can_down`,
-    `pinned`) и её `summary` у объекта — без запросов. `obj` и `back` — объект строки и ссылка
+    Имя объекта и страницы в подписи — в `<span lang>`, когда язык содержимого не язык
+    интерфейса. Видимость и действия — из флагов строки (`enabled`, `can_hide`, `can_up`,
+    `can_down`, `pinned`) и её `summary` у объекта — без запросов; «bei allen …» — только у
+    типа. `obj` и `back` — объект строки и ссылка
     на его форму, уже найденные экраном (один резолв); не переданы — ищем сами.
 
     Экран закрыт этому пользователю (право открыть — GET, модуль, пакет) — `link` None и
@@ -211,6 +215,7 @@ def content_part(
         "link": None,
         "reason": "",
         "screen": "",
+        "sourced": False,
     }
     if source is None:
         link, reason, _screen = _content_link(section, None, host, request, code, "", None, "")
@@ -255,14 +260,21 @@ def _source_content(
         if obj is None:
             logger.error("window_parts: no object for the content of %s/%s - no link", host, key)
     words = site_schema.OBJECT_WORDS.get(site_schema.word_kind(host, section.only), {})
-    if source.shows:
-        shows = str(source.shows)
+    # ревью M5d-2: сводка строки (`selected["summary"]`) здесь не годится — у строки объекта
+    # это её статус («Standard: sichtbar», «nur hier ausgeblendet»)
+    shows = str(source.shows or "")
+    if shows:
         content["summary"] = shows % {"page": page_label} if "%(page)s" in shows else shows
+    else:
+        content["summary"] = str(section.label)
     content["note"] = str(source.note or "")
     content["woher"], content["filled"] = _content_woher(source, host, key, kind, obj, words)
     content["visibility"], content["actions"] = _content_visibility(
         selected, source, module, key, bool(kind), words, getattr(request, "tenant", None)
     )
+    if source.kind == "field" and obj is not None and back is None:
+        logger.error("window_parts: object of %s/%s has no form link - no link", host, key)
+    content["sourced"] = True
     content["link"], content["reason"], content["screen"] = _content_link(
         section, source, host, request, code, kind, back if obj is not None else None, page_label
     )
@@ -302,26 +314,47 @@ def _has_content(value) -> bool:
 
 
 def _filled(obj, fields, host: str, key: str) -> str:
-    """«— ausgefüllt.» / «— leer.» по полям объекта (`ContentSource.fields`: атрибут и ключи
-    словаря через точку; хватает одного заполненного). "" — сказать нечего: полей нет, объекта
-    нет, атрибута нет (ошибка конфигурации — в журнал)."""
+    """«— ausgefüllt.» / «— leer.» по полям объекта (`ContentSource.fields`: поле МОДЕЛИ и ключи
+    его словаря через точку; хватает одного заполненного). Читаем только данные: методы и
+    свойства не вызываем, по связям не ходим (запросов нет). Пусто — пустая строка, пустые
+    список и словарь, None, False и 0 («0 = leer»: числовое поле с нулём — незаполненное).
+
+    "" — сказать нечего: полей нет, объекта нет; путь — не поле модели (метод, свойство, связь)
+    или ключ ждёт словарь, а там другое значение — ошибка конфигурации, в журнал."""
+    from django.core.exceptions import FieldDoesNotExist
+
     if obj is None or not fields:
         return ""
+    meta = getattr(obj, "_meta", None)
     for path in fields:
         head, *rest = str(path).split(".")
-        if not hasattr(obj, head):
+        try:
+            field = meta.get_field(head)
+        except (AttributeError, FieldDoesNotExist):
+            field = None
+        if field is None or field.is_relation:
             logger.error(
-                "window_parts: object of %s/%s has no attribute %r - filled state unknown",
+                "window_parts: %r of %s/%s is not a model field of the object"
+                " - filled state unknown",
+                head,
                 host,
                 key,
-                head,
             )
             return ""
-        value = getattr(obj, head)
-        if callable(value):
-            value = value()
+        value = getattr(obj, field.attname)
         for part in rest:
-            value = value.get(part) if isinstance(value, dict) else None
+            if value is None:
+                break  # ключа нет (или поле пустое) — «leer»
+            if not isinstance(value, dict):
+                logger.error(
+                    "window_parts: %r of %s/%s - %r is not a dict - filled state unknown",
+                    path,
+                    host,
+                    key,
+                    part,
+                )
+                return ""
+            value = value.get(part)
         if _has_content(value):
             return str(_FILLED)
     return str(_EMPTY)
@@ -352,18 +385,39 @@ def _content_visibility(
         return f"{selected['summary']}.", actions  # «nur hier ausgeblendet», «Standard: …»
     if not enabled:
         return str(_HIDDEN), actions
-    if source.kind == "field" and "all" in words:
-        return _VISIBLE_ALL % {"all": words["all"]}, actions
+    if source.kind == "field" and "all" in words and not is_object:
+        return _VISIBLE_ALL % {"all": words["all"]}, actions  # «bei allen …» — про тип
     return str(_VISIBLE), actions
+
+
+def _closed_reason(closed: str, host: str, key: str) -> str:
+    """Видимая причина по ответу `nav_registry.screen_closed`; кода нет в `_CLOSED_REASONS` —
+    ссылки всё равно нет (экран закрыт), пустая причина — с ошибкой в журнале."""
+    reason = _CLOSED_REASONS.get(closed)
+    if reason is None:
+        logger.error(
+            "window_parts: unknown closed reason %r for %s/%s - no reason shown", closed, host, key
+        )
+        return ""
+    return str(reason)
+
+
+def _content_name(name, lang: str, foreign: bool):
+    """Имя объекта или страницы в подписи ссылки: `<span lang>` — только когда язык
+    содержимого не язык интерфейса."""
+    from django.utils.html import format_html
+
+    return format_html('<span lang="{}">{}</span>', lang, name) if foreign else str(name)
 
 
 def _content_link(
     section, source, host: str, request, code: str, kind: str, back, page_label: str
 ) -> tuple[dict | None, str, str]:
     """(ссылка, причина, экран причины). Ссылка — `{"label", "url", "only_here"}`; имя объекта
-    и страницы в подписи — в `<span lang>` (язык контента, Y3)."""
+    и страницы в подписи — на языке содержимого (`_content_name`, Y3)."""
     from django.conf import settings
     from django.urls import NoReverseMatch, reverse
+    from django.utils import translation
     from django.utils.html import format_html
 
     from apps.core import content_pages, nav_registry
@@ -381,20 +435,23 @@ def _content_link(
             key,
         )
         return None, "", ""
+    # a11y (ревью M5d-2): имя объекта и страницы — на языке содержимого; `lang` нужен, только
+    # когда он не язык интерфейса (иначе читатель экрана зря переключает голос)
     lang = settings.LANGUAGE_CODE.split("-")[0]
+    foreign = (translation.get_language() or lang).split("-")[0] != lang
     try:
         if source is None:
             # G2 (M5d-1): сам экран записи — прежняя проверка и прежняя подпись
             closed = nav_registry.screen_closed(request, section.content_nav)
             if closed:
-                return None, str(_CLOSED_REASONS.get(closed, "")), ""
+                return None, _closed_reason(closed, host, key), ""
             url = reverse(entry.url_name) + entry.query
             return {"label": entry.label, "url": url, "only_here": False}, "", ""
         only_here = False
         if mode == "field" and kind:
             if back is None:
                 return None, "", ""  # объекта нет — в журнале у вызывающего
-            label = format_html('<span lang="{}">{}</span>', lang, back["label"])
+            label = _content_name(back["label"], lang, foreign)
             url, only_here = back["url"], True
         elif mode == "page":
             url = content_pages.edit_url_for_code(code)
@@ -403,18 +460,20 @@ def _content_link(
                     "window_parts: no page editor for %r (%s/%s) - no link", code, host, key
                 )
                 return None, "", ""
-            label = (
-                format_html('{} › <span lang="{}">{}</span>', entry.label, lang, page_label)
-                if page_label
-                else str(entry.label)
-            )
+            if page_label and foreign:
+                name = _content_name(page_label, lang, foreign)
+                label = format_html("{} › {}", entry.label, name)
+            elif page_label:
+                label = f"{entry.label} › {page_label}"
+            else:
+                label = str(entry.label)
         else:
             url = reverse(entry.url_name) + (source.query or entry.query)
             label = f"{entry.label} › {source.sub}" if source.sub else str(entry.label)
         # A4: видимость модуля — по записи; пакет и право — по адресу цели
         closed = nav_registry.screen_closed(request, section.content_nav, target_url=url)
         if closed:
-            return None, str(_CLOSED_REASONS.get(closed, "")), label
+            return None, _closed_reason(closed, host, key), label
         return {"label": label, "url": url, "only_here": only_here}, "", ""
     except NoReverseMatch:
         logger.error(

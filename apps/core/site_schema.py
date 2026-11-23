@@ -666,6 +666,11 @@ def object_back(code: str, obj=None) -> dict | None:
     try:
         url = reverse(_OBJECT_EDIT_URLS[kind], args=[obj.pk])
     except NoReverseMatch:
+        # ревью M5d-2: маршрут формы объекта не строится — ошибка конфигурации, не молча
+        logger.error(
+            "site_schema: object form route %r does not reverse - no back link",
+            _OBJECT_EDIT_URLS[kind],
+        )
         return None
     return {"url": url, "label": _object_label(obj)}
 
@@ -690,17 +695,25 @@ _OBJECT_FORM_FIELDS = {
 }
 
 
+@functools.cache
+def _form_field_labels(path: str) -> dict:
+    """{имя поля: подпись} формы объекта — один раз на процесс (ревью M5d-2: форму не строим
+    на каждый показ окна). Подписи остаются ленивыми: язык — в момент показа."""
+    import importlib
+
+    module, _dot, name = path.rpartition(".")
+    fields = getattr(importlib.import_module(module), name)()
+    return {key: field.label for key, field in fields.items() if field.label}
+
+
 def object_field_label(kind: str, field: str) -> str:
     """Подпись поля формы объекта из кода формы; "" — у вида такого источника нет или поля
     в нём нет (тогда подпись задаёт `ContentSource.field_label`)."""
-    import importlib
-
     path = _OBJECT_FORM_FIELDS.get(kind)
     if not path or not field:
         return ""
-    module, _dot, name = path.rpartition(".")
-    found = getattr(importlib.import_module(module), name)().get(field)
-    return str(found.label) if found is not None and found.label else ""
+    label = _form_field_labels(path).get(field)
+    return str(label) if label else ""
 
 
 def _object_label(obj) -> str:
