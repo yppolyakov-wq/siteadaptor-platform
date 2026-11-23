@@ -151,7 +151,15 @@ WITH_PREVIEW = [c for c in CASES if c not in NO_PREVIEW]
 def test_no_preview_where_the_window_has_no_page_to_show(case):
     code, ref, extra = (*case, "")[:3]
     html, ctx = _ctx(_owner_browser(), f"?seite={code}&block={ref}{extra}")
-    assert extra == "&entfernen=1" or not ctx.get("preview_url") or not ctx.get("window")
+    # FB-33 M5d-3 / M5d-5 (план стопки 12 §1): у закреплённых строк появилось окно из одной
+    # части «Inhalt» — «Vorschau» у него нет (`block_window`: части ⊆ {inhalt, pinned})
+    only_inhalt = [p for t in ctx.get("window") or [] for p in t["parts"]] == ["inhalt"]
+    assert (
+        extra == "&entfernen=1"
+        or not ctx.get("preview_url")
+        or not ctx.get("window")
+        or only_inhalt
+    )
     assert not ctx.get("bw_preview"), case
     assert "data-bw-preview" not in html and "aufbau_preview.js" not in html
 

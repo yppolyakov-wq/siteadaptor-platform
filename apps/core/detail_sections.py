@@ -89,6 +89,10 @@ class DetailSection:
     source: ContentSource | None = None
 
 
+#: FB-33 M5d-3: закреплённый текст текстовой страницы («Über uns», «Versand», своя «Seite») —
+#: правится в её редакторе («Seiten › <имя страницы>»); один источник на три хоста
+_PAGE_TEXT = ContentSource(kind="page", shows=_("den Text der Seite „%(page)s“"))
+
 # UC5-1: граница канвы — buy-box (выбор дат/слотов/количества, POST-движки
 # брони/покупки) конфигурируется ФОРМОЙ, не канвой: он сознательно НЕ входит в
 # DETAIL_SECTIONS ни одного модуля (нельзя скрыть/перетащить/вставить on-canvas);
@@ -360,12 +364,27 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # --- info ---
     # FB-32 S6a: «Über uns» — текст (всегда на странице) и карточка контактов (видимость —
     # прежний ключ `about_contact`); своя страница «Seite» — только текст. Порядок постоянный.
+    # FB-33 M5d-3: текст страницы правится в «Seiten» — у строки окно «Inhalt» (`_PAGE_TEXT`)
     "info": (
-        DetailSection("pagetext", _("Text"), hideable=False),
+        DetailSection(
+            "pagetext",
+            _("Text"),
+            hideable=False,
+            content_nav="content-pages",
+            source=_PAGE_TEXT,
+        ),
         DetailSection("contact", _("Kontakt & Öffnungszeiten")),
     ),
     # --- page ---
-    "page": (DetailSection("pagetext", _("Text"), hideable=False),),
+    "page": (
+        DetailSection(
+            "pagetext",
+            _("Text"),
+            hideable=False,
+            content_nav="content-pages",
+            source=_PAGE_TEXT,
+        ),
+    ),
     # --- message ---
     # FB-32 S6c: «Kontakt» и «Anfrage» — форма (с визиткой и Rückruf в боковой колонке, раскладка
     # SP-9 не делится) одной строкой: свои блоки над ней или под ней. Не скрывается.
@@ -536,9 +555,34 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # FB-32 S6b: «Versand» — свой текст и список Versandkosten (§ 6 PAngV: сюда ведёт
     # «zzgl. Versandkosten»). Список снимается только галочкой у страницы «Versand» (один
     # писатель; без своего текста список виден всегда) — в схеме строка не скрывается.
+    # FB-33 M5d-3: «Versandkosten» — способы доставки из «Zahlarten & Lieferung» (вкладка
+    # «Lieferung & Abholung»); числа способов в окне нет (план стопки 12 §9 №2), галочка названа
+    # как на форме страницы «Versand» (`content_page_form.html`)
     "versand": (
-        DetailSection("pagetext", _("Text"), hideable=False),
-        DetailSection("costs", _("Versandkosten"), hideable=False),
+        DetailSection(
+            "pagetext",
+            _("Text"),
+            hideable=False,
+            content_nav="content-pages",
+            source=_PAGE_TEXT,
+        ),
+        DetailSection(
+            "costs",
+            _("Versandkosten"),
+            hideable=False,
+            content_nav="payment-settings",
+            source=ContentSource(
+                kind="setting",
+                shows=_("Ihre Versandarten mit Preisen"),
+                note=_(
+                    "Hierhin führt „zzgl. Versandkosten“ bei jedem Preis. Die Liste lässt sich "
+                    "nur auf der Seite „Versand“ abschalten (Häkchen „Ihre Versandarten mit "
+                    "Preisen unter dem Text anzeigen“) — und nur mit eigenem Text."
+                ),
+                query="?tab=lieferung",
+                sub=_("Lieferung & Abholung"),
+            ),
+        ),
     ),
     # --- stays ---
     # UA4-1 slice C: секции детальной НОМЕРА (stays.StayUnit) — по факту stay_detail.html

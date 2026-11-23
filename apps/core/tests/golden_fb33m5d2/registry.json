@@ -427,7 +427,7 @@
   false,
   false,
   "",
-  ""
+  "content-pages"
  ],
  [
   "info",
@@ -447,7 +447,7 @@
   false,
   false,
   "",
-  ""
+  "content-pages"
  ],
  [
   "message",
@@ -657,7 +657,7 @@
   false,
   false,
   "",
-  ""
+  "content-pages"
  ],
  [
   "versand",
@@ -667,7 +667,7 @@
   false,
   false,
   "",
-  ""
+  "payment-settings"
  ],
  [
   "stays",
