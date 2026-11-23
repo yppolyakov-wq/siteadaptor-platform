@@ -6,7 +6,8 @@ M5dWindow, вариант A):
 - у строки G2 есть окно: с JS — `<dialog>` открыт, без JS — та же часть колонкой в панели
   (`[data-window-part=inhalt]`), полосы вкладок нет (у Gutschein-Formular — одна вкладка с
   плашкой § 312j под «Inhalt»);
-- «Dieser Block zeigt …», «🔒 fest» (🔒 `aria-hidden`, «fest» видимо), подсказка про «＋ Block»;
+- «Dieser Block zeigt …», значок «🔒 fest» (целиком `aria-hidden`, без точки, виден глазами),
+  подсказка про «Block hinzufügen» (без «＋»);
 - ссылка «Inhalt bearbeiten: <экран>»: имя = видимый текст, подчёркнута, ≥ 44 px, ведёт на
   экран (ответ < 400); без «⋯», «Platz», «Vorschau»;
 - с JS: «Fertig» → фокус на строке (⚙) этого блока;
@@ -76,10 +77,11 @@ PART_JS = """(root) => {
   const r = part.getBoundingClientRect();
   out.visible = r.width > 0 && r.height > 0;
   out.text = part.innerText.replace(/\\s+/g, ' ');
-  const lock = [...part.querySelectorAll('span')].find(s => s.textContent.trim() === '🔒');
-  out.lockHidden = !!lock && lock.getAttribute('aria-hidden') === 'true';
   const fixed = part.querySelector('[data-inhalt-fixed]');
-  out.fixedName = fixed ? acc(fixed) : '';
+  // ревью a11y: значок «🔒 fest» целиком aria-hidden, без точки ui-badge, текст виден глазами
+  out.lockHidden = !!fixed && fixed.getAttribute('aria-hidden') === 'true';
+  out.fixedVisible = fixed ? fixed.innerText.replace(/\\s+/g, ' ').trim() : '';
+  out.fixedDot = fixed ? getComputedStyle(fixed, '::before').display : '';
   const a = part.querySelector('a[data-inhalt-link]');
   out.link = !!a;
   if (a) {
@@ -109,8 +111,14 @@ def check_part(rep, m, tag, lang):
     if not rep.check(m.get("scope") and m.get("part"), f"{tag}: часть «Inhalt» есть", code="part"):
         return
     rep.check(m["visible"], f"{tag}: часть видна", code="visible")
-    rep.check(m["lockHidden"], f"{tag}: 🔒 aria-hidden", code="lock")
-    rep.check(bool(m["fixedName"]), f"{tag}: «fest» видимым текстом ({m['fixedName']!r})")
+    rep.check(m["lockHidden"], f"{tag}: значок «🔒 fest» aria-hidden", code="lock")
+    rep.check(
+        m["fixedVisible"].startswith("🔒") and len(m["fixedVisible"]) > 2,
+        f"{tag}: «fest» видно глазами ({m['fixedVisible']!r})",
+        code="fest",
+    )
+    rep.check(m["fixedDot"] == "none", f"{tag}: у значка нет точки ({m['fixedDot']})", code="dot")
+    rep.check("＋" not in m["text"], f"{tag}: подсказка без «＋»", code="plus")
     rep.check(m["hint"], f"{tag}: подсказка про «＋ Block»", code="hint")
     # владелец — ссылка есть; у гутшайнов без «loyalty» её нет (у китов стенда — есть)
     if rep.check(m["link"] and not m["reason"], f"{tag}: ссылка, без «Nur mit Berechtigung»"):
