@@ -167,7 +167,7 @@
               {% if f.type == 'select' %}
                 <select name="reg_{{ f.key }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
                   <option value="">–</option>
-                  {% for opt in f.options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+                  {% for value, label in f.options %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
                 </select>
               {% elif f.type == 'textarea' %}
                 <textarea name="reg_{{ f.key }}" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"></textarea>

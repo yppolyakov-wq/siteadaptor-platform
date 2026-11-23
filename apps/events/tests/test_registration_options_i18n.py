@@ -22,6 +22,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 from django.utils import timezone, translation
+from django.utils.html import escape
 
 from apps.events import participants, public_views, registration, views
 from apps.events.models import Event, TicketParticipant
@@ -47,8 +48,6 @@ VALUES = {
 ALL_VALUES = [v for group in VALUES.values() for v in group]
 OTHER_LOCALES = ["en", "tr", "ru", "uk"]
 
-# Замок до кода: красный на базе beba8b6; метка снимается коммитом с кодом.
-_LOCK = pytest.mark.xfail(strict=True, reason="FB-33 стопка 12 K: варианты ещё не пары")
 
 # Строка `<select>` анкеты на странице события ДО среза (шаблон базы beba8b6, язык de).
 SELECT_DE_BEFORE = (
@@ -135,7 +134,6 @@ def _owner_request():
 
 
 # --- №6, №12: value стабилен -------------------------------------------------
-@_LOCK
 def test_option_value_stable():
     """`value` — немецкая строка на любом языке и обычный `str` (не ленивый перевод)."""
     for lang in ["de", *OTHER_LOCALES]:
@@ -162,7 +160,6 @@ def test_collect_stores_german_value_under_ru():
     assert out == {"diet": "Kindermenü"}
 
 
-@_LOCK
 def test_label_is_translated_under_ru():
     with translation.override("ru"):
         labels = {value: str(label) for value, label in registration.FIELDS[3]["options"]}
@@ -171,7 +168,6 @@ def test_label_is_translated_under_ru():
 
 
 # --- №13: форма на витрине ---------------------------------------------------
-@_LOCK
 def test_storefront_form_ru_translates_text_keeps_value():
     html = _select(_detail_html(_event(), "ru"))
     assert '<option value="Kindermenü">Детское меню</option>' in html
@@ -179,7 +175,6 @@ def test_storefront_form_ru_translates_text_keeps_value():
     assert ">Kindermenü<" not in html
 
 
-@_LOCK
 @pytest.mark.parametrize("lang", OTHER_LOCALES)
 def test_storefront_form_no_german_option_text(lang):
     """Ни один вариант ни одного select не остаётся с немецкой подписью, если в каталоге
@@ -192,7 +187,8 @@ def test_storefront_form_no_german_option_text(lang):
         for value in values:
             entry = po.find(value, msgctxt=CTX)
             assert entry is not None, (lang, value)
-            assert f'<option value="{value}">{entry.msgstr}</option>' in select, (lang, value)
+            want = f'<option value="{value}">{escape(entry.msgstr)}</option>'
+            assert want in select, (lang, value)
 
 
 # --- замер: de байт-в-байт, на ru меняется только текст <option> ---------------
@@ -200,7 +196,6 @@ def test_storefront_select_de_byte_identical_to_base():
     assert _select(_detail_html(_event(), "de")) == SELECT_DE_BEFORE
 
 
-@_LOCK
 def test_storefront_ru_differs_from_de_only_in_option_text():
     event = _event(registration_fields=list(VALUES))
     de, ru = _detail_html(event, "de"), _detail_html(event, "ru")
@@ -211,7 +206,6 @@ def test_storefront_ru_differs_from_de_only_in_option_text():
 
 
 # --- selected по value: страница участника и карточка билета в кабинете --------
-@_LOCK
 def test_guest_participants_selected_by_value_under_ru():
     ticket = book_ticket(_event(), name="Anna", email="a@t.de", quantity=2, auto_confirm=True)
     TicketParticipant.objects.create(
@@ -237,7 +231,6 @@ def test_guest_participants_de_byte_identical_options():
     assert expected in select
 
 
-@_LOCK
 def test_cabinet_ticket_selected_by_value_under_ru(monkeypatch):
     monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     ticket = book_ticket(_event(), name="Anna", email="a@t.de", quantity=1, auto_confirm=True)
@@ -281,7 +274,6 @@ def _po_path(lang):
     return pathlib.Path(settings.BASE_DIR) / "locale" / lang / "LC_MESSAGES" / "django.po"
 
 
-@_LOCK
 @pytest.mark.parametrize("lang", ["de", *OTHER_LOCALES])
 def test_every_option_in_po_with_context(lang):
     po = polib.pofile(str(_po_path(lang)))
