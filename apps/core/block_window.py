@@ -28,6 +28,9 @@ TAB_KEYS = tuple(key for key, _label in TABS)
 
 #: часть панели → вкладка; порядок — порядок частей внутри вкладки
 PART_TAB: dict[str, str] = {
+    # FB-33 M5d-1: неподвижная строка G2 — что показывает и где правится содержимое; у строки
+    # с частью «pinned» (Gutschein-Formular, § 312j) — на её вкладке, над ней (`tab_of`)
+    "inhalt": "was",
     "list": "was",  # блок «Liste» и встроенные списки: что показать (форма «Welche · Wie»)
     "banner": "was",  # выбор баннера из библиотеки и «Wo zeigen»
     "places": "was",  # FB-33 M3-6 (M0-7): «Wo zeigen» одного баннера — в черновик
@@ -51,6 +54,7 @@ PART_TAB: dict[str, str] = {
     "formlink": "felder",  # FB-33 M2i-5: у полосы/блока заявки — ссылка на окно формы
 }
 PART_ORDER = (
+    "inhalt",
     "list",
     "banner",
     "places",
@@ -118,6 +122,7 @@ PANEL_KEYS: dict[str, str] = {
     "form_spec": "formfields",  # FB-33 M2i-5 (`fields` занято формой блока)
     "field_langs": "fields",  # FB-33 M3-5c: языки переводов окна (поля — у своей части)
     "form_link": "formlink",
+    "content": "inhalt",  # FB-33 M5d-1 (`window_parts.content_part`)
 }
 #: ключи строки, которые панель не рисует частью (метки строки, шапка окна, сырые данные)
 ROW_KEYS = frozenset(
@@ -164,6 +169,7 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
     if not selected:
         return []
     have = {
+        "inhalt": bool(selected.get("content")),
         "list": bool(selected.get("groups")),
         "banner": bool(selected.get("banner_pick")),
         "places": bool(selected.get("places")),
@@ -203,6 +209,10 @@ def tab_of(part: str, selected: dict) -> str:
             # FB-33 M5b-2: поля «Seitentitel» — на «Seite» ★-строки (переводы — той же формой)
             return "seite"
         return fields_tab(selected.get("fields") or [])
+    if part == "inhalt" and selected.get("legal"):
+        # FB-33 M5d-1 (ответ владельца §8.5 №6): у правовой строки — на вкладке плашки
+        # § 312j, над ней (`PART_ORDER`), без второй вкладки
+        return PART_TAB["pinned"]
     return PART_TAB[part]
 
 
@@ -223,6 +233,20 @@ def tabs(selected: dict | None, ctx: dict, wanted: str = "") -> list[dict]:
         active = next((t for t in out if t["key"] == wanted), out[0])
         active["active"] = True
     return out
+
+
+#: FB-33 M5d-1: части, при которых окну «Vorschau» не нужна — неподвижная строка G2 показывает
+#: только что в ней и где правится (вместе с плашкой § 312j у Gutschein-Formular)
+NO_PREVIEW_PARTS = frozenset({"inhalt", "pinned"})
+
+
+def has_preview(window: list[dict]) -> bool:
+    """Строить ли «Vorschau» окна: есть вкладки и это не окно «Inhalt» (части только из
+    `NO_PREVIEW_PARTS` и среди них «inhalt»; окно одной плашки § 312j — прежнее, с «Vorschau»)."""
+    found = {p for t in window or () for p in t.get("parts") or ()}
+    if not found:
+        return False
+    return not ("inhalt" in found and found <= NO_PREVIEW_PARTS)
 
 
 def explicit_tab(window: list[dict], wanted: str) -> str:

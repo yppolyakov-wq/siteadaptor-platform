@@ -271,20 +271,6 @@ def _low_stock(tenant) -> int:
     return services.reorder_count(services.low_stock_threshold(tenant))
 
 
-def _screen_open(request, url_name: str) -> bool:
-    """Экран доступен ЭТОМУ пользователю здесь: запись меню видна тенанту (модуль,
-    направление), экран в пакете, и у пользователя есть право (``view_perms``).
-    Ссылки и счётчики сводки показываем только тогда — иначе цифра ведёт в 403."""
-    from apps.core import nav_registry, packages
-    from apps.core.templatetags.cabinet import can_open
-
-    tenant = request.tenant
-    entry = next((e for e in nav_registry.ENTRIES if e.url_name == url_name), None)
-    if entry is not None and not nav_registry.entry_visible(entry, tenant):
-        return False
-    return packages.view_allowed(tenant, url_name) and can_open(url_name, request)
-
-
 def _unread(tenant) -> int:
     if not tenant.is_module_active("inbox"):
         return 0
@@ -297,7 +283,7 @@ def summary(request, kind: str) -> dict:
     """Контекст `core/_day_home.html` (префикс dh_). Без побочных эффектов."""
     from django.urls import reverse
 
-    from apps.core import sales_page, transactions
+    from apps.core import nav_registry, sales_page, transactions
     from apps.core.templatetags.cabinet import can_open
 
     tenant = request.tenant
@@ -313,12 +299,12 @@ def summary(request, kind: str) -> dict:
     new = _safe(lambda: _new(kind, tenant), [])
     unread = (
         _safe(lambda: _unread(tenant), 0)
-        if _safe(lambda: _screen_open(request, "inbox:list"), False)
+        if _safe(lambda: nav_registry.screen_open(request, "inbox:list"), False)
         else 0
     )
     overdue = _safe(lambda: _overdue_quotes(tenant), 0) if kind == "job" else 0
     low_stock = 0
-    if kind == "order" and _safe(lambda: _screen_open(request, "stock"), False):
+    if kind == "order" and _safe(lambda: nav_registry.screen_open(request, "stock"), False):
         low_stock = _safe(lambda: _low_stock(tenant), 0)
     create = sales_page.create_target(kind)
     if create and not can_open(_url_name(create), request):
@@ -338,7 +324,7 @@ def summary(request, kind: str) -> dict:
         "dh_unpaid": _safe(lambda: _unpaid(tenant, kind), {"count": 0, "amount": Decimal("0")}),
         "dh_finance": tenant.is_module_active("finance"),
         "dh_finance_link": tenant.is_module_active("finance")
-        and _safe(lambda: _screen_open(request, "finance:offene"), False),
+        and _safe(lambda: nav_registry.screen_open(request, "finance:offene"), False),
         "dh_unread": unread,
         "dh_overdue": overdue,
         "dh_low_stock": low_stock,

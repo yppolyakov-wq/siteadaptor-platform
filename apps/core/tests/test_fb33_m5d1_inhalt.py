@@ -29,8 +29,6 @@ from apps.core.tests.test_fb33_m3_window_before import CFG, _capture, _panel
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замки до кода (снимаются коммитом реализации)
-XF = pytest.mark.xfail(strict=True, reason="FB-33 M5d-1: замок до кода")
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -108,7 +106,6 @@ def _part(html: str, part: str) -> str:
 # --- реестр один -------------------------------------------------------------------------------
 
 
-@XF
 def test_content_nav_from_registry():
     """`content_nav` есть ровно у восьми разделов G2, каждый — имя URL записи `nav_registry`
     (однозначной: одна запись или одна без `query`); подпись ссылки — подпись этой записи."""
@@ -131,7 +128,6 @@ def test_content_nav_from_registry():
     assert not detail_sections.sections_for("anfrage")[0].content_nav
 
 
-@XF
 def test_day_home_uses_the_registry_access_check():
     """M8: проверка «экран открыт» — одна функция `nav_registry.screen_open`; у `day_home`
     своей копии нет."""
@@ -147,7 +143,6 @@ def test_day_home_uses_the_registry_access_check():
     assert len(calls) >= 3
 
 
-@XF
 def test_screen_open_keeps_the_day_home_answers(monkeypatch):
     """Прежнее поведение `day_home._screen_open`: модуль выключен — закрыт; пакет закрыт —
     закрыт; сотрудник без права — закрыт (с причиной «perm»)."""
@@ -175,7 +170,6 @@ def _inventory():
     return mod
 
 
-@XF
 def test_no_g2_block_without_window(monkeypatch):
     """Логикой `scripts/fb33_m5d_inventory.py` (ответ — разметка вьюхи): у всех строк страниц
     группы G2 окно есть."""
@@ -203,7 +197,6 @@ def test_no_g2_block_without_window(monkeypatch):
 # --- модель части ------------------------------------------------------------------------------
 
 
-@XF
 def test_inhalt_summary_is_row_summary(monkeypatch):
     """Сводка — `summary` строки (без своих запросов), пусто — подпись строки."""
     from apps.core import window_parts
@@ -227,7 +220,6 @@ def test_inhalt_summary_is_row_summary(monkeypatch):
     assert "content" not in cb
 
 
-@XF
 def test_missing_nav_logged(monkeypatch, caplog):
     """Нет записи реестра — ссылки нет, предупреждение в журнале (не молча)."""
     from apps.core import window_parts
@@ -245,7 +237,6 @@ def test_missing_nav_logged(monkeypatch, caplog):
     assert any("nope:missing" in r.getMessage() for r in caplog.records)
 
 
-@XF
 def test_message_form_no_felder():
     """Kontaktformular — «Inhalt», без «Felder» (форма `form_spec` только у «Anfrage»)."""
     assert site_schema.form_of("message") == ""
@@ -259,7 +250,6 @@ def test_message_form_no_felder():
 # --- окно ---------------------------------------------------------------------------------------
 
 
-@XF
 @pytest.mark.parametrize("code", sorted(G2))
 def test_every_g2_row_has_the_inhalt_window(code):
     html, view, selected = _open(code)
@@ -276,7 +266,6 @@ def test_every_g2_row_has_the_inhalt_window(code):
         assert [t["parts"] for t in block_window.tabs(selected, view)] == [["inhalt"]]
 
 
-@XF
 def test_inhalt_link_name_matches_visible():
     """Имя ссылки = её видимый текст (без `aria-label`): «Inhalt bearbeiten: Treuepunkte»."""
     html, _view, _selected = _open("loyalty")
@@ -288,7 +277,6 @@ def test_inhalt_link_name_matches_visible():
     assert NO_RIGHT not in part
 
 
-@XF
 def test_inhalt_link_and_texts_in_russian():
     with translation.override("ru"):
         html, _view, _selected = _open("loyalty")
@@ -296,7 +284,6 @@ def test_inhalt_link_and_texts_in_russian():
     assert "Изменить содержимое: " in part and "Inhalt bearbeiten" not in part
 
 
-@XF
 def test_lock_icon_aria_hidden():
     html, _view, _selected = _open("loyalty")
     part = _part(_panel(html), "inhalt")
@@ -305,7 +292,6 @@ def test_lock_icon_aria_hidden():
     assert part.count("🔒") == 1
 
 
-@XF
 def test_inhalt_no_more_platz_preview():
     """Без «⋯», «Platz» и «Vorschau»: `has_preview` — функция `block_window`, вьюха зовёт её."""
     tenant = _tenant()
@@ -322,7 +308,6 @@ def test_inhalt_no_more_platz_preview():
     assert not block_window.has_preview([])
 
 
-@XF
 def test_inhalt_nojs_column():
     """Без JS — та же часть колонкой в панели: раздел вкладки виден, «Fertig» и «Abbrechen»."""
     html, _view, _selected = _open("finder")
@@ -333,7 +318,6 @@ def test_inhalt_nojs_column():
     assert 'value="window_done"' in panel and 'value="revert"' in panel
 
 
-@XF
 def test_gift_inhalt_above_pinned_on_one_tab():
     """H3 / ответ владельца §8.5 №6: «Inhalt» у Gutschein-Formular — на вкладке части § 312j,
     над ней, второй вкладки нет; «Vorschau» нет."""
@@ -371,7 +355,6 @@ def test_cart_pinned_rows_unchanged():
     assert ctx["bw_preview"] is not None
 
 
-@XF
 def test_link_hidden_when_module_off():
     """Модуль экрана выключен (гутшайны без «loyalty») — ссылки нет и строки «без права» нет."""
     tenant = _tenant(disabled=["loyalty"])
@@ -382,7 +365,6 @@ def test_link_hidden_when_module_off():
     assert "Er gehört fest zur Seite" in part
 
 
-@XF
 def test_employee_without_right_text_without_link():
     """B5 / ответ §8.5 №8: сотрудник без права на экран — текст без ссылки и видимая строка
     «Nur mit Berechtigung bearbeitbar»; с правом — ссылка."""
@@ -409,7 +391,6 @@ def test_employee_without_right_text_without_link():
     assert "data-inhalt-link" in part and NO_RIGHT not in part
 
 
-@XF
 def test_inhalt_window_queries():
     """Часть «Inhalt» стоит не больше одного запроса поверх окна без неё (№31)."""
     from apps.core import window_parts
@@ -429,7 +410,6 @@ def test_inhalt_window_queries():
     assert len(with_part.captured_queries) <= len(without.captured_queries) + 1
 
 
-@XF
 def test_new_msgids_in_all_po():
     for lang in ("de", "en", "tr", "ru", "uk"):
         po = polib.pofile(str(ROOT / f"locale/{lang}/LC_MESSAGES/django.po"))

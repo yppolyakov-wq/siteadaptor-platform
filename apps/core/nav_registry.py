@@ -1386,6 +1386,35 @@ def entry_for(hub: str, url_name: str) -> NavEntry | None:
     return None
 
 
+def entry_by_url(url_name: str) -> NavEntry | None:
+    """Запись экрана по имени URL (FB-33 M5d-1): при нескольких — та, что без `query`
+    (у одной страницы подпункты с «?from=…» — входы, а не сам экран), иначе первая."""
+    found = [e for e in ENTRIES if e.url_name == url_name]
+    return next((e for e in found if not e.query), found[0] if found else None)
+
+
+def screen_closed(request, url_name: str) -> str:
+    """Почему экран закрыт ЭТОМУ пользователю здесь: "" — открыт; "module" — запись меню не
+    видна тенанту (модуль, направление, тип бизнеса); "package" — экрана нет в пакете;
+    "perm" — нет права (``view_perms``). Ссылки и счётчики показываем только при "" — иначе
+    они ведут в 403 (перенесено из ``day_home._screen_open``)."""
+    from apps.core import packages
+    from apps.core.templatetags.cabinet import can_open
+
+    tenant = request.tenant
+    entry = entry_by_url(url_name)
+    if entry is not None and not entry_visible(entry, tenant):
+        return "module"
+    if not packages.view_allowed(tenant, url_name):
+        return "package"
+    return "" if can_open(url_name, request) else "perm"
+
+
+def screen_open(request, url_name: str) -> bool:
+    """Экран доступен этому пользователю здесь (запись видна, пакет, право)."""
+    return not screen_closed(request, url_name)
+
+
 def hub_module_keys(anchor) -> set[str]:
     """X0: модульные гейты всех записей хабов якоря (для правила «якорь виден,
     если жив любой его модуль»). None-гейты (ядро) в набор не попадают."""

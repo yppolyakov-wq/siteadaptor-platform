@@ -39932,3 +39932,23 @@ msgstr "fb33-stack-anchor-m5c3m"
 
 msgid "fb33-stack-anchor-m5d1"
 msgstr "fb33-stack-anchor-m5d1"
+
+#. FB-33 M5d-1: часть окна «Inhalt»
+msgid "Inhalt bearbeiten: %(screen)s"
+msgstr "Edit content: %(screen)s"
+
+#. FB-33 M5d-1: часть окна «Inhalt»
+msgid "Dieser Block zeigt: %(summary)s."
+msgstr "This block shows: %(summary)s."
+
+#. FB-33 M5d-1: часть окна «Inhalt»
+msgid "Er gehört fest zur Seite und lässt sich nicht ausblenden oder verschieben."
+msgstr "It is a fixed part of the page and cannot be hidden or moved."
+
+#. FB-33 M5d-1: часть окна «Inhalt»
+msgid "Eigene Blöcke darüber oder darunter: „＋ Block“ unter dieser Zeile oder unter dem Block davor."
+msgstr "Your own blocks above or below: “＋ Add block” under this row or under the block before it."
+
+#. FB-33 M5d-1: часть окна «Inhalt»
+msgid "Nur mit Berechtigung bearbeitbar"
+msgstr "Editable only with permission"

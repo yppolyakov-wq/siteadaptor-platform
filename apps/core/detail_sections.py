@@ -41,6 +41,9 @@ class DetailSection:
     in_place: bool = False
     #: FB-33 M2g: у общего хоста двух видов (события и туры) — чей это раздел ("event"/"tour")
     only: str = ""
+    #: FB-33 M5d-1: имя URL экрана кабинета, где правится содержимое неподвижной строки
+    #: (часть окна «Inhalt»); подпись ссылки и доступ — из записи `nav_registry` по этому имени
+    content_nav: str = ""
 
 
 # UC5-1: граница канвы — buy-box (выбор дат/слотов/количества, POST-движки
@@ -141,19 +144,34 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # писатель; без своего текста список виден всегда) — в схеме строка не скрывается.
     # FB-32 S6c: «Kontakt» и «Anfrage» — форма (с визиткой и Rückruf в боковой колонке, раскладка
     # SP-9 не делится) одной строкой: свои блоки над ней или под ней. Не скрывается.
-    "message": (DetailSection("form", _("Kontaktformular"), hideable=False),),
+    "message": (
+        DetailSection("form", _("Kontaktformular"), hideable=False, content_nav="settings"),
+    ),
     "anfrage": (DetailSection("form", _("Anfrage-Formular"), hideable=False),),
     # FB-32 S6d: «Gutschein» — форма покупки (деньги, кнопка «Zahlungspflichtig bestellen»,
     # § 312j BGB) и «Treue» — программы; одной неподвижной строкой, свои блоки над ней и под ней
-    "gift": (DetailSection("form", _("Gift voucher"), hideable=False),),
-    "loyalty": (DetailSection("programs", _("Loyalty programme"), hideable=False),),
+    "gift": (
+        DetailSection(
+            "form", _("Gift voucher"), hideable=False, content_nav="promotions:voucher-list"
+        ),
+    ),
+    "loyalty": (
+        DetailSection(
+            "programs",
+            _("Loyalty programme"),
+            hideable=False,
+            content_nav="promotions:loyalty-list",
+        ),
+    ),
     # FB-32 S6e: запись блога — статья (не скрывается) и «More posts» (скрывается, прежний
     # список из 4); Finder — опросник одной строкой
     "blog_post": (
         DetailSection("article", _("Text"), hideable=False),
         DetailSection("more", _("More posts")),
     ),
-    "finder": (DetailSection("wizard", _("Finder"), hideable=False),),
+    "finder": (
+        DetailSection("wizard", _("Finder"), hideable=False, content_nav="finder-settings"),
+    ),
     # FB-32 S6f: деталь акции — «Angebot» (строка оси P3: цена, условия, купон, бронь —
     # деньги и PAngV, не скрывается и не делится) и «Weitere Aktionen» (скрывается,
     # `promo_show_related`). Порядок постоянный.
@@ -165,12 +183,24 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("related", _("Weitere Aktionen")),
     ),
     # FB-32 S6g-1: страницы, у которых блоков не было, — содержимое одной неподвижной строкой
-    "teachers": (DetailSection("teacherlist", _("Teachers"), hideable=False),),
-    "event_calendar": (DetailSection("calendar", _("Retreat calendar"), hideable=False),),
-    "passes": (DetailSection("plans", _("Multi-visit cards"), hideable=False),),
+    "teachers": (
+        DetailSection(
+            "teacherlist", _("Teachers"), hideable=False, content_nav="events:teacher-list"
+        ),
+    ),
+    "event_calendar": (
+        DetailSection("calendar", _("Retreat calendar"), hideable=False, content_nav="events:list"),
+    ),
+    "passes": (
+        DetailSection(
+            "plans", _("Multi-visit cards"), hideable=False, content_nav="booking:passes"
+        ),
+    ),
     # FB-32 S6g-2: выбор времени (ресурс или «Tisch reservieren») — вся коробка календаря и
     # формы брони одной неподвижной строкой
-    "booking_slots": (DetailSection("slots", _("Book a slot"), hideable=False),),
+    "booking_slots": (
+        DetailSection("slots", _("Book a slot"), hideable=False, content_nav="booking:resources"),
+    ),
     # FB-32 S6g-3: Kombi-Detail — конфигуратор (форма и цена, PAngV: не скрывается) и блоки
     # под ним (MEN-21), каждый скрывается (`combo_show_*`, presence-minimal). Порядок постоянный.
     "combo": (

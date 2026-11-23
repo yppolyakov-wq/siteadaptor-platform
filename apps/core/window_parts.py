@@ -116,3 +116,54 @@ def faq_anchor(post, count: int, opened=None) -> str:
     if post.get("faq_add") is not None and str(post.get("faq_new_q") or "").strip() and count:
         return faq_anchor_id(count - 1)
     return ""
+
+
+# --- FB-33 M5d-1 (D1): часть «Inhalt» неподвижных строк страниц-форм (G2) ---------------------
+
+
+def content_part(selected: dict | None, host: str, request) -> None:
+    """Часть окна «Inhalt» у неподвижной строки, чьё содержимое правится на экране кабинета
+    (`DetailSection.content_nav`): `selected["content"] = {"summary", "link", "reason"}`.
+
+    Сводка — `summary` строки (своих запросов нет), пусто — подпись строки. Ссылка
+    `{"label", "url"}` — подпись и адрес записи `nav_registry` (своего списка экранов нет); экран
+    закрыт этому пользователю — `link` None, при «нет права» видимая причина `reason`
+    (модуль или пакет — без ссылки и без причины). Записи нет — без ссылки, в журнал."""
+    if not selected or selected.get("cblock"):
+        return
+    from django.urls import NoReverseMatch, reverse
+    from django.utils.translation import gettext
+
+    from apps.core import detail_parts, detail_sections, nav_registry
+
+    key = selected.get("key") or ""
+    module = detail_parts.module_of(detail_parts.shared_host(host or ""))
+    section = next(
+        (s for s in detail_sections.sections_for(module) if s.key == key and s.content_nav),
+        None,
+    )
+    if section is None or selected.get("ref") != key:
+        return
+    summary = str(selected.get("summary") or selected.get("label") or section.label)
+    link, reason = None, ""
+    entry = nav_registry.entry_by_url(section.content_nav)
+    if entry is None:
+        logger.warning(
+            "window_parts: no nav entry %r for the content of %s/%s - no link",
+            section.content_nav,
+            host,
+            key,
+        )
+    else:
+        closed = nav_registry.screen_closed(request, section.content_nav)
+        if not closed:
+            try:
+                link = {"label": entry.label, "url": reverse(entry.url_name) + entry.query}
+            except NoReverseMatch:
+                logger.warning(
+                    "window_parts: nav entry %r does not reverse - no content link",
+                    entry.url_name,
+                )
+        elif closed == "perm":
+            reason = gettext("Nur mit Berechtigung bearbeitbar")
+    selected["content"] = {"summary": summary, "link": link, "reason": reason}

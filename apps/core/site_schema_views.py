@@ -683,13 +683,14 @@ def site_schema_view(request):
     if page_ref == site_schema.PAGE_REF:
         title_hint = _title_hint(layout, blocks, site_schema.title_hint_at(host, blocks), host)
     confirm_remove = bool(selected) and request.GET.get("entfernen") == "1"
+    window_parts.content_part(selected, host, request)  # FB-33 M5d-1: «Inhalt» строки G2
     # FB-33 M3-1: окно блока — части панели по вкладкам (`block_window`)
     window = block_window.tabs(
         selected, {"settings": settings, "design_rows": design_rows}, request.GET.get("tab", "")
     )
     bw_preview = (
         _block_preview(request, code, current, selected)
-        if selected and window and not confirm_remove and preview_url
+        if selected and block_window.has_preview(window) and not confirm_remove and preview_url
         else None
     )
     return render(
