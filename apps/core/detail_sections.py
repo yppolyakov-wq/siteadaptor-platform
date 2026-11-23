@@ -167,14 +167,53 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # над формой (после позиций), под сеткой и в хвосте
     # FB-33 M2h: подтверждение (заказ, запись, номер, билет, стол) — карточка сделки неподвижна;
     # «Was passiert jetzt» — только при своём тексте; «Empfehlungen» включает владелец (K3)
+    # FB-33 M5d-5: «Bestätigung» собирается из сделки (править нечего); «Empfehlungen» — товары
+    # с галочкой «Empfohlen» (`catalog.upsell`, не больше `confirmation_page.RECOMMEND_MAX`),
+    # ссылка — «Sortiment» (ответ владельца: записи «Produkte» в навигации нет)
     "confirmation": (
-        DetailSection("summary", _("Bestätigung"), hideable=False),
+        DetailSection(
+            "summary",
+            _("Bestätigung"),
+            hideable=False,
+            source=ContentSource(
+                kind="auto",
+                shows=_("die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"),
+                note=_("Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."),
+                woher=_("automatisch — aus der Bestellung oder Buchung."),
+            ),
+        ),
         DetailSection("next", _("Was passiert jetzt"), hideable=False),
-        DetailSection("recommend", _("Empfehlungen")),
+        DetailSection(
+            "recommend",
+            _("Empfehlungen"),
+            content_nav="sellable-manage",
+            source=ContentSource(
+                kind="setting",
+                shows=_(
+                    "bis zu 4 Produkte unter der Bestätigung — empfohlene zuerst, ohne die "
+                    "gerade gekauften"
+                ),
+                woher=_("Produkte mit Häkchen „Empfohlen“."),
+                only_if=_("Erscheint nur, wenn es Produkte gibt."),
+            ),
+        ),
     ),
     # --- cart ---
+    # FB-33 M5d-5: «Positionen» — из корзины покупателя (править нечего); «Bestellformular»,
+    # «Summe und Bestellbutton» и «Passt gut dazu» — со своими окнами, источника у них нет
     "cart": (
-        DetailSection("items", _("Positionen"), hideable=False),
+        DetailSection(
+            "items",
+            _("Positionen"),
+            hideable=False,
+            source=ContentSource(
+                kind="auto",
+                shows=_(
+                    "die Artikel, die der Kunde in den Warenkorb gelegt hat — mit Menge und Preis"
+                ),
+                woher=_("automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."),
+            ),
+        ),
         DetailSection("form", _("Bestellformular"), hideable=False),
         DetailSection("summary", _("Summe und Bestellbutton"), hideable=False),
         DetailSection("upsell", _("Goes well with this")),

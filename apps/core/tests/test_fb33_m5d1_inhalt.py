@@ -403,14 +403,16 @@ def test_gift_inhalt_above_pinned_on_one_tab():
 
 
 def test_cart_pinned_rows_unchanged():
-    """У строк с `pinned` без экрана содержимого (корзина) — ничего не изменилось."""
+    """У строк с `pinned` без экрана содержимого (корзина) — ничего не изменилось. «Positionen»
+    с FB-33 M5d-5 — с частью «Inhalt» (план стопки 12 §4 «G4»; замок —
+    `test_fb33_m5d5_checkout.py::test_cart_summary_form_untouched`)."""
     from apps.core.tests.test_fb27_r2_draft import _tenant as shop_tenant
 
     tenant = shop_tenant()
     tenant.site_config = CFG
     tenant.save()
     b = Browser(tenant)
-    for ref in ("summary", "items", "form"):
+    for ref in ("summary", "form"):
         ctx = _view_ctx(b, f"?seite=cart&block={ref}")
         selected = ctx.get("selected") or {}
         assert "content" not in selected, ref

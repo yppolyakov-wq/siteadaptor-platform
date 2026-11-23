@@ -40330,6 +40330,31 @@ msgstr "fb33-stack-anchor-m5d4e"
 msgid "fb33-stack-anchor-m5d5"
 msgstr "fb33-stack-anchor-m5d5"
 
+#. FB-33 M5d-5: окно «Inhalt» у строк корзины и подтверждения
+msgid "die Artikel, die der Kunde in den Warenkorb gelegt hat — mit Menge und Preis"
+msgstr "müşterinin sepete eklediği ürünleri — adet ve fiyatla"
+
+msgid "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
+msgstr "otomatik — müşterinin sepetinden. Bakım gerekmez."
+
+msgid "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
+msgstr "satın alma sonrası onayı — numara, kalemler, toplam, ödeme"
+
+msgid "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."
+msgstr "Sipariş, randevu, oda, bilet ve masa için geçerlidir."
+
+msgid "automatisch — aus der Bestellung oder Buchung."
+msgstr "otomatik — siparişten veya rezervasyondan."
+
+msgid "bis zu 4 Produkte unter der Bestätigung — empfohlene zuerst, ohne die gerade gekauften"
+msgstr "onayın altında en fazla 4 ürünü — önce önerilenler, az önce satın alınanlar hariç"
+
+msgid "Produkte mit Häkchen „Empfohlen“."
+msgstr "„Önerilen“ onay kutusu işaretli ürünler."
+
+msgid "Erscheint nur, wenn es Produkte gibt."
+msgstr "Yalnızca ürün varsa görünür."
+
 # fb33-stack-anchor-kinder
 msgid "fb33-stack-anchor-kinder"
 msgstr "fb33-stack-anchor-kinder"

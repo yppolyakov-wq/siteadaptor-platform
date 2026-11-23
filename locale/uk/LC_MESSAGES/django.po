@@ -40521,6 +40521,31 @@ msgstr "fb33-stack-anchor-m5d4e"
 msgid "fb33-stack-anchor-m5d5"
 msgstr "fb33-stack-anchor-m5d5"
 
+#. FB-33 M5d-5: окно «Inhalt» у строк корзины и подтверждения
+msgid "die Artikel, die der Kunde in den Warenkorb gelegt hat — mit Menge und Preis"
+msgstr "товари, які клієнт поклав у кошик, — з кількістю та ціною"
+
+msgid "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
+msgstr "автоматично — з кошика клієнта. Заповнювати нічого не потрібно."
+
+msgid "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
+msgstr "підтвердження після покупки — номер, позиції, суму, оплату"
+
+msgid "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."
+msgstr "Діє для замовлення, запису, номера, квитка та столика."
+
+msgid "automatisch — aus der Bestellung oder Buchung."
+msgstr "автоматично — із замовлення або бронювання."
+
+msgid "bis zu 4 Produkte unter der Bestätigung — empfohlene zuerst, ohne die gerade gekauften"
+msgstr "до 4 товарів під підтвердженням — спочатку рекомендовані, без щойно куплених"
+
+msgid "Produkte mit Häkchen „Empfohlen“."
+msgstr "Товари з галочкою «Рекомендовано»."
+
+msgid "Erscheint nur, wenn es Produkte gibt."
+msgstr "З'являється, лише якщо є товари."
+
 # fb33-stack-anchor-kinder
 msgid "fb33-stack-anchor-kinder"
 msgstr "fb33-stack-anchor-kinder"

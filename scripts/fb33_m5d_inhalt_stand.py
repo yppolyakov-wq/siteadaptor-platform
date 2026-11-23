@@ -102,7 +102,19 @@ CASES_M5D4D = ()
 CASES_M5D4E = ()
 
 # --- cases: m5d5 ---
-CASES_M5D5 = ()
+# G4: «Positionen» корзины и «Bestätigung» — закреплены, «Woher» есть, ссылки нет (авто);
+# «Empfehlungen» скрыта по умолчанию — строка в «Ausgeblendet», ссылка на «Sortiment»
+_G4_AUTO = {"pinned": True, "dl": True, "link": False}
+_G4_RECOMMEND = {"pinned": False, "dl": True, "link": True}
+CASES_M5D5 = (
+    ("shop", "cart", "items", _G4_AUTO),
+    ("shop", "confirmation", "summary", _G4_AUTO),
+    ("shop", "confirmation", "recommend", _G4_RECOMMEND),
+    ("friseur", "cart", "items", _G4_AUTO),
+    ("friseur", "confirmation", "recommend", _G4_RECOMMEND),
+    ("retreat", "confirmation", "summary", _G4_AUTO),
+    ("retreat", "confirmation", "recommend", _G4_RECOMMEND),
+)
 
 # --- cases: end ---
 CASES = (
@@ -180,7 +192,12 @@ def row_selector(ref):
 
 
 def open_row(pg, ref, js) -> bool:
-    """Клик по строке: с JS — окно `<dialog>`, без — панель той же страницей."""
+    """Клик по строке: с JS — окно `<dialog>`, без — панель той же страницей. Строка в
+    свёрнутом «Ausgeblendet» (M5d-5) — сначала раскрыть список, как это делает владелец."""
+    pg.evaluate(
+        "(s) => { const d = document.querySelector(s)?.closest('details'); if (d) d.open = true; }",
+        row_selector(ref),
+    )
     pg.click(row_selector(ref))
     if js:
         try:
