@@ -296,3 +296,49 @@ def test_po_has_no_extra_registration_options():
         po = polib.pofile(str(_po_path(lang)))
         extra = [e.msgid for e in po if e.msgctxt == CTX and e.msgid not in ALL_VALUES]
         assert not extra, (lang, extra)
+
+
+# --- ревью K (SFH-M5): сохранённый ответ вне списка вариантов не теряется -------
+def _posted(html, ticket):
+    """Что отправит браузер: имя и выбранный вариант каждого select формы участников."""
+    post = {}
+    for pos in range(1, ticket.quantity + 1):
+        name = re.search(rf'name="p{pos}_name"[^>]*value="([^"]*)"', html)
+        post[f"p{pos}_name"] = name.group(1) if name else ""
+        for field in re.findall(rf'<select name="(p{pos}_reg_\w+)"', html):
+            chosen = re.search(r'<option value="([^"]*)" selected>', _select(html, field))
+            post[field] = chosen.group(1) if chosen else ""
+    return post
+
+
+@pytest.mark.parametrize("page", ["guest", "cabinet"])
+def test_saved_answer_outside_the_options_survives(monkeypatch, page):
+    """Старый или вписанный вручную ответ select, которого нет среди вариантов: форма рисует
+    его выбранным вариантом `(value, value)` — раньше select вставал на «–», и следующее
+    сохранение формы стирало ответ."""
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
+    ticket = book_ticket(_event(), name="Anna", email="a@t.de", quantity=2, auto_confirm=True)
+    TicketParticipant.objects.create(
+        ticket=ticket, position=1, name="Anna", answers={"diet": "Paleo <alt>"}
+    )
+    TicketParticipant.objects.create(ticket=ticket, position=2, name="Ben", answers={})
+    if page == "guest":
+        html = _guest_page(ticket, "ru")
+    else:
+        with translation.override("ru"):
+            html = views.ticket_detail(_owner_request(), pk=ticket.pk).content.decode()
+    first = _select(html, "p1_reg_diet")
+    old = escape("Paleo <alt>")
+    assert f'<option value="{old}" selected>{old}</option>' in first
+    assert first.count(" selected") == 1
+    # у соседа без ответа лишнего варианта нет, реестр вариантов не тронут
+    assert "Paleo" not in _select(html, "p2_reg_diet")
+    assert [v for v, _label in registration.FIELDS[3]["options"]] == VALUES["diet"]
+    # повторный POST того, что показала форма, ответ не стирает
+    post = _posted(html, ticket)
+    assert post["p1_reg_diet"] == old
+    post["p1_reg_diet"] = "Paleo <alt>"
+    assert participants.save(ticket, post, source="owner") == 2
+    assert TicketParticipant.objects.get(ticket=ticket, position=1).answers == {
+        "diet": "Paleo <alt>"
+    }

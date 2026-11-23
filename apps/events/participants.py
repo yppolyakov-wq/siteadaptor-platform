@@ -86,15 +86,25 @@ def slots(ticket, *, hide_contacts=False) -> list[dict]:
                 "position": pos,
                 "name": name,
                 "fields": [
-                    {
-                        **f,
-                        "input": f"p{pos}_{registration.POST_PREFIX}{f['key']}",
-                        "value": answers.get(f["key"], ""),
-                    }
+                    _slot_field(f, f"p{pos}_{registration.POST_PREFIX}{f['key']}", answers)
                     for f in fields
                 ],
             }
         )
+    return out
+
+
+def _slot_field(field: dict, name: str, answers: dict) -> dict:
+    """Поле слота с текущим ответом. Сохранённый ответ select, которого нет среди вариантов
+    (старый вариант, ручная правка), дорисовывается вариантом `(value, value)` — иначе select
+    встаёт на «—» и следующее сохранение формы стирает ответ. Каталог вариантов
+    (`registration.FIELDS`) не меняется: список — копия на этот слот."""
+    value = answers.get(field["key"], "")
+    out = {**field, "input": name, "value": value}
+    if field.get("type") == "select" and value:
+        options = list(field.get("options") or [])
+        if value not in [v for v, _label in options]:
+            out["options"] = [*options, (value, value)]
     return out
 
 
