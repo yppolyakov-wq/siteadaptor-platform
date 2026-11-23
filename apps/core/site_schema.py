@@ -1517,7 +1517,7 @@ def panel_fields(item: dict) -> list[dict]:
     ]
 
 
-#: FB-33 M2d: строка «Seitentitel» — вычисляемая, в `page_blocks` не хранится
+#: FB-33 M2d / M5b-2: поля заголовка ★-строки страницы (`__page`, вкладка «Seite»); в `page_blocks` не хранятся
 TITLE_FIELDS = ("title", "intro", "align")
 
 

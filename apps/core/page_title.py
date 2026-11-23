@@ -46,8 +46,8 @@ HEAD_HOSTS = (
     "promos",
 )
 
-#: формы: свои блоки «сверху» рисуются НАД H1 — там строка «Seitentitel» стоит перед
-#: разделом формы; у страниц-списков H1 — самое верхнее (замок M2d-0)
+#: формы: свои блоки «сверху» рисуются НАД H1 — там серая метка «Überschrift der Seite»
+#: (M5b-2, `site_schema.title_hint_at`) стоит перед разделом формы; у страниц-списков H1 — самое верхнее (замок M2d-0)
 FORMS = frozenset({"anfrage", "event_calendar", "gift", "loyalty", "message", "passes", "teachers"})
 H1_FIRST = frozenset(HEAD_HOSTS) - FORMS
 

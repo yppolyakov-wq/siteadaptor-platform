@@ -279,6 +279,7 @@ def run(slugs) -> list[dict]:
             .first()
         )
         connection.set_tenant(tenant)
+        client = None
         try:
             with connection.execute_wrapper(_block_writes):
                 client = owner_client(tenant, host)
@@ -288,6 +289,8 @@ def run(slugs) -> list[dict]:
                 {"kit": slug, "code": "", "ref": "", "skipped": f"{type(exc).__name__}: {exc}"}
             )
         finally:
+            if client is not None:  # ревью: сессия владельца не остаётся в кэше на срок жизни
+                client.session.delete()
             connection.set_schema_to_public()
     return lines
 
@@ -418,6 +421,8 @@ def main(argv=None) -> int:
     slugs = [s for s in args.only.split(",") if s] or list(DEFAULT_SLUGS)
     sys.path.insert(0, str(ROOT))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.stand")
+    if os.environ["DJANGO_SETTINGS_MODULE"] != "config.settings.stand":
+        sys.exit("инвентаризация — только на настройках стенда (config.settings.stand)")
     import django
 
     django.setup()
