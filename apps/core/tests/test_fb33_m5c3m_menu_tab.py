@@ -23,19 +23,23 @@ pytestmark = pytest.mark.django_db
 
 TABS = ("top", "bottom", "footer")
 
-# Разметка вкладок и открывающие теги панелей ДО правки (de, без параметра).
+# Разметка вкладок и открывающие теги панелей без параметра (de): как до C3m, плюс связка
+# вкладка ↔ панель по ревью a11y (`id`, `aria-controls`, `role=tabpanel`, `aria-labelledby`).
 BEFORE_TABS = (
-    '<button type="button" class="ui-tab" role="tab" data-tab="top" aria-selected="true">'
-    "Kopfzeile</button>\n"
-    '    <button type="button" class="ui-tab" role="tab" data-tab="bottom" '
+    '<button type="button" class="ui-tab" role="tab" id="menu-tab-top" '
+    'aria-controls="menu-pane-top" data-tab="top" aria-selected="true">Kopfzeile</button>\n'
+    '    <button type="button" class="ui-tab" role="tab" id="menu-tab-bottom" '
+    'aria-controls="menu-pane-bottom" data-tab="bottom" '
     'aria-selected="false">Untere Leiste (Handy)</button>\n'
-    '    <button type="button" class="ui-tab" role="tab" data-tab="footer" '
-    'aria-selected="false">Fußzeile</button>'
+    '    <button type="button" class="ui-tab" role="tab" id="menu-tab-footer" '
+    'aria-controls="menu-pane-footer" data-tab="footer" aria-selected="false">Fußzeile</button>'
 )
 BEFORE_PANES = [
-    '<div data-pane="top">',
-    '<div data-pane="bottom" hidden>',
-    '<div data-pane="footer" hidden>',
+    '<div data-pane="top" role="tabpanel" id="menu-pane-top" aria-labelledby="menu-tab-top">',
+    '<div data-pane="bottom" role="tabpanel" id="menu-pane-bottom" '
+    'aria-labelledby="menu-tab-bottom" hidden>',
+    '<div data-pane="footer" role="tabpanel" id="menu-pane-footer" '
+    'aria-labelledby="menu-tab-footer" hidden>',
 ]
 
 
@@ -173,7 +177,6 @@ def test_js_takes_initial_tab_from_dom_and_syncs_hidden_field():
 # --- Ревью C3m (django-reviewer + a11y-architect, 2026-11-23) ---
 
 
-@pytest.mark.xfail(strict=True, reason="ревью a11y №2–3: связка вкладка ↔ панель")
 @pytest.mark.parametrize("key", TABS)
 def test_tabs_aria_linked_to_panes(key):
     """Вкладка знает свою панель (`aria-controls`), панель — `role=tabpanel` с именем
@@ -191,7 +194,6 @@ def test_tabs_aria_linked_to_panes(key):
     assert not re.search(r'<nav[^>]*role="tablist"', body)
 
 
-@pytest.mark.xfail(strict=True, reason="ревью: мёртвый контекст menu_tabs")
 def test_no_dead_menu_tabs_context():
     import pathlib
 
@@ -199,7 +201,6 @@ def test_no_dead_menu_tabs_context():
     assert '"menu_tabs"' not in src
 
 
-@pytest.mark.xfail(strict=True, reason="ревью №25: hidden + flex у панели инструментов и превью")
 def test_hidden_flex_nodes_have_hidden_rule():
     """`data-fold-tools` и `#bottom-preview` несут `hidden` вместе с классом `flex` — утилита
     перебивает `[hidden]` Tailwind; правило `[hidden]` для них задаёт `static/src/app.css`."""

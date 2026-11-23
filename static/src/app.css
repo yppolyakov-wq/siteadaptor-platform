@@ -1806,6 +1806,8 @@ input[type="datetime-local"] {
   @media (prefers-reduced-motion: no-preference) { .ui-bwin-pv-toggle svg { transition: transform 120ms ease-out; } }
   .ui-bwin-pv-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
   .ui-bwin-pv-area[hidden] { display: none; }
+  /* FB-33 C3m ревью: узлы «Menü» с `hidden` и классом `flex` — утилита перебивает `[hidden]` */
+  [data-fold-tools][hidden], [data-bottom-preview][hidden] { display: none; }
   .ui-bwin-pv-missing { margin: 0 0 0.5rem; border-radius: 0.5rem; background: #FFFBEB; color: #78350F; padding: 0.5rem 0.75rem; font-size: 0.875rem; }
   .ui-bwin-pv-missing[hidden] { display: none; }
   .ui-bwin-pv-stage { position: relative; height: min(360px, 38dvh); overflow: hidden; border: 1px solid #D1D5DB; border-radius: 0.75rem; background: #FFFFFF; }

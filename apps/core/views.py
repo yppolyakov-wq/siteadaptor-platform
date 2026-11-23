@@ -4431,7 +4431,6 @@ def menu_builder_view(request):
             "nav": "site-menu",
             "builder": builder,
             "menu_tab": _menu_tab(request.GET.get("tab")),
-            "menu_tabs": MENU_TABS,
         },
     )
 
