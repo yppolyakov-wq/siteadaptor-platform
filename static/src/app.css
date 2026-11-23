@@ -1863,7 +1863,15 @@ input[type="datetime-local"] {
     body:has(nav[data-tabbar]) [data-schema-draftbar] { padding-bottom: 0.5rem; }
     body:has([data-schema-draftbar]) #main { padding-bottom: calc(var(--schema-draft-at) + var(--schema-draft-h) + 1.5rem); }
     body:has([data-schema-draftbar]) [data-assistant-fab] { bottom: calc(var(--schema-draft-at) + var(--schema-draft-h) + 0.75rem); }
+    /* ревью a11y (WCAG 1.4.10): полоса с таб-баром выше 35 % экрана (крупный шрифт) — в потоке
+       шапки; флаг ставит aufbau.js (`measure`) */
+    :root[data-schema-draft-flow]:has([data-schema-draftbar]),
+    :root[data-schema-draft-flow]:has([data-schema-draftbar]):has(nav[data-tabbar]) { --schema-draft-h: 0px; --schema-draft-at: 0px; scroll-padding-bottom: 0; }
+    :root[data-schema-draft-flow] [data-schema-draftbar] { position: static; padding: 0; border-top: 0; background: transparent; box-shadow: none; }
   }
+  /* ревью C3–C4: без JS панель под схемой до 1280 px — «Fertig» сверху виден до xl; в окне-диалоге
+     на компьютере его нет, как раньше (там «Fertig» внизу и ×) */
+  @media (min-width: 48rem) { .ui-bwin [data-schema-panel] > :has(> [data-schema-done]) { display: none; } }
   /* SP-10: <legend> карточки-fieldset браузер рисует НА верхней кромке (заголовок «висел»
      над карточкой). float — штатный способ вернуть его в поток; следующий блок — с новой строки. */
   fieldset.ui-card > legend:not(.sr-only) { float: left; width: 100%; padding: 0; margin-top: 0 !important; }

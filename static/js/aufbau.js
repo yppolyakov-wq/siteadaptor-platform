@@ -124,6 +124,11 @@ function aufbauSubmitCopy(form, submitter) {
     document.querySelectorAll("[data-window-hint]").forEach(function (p) { p.hidden = true; });
   }
 
+  function draftNote() {
+    var n = document.querySelector("[data-schema-draft-note]");
+    return n ? n.textContent.replace(/\s+/g, " ").trim() : "";
+  }
+
   function swap(doc, selector) {
     var now = document.querySelector(selector);
     var next = doc.querySelector(selector);
@@ -196,7 +201,11 @@ function aufbauSubmitCopy(form, submitter) {
         // FB-33 M3-7: правка записана — «Vorschau» окна перерисует кадр
         if (!refused) document.dispatchEvent(new CustomEvent("aufbau:saved"));
         if (refused) whole = true;
+        // ревью C3–C4 (a11y): счётчик черновика — в подменяемом узле; новое значение
+        // говорит постоянная живая область вместе с «Übernommen.»
+        var noteBefore = draftNote();
         swap(doc, "[data-schema-status]");
+        var noteNow = draftNote();
         swap(doc, "[data-schema-map]");
         if (whole) {
           // Фокус остаётся там, где владелец сейчас; набранный, но ещё не отправленный
@@ -240,7 +249,9 @@ function aufbauSubmitCopy(form, submitter) {
         } else if (live) {
           // Тот же текст подряд диктор не повторяет — сначала очищаем.
           live.textContent = "";
-          setTimeout(function () { live.textContent = live.getAttribute("data-done") || ""; }, 100);
+          var said = live.getAttribute("data-done") || "";
+          if (noteNow && noteNow !== noteBefore) said = (said + " " + noteNow).trim();
+          setTimeout(function () { live.textContent = said; }, 100);
         }
       })
       .catch(function (err) {
@@ -797,6 +808,8 @@ function aufbauSubmitCopy(form, submitter) {
     var lastFocus = null;
     self.addEventListener("focusin", function (e) { lastFocus = e.target; });
     self.addEventListener("close", function (e) {
+      // ревью C3–C4: окно закрыто скриптом или подменено — схема снова в две колонки
+      if (e.target === self && (ours || win !== self)) unsolo();
       // закрыл не скрипт (CloseWatcher, «назад» на Android) — окно остаётся, как Esc
       if (e.target !== self || ours || win !== self) return;
       try {
@@ -830,6 +843,11 @@ function aufbauSubmitCopy(form, submitter) {
     return true;
   }
 
+  function unsolo() {
+    var grid = document.querySelector("[data-site-schema]");
+    if (grid) grid.removeAttribute("data-schema-solo");
+  }
+
   function closeWindow() {
     if (!win) return;
     var panel = win.querySelector("[data-schema-panel]");
@@ -852,8 +870,7 @@ function aufbauSubmitCopy(form, submitter) {
     if (mark && mark.parentNode) mark.parentNode.removeChild(mark);
     win.remove();
     win = null;
-    var grid = document.querySelector("[data-site-schema]");
-    if (grid) grid.removeAttribute("data-schema-solo");
+    unsolo();
     document.dispatchEvent(new CustomEvent("aufbau:window-close"));  // FB-33 M3-7: кадр убрать
     mark = null;
     closing = false;
@@ -865,7 +882,7 @@ function aufbauSubmitCopy(form, submitter) {
 
   hideApply();
   if (aufbauWindowWanted()) openWindow(document.querySelector("[data-schema-panel]"));
-  if (!win) langNote();  // окно зовёт её само (openWindow)
+  if (!win) { langNote(); unsolo(); }  // окно зовёт langNote само (openWindow)
 })();
 
 /* FB-33 M5c-5 (a11y A3): реальная высота липкой полосы черновика (перенос подписи, крупный
@@ -876,13 +893,25 @@ function aufbauSubmitCopy(form, submitter) {
   var head = document.querySelector("[data-schema-head]");
   if (!head) return;
   var root = document.documentElement;
+  // ревью C3–C4 (a11y, WCAG 1.4.10): полоса с таб-баром выше 35 % экрана (крупный шрифт,
+  // 320×568) — в потоке шапки (`data-schema-draft-flow`); таб-бар мерим, а не считаем 5.25rem
+  var CAP = 0.35;
   function measure() {
     var bar = head.querySelector("[data-schema-draftbar]");
-    if (bar && getComputedStyle(bar).position === "fixed") {
-      root.style.setProperty("--schema-draft-h", Math.ceil(bar.getBoundingClientRect().height) + "px");
-    } else {
-      root.style.removeProperty("--schema-draft-h");
+    root.removeAttribute("data-schema-draft-flow");
+    root.style.removeProperty("--schema-draft-h");
+    root.style.removeProperty("--schema-draft-at");
+    if (!bar || getComputedStyle(bar).position !== "fixed") return;
+    var tab = document.querySelector("nav[data-tabbar]");
+    var tabBox = tab && tab.getClientRects().length ? tab.getBoundingClientRect() : null;
+    var at = tabBox ? Math.max(0, Math.ceil(window.innerHeight - tabBox.top)) : 0;
+    var h = Math.ceil(bar.getBoundingClientRect().height);
+    if (h + at > window.innerHeight * CAP) {
+      root.setAttribute("data-schema-draft-flow", "");
+      return;
     }
+    root.style.setProperty("--schema-draft-h", h + "px");
+    if (tabBox) root.style.setProperty("--schema-draft-at", at + "px");
   }
   measure();
   window.addEventListener("resize", measure);

@@ -11,8 +11,9 @@
   фокуса не заходит под полосу; конец схемы («Fußzeile») докручивается выше полосы;
 - 1440 с JS: окно блока открыто — схема одной колонкой ≤ 760 px по центру (`data-schema-solo`),
   после Esc — снова две колонки, флага нет;
-- без JS 1024 и 390: панель выбранного блока — под схемой, в потоке (не лист поверх), переход
-  `#schema-panel` показывает её.
+- без JS 1024, 1279 и 390: панель выбранного блока — под схемой, в потоке (не лист поверх),
+  переход `#schema-panel` показывает её, «Fertig» сверху виден; с JS 1024 — в окне её нет;
+- 390×844 с JS: полоса вплотную над таб-баром; 320×568 со шрифтом 200 % — полоса в потоке.
 
 Запуск (демо-киты в стенд-БД, вход `<kit>@example.com` / `demo-12345678`):
     DB_NAME=<стенд-БД> python manage.py runserver 0.0.0.0:8044 --settings=config.settings.stand --noreload
@@ -57,7 +58,15 @@ BAR_JS = """() => {
   const r = b.getBoundingClientRect(); const cs = getComputedStyle(b);
   return {pos: cs.position, top: r.top, bottom: r.bottom, h: r.height, vh: innerHeight,
     note: !!b.querySelector('[data-schema-draft-note]'), form: !!b.querySelector('form[data-schema-draft]'),
-    varH: getComputedStyle(document.documentElement).getPropertyValue('--schema-draft-h').trim()};
+    varH: getComputedStyle(document.documentElement).getPropertyValue('--schema-draft-h').trim(),
+    flow: document.documentElement.hasAttribute('data-schema-draft-flow'),
+    tabTop: (() => { const n = document.querySelector('nav[data-tabbar]');
+      return n && n.getClientRects().length ? n.getBoundingClientRect().top : null; })()};
+}"""
+
+DONE_JS = """() => {
+  const d = document.querySelector('[data-schema-panel] [data-schema-done]');
+  return d ? d.getClientRects().length > 0 && getComputedStyle(d).visibility !== 'hidden' : null;
 }"""
 
 FOCUS_JS = """() => {
@@ -224,6 +233,12 @@ def check_draft(rep, pg, t, w, h, js, slug):
             f"{t}: высота полосы в --schema-draft-h ({var} / {bar['h']:.1f})",
             code="bar-var",
         )
+        if js and bar["tabTop"] is not None:
+            # ревью C3–C4: таб-бар измерен — полоса стоит вплотную над ним (ни щели, ни наезда)
+            gap = bar["tabTop"] - bar["bottom"]
+            rep.check(
+                abs(gap) <= 1, f"{t}: полоса над таб-баром вплотную ({gap:+.1f})", code="bar-tab"
+            )
     sl.shot(pg, OUT, f"m5c4_draft_{slug}_{w}x{h}_{'js' if js else 'nojs'}")
     # Tab по всем стопам #main: фокус не под полосой
     pg.evaluate("() => { window.scrollTo(0, 0); document.getElementById('main').focus(); }")
@@ -264,6 +279,34 @@ def check_draft(rep, pg, t, w, h, js, slug):
     )
     over = pg.evaluate("() => document.documentElement.scrollWidth - innerWidth")
     rep.check(over <= 0, f"{t}: без гор. прокрутки ({over})", code="overflow")
+
+
+def check_big_font(rep, pg, t, slug):
+    """Ревью C3–C4 (WCAG 1.4.10): 320×568, шрифт 200 % — полоса с таб-баром выше 35 % экрана
+    уходит в поток шапки."""
+    make_draft(pg, True, slug)
+    pg.evaluate("() => { document.documentElement.style.fontSize = '200%'; }")
+    pg.evaluate("() => window.dispatchEvent(new Event('resize'))")
+    pg.wait_for_timeout(200)
+    bar = pg.evaluate(BAR_JS)
+    rep.check(
+        bar is not None and bar["flow"] and bar["pos"] == "static",
+        f"{t}: шрифт 200 % — полоса в потоке ({bar and bar['pos']}, flow={bar and bar['flow']})",
+        code="bar-flow",
+    )
+    # гор. прокрутка кабинета при 200 % на 320 — не про полосу (шапка экрана); только пометка
+    over = pg.evaluate("() => document.documentElement.scrollWidth - innerWidth")
+    if over > 0:
+        rep.note(f"{t}: шрифт 200 % — гор. прокрутка страницы {over}px (шапка кабинета, вне среза)")
+
+
+def check_dialog_done(rep, pg, t, slug):
+    """Ревью C3–C4: в окне-диалоге на компьютере верхней «Fertig» нет (как раньше)."""
+    refs = gears(pg) or []
+    pg.goto(aufbau(slug, f"&block={refs[0]}") if refs else aufbau(slug))
+    pg.wait_for_selector(f"{DLG}[open]", timeout=10000)
+    sl.settle(pg, True)
+    rep.check(pg.evaluate(DONE_JS) is False, f"{t}: в окне верхней «Fertig» нет", code="dlg-done")
 
 
 def check_solo(rep, pg, t, slug):
@@ -326,6 +369,8 @@ def check_nojs_panel(rep, pg, t, slug):
     rep.check(
         st["inView"], f"{t}: #schema-panel показывает панель ({st['top']})", code="panel-view"
     )
+    # ревью C3–C4: до 1280 без JS панель под схемой — «Fertig» сверху виден
+    rep.check(pg.evaluate(DONE_JS) is True, f"{t}: без JS «Fertig» панели виден", code="nojs-done")
     sl.shot(pg, OUT, f"m5c4_nojs_panel_{slug}_{pg.viewport_size['width']}")
 
 
@@ -358,8 +403,19 @@ def main():
                 guarded(rep, t, check_solo, rep, pg, t, slug)
                 rep.check(not pg.js_errors, f"{t}: без ошибок JS ({pg.js_errors[:2]})", code="js")
                 pg.context.close()
-            # без JS 1024 и 390 — панель под схемой
-            for w, h in ((1024, 768), (390, 844)):
+            # ревью C3–C4: 320×568 с крупным шрифтом; окно-диалог на 1024
+            pg, t = page_for(rep, browser, slug, 320, 568, "de", True)
+            if pg is not None:
+                guarded(rep, t, check_big_font, rep, pg, t, slug)
+                pg.context.close()
+            pg, t = page_for(rep, browser, slug, 1024, 768, "de", True)
+            if pg is not None:
+                pg.goto(aufbau(slug))
+                sl.settle(pg, True)
+                guarded(rep, t, check_dialog_done, rep, pg, t, slug)
+                pg.context.close()
+            # без JS 1024, 1279 и 390 — панель под схемой
+            for w, h in ((1024, 768), (1279, 800), (390, 844)):
                 pg, t = page_for(rep, browser, slug, w, h, "de", False)
                 if pg is not None:
                     guarded(rep, t, check_nojs_panel, rep, pg, t, slug)

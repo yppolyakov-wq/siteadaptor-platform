@@ -11,8 +11,6 @@ from apps.core.tests.test_fb29_banner_pick import _tenant
 from apps.core.tests.test_fb33_m5c0_insert import _draft_items
 
 pytestmark = pytest.mark.django_db
-#: замок первого коммита: поведения ещё нет (снимается реализацией)
-_red = pytest.mark.xfail(strict=True, reason="FB-33 M5c ревью C3–C4: правки ещё нет")
 
 
 @pytest.fixture(autouse=True)
@@ -26,7 +24,6 @@ def _done_wrappers(html):
     return re.findall(r"<(?:form|p)\b[^>]*>(?:(?!</(?:form|p)>).)*?data-schema-done", panel, re.S)
 
 
-@_red
 def test_done_visible_until_column_layout():
     """MED django: колонка справа — с `xl` (1280); ниже без JS панель под схемой — «Fertig» сверху
     обязан быть виден (`xl:hidden`, не `md:hidden`), у обоих вариантов."""
@@ -41,7 +38,6 @@ def test_done_visible_until_column_layout():
         assert "xl:hidden" in tag and "md:hidden" not in tag, tag
 
 
-@_red
 def test_draft_note_is_not_a_live_region():
     """LOW a11y: узел счётчика подменяется целиком — его role=status не звучит; говорит
     постоянная `[data-schema-live]`."""

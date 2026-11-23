@@ -34,7 +34,7 @@
   {% if preview_url %}<a href="{{ preview_url }}?{{ preview_query }}" target="_blank" rel="noopener" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">{% trans "Vorschau" %}<span class="sr-only"> ({% trans "öffnet in neuem Tab" %})</span></a>{% endif %}
   {% if draft %}{% comment %}FB-33 M5c-5 (a11y A3): состояние черновика и его кнопки — одной полосой; на высоком телефоне она липнет к низу (правило app.css), иначе — в шапке.{% endcomment %}
   <div class="flex flex-wrap items-center gap-x-3 gap-y-2" data-schema-draftbar>
-  <p role="status" class="text-sm text-amber-900" data-schema-draft-note><strong>{% trans "Entwurf" %}</strong> · {% blocktrans with n=draft.count %}Änderungen: {{ n }}{% endblocktrans %}<span class="sr-only"> – {% trans "noch nicht auf der Website" %}</span></p>
+  <p class="text-sm text-amber-900" data-schema-draft-note><strong>{% trans "Entwurf" %}</strong> · {% blocktrans with n=draft.count %}Änderungen: {{ n }}{% endblocktrans %}<span class="sr-only"> – {% trans "noch nicht auf der Website" %}</span></p>
   <form method="post" class="flex items-center gap-2" data-schema-draft>
     {% csrf_token %}
     {% include "tenant/_schema_keep.html" %}
@@ -189,8 +189,8 @@
   со скриптами — окно-диалог (aufbau.js), схема тогда одной колонкой (`data-schema-solo`).{% endcomment %}
   <aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
     {% if selected %}
-    {% if selected and window %}<form method="post" class="md:hidden -mt-1 mb-1 text-right">{% csrf_token %}{% include "tenant/_schema_keep.html" %}<input type="hidden" name="ref" value="{{ selected.ref }}"><button name="op" value="window_done" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>{% trans "Fertig" %}<span class="sr-only"> – {% trans "Einstellungen des Blocks schließen" %}</span></button></form>
-    {% else %}<p class="md:hidden -mt-1 mb-1 text-right"><a href="?seite={{ code|urlencode }}{{ keep_q }}#schema-row-{{ selected.ref }}" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>{% trans "Fertig" %}<span class="sr-only"> – {% trans "Einstellungen des Blocks schließen" %}</span></a></p>{% endif %}
+    {% if selected and window %}<form method="post" class="xl:hidden -mt-1 mb-1 text-right">{% csrf_token %}{% include "tenant/_schema_keep.html" %}<input type="hidden" name="ref" value="{{ selected.ref }}"><button name="op" value="window_done" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>{% trans "Fertig" %}<span class="sr-only"> – {% trans "Einstellungen des Blocks schließen" %}</span></button></form>
+    {% else %}<p class="xl:hidden -mt-1 mb-1 text-right"><a href="?seite={{ code|urlencode }}{{ keep_q }}#schema-row-{{ selected.ref }}" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>{% trans "Fertig" %}<span class="sr-only"> – {% trans "Einstellungen des Blocks schließen" %}</span></a></p>{% endif %}
     {% endif %}
     {% if selected %}
     {% comment %}FB-27 V2 (макет Main): заголовок блока и меню «⋯» (Ausblenden · Entfernen); порядок

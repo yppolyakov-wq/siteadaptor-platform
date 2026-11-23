@@ -116,7 +116,10 @@ def test_solo_flag_set_and_cleared_in_js():
     dress = js[js.index("function dress()") : js.index("function tabLinks()")]
     close = js[js.index("function closeWindow()") : js.index("window.aufbauWindow =")]
     assert 'setAttribute("data-schema-solo"' in dress, "флаг ставит панель в окне (dress)"
-    assert 'removeAttribute("data-schema-solo")' in close, "флаг снимает closeWindow"
+    # ревью C3–C4: снятие флага — одна функция `unsolo` (closeWindow, close диалога, загрузка)
+    unsolo = js[js.index("function unsolo()") : js.index("function closeWindow()")]
+    assert 'removeAttribute("data-schema-solo")' in unsolo
+    assert "unsolo();" in close, "флаг снимает closeWindow"
     # путь dress() без окна уходит в closeWindow — флаг снимается там же
     head = dress[: dress.index('setAttribute("data-schema-solo"')]
     assert "closeWindow();" in head
