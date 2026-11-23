@@ -40139,3 +40139,79 @@ msgstr "Modül etkin değil"
 #. FB-33 M5d-1: часть окна «Inhalt» (ревью)
 msgid "Nicht in Ihrem Paket enthalten"
 msgstr "Paketinize dahil değil"
+
+# fb33-stack-anchor-kinder
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Vegetarisch"
+msgstr "Vejetaryen"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Vegan"
+msgstr "Vegan"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Rohkost"
+msgstr "Çiğ beslenme"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Glutenfrei"
+msgstr "Glütensiz"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Ayurvedisch"
+msgstr "Ayurvedik"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Kindermenü"
+msgstr "Çocuk menüsü"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Anfänger"
+msgstr "Başlangıç"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Mittel"
+msgstr "Orta"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Fortgeschritten"
+msgstr "İleri"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Bis 5.000 km"
+msgstr "5.000 km'ye kadar"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "5.000–20.000 km"
+msgstr "5.000–20.000 km"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Über 20.000 km"
+msgstr "20.000 km'den fazla"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Offroad-erfahren"
+msgstr "Arazi sürüşü deneyimi"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Mietmaschine"
+msgstr "Kiralık motosiklet"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Eigenes Motorrad"
+msgstr "Kendi motosikletim"

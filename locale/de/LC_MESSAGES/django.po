@@ -40079,3 +40079,79 @@ msgstr "Modul ist nicht aktiv"
 #. FB-33 M5d-1: часть окна «Inhalt» (ревью)
 msgid "Nicht in Ihrem Paket enthalten"
 msgstr "Nicht in Ihrem Paket enthalten"
+
+# fb33-stack-anchor-kinder
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Vegetarisch"
+msgstr "Vegetarisch"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Vegan"
+msgstr "Vegan"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Rohkost"
+msgstr "Rohkost"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Glutenfrei"
+msgstr "Glutenfrei"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Ayurvedisch"
+msgstr "Ayurvedisch"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Kindermenü"
+msgstr "Kindermenü"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Anfänger"
+msgstr "Anfänger"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Mittel"
+msgstr "Mittel"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Fortgeschritten"
+msgstr "Fortgeschritten"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Bis 5.000 km"
+msgstr "Bis 5.000 km"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "5.000–20.000 km"
+msgstr "5.000–20.000 km"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Über 20.000 km"
+msgstr "Über 20.000 km"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Offroad-erfahren"
+msgstr "Offroad-erfahren"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Mietmaschine"
+msgstr "Mietmaschine"
+
+#. FB-33 стопка 12 K: вариант select анкеты участника
+msgctxt "registration option"
+msgid "Eigenes Motorrad"
+msgstr "Eigenes Motorrad"

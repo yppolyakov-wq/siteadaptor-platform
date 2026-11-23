@@ -29,7 +29,7 @@
               {% if f.type == "select" %}
                 <select name="{{ f.input }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
                   <option value="">—</option>
-                  {% for o in f.options %}<option value="{{ o }}"{% if o == f.value %} selected{% endif %}>{{ o }}</option>{% endfor %}
+                  {% for value, label in f.options %}<option value="{{ value }}"{% if value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
                 </select>
               {% elif f.type == "textarea" %}
                 <textarea name="{{ f.input }}" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">{{ f.value }}</textarea>

@@ -9,8 +9,12 @@
 """
 
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 # Каталог пресет-полей (порядок = порядок показа). type: text|date|textarea|select.
+# Вариант select — пара (value, label). value — немецкая строка, одна на всех языках: её
+# хранят ответы (`Ticket.answers`, `TicketParticipant.answers`), ростер, CSV и письма —
+# менять нельзя. label — перевод, виден только в тексте `<option>` формы.
 FIELDS = [
     {"key": "country", "label": _("Land"), "type": "text"},
     {"key": "birth_date", "label": _("Geburtsdatum"), "type": "date"},
@@ -20,19 +24,23 @@ FIELDS = [
         "label": _("Ernährung"),
         "type": "select",
         "options": [
-            "Vegetarisch",
-            "Vegan",
-            "Rohkost",
-            "Glutenfrei",
-            "Ayurvedisch",
-            "Kindermenü",
+            ("Vegetarisch", pgettext_lazy("registration option", "Vegetarisch")),
+            ("Vegan", pgettext_lazy("registration option", "Vegan")),
+            ("Rohkost", pgettext_lazy("registration option", "Rohkost")),
+            ("Glutenfrei", pgettext_lazy("registration option", "Glutenfrei")),
+            ("Ayurvedisch", pgettext_lazy("registration option", "Ayurvedisch")),
+            ("Kindermenü", pgettext_lazy("registration option", "Kindermenü")),
         ],
     },
     {
         "key": "experience",
         "label": _("Erfahrungslevel"),
         "type": "select",
-        "options": ["Anfänger", "Mittel", "Fortgeschritten"],
+        "options": [
+            ("Anfänger", pgettext_lazy("registration option", "Anfänger")),
+            ("Mittel", pgettext_lazy("registration option", "Mittel")),
+            ("Fortgeschritten", pgettext_lazy("registration option", "Fortgeschritten")),
+        ],
     },
     {"key": "allergies", "label": _("Allergien / Unverträglichkeiten"), "type": "text"},
     {"key": "medical", "label": _("Gesundheitliche Hinweise"), "type": "textarea"},
@@ -44,10 +52,10 @@ FIELDS = [
         "label": _("Fahrpraxis"),
         "type": "select",
         "options": [
-            "Bis 5.000 km",
-            "5.000–20.000 km",
-            "Über 20.000 km",
-            "Offroad-erfahren",
+            ("Bis 5.000 km", pgettext_lazy("registration option", "Bis 5.000 km")),
+            ("5.000–20.000 km", pgettext_lazy("registration option", "5.000–20.000 km")),
+            ("Über 20.000 km", pgettext_lazy("registration option", "Über 20.000 km")),
+            ("Offroad-erfahren", pgettext_lazy("registration option", "Offroad-erfahren")),
         ],
     },
     {"key": "height_cm", "label": _("Körpergröße (cm)"), "type": "text"},
@@ -55,7 +63,10 @@ FIELDS = [
         "key": "own_bike",
         "label": _("Eigenes Motorrad oder Mietmaschine"),
         "type": "select",
-        "options": ["Mietmaschine", "Eigenes Motorrad"],
+        "options": [
+            ("Mietmaschine", pgettext_lazy("registration option", "Mietmaschine")),
+            ("Eigenes Motorrad", pgettext_lazy("registration option", "Eigenes Motorrad")),
+        ],
     },
 ]
 
