@@ -40070,3 +40070,12 @@ msgstr "Ana liste gizlenemez veya kaldırılamaz."
 msgid "Blöcke davor stehen über der Liste, danach unter ihr."
 msgstr ""
 "Öncesindeki bloklar listenin üstünde, sonrasındakiler altında görünür."
+
+msgid "fb33-stack-anchor-m5c"
+msgstr "fb33-stack-anchor-m5c"
+
+msgid "fb33-stack-anchor-m5c3m"
+msgstr "fb33-stack-anchor-m5c3m"
+
+msgid "fb33-stack-anchor-m5d1"
+msgstr "fb33-stack-anchor-m5d1"

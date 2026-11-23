@@ -39923,3 +39923,12 @@ msgstr "The main list cannot be hidden or removed."
 # FB-33 M5b-2 W3: строка «Hauptliste» Студии — вид списка ссылкой на окно ★-строки
 msgid "Blöcke davor stehen über der Liste, danach unter ihr."
 msgstr "Blocks before it appear above the list, blocks after it below."
+
+msgid "fb33-stack-anchor-m5c"
+msgstr "fb33-stack-anchor-m5c"
+
+msgid "fb33-stack-anchor-m5c3m"
+msgstr "fb33-stack-anchor-m5c3m"
+
+msgid "fb33-stack-anchor-m5d1"
+msgstr "fb33-stack-anchor-m5d1"
