@@ -15,6 +15,15 @@
 
 ## 1. Открыто сейчас (сводка на 2026-11-13)
 
+### Решения владельца стопки 11 (2026-11-23, «по рекомендации» плана `fb33-stack11-plan-2026-11-23.md` §7 и §8.5)
+- **Состав стопки 11:** M5c целиком (C0–C4, C3m) + M5d-1 только G2 (вариант A «Inhalt»). G3, G1 и G4 — стопка 12; M2i-7b — не в стопке 11, решение владельца о отдельной стопке — открыто.
+- **§7 плана №1–5 — по рекомендации:** миниатюры в строках схемы остаются (снос — отдельная уборка); «＋ Block» без JS — кнопки типов одной разметкой с JS; «⋯» не рисуется у строк без действий (★, G2); перестановка из «⋯» строки не открывает окно, фокус остаётся на «⋯»; плашка «neu» и «— noch leer» не берём (статус есть) — в roadmap.
+- **Строка схемы** — одна ссылка ⚙ «Einstellungen: <Name>», область клика — вся строка (a11y A1); две ссылки на один адрес запрещены.
+- **Полоса подвала:** «Fußzeile bearbeiten» → «Menü» › «Fußzeile» (`?tab=footer`), владелец.
+- **Ответы §8.4 плана:** №6 — «Inhalt» у Gutschein-Formular на той же вкладке, над частью § 312j (вторую вкладку не заводим); №7 — пункта «Block darunter einfügen» в «⋯» нет; №8 — сотрудник без права видит строку «Nur mit Berechtigung bearbeitbar» (без ссылки), а не просто текст.
+- **Причина при выключенном модуле или пакете — показывать.** В «Inhalt» строка с причиной «Modul ist nicht aktiv» или «Nicht in Ihrem Paket enthalten» вместо молчаливого отсутствия ссылки.
+- **Вариант окна «Inhalt» (M5d-0c) — A утверждён** для G2; для G3/G1/G4 вариант окна — на холсте до кода (стопка 12).
+
 ### Стопка 9 — решения при выполнении (2026-11-22)
 - **M5b-2 — «вначале макет»** (план стопки 9, §4 п. 1): слияние ★-строк только вариантами на холсте (макет M0, раздел «FB-33 · M5b-2»; рекомендация V4 = M0-11); код — стопка 10 после выбора. M5b-1 (правило `__page`, вид прежний) — кодом в стопке 9.
 - **Ответы на вопросы плана (§4–5, пп. 2–7, «по рекомендации»):** шаг точек обложки и шапки категории 24 px; точки шапки категории и все ссылки `_contact.html` — в срезе, прочие кандидаты — только те, что стенд покажет ✗; на 404 переключатель языка и баннер демо ведут на `/`; хост входит в ключ кэша; `noindex` у категории и «Nur Aktionen» — только мета-тегом; демо-бизнесы кэшируются наравне.
@@ -554,6 +563,15 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 - `site_schema.title_hint_at(host, blocks)` (M5b-2) — серая метка «Überschrift der Seite · in ★ bearbeiten»: позиция или None (только при включённом блоке над заголовком); ряд считает вьюха (`_title_hint`), метка вне строк схемы, `movable` и целей `move`.
 - `site_schema.main_list_name(host, tenant=None)` / `name_main_rows` (M5b-2) — имя главного списка = `list_blocks.source_label` источника хоста (своих имён — только team, gallery, wishlist, lookbook; `_MAIN_LIST_SOURCES` — только catalog/category/promos/promo_group); «Menü-Pakete» у гастро — с тенантом во вьюхе и Студии. Сводка «Hauptliste · <вид>», плашка «Hauptliste» в окне.
 - `site_schema.page_code_of_host(host)` (M5b-2) — единственный разбор «хост → код страницы» (категории, группы акций, текстовые); `code_for_path` зовёт его.
+- `site_schema.place_item(items, idx, where, target, rows_host, before=None)` (FB-33 M5c-1, стопка 11) — единственная логика позиции блока: зовут `move` и вставку `add`/`add_row` (поле `after`, не `value`); `before` — снимок для отката: при `SchemaError` `items[:] = before` (атомарно). Второй логики порядка не заводить.
+- `site_schema.row_numbers(layout) -> dict[ref, int]` (M5c-2) — номера строк схемы по `layout["lines"]`; ★, метка, скрытые и `shared` не нумеруются; `layout["numbers"]`; только показ (`aria-hidden`), окно — по ref.
+- `site_schema.toggle_allowed(item, rows_host)` (M5c-2) — предикат «можно скрыть/переставить» для `mutate` и `blocks_for` (`can_hide`, `can_up`, `can_down`); вторая копия правил не заводится (`block_window.ROW_KEYS`).
+- Партиалы схемы (M5c-1…3): `templates/tenant/_schema_row.html` (строка: ⚙-ссылка, ⠿ вне `<a>`, номер), `_schema_more.html` («⋯» строки и шапки окна — один список действий; параметр «в шапке» — без `id` и `zeile=1`), `_schema_add.html(after_ref)` («＋ Block» под строкой и в конце; кнопки типов из `add_groups`/`row_options`).
+- `DetailSection.content_nav: str` (FB-33 M5d-1) — имя URL экрана содержимого у 8 разделов G2 (`detail_sections.py`); подпись и доступ — из `nav_registry`.
+- `window_parts.content_part(selected, host, request)` (M5d-1) — часть окна «Inhalt»: `selected["content"] = {"summary", "link"}`; вкладка «Was» (`PART_TAB["inhalt"]`), первой в `PART_ORDER`.
+- `nav_registry.entry_by_url(url_name)` / `screen_closed(request, url_name)` / `screen_open(request, url_name)` (M5d-1) — единая проверка доступа к экрану (запись + видимость модуля + пакет + `can_open`); бывший `day_home._screen_open` переехал сюда, `day_home` зовёт её.
+- `block_window.has_preview(window)` (M5d-1) — строить ли «Vorschau»: нет, если частей нет кроме `inhalt` (исключение — `site_schema_views`).
+- `scripts/fb33_m5c_measure.py` (M5c, стопка 11) — замер «до/после» (`--code` для старого кода, `--compare`): витрина по хэшам, `site_config`, `items` вставки, SQL экрана и POST; остаётся для стопки 12.
 - `scripts/fb33_m5d_inventory.py` (M5d-0) — инвентаризация «блок с окном / без окна» по вьюхе экрана (кнопка `window_done` в панели), страницы и строки — как стенд владельца; группы G1–G4; только чтение, только настройки стенда.
 
 - `apps/core/pagecache.py::cached_not_found` (FB-33 M5a-2) — единая точка кэша страницы 404: ключ `sf404:{host}:{schema}:{lang}:v{версия}` без пути, TTL `min(PUBLIC_PAGE_CACHE_TTL, NOT_FOUND_CACHE_TTL=60)`; мимо кэша — не GET/HEAD, любой query, любая cookie, непустая сессия; сброс — версия витрины (`site_config`, публикация «Seitenaufbau»).
