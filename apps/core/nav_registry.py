@@ -15,11 +15,14 @@
   (`hub_tabs`, `sidebar_nav`) — реестр статичен и i18n-lazy.
 """
 
+import logging
 from dataclasses import dataclass, field
 
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+logger = logging.getLogger(__name__)
 
 # X4: гейт гастро-экранов (KDS/Tisch-QR) — кортеж ради frozen dataclass.
 FOOD_TYPES: tuple[str, ...] = tuple(sorted(FOOD_BUSINESS_TYPES))
@@ -1404,7 +1407,8 @@ def screen_closed(request, url_name: str, target_url: str = "") -> str:
     экран записи (форма объекта из списка, редактор страницы из «Seiten», вкладка с
     «?tab=»): видимость модуля — по записи `url_name`, пакет и право — по цели, теми же
     `packages.view_allowed` и `view_perms.url_allowed` (своей проверки здесь нет). Цель не
-    разбирается в экран — "module"."""
+    разбирается в экран или у неё нет правила `view_perms` (`url_allowed` пустил бы любого:
+    для него это «не зона прав») — "module" и ошибка в журнал."""
     from apps.core import packages
     from apps.core.templatetags.cabinet import can_open
 
@@ -1425,6 +1429,10 @@ def screen_closed(request, url_name: str, target_url: str = "") -> str:
     try:
         target = resolve(urlsplit(target_url).path).view_name
     except Resolver404:
+        logger.error("nav_registry: link target %r does not resolve - closed", target_url)
+        return "module"
+    if view_perms.rule_for(target) is None:
+        logger.error("nav_registry: link target %r has no view_perms rule - closed", target)
         return "module"
     if not packages.view_allowed(tenant, target):
         return "package"
