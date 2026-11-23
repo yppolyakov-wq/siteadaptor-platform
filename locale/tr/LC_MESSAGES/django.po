@@ -40432,6 +40432,26 @@ msgstr "Yalnızca etkin ürünler varsa görünür."
 msgid "fb33-stack-anchor-m5d4c"
 msgstr "fb33-stack-anchor-m5d4c"
 
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "die Beschreibung der Unterkunft"
+msgstr "konaklama açıklamasını"
+
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "Ausstattung, Bettart und Fläche der Unterkunft"
+msgstr "konaklamanın olanaklarını, yatak türünü ve alanını"
+
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "bis zu 3 andere Unterkünfte — gleiche Art zuerst, dann nach Preis"
+msgstr "en fazla 3 başka konaklama — önce aynı tür, sonra fiyata göre"
+
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "automatisch — aus Ihren aktiven Unterkünften. Nichts zu pflegen."
+msgstr "otomatik — etkin konaklamalarınızdan. Bakım gerektirmez."
+
+#. FB-33 M5d-4c: окно «Inhalt» у разделов страницы номера
+msgid "Erscheint nur, wenn es weitere aktive Unterkünfte gibt."
+msgstr "Yalnızca başka etkin konaklamalar varsa görünür."
+
 # fb33-stack-anchor-m5d4d
 msgid "fb33-stack-anchor-m5d4d"
 msgstr "fb33-stack-anchor-m5d4d"

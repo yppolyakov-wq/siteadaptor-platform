@@ -435,10 +435,43 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     ),
     # --- stays ---
     "stays": (
-        DetailSection("description", _("Description")),
-        DetailSection("amenities", _("Amenities")),
+        # FB-33 M5d-4c: источники окна «Inhalt»; подписи полей — те же msgid, что на форме
+        # номера (`stays/unit_page.html`). `reviews` — со своим окном.
+        DetailSection(
+            "description",
+            _("Description"),
+            content_nav="stays:units",
+            source=ContentSource(
+                "field",
+                shows=_("die Beschreibung der Unterkunft"),
+                field_label=_("Description"),
+                fields=("description",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        DetailSection(
+            "amenities",
+            _("Amenities"),
+            content_nav="stays:units",
+            source=ContentSource(
+                "field",
+                shows=_("Ausstattung, Bettart und Fläche der Unterkunft"),
+                field_label=_("Amenities"),
+                fields=("amenities", "bed_type", "area_sqm"),
+                only_if=_("Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."),
+            ),
+        ),
         DetailSection("reviews", _("Customer reviews")),
-        DetailSection("similar", _("Similar rooms")),
+        DetailSection(
+            "similar",
+            _("Similar rooms"),
+            source=ContentSource(
+                "auto",
+                shows=_("bis zu 3 andere Unterkünfte — gleiche Art zuerst, dann nach Preis"),
+                woher=_("automatisch — aus Ihren aktiven Unterkünften. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn es weitere aktive Unterkünfte gibt."),
+            ),
+        ),
     ),
 }
 
