@@ -40324,7 +40324,6 @@ msgstr "fb33-stack-anchor-m5d5"
 msgid "fb33-stack-anchor-kinder"
 msgstr "fb33-stack-anchor-kinder"
 
-# fb33-stack-anchor-kinder
 #. FB-33 стопка 12 K: вариант select анкеты участника
 msgctxt "registration option"
 msgid "Vegetarisch"
