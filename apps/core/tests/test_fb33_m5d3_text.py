@@ -11,6 +11,7 @@
 Lieferung» названа как в коде («Lieferung & Abholung»).
 """
 
+import html as html_lib
 import logging
 import re
 from pathlib import Path
@@ -42,8 +43,6 @@ from apps.core.tests.test_fb33_m5d2_core import (
 
 pytestmark = [
     pytest.mark.django_db,
-    # коммит замков: на базе все красные; снимается коммитом записей реестра
-    pytest.mark.xfail(strict=True, reason="FB-33 M5d-3: записи реестра — следующим коммитом"),
 ]
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -186,7 +185,9 @@ def test_costs_window_of_the_versand_page():
     assert "aktiv" not in text
     assert text.count(FIXED) == 1 and "<dl" not in part and HINT in part
     a = re.search(r"<a\b([^>]*)>(.*?)</a>", part, re.S)
-    assert a and _text(a.group(2)) == f"Inhalt bearbeiten: Zahlarten & Lieferung › {TAB}"
+    assert a and html_lib.unescape(_text(a.group(2))) == (
+        f"Inhalt bearbeiten: Zahlarten & Lieferung › {TAB}"
+    )
     assert f'href="{reverse("payment-settings")}?tab=lieferung"' in a.group(0)
     assert selected["content"]["link"]["only_here"] is False
     summary = re.search(r"<p\b[^>]*data-inhalt-summary[^>]*>(.*?)</p>", part, re.S)
@@ -310,7 +311,7 @@ def test_costs_link_needs_the_right_to_open_settings():
     part = _staff_part(tenant, blind, "?seite=text@versand&block=costs")
     assert "data-inhalt-link" not in part and "<a " not in part
     para = re.search(r"<p\b[^>]*data-inhalt-reason[^>]*>(.*?)</p>", part, re.S)
-    assert _text(para.group(1)) == (
+    assert html_lib.unescape(_text(para.group(1))) == (
         f"Inhalt bearbeiten: Zahlarten & Lieferung › {TAB} — {NO_RIGHT}"
     )
     reader = _staff(["einstellungen.edit"], add=["einstellungen.view"])

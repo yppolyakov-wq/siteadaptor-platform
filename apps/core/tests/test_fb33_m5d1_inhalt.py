@@ -117,13 +117,15 @@ def _part(html: str, part: str) -> str:
 
 
 def test_content_nav_from_registry():
-    """`content_nav` есть ровно у восьми разделов G2, каждый — имя URL записи `nav_registry`
-    (однозначной: одна запись или одна без `query`); подпись ссылки — подпись этой записи."""
+    """`content_nav` без источника есть ровно у восьми разделов G2, каждый — имя URL записи
+    `nav_registry` (однозначной: одна запись или одна без `query`); подпись ссылки — подпись
+    этой записи. Разделы с источником (`DetailSection.source`, стопка 12, план §4 «P0» №2) —
+    замки своих срезов."""
     with_nav = {
         (module, s.key): s.content_nav
         for module, sections in detail_sections.DETAIL_SECTIONS.items()
         for s in sections
-        if getattr(s, "content_nav", "")
+        if getattr(s, "content_nav", "") and s.source is None
     }
     assert with_nav == {(code if code != "contact" else "message", ref): url
                         for code, (ref, url) in G2.items()}  # fmt: skip

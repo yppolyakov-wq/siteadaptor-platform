@@ -40149,6 +40149,16 @@ msgstr "for all posts"
 msgid "fb33-stack-anchor-m5d3"
 msgstr "fb33-stack-anchor-m5d3"
 
+#. FB-33 M5d-3: окно «Inhalt» у текста страницы и «Versandkosten»
+msgid "den Text der Seite „%(page)s“"
+msgstr "the text of the page “%(page)s”"
+
+msgid "Ihre Versandarten mit Preisen"
+msgstr "your shipping methods with prices"
+
+msgid "Hierhin führt „zzgl. Versandkosten“ bei jedem Preis. Die Liste lässt sich nur auf der Seite „Versand“ abschalten (Häkchen „Ihre Versandarten mit Preisen unter dem Text anzeigen“) — und nur mit eigenem Text."
+msgstr "“plus shipping” next to every price leads here. The list can only be switched off on the “Delivery” page (checkbox “Show your shipping methods with prices below the text”) — and only with your own text."
+
 # fb33-stack-anchor-m5d4a
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"

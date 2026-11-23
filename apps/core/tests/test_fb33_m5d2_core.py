@@ -275,9 +275,7 @@ def test_registry_is_written_out_for_parallel_slices():
         "from dataclasses import dataclass",
         "from django.utils.translation import gettext_lazy as _",
     ]
-    assert not [
-        (m, s.key) for m, secs in detail_sections.DETAIL_SECTIONS.items() for s in secs if s.source
-    ]
+    # источники разделов заводят срезы стопки 12 (план §3) — у каждого свой замок реестра
 
 
 # --- A11: слова вида объекта ---------------------------------------------------------------------

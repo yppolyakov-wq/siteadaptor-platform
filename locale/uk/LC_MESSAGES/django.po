@@ -40487,6 +40487,16 @@ msgstr "у всіх дописів"
 msgid "fb33-stack-anchor-m5d3"
 msgstr "fb33-stack-anchor-m5d3"
 
+#. FB-33 M5d-3: окно «Inhalt» у текста страницы и «Versandkosten»
+msgid "den Text der Seite „%(page)s“"
+msgstr "текст сторінки «%(page)s»"
+
+msgid "Ihre Versandarten mit Preisen"
+msgstr "ваші способи доставки з цінами"
+
+msgid "Hierhin führt „zzgl. Versandkosten“ bei jedem Preis. Die Liste lässt sich nur auf der Seite „Versand“ abschalten (Häkchen „Ihre Versandarten mit Preisen unter dem Text anzeigen“) — und nur mit eigenem Text."
+msgstr "Сюди веде «плюс доставка» біля кожної ціни. Список вимикається лише на сторінці «Доставка» (галочка «Показувати під текстом ваші способи доставки з цінами») — і лише з власним текстом."
+
 # fb33-stack-anchor-m5d4a
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"

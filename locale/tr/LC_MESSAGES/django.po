@@ -40296,6 +40296,16 @@ msgstr "tüm yazılarda"
 msgid "fb33-stack-anchor-m5d3"
 msgstr "fb33-stack-anchor-m5d3"
 
+#. FB-33 M5d-3: окно «Inhalt» у текста страницы и «Versandkosten»
+msgid "den Text der Seite „%(page)s“"
+msgstr "„%(page)s“ sayfasının metnini"
+
+msgid "Ihre Versandarten mit Preisen"
+msgstr "gönderim yöntemlerinizi fiyatlarıyla"
+
+msgid "Hierhin führt „zzgl. Versandkosten“ bei jedem Preis. Die Liste lässt sich nur auf der Seite „Versand“ abschalten (Häkchen „Ihre Versandarten mit Preisen unter dem Text anzeigen“) — und nur mit eigenem Text."
+msgstr "Her fiyatın yanındaki „kargo hariç“ buraya yönlendirir. Liste yalnızca „Teslimat“ sayfasında kapatılabilir (onay kutusu „Gönderim yöntemlerinizi fiyatlarıyla metnin altında göster“) — ve yalnızca kendi metninizle."
+
 # fb33-stack-anchor-m5d4a
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"

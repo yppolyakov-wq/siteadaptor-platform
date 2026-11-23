@@ -73,7 +73,18 @@ CASES_M5D2 = (
 )
 
 # --- cases: m5d3 ---
-CASES_M5D3 = ()
+# G3: закреплённый текст страницы («Über uns», «Versand») и «Versandkosten» — без `<dl>`
+# (ни «Woher», ни «Auf der Seite» у закреплённой строки нет), ссылка обязательна
+_G3 = {"pinned": True, "dl": False, "link": True}
+CASES_M5D3 = (
+    ("shop", "text", "pagetext", _G3),
+    ("shop", "text@versand", "pagetext", _G3),
+    ("shop", "text@versand", "costs", _G3),
+    ("friseur", "text", "pagetext", _G3),
+    ("friseur", "text@versand", "costs", _G3),
+    ("retreat", "text@versand", "pagetext", _G3),
+    ("retreat", "text@versand", "costs", _G3),
+)
 
 # --- cases: m5d4a ---
 CASES_M5D4A = ()
