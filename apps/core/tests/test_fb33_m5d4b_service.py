@@ -44,8 +44,6 @@ from apps.core.tests.test_fb33_m5d4a_product import (
 )
 
 pytestmark = pytest.mark.django_db
-#: замки первого коммита: на базе красные (записей реестра ещё нет)
-RED = pytest.mark.xfail(strict=True, reason="M5d-4b: источников у разделов услуги ещё нет")
 
 VIDEO_NOTE = "Der Chat geht an Ihre WhatsApp-Nummer aus „Mein Geschäft“."
 VIDEO_ONLY_IF = "Erscheint nur, wenn das Häkchen gesetzt und eine WhatsApp-Nummer eingetragen ist."
@@ -117,7 +115,6 @@ def _salon(**fields):
 # --- №2: строк без окна нет -----------------------------------------------------------------------
 
 
-@RED
 def test_no_g1_row_without_window(monkeypatch):
     tenant, service = _salon()
     code = object_structure.schema_code("service", service)
@@ -129,7 +126,6 @@ def test_no_g1_row_without_window(monkeypatch):
 # --- реестр ----------------------------------------------------------------------------------------
 
 
-@RED
 def test_sources_table():
     assert set(sources("booking")) == set(EXPECT)
     with translation.override("de"):
@@ -161,7 +157,6 @@ def test_content_navs_are_unambiguous_entries():
             assert reverse(nav), nav
 
 
-@RED
 def test_gated_sections_have_only_if():
     """A7б: раздел с presence-гейтом говорит, когда он появляется; поля «заполнено ли» —
     настоящие поля модели."""
@@ -176,7 +171,6 @@ def test_gated_sections_have_only_if():
 # --- строка типа -----------------------------------------------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize("key", sorted(EXPECT))
 def test_type_row_window(key):
     kind, nav, shows, woher = EXPECT[key]
@@ -209,7 +203,6 @@ def test_rows_with_own_window_untouched(key):
 # --- №6, №12: строка одной услуги ------------------------------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize(
     "key, fields, filled",
     [
@@ -239,7 +232,6 @@ def test_object_filled_state(key, fields, filled):
         assert VIDEO_NOTE in _text(part)
 
 
-@RED
 def test_object_and_type_answer_by_ref():
     tenant, service = _salon()
     code = object_structure.schema_code("service", service)
@@ -249,7 +241,6 @@ def test_object_and_type_answer_by_ref():
             assert selected["ref"] == key and "content" in selected, query
 
 
-@RED
 def test_object_upsell_links_the_products():
     """У одной услуги «Passt gut dazu» ведёт на «Sortiment» (не на услугу), без «nur hier»."""
     tenant, service = _salon()
@@ -262,7 +253,6 @@ def test_object_upsell_links_the_products():
 # --- №13: подписи полей есть на форме услуги ------------------------------------------------------
 
 
-@RED
 def test_field_label_on_cabinet_form():
     """A10: подписи полей в окне — те же строки (msgid), что на странице услуги; галочка
     «Empfohlen», о которой говорит «Passt gut dazu», есть на форме товара."""
@@ -284,7 +274,6 @@ def test_field_label_on_cabinet_form():
 # --- причина вместо ссылки -------------------------------------------------------------------------
 
 
-@RED
 def test_link_closed_screen_gives_a_reason(monkeypatch):
     from apps.core import packages
 
@@ -300,12 +289,10 @@ def test_link_closed_screen_gives_a_reason(monkeypatch):
 # --- переводы --------------------------------------------------------------------------------------
 
 
-@RED
 def test_new_msgids_in_all_po():
     assert_msgids_in_all_po(source_msgids("booking", sorted(sources("booking"))))
 
 
-@RED
 def test_window_in_russian_has_no_german_texts():
     tenant, _service = _salon()
     with translation.override("ru"):
@@ -320,7 +307,6 @@ def test_window_in_russian_has_no_german_texts():
 # --- Y8: без скриптов ------------------------------------------------------------------------------
 
 
-@RED
 def test_inhalt_nojs_column():
     tenant, service = _salon()
     code = object_structure.schema_code("service", service)
@@ -335,7 +321,6 @@ def test_inhalt_nojs_column():
 # --- №31: запросы ----------------------------------------------------------------------------------
 
 
-@RED
 def test_inhalt_queries_not_above_the_base(monkeypatch):
     tenant, service = _salon()
     code = object_structure.schema_code("service", service)

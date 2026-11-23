@@ -441,17 +441,66 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # UA4-1 slice C: секции детальной УСЛУГИ (booking.Service) — ключи по факту
     # service_detail.html (описание/атрибуты/FAQ/команда/отзывы). Hide-only.
     "booking": (
-        DetailSection("description", _("Description")),
+        # FB-33 M5d-4b: источники окна «Inhalt»; подписи полей — те же msgid, что на форме
+        # услуги (`booking/service_page.html`). `faq`, `team`, `reviews` — со своим окном.
+        DetailSection(
+            "description",
+            _("Description"),
+            content_nav="booking:services",
+            source=ContentSource(
+                "field",
+                shows=_("die Beschreibung der Leistung"),
+                field_label=_("Description (what's included)"),
+                fields=("description",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
         # LS-1: «📹 Per Video zeigen lassen» — wa.me-CTA; present-гейт: услуга
         # is_video И у бизнеса есть whatsapp_number. Скрываемо как любая секция.
-        DetailSection("video", _("Video-Beratung")),
-        DetailSection("attributes", _("Details")),
+        DetailSection(
+            "video",
+            _("Video-Beratung"),
+            content_nav="booking:services",
+            source=ContentSource(
+                "field",
+                shows=_("den Knopf „Per Video zeigen lassen“ — er öffnet einen WhatsApp-Chat"),
+                field_label=_("Video-Beratung möglich"),
+                fields=("is_video",),
+                note=_("Der Chat geht an Ihre WhatsApp-Nummer aus „Mein Geschäft“."),
+                only_if=_(
+                    "Erscheint nur, wenn das Häkchen gesetzt und eine WhatsApp-Nummer "
+                    "eingetragen ist."
+                ),
+            ),
+        ),
+        DetailSection(
+            "attributes",
+            _("Details"),
+            content_nav="booking:services",
+            source=ContentSource(
+                "field",
+                shows=_("die Details der Leistung als Liste — bis zu 12 Punkte"),
+                field_label=_("Details — one bullet per line"),
+                fields=("attributes",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
         DetailSection("faq", _("Frequently asked questions")),
         DetailSection("team", _("Our team")),
         DetailSection("reviews", _("Customer reviews")),
         # B3: кросс-селл товаров («к стрижке берут шампунь») — при активном
         # catalog и наличии товаров; скрываемо в билдере как любая секция.
-        DetailSection("upsell", _("Goes well with this")),
+        DetailSection(
+            "upsell",
+            _("Goes well with this"),
+            content_nav="sellable-manage",
+            source=ContentSource(
+                "setting",
+                shows=_("bis zu 4 Produkte unter der Leistung — empfohlene zuerst"),
+                woher=_("Ihre Produkte — die mit Häkchen „Empfohlen“ stehen vorn."),
+                only_if=_("Erscheint nur, wenn es aktive Produkte gibt."),
+            ),
+        ),
     ),
     # --- confirmation ---
     # FB-33 M2h: подтверждение (заказ, запись, номер, билет, стол) — карточка сделки неподвижна;

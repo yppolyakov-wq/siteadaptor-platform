@@ -40406,6 +40406,38 @@ msgstr "Yalnızca ziyaretçi daha önce başka ürünlere baktıysa görünür."
 msgid "fb33-stack-anchor-m5d4b"
 msgstr "fb33-stack-anchor-m5d4b"
 
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "die Beschreibung der Leistung"
+msgstr "hizmet açıklamasını"
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "den Knopf „Per Video zeigen lassen“ — er öffnet einen WhatsApp-Chat"
+msgstr "„Video ile göster“ düğmesini — bir WhatsApp sohbeti açar"
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "Der Chat geht an Ihre WhatsApp-Nummer aus „Mein Geschäft“."
+msgstr "Sohbet, „İşletmem“ bölümündeki WhatsApp numaranıza gider."
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "Erscheint nur, wenn das Häkchen gesetzt und eine WhatsApp-Nummer eingetragen ist."
+msgstr "Yalnızca kutu işaretliyse ve bir WhatsApp numarası girilmişse görünür."
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "die Details der Leistung als Liste — bis zu 12 Punkte"
+msgstr "hizmet detaylarını liste olarak — en fazla 12 madde"
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "bis zu 4 Produkte unter der Leistung — empfohlene zuerst"
+msgstr "hizmetin altında en fazla 4 ürün — önce önerilenler"
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "Ihre Produkte — die mit Häkchen „Empfohlen“ stehen vorn."
+msgstr "Ürünleriniz — „Önerilen“ işaretli olanlar önde yer alır."
+
+#. FB-33 M5d-4b: окно «Inhalt» у разделов страницы услуги
+msgid "Erscheint nur, wenn es aktive Produkte gibt."
+msgstr "Yalnızca etkin ürünler varsa görünür."
+
 # fb33-stack-anchor-m5d4c
 msgid "fb33-stack-anchor-m5d4c"
 msgstr "fb33-stack-anchor-m5d4c"
