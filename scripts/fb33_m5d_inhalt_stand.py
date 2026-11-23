@@ -85,7 +85,22 @@ CASES_M5D4B = ()
 CASES_M5D4C = ()
 
 # --- cases: m5d4d ---
-CASES_M5D4D = ()
+# событие и тур (общий тип «Veranstaltungen»): поля формы — ссылка на список событий;
+# «Gastgeber» — экран; разделы «на месте» — авто, без ссылки
+_G1D_FIELD = {"pinned": False, "dl": True, "link": True}
+_G1D_AUTO = {"pinned": False, "dl": True, "link": False}
+CASES_M5D4D = (
+    ("retreat", "event", "for_whom", _G1D_FIELD),
+    ("retreat", "event", "idea", _G1D_FIELD),
+    ("retreat", "event", "program", _G1D_FIELD),
+    ("retreat", "event", "venue", _G1D_FIELD),
+    ("retreat", "event", "hosts", _G1D_FIELD),
+    ("retreat", "event", "price", _G1D_FIELD),
+    ("retreat", "event", "certifications", _G1D_FIELD),
+    ("retreat", "event", "groups", _G1D_AUTO),
+    ("retreat", "event", "more_dates", _G1D_AUTO),
+    ("retreat", "event", "private_tour", _G1D_AUTO),
+)
 
 # --- cases: m5d4e ---
 CASES_M5D4E = ()

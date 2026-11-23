@@ -40516,6 +40516,76 @@ msgstr "fb33-stack-anchor-m5d4c"
 msgid "fb33-stack-anchor-m5d4d"
 msgstr "fb33-stack-anchor-m5d4d"
 
+#. FB-33 M5d-4d: окно «Inhalt» — разделы события и тура
+msgid "für wen das Angebot gedacht ist — Punkt für Punkt"
+msgstr "для кого это предложение — по пунктам"
+
+msgid "die Idee und die Atmosphäre"
+msgstr "идею и атмосферу"
+
+msgid "was dabei ist — Kacheln mit Titel und Text"
+msgstr "что входит — плитки с заголовком и текстом"
+
+msgid "den Ablauf als Zeitleiste"
+msgstr "программу в виде ленты времени"
+
+msgid "den Ort — Text, Karte und weitere Fotos"
+msgstr "место — текст, карту и другие фото"
+
+msgid "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der Karte liegt."
+msgstr "Появляется, если поле заполнено, есть другие фото или место отмечено на карте."
+
+msgid "die Unterkunft — Punkt für Punkt"
+msgstr "проживание — по пунктам"
+
+msgid "die Verpflegung"
+msgstr "питание"
+
+msgid "die Gastgeber mit Foto und Titel"
+msgstr "ведущих с фото и званием"
+
+msgid "Gastgeber, die Sie im Formular zuordnen — sonst das Feld „Leitung“."
+msgstr "Ведущие, которых вы назначаете в форме, — иначе поле «Ведущие»."
+
+msgid "Erscheint nur, wenn es eines von beiden gibt."
+msgstr "Появляется, только если есть одно из двух."
+
+msgid "den Preis und was enthalten ist"
+msgstr "цену и что в неё входит"
+
+msgid "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."
+msgstr "Появляется, только если заполнено одно из полей о цене."
+
+msgid "was mitzubringen ist — Punkt für Punkt"
+msgstr "что взять с собой — по пунктам"
+
+msgid "Vorher-Nachher-Bilder mit Text"
+msgstr "фото «до и после» с текстом"
+
+msgid "Zertifikate und Auszeichnungen"
+msgstr "сертификаты и награды"
+
+msgid "einen Hinweis für Gruppen und Firmen — mit Knopf zur Angebotsanfrage"
+msgstr "подсказку для групп и компаний — с кнопкой запроса предложения"
+
+msgid "automatisch — fester Text. Nichts zu pflegen."
+msgstr "автоматически — постоянный текст. Заполнять нечего."
+
+msgid "Erscheint nur, wenn „Aufträge & Angebote“ aktiv ist."
+msgstr "Появляется, только если включён модуль «Заказы и сметы»."
+
+msgid "die anderen Termine derselben Serie"
+msgstr "другие даты той же серии"
+
+msgid "automatisch — aus den Terminen der Serie. Nichts zu pflegen."
+msgstr "автоматически — из дат серии. Заполнять нечего."
+
+msgid "Erscheint nur, wenn die Veranstaltung zu einer Serie gehört."
+msgstr "Появляется, только если мероприятие входит в серию."
+
+msgid "das Angebot, die Reise für die eigene Gruppe anzufragen"
+msgstr "предложение заказать поездку для своей группы"
+
 # fb33-stack-anchor-m5d4e
 msgid "fb33-stack-anchor-m5d4e"
 msgstr "fb33-stack-anchor-m5d4e"

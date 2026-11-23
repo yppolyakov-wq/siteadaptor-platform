@@ -40312,6 +40312,76 @@ msgstr "fb33-stack-anchor-m5d4c"
 msgid "fb33-stack-anchor-m5d4d"
 msgstr "fb33-stack-anchor-m5d4d"
 
+#. FB-33 M5d-4d: окно «Inhalt» — разделы события и тура
+msgid "für wen das Angebot gedacht ist — Punkt für Punkt"
+msgstr "teklifin kimler için olduğunu — madde madde"
+
+msgid "die Idee und die Atmosphäre"
+msgstr "fikri ve atmosferi"
+
+msgid "was dabei ist — Kacheln mit Titel und Text"
+msgstr "nelerin dahil olduğunu — başlık ve metin içeren kutular"
+
+msgid "den Ablauf als Zeitleiste"
+msgstr "programı zaman çizelgesi olarak"
+
+msgid "den Ort — Text, Karte und weitere Fotos"
+msgstr "mekânı — metin, harita ve diğer fotoğraflar"
+
+msgid "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der Karte liegt."
+msgstr "Alan doluysa, başka fotoğraflar varsa veya mekân haritada işaretliyse görünür."
+
+msgid "die Unterkunft — Punkt für Punkt"
+msgstr "konaklamayı — madde madde"
+
+msgid "die Verpflegung"
+msgstr "yemekleri"
+
+msgid "die Gastgeber mit Foto und Titel"
+msgstr "ev sahiplerini fotoğraf ve unvanla"
+
+msgid "Gastgeber, die Sie im Formular zuordnen — sonst das Feld „Leitung“."
+msgstr "Formda atadığınız ev sahipleri — yoksa „Ekip“ alanı."
+
+msgid "Erscheint nur, wenn es eines von beiden gibt."
+msgstr "Yalnızca ikisinden biri varsa görünür."
+
+msgid "den Preis und was enthalten ist"
+msgstr "fiyatı ve nelerin dahil olduğunu"
+
+msgid "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."
+msgstr "Yalnızca fiyat alanlarından biri doluysa görünür."
+
+msgid "was mitzubringen ist — Punkt für Punkt"
+msgstr "yanınızda ne getireceğinizi — madde madde"
+
+msgid "Vorher-Nachher-Bilder mit Text"
+msgstr "öncesi-sonrası fotoğraflarını metinle"
+
+msgid "Zertifikate und Auszeichnungen"
+msgstr "sertifikaları ve ödülleri"
+
+msgid "einen Hinweis für Gruppen und Firmen — mit Knopf zur Angebotsanfrage"
+msgstr "gruplar ve şirketler için bir notu — teklif isteme düğmesiyle"
+
+msgid "automatisch — fester Text. Nichts zu pflegen."
+msgstr "otomatik — sabit metin. Bakım gerektirmez."
+
+msgid "Erscheint nur, wenn „Aufträge & Angebote“ aktiv ist."
+msgstr "Yalnızca „İşler ve teklifler“ etkinse görünür."
+
+msgid "die anderen Termine derselben Serie"
+msgstr "aynı serinin diğer tarihlerini"
+
+msgid "automatisch — aus den Terminen der Serie. Nichts zu pflegen."
+msgstr "otomatik — serinin tarihlerinden. Bakım gerektirmez."
+
+msgid "Erscheint nur, wenn die Veranstaltung zu einer Serie gehört."
+msgstr "Yalnızca etkinlik bir seriye aitse görünür."
+
+msgid "das Angebot, die Reise für die eigene Gruppe anzufragen"
+msgstr "geziyi kendi grubunuz için talep etme teklifini"
+
 # fb33-stack-anchor-m5d4e
 msgid "fb33-stack-anchor-m5d4e"
 msgstr "fb33-stack-anchor-m5d4e"

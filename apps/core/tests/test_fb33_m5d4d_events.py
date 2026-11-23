@@ -155,7 +155,6 @@ def test_registry_flags_as_on_the_base():
     assert got == base
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_sources_follow_the_map():
     """Поля `details` — `field` со ссылкой на список событий, подпись — по ИМЕНИ поля формы
     (A10); «Gastgeber» — экран; три раздела «на месте» — авто, без ссылки; FAQ и «Stimmen» не
@@ -181,7 +180,6 @@ def test_sources_follow_the_map():
     assert not [k for k, s in sources.items() if s.object_only]
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_source_texts_are_well_formed():
     """Тексты — ленивые; «zeigt» без точки в конце; «Woher» у экрана и авто — фразой с точкой;
     A7б: у каждого раздела с presence-гейтом (здесь — у всех) есть `only_if`."""
@@ -206,7 +204,6 @@ def test_source_texts_are_well_formed():
         assert all(str(sources[k].only_if) == ONLY_IF_FILLED for k in simple)
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_event_tour_only_rows():
     """Свой замок G1d: разделы одного вида остаются «на месте» и своего вида; у события нет
     строки приватного выезда, у тура — групп и серии; часть «Inhalt» — у строки своего вида."""
@@ -236,7 +233,6 @@ def test_event_tour_only_rows():
     assert not selected or selected.get("key") != "groups"
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_jobs_gate_names_the_module_as_the_cabinet_does():
     """«Gruppen» и приватный выезд появляются только при модуле заявок — имя модуля в тексте
     то же, что в кабинете (копия подписи сверяется с `modules`)."""
@@ -251,7 +247,6 @@ def test_jobs_gate_names_the_module_as_the_cabinet_does():
 # --- №2: строк без окна нет -----------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 @pytest.mark.parametrize("page", ["event", "event_obj", "tour_obj"])
 def test_no_g1_row_without_window(page):
     """Логикой `scripts/fb33_m5d_inventory.py` (ответ — разметка вьюхи): у каждой строки
@@ -286,7 +281,6 @@ def test_no_g1_row_without_window(page):
 # --- №12, №22: тексты и ссылка у типа и у объекта -------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_type_row_field():
     """Строка типа: поле и слово вида («bei jeder Veranstaltung»), видимость и действия — из
     флагов строки, ссылка — список событий («Veranstaltungen»), без «nur hier»."""
@@ -306,7 +300,6 @@ def test_type_row_field():
     assert reverse("events:tour-list") not in part
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_type_rows_of_special_sources():
     """«Gastgeber» — экран преподавателей; «Ort» и «Preis» — свой текст «когда появляется»;
     «Ablauf» — подпись поля формы события."""
@@ -328,7 +321,6 @@ def test_type_rows_of_special_sources():
     assert ct["woher"] == f"Feld „{PROGRAM_LABEL}“ bei jeder Veranstaltung. {ONLY_IF_FILLED}"
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 @pytest.mark.parametrize(
     "details, filled",
     [
@@ -357,7 +349,6 @@ def test_object_filled_state(details, filled):
     assert "Inhalt bearbeiten: Yoga am See" in _text(part)
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_object_filled_by_any_of_the_price_fields():
     """«Preis» появляется по любому из трёх полей — «ausgefüllt» тоже; списки и записи."""
     tenant = _tenant()
@@ -376,7 +367,6 @@ def test_object_filled_by_any_of_the_price_fields():
     assert _inhalt(tenant, f"?seite={code}&block=includes")[1]["filled"] == FILLED
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_tour_object_row(caplog):
     """Строка одного тура: слова тура («dieser Reise»), ссылка — форма тура; «Ablauf» — без
     «ausgefüllt» и без ошибки в журнале (у тура программы нет)."""
@@ -409,7 +399,6 @@ def _owner_page(tenant, url) -> str:
     return resp.content.decode()
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_field_label_on_cabinet_form():
     """Подпись каждого поля, которую называет окно, есть на странице формы события (de, GET);
     поля `details` — и на форме тура; «Ablauf» — только у события."""
@@ -440,7 +429,6 @@ def test_field_label_on_cabinet_form():
 # --- экраны ссылок: записи реестра ---------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_content_nav_entries_are_unambiguous():
     """Каждый `content_nav` среза — имя URL однозначной записи `nav_registry`, экран открыт
     владельцу; подпись ссылки — подпись записи."""
@@ -467,7 +455,6 @@ def _warm_count(browser, query) -> int:
     return len(q.captured_queries)
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 @pytest.mark.parametrize("key", ["idea", "hosts", "private_tour"])
 def test_inhalt_queries_not_above_the_base(monkeypatch, key):
     """Окно с частью «Inhalt» стоит не больше запросов, чем экран той же строки без источников
@@ -495,7 +482,6 @@ def test_inhalt_queries_not_above_the_base(monkeypatch, key):
 # --- №13, №16: строки `.po` -----------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_new_msgids_in_all_po():
     """Тексты источников среза есть во всех пяти каталогах, переведены (кроме de), без дублей
     пары msgctxt/msgid; новые записи — сразу после якоря среза."""
@@ -518,7 +504,6 @@ def test_new_msgids_in_all_po():
         assert own and own <= {m.replace('"', '\\"') for m in msgids} | {ANCHOR}, (lang, own)
 
 
-@pytest.mark.xfail(strict=True, reason="M5d-4d: записи реестра — следующим коммитом")
 def test_window_in_russian_has_no_german_source_text():
     """№13: окно на русском — тексты источника переведены (слова вида, «Woher», «zeigt»)."""
     tenant = _tenant()

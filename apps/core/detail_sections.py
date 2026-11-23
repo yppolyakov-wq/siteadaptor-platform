@@ -117,25 +117,209 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("recent", _("Zuletzt angesehen")),
     ),
     # --- events ---
+    # FB-33 M5d-4d: откуда содержимое разделов (окно «Inhalt»). Хост события и тура общий —
+    # ссылка у типа одна, на список событий; у строки объекта — на его форму. Поля — блоки
+    # `details` общего редактора (`apps/events/landing.py`, подпись — по имени поля формы).
     "events": (
-        DetailSection("for_whom", _("For whom"), orderable=True),
-        DetailSection("idea", _("The idea"), orderable=True),
-        DetailSection("includes", _("What's included"), orderable=True),
-        DetailSection("program", _("Schedule"), orderable=True),
-        DetailSection("venue", _("Venue"), orderable=True),
-        DetailSection("accommodation", _("Accommodation"), orderable=True),
-        DetailSection("food", _("Food"), orderable=True),
-        DetailSection("hosts", _("Hosts"), orderable=True),
-        DetailSection("price", _("Price"), orderable=True),
-        DetailSection("bring", _("What to bring"), orderable=True),
+        DetailSection(
+            "for_whom",
+            _("For whom"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("für wen das Angebot gedacht ist — Punkt für Punkt"),
+                field="for_whom_text",
+                fields=("details.for_whom",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        DetailSection(
+            "idea",
+            _("The idea"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("die Idee und die Atmosphäre"),
+                field="idea",
+                fields=("details.idea",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        DetailSection(
+            "includes",
+            _("What's included"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("was dabei ist — Kacheln mit Titel und Text"),
+                field="includes_text",
+                fields=("details.includes",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        # «Ablauf» — поле формы СОБЫТИЯ (`EventForm.program_text`), в общем редакторе его нет;
+        # у тура программы нет (атрибута `program` тоже) — «ausgefüllt» не утверждаем
+        DetailSection(
+            "program",
+            _("Schedule"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("den Ablauf als Zeitleiste"),
+                field_label=_("Ablauf / Programm (ein Punkt pro Zeile)"),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        DetailSection(
+            "venue",
+            _("Venue"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("den Ort — Text, Karte und weitere Fotos"),
+                field="venue",
+                fields=("details.venue",),
+                only_if=_(
+                    "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der "
+                    "Ort auf der Karte liegt."
+                ),
+            ),
+        ),
+        DetailSection(
+            "accommodation",
+            _("Accommodation"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("die Unterkunft — Punkt für Punkt"),
+                field="accommodation_text",
+                fields=("details.accommodation",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        DetailSection(
+            "food",
+            _("Food"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("die Verpflegung"),
+                field="food",
+                fields=("details.food",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        # сначала — назначенные в форме ведущие (экран «Gastgeber»), иначе блок «Leitung»
+        DetailSection(
+            "hosts",
+            _("Hosts"),
+            orderable=True,
+            content_nav="events:teacher-list",
+            source=ContentSource(
+                "setting",
+                shows=_("die Gastgeber mit Foto und Titel"),
+                woher=_("Gastgeber, die Sie im Formular zuordnen — sonst das Feld „Leitung“."),
+                only_if=_("Erscheint nur, wenn es eines von beiden gibt."),
+            ),
+        ),
+        DetailSection(
+            "price",
+            _("Price"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("den Preis und was enthalten ist"),
+                field="price_includes_text",
+                fields=("details.price_includes", "details.price_excludes", "details.price_note"),
+                only_if=_("Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."),
+            ),
+        ),
+        DetailSection(
+            "bring",
+            _("What to bring"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("was mitzubringen ist — Punkt für Punkt"),
+                field="bring_text",
+                fields=("details.bring",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
         DetailSection("faq", _("FAQ"), orderable=True),
         DetailSection("testimonials", _("Testimonials"), orderable=True),
-        DetailSection("before_after", _("Before & after"), orderable=True),
-        DetailSection("certifications", _("Certifications"), orderable=True),
+        DetailSection(
+            "before_after",
+            _("Before & after"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("Vorher-Nachher-Bilder mit Text"),
+                field="before_after_text",
+                fields=("details.before_after",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
+        DetailSection(
+            "certifications",
+            _("Certifications"),
+            orderable=True,
+            content_nav="events:list",
+            source=ContentSource(
+                "field",
+                shows=_("Zertifikate und Auszeichnungen"),
+                field="certifications_text",
+                fields=("details.certifications",),
+                only_if=ONLY_IF_FILLED,
+            ),
+        ),
         # FB-33 M2g: после «Buchung», скрываются на месте (у тура — свой раздел приватного выезда)
-        DetailSection("groups", _("Groups & companies"), in_place=True, only="event"),
-        DetailSection("more_dates", _("Weitere Termine"), in_place=True, only="event"),
-        DetailSection("private_tour", _("Request a private tour"), in_place=True, only="tour"),
+        DetailSection(
+            "groups",
+            _("Groups & companies"),
+            in_place=True,
+            only="event",
+            source=ContentSource(
+                "auto",
+                shows=_("einen Hinweis für Gruppen und Firmen — mit Knopf zur Angebotsanfrage"),
+                woher=_("automatisch — fester Text. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn „Aufträge & Angebote“ aktiv ist."),
+            ),
+        ),
+        DetailSection(
+            "more_dates",
+            _("Weitere Termine"),
+            in_place=True,
+            only="event",
+            source=ContentSource(
+                "auto",
+                shows=_("die anderen Termine derselben Serie"),
+                woher=_("automatisch — aus den Terminen der Serie. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn die Veranstaltung zu einer Serie gehört."),
+            ),
+        ),
+        DetailSection(
+            "private_tour",
+            _("Request a private tour"),
+            in_place=True,
+            only="tour",
+            source=ContentSource(
+                "auto",
+                shows=_("das Angebot, die Reise für die eigene Gruppe anzufragen"),
+                woher=_("automatisch — fester Text. Nichts zu pflegen."),
+                only_if=_("Erscheint nur, wenn „Aufträge & Angebote“ aktiv ist."),
+            ),
+        ),
     ),
     # --- booking ---
     # UA4-1 slice C: секции детальной УСЛУГИ (booking.Service) — ключи по факту
