@@ -32,8 +32,8 @@ def _load(name: str):
 
 
 def _mentions(text: str, label: str) -> bool:
-    """Метка целиком: «стопка 13» не находится в «стопка 130»."""
-    return bool(re.search(re.escape(label) + r"(?!\d)", text))
+    """Метка целиком: «стопка 13» не находится в «стопка 130», «13a», «13б», «13.1»."""
+    return bool(re.search(re.escape(label) + r"(?![\w]|\.\d)", text))
 
 
 def checks(label: str, stack: str, state: dict) -> list[tuple[bool | None, str, str]]:
@@ -76,7 +76,13 @@ def checks(label: str, stack: str, state: dict) -> list[tuple[bool | None, str, 
                 (state["plan_problems"] or ["план не задан (--plan) — сверка не выполнена"])[:5]
             ),
         ),
-        (state["merged"], "ветка в main", "FF в main по «делай» владельца после зелёного CI"),
+        (
+            state["merged"],
+            "ветка в main",
+            "git не ответил (нет origin/main или клон обрезан) — проверить вручную: git fetch origin main"
+            if state["merged"] is None
+            else "FF в main по «делай» владельца после зелёного CI",
+        ),
         (
             in_map in ("в работе", "в main"),
             "статус в карте",
@@ -96,7 +102,9 @@ def _merged(ref: str) -> bool:
     )
 
 
-def read_state(label: str, stack: str, merged: bool, plan: str, base: str = "origin/main") -> dict:
+def read_state(
+    label: str, stack: str, merged: bool | None, plan: str, base: str = "origin/main"
+) -> dict:
     docs = ROOT / "docs"
     work_map = _load("work_map")
     rows = {r.stack: r for r in work_map.parse((docs / "fb33-map.md").read_text(encoding="utf-8"))}
@@ -107,8 +115,14 @@ def read_state(label: str, stack: str, merged: bool, plan: str, base: str = "ori
         if not slices:
             plan_problems = ["в плане нет проверяемой таблицы срезов (docs/stack-plan-template.md)"]
         else:
+            text = pathlib.Path(plan).read_text(encoding="utf-8")
             touched = {s.name: plan_check._touched(base, s.branch) for s in slices if s.branch}
-            plan_problems = plan_check.verify(slices, touched)
+            # И проверка «до кода» тоже: таблица могла измениться после раздачи срезов.
+            plan_problems = (
+                plan_check.table_errors(text)
+                + plan_check.check(slices)
+                + plan_check.verify(slices, touched)
+            )
             missing = [s.name for s in slices if not s.branch]
             if missing:
                 plan_problems.append("нет ветки для сверки: " + ", ".join(missing))
@@ -148,7 +162,11 @@ def main() -> int:
     for ok, name, todo in results:
         mark = "✓" if ok else ("–" if ok is None else "✗")
         print(f"  {mark} {name}" + ("" if ok else f" — {todo}"))
-    failed = [name for ok, name, _ in results if ok is False or (ok is None and not args.no_plan)]
+    failed = [
+        name
+        for ok, name, _ in results
+        if ok is False or (ok is None and not (args.no_plan and name == "план сверен с фактом"))
+    ]
     if not failed:
         print(f'всё закрыто: uv run python scripts/work_map.py --set {args.stack} "в main"')
     elif failed == ["ветка в main"]:

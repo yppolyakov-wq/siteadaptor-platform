@@ -21,10 +21,12 @@
 import argparse
 import collections
 import datetime
+import importlib.util
 import json
 import pathlib
 import re
 import subprocess
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 # «ревью» — только отдельным словом: «превью» (срезы «Vorschau», страница 404) — не ревью.
@@ -155,23 +157,26 @@ def history_rows(text: str) -> list[dict]:
 
 
 def map_rows() -> list[dict]:
-    """Карта работ (`docs/fb33-map.md`) строками — что в main, что в работе, что можно брать."""
+    """Карта работ (`docs/fb33-map.md`) строками — разбор тот же, что у `scripts/work_map.py`."""
     path = ROOT / "docs" / "fb33-map.md"
     if not path.exists():
         return []
-    rows, order = [], 0
-    for line in path.read_text(encoding="utf-8").splitlines():
-        c = [x.strip() for x in line.strip().strip("|").split("|")]
-        if not line.lstrip().startswith("|") or len(c) != 6 or c[0] in ("Стопка", ""):
-            continue
-        if set(c[0]) <= {"-", ":"}:
-            continue
-        order += 1
-        keys = ("stack", "status", "depends", "slices", "what", "needs")
-        rows.append(
-            {"order": order, **dict(zip(keys, (x.replace("`", "") for x in c), strict=True))}
-        )
-    return rows
+    spec = importlib.util.spec_from_file_location("work_map", ROOT / "scripts" / "work_map.py")
+    work_map = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault("work_map", work_map)
+    spec.loader.exec_module(work_map)
+    return [
+        {
+            "order": n,
+            "stack": r.stack,
+            "status": r.status,
+            "depends": ", ".join(r.deps) or "—",
+            "slices": ", ".join(r.slices) or "—",
+            "what": r.what.replace("`", ""),
+            "needs": r.needs.replace("`", ""),
+        }
+        for n, r in enumerate(work_map.parse(path.read_text(encoding="utf-8")), 1)
+    ]
 
 
 def sizes() -> list[tuple[str, int]]:

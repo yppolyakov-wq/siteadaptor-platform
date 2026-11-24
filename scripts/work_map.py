@@ -54,6 +54,24 @@ def parse(text: str) -> list[Row]:
     return rows
 
 
+def table_errors(text: str) -> list[str]:
+    """Строки таблицы карты, которые `parse` не прочитал: стопку нельзя потерять молча."""
+    out, inside = [], False
+    for n, line in enumerate(text.splitlines(), 1):
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if not line.lstrip().startswith("|"):
+            inside = False
+            continue
+        if cells[:2] == ["Стопка", "Статус"]:
+            inside = True
+            continue
+        if inside and len(cells) != 6 and not set(cells[0]) <= {"-", ":"}:
+            out.append(
+                f"строка {n} (стопка «{cells[0]}»): {len(cells)} колонок вместо 6 — лишняя «|» в ячейке или пропущена колонка"
+            )
+    return out
+
+
 def _cycle(rows: list[Row]) -> list[str]:
     deps = {r.stack: r.deps for r in rows}
     state: dict[str, int] = {}
@@ -81,6 +99,8 @@ def _cycle(rows: list[Row]) -> list[str]:
 def problems(rows: list[Row], catalog: str) -> list[str]:
     """Что в карте не так. Пустой список — карте можно верить."""
     out = []
+    if not rows:
+        return ["карта пуста: таблица «| Стопка | Статус | … |» не найдена или в ней нет строк"]
     by = {r.stack: r for r in rows}
     if len(by) != len(rows):
         out.append("стопка записана дважды")
@@ -108,7 +128,8 @@ def problems(rows: list[Row], catalog: str) -> list[str]:
             )
         if r.status == ACTIVE:
             for s in r.slices:
-                if not re.search(rf"(?<![\w-]){re.escape(s)}(?![\w-])", catalog):
+                # ID целиком: «D1» не засчитывается по «D1.1», «D10» или «MD1».
+                if not re.search(rf"(?<![\w.-]){re.escape(s)}(?![\w-]|\.\d)", catalog):
                     out.append(
                         f"стопка {r.stack}: срез {s} не заведён в docs/task-catalog.md (ID берётся до плана)"
                     )
@@ -152,10 +173,15 @@ def with_graph(text: str, rows: list[Row]) -> str:
 
 
 def set_status(text: str, stack: str, status: str) -> str:
-    out, hit = [], False
+    out, hit, inside = [], False, False
     for line in text.splitlines():
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if line.lstrip().startswith("|") and len(cells) == 6 and cells[0] == stack:
+        is_row = line.lstrip().startswith("|")
+        if not is_row:
+            inside = False  # другие таблицы файла не трогаем
+        elif cells[:2] == ["Стопка", "Статус"]:
+            inside = True
+        if inside and is_row and not hit and len(cells) == 6 and cells[0] == stack:
             cells[1], hit = status, True
             line = "| " + " | ".join(cells) + " |"
         out.append(line)
@@ -177,9 +203,13 @@ def main() -> int:
             raise SystemExit(f"статус — один из: {', '.join(STATUSES)}")
         text = set_status(text, *args.set)
     rows = parse(text)
-    if args.set or args.graph:
+    catalog = (ROOT / "docs" / "task-catalog.md").read_text(encoding="utf-8")
+    found = table_errors(text) + problems(rows, catalog)
+    if args.set and found:
+        # Смена статуса, после которой карта неверна (вторая стопка в работе, срез без ID), не пишется.
+        print(f"статус стопки {args.set[0]} НЕ изменён:")
+    elif args.set or args.graph:
         path.write_text(with_graph(text, rows), encoding="utf-8")
-    found = problems(rows, (ROOT / "docs" / "task-catalog.md").read_text(encoding="utf-8"))
     for r in rows:
         if r.status == ACTIVE:
             print(f"в работе: стопка {r.stack} — {r.what}")
