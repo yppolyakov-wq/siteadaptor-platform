@@ -23,9 +23,18 @@ if [ -n "$PYFILES" ] && command -v uv >/dev/null 2>&1; then
   # shellcheck disable=SC2086
   uv run -q ruff format --check --force-exclude $PYFILES || fail=1
 fi
+# Грабля 2026-11-24 (FB-33 стопка 14, дважды): строка журнала находок или правка скилла
+# ломала замок test_project_skills (колонки, «Скилл покрывал?», пути), а коммит проходил.
+DOCFILES=$(git diff --cached --name-only --diff-filter=ACM -- 'docs/skill-feedback.md' '.claude/skills/*' || true)
+if [ -n "$DOCFILES" ] && command -v uv >/dev/null 2>&1; then
+  if ! uv run -q pytest -q -p no:cacheprovider apps/core/tests/test_project_skills.py >/dev/null 2>&1; then
+    echo "Замок журнала и скиллов красный: uv run pytest apps/core/tests/test_project_skills.py" >&2
+    fail=1
+  fi
+fi
 if [ -z "$FILES" ]; then
   [ "$fail" = "0" ] && exit 0
-  echo "Коммит остановлен: ruff (см. выше). Исправить: uv run ruff check --fix . && uv run ruff format ." >&2
+  echo "Коммит остановлен: см. выше (ruff: uv run ruff check --fix . && uv run ruff format .)" >&2
   exit 1
 fi
 # shellcheck disable=SC2086
