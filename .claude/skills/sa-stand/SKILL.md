@@ -120,6 +120,8 @@ metadata:
   своей базе `/2` (`config/settings/stand.py`), параллельным серверам — `REDIS_CACHE_URL=…/<N>`
   каждому свою; замок `test_stand_redis_isolated.py` · посл. 2026-11-24.
 
+- Зум 200 % / 400 % — вьюпорт 720×450 / 360×225 (при 1440), а не `html{font-size:200%}`: подмена шрифта не меняет брейкпоинты и даёт ложную «ширину» кабинета (`scripts/fb33_e7_woher_stand.py`) · посл. 2026-11-24.
+
 ## Что гейтить
 - `uv run pytest apps/core/tests/test_standlib.py -q` — каркас и правило (без браузера и БД).
 - `scripts/standlib.py --selftest` в Chromium — после любой правки каркаса; сломанная функция

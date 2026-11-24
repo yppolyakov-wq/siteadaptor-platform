@@ -45,7 +45,8 @@ class SourceField:
     min_items: int = 1
     #: только у этих видов объекта (у общего типа — с пометкой вида, `KIND_ONLY`)
     kinds: tuple[str, ...] = ()
-    #: ключ закрытого реестра проб `window_parts._PROBES` (точка карты); путь — для замков
+    #: ключ закрытого реестра проб `window_parts._PROBES`: «ausgefüllt» по тому же производному
+    #: значению, что гейт витрины (подписи аллергенов и удобств, `landing`, точка карты)
     probe: str = ""
     #: подстановки в подпись («%(lat)s» → подпись поля формы); подпись — целой фразой
     args: tuple = ()
@@ -204,8 +205,18 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                     SourceField("care", label=_("Pflegehinweise"), tab=_("Labeling")),
                     SourceField("origin", label=_("Origin"), tab=_("Labeling")),
                     SourceField("ingredients", label=_("Ingredients"), tab=_("Labeling")),
-                    SourceField("allergens", label=_("Allergens"), tab=_("Labeling")),
-                    SourceField("additives", label=_("Additives"), tab=_("Labeling")),
+                    SourceField(
+                        "allergens",
+                        label=_("Allergens"),
+                        tab=_("Labeling"),
+                        probe="allergen_labels",
+                    ),
+                    SourceField(
+                        "additives",
+                        label=_("Additives"),
+                        tab=_("Labeling"),
+                        probe="additive_labels",
+                    ),
                 ),
                 only_if=ONLY_IF_ANY,
             ),
@@ -374,7 +385,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 # M5d-8: гейт `_event_thematic.html` — поле, фото со второго, точка карты
                 # (у тура её нет: `tour_detail` не кладёт `map_point`)
                 fields=(
-                    SourceField("details.venue", field="venue"),
+                    SourceField("details.venue", field="venue", probe="landing"),
                     SourceField(
                         "images",
                         label={
@@ -448,9 +459,13 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 shows=_("den Preis und was enthalten ist"),
                 field="price_includes_text",
                 fields=(
-                    SourceField("details.price_includes", field="price_includes_text"),
-                    SourceField("details.price_excludes", field="price_excludes_text"),
-                    SourceField("details.price_note", field="price_note"),
+                    SourceField(
+                        "details.price_includes", field="price_includes_text", probe="landing"
+                    ),
+                    SourceField(
+                        "details.price_excludes", field="price_excludes_text", probe="landing"
+                    ),
+                    SourceField("details.price_note", field="price_note", probe="landing"),
                 ),
                 only_if=ONLY_IF_ANY,
                 more_nav=_TOURS,
@@ -914,7 +929,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field_label=_("Amenities"),
                 # M5d-8: подписи — как на странице номера (`stays/unit_page.html`)
                 fields=(
-                    SourceField("amenities", label=_("Amenities")),
+                    SourceField("amenities", label=_("Amenities"), probe="amenity_badges"),
                     SourceField("bed_type", label=_("Bed type")),
                     SourceField("area_sqm", label=_("Area (m², 0 = hide)")),
                 ),

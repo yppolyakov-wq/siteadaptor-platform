@@ -169,6 +169,8 @@ default_op, field_meta`; части-формы — `APPLY_FORM_PARTS`. Поря�
   ДО утверждения; прогноз эталонов — с неэталонными замками окна (`test_fb33_m37_preview`,
   `test_fb33_m3_window`) и эталоном реестра `golden_fb33m5d2/registry.json` · посл. 2026-11-24.
 
+- «ausgefüllt» в окне — по тому же производному значению, что решает показ на витрине (`allergen_labels`, `amenity_badges`, `landing`, `images|length`), через закрытый `window_parts._PROBES`; замок равенства — поведенческий (рендер или гейт витрины), не сверка имён (`test_window_state_equals_storefront_gate`) · посл. 2026-11-24.
+
 ## Что гейтить
 - `uv run python scripts/preflight.py` (правка `apps/core` тянет импортёров сама).
 - Эталоны окна: `apps/core/tests/test_fb33_m3_window_before.py` (пересъёмка `FB33_M3_REGEN=1`,

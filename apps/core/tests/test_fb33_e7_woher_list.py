@@ -71,8 +71,8 @@ ALL_INFO = {
     "care": "30 °C",
     "origin": "Brasilien",
     "ingredients": "Kaffeebohnen",
-    "allergens": ["milk"],
-    "additives": ["caffeine"],
+    "allergens": ["gluten"],
+    "additives": ["farbstoff"],
 }
 
 
@@ -287,24 +287,21 @@ def _window_shown(obj, module, key, host, kind, tenant) -> bool:
     return any(it["icon"] == "✓" for it in wl["items"])
 
 
-_RED = pytest.mark.xfail(strict=True, reason="ревью M-1/M-2: окно читает сырое поле")
-
-
 @pytest.mark.parametrize(
     "kind, data",
     [
         ("product", {}),
         ("product", {"allergens": ["gluten"]}),
-        pytest.param("product", {"allergens": ["xyz"]}, marks=_RED),
-        pytest.param("product", {"additives": ["xyz"]}, marks=_RED),
+        ("product", {"allergens": ["xyz"]}),
+        ("product", {"additives": ["xyz"]}),
         ("product", {"brand": "Lavazza"}),
         ("stay", {}),
         ("stay", {"amenities": ["wifi"]}),
-        pytest.param("stay", {"amenities": ["xyz"]}, marks=_RED),
+        ("stay", {"amenities": ["xyz"]}),
         ("stay", {"area_sqm": 0, "bed_type": ""}),
         ("stay", {"bed_type": "Doppelbett"}),
         ("event-venue", {}),
-        pytest.param("event-venue", {"images": [{}, {}]}, marks=_RED),
+        ("event-venue", {"images": [{}, {}]}),
         ("event-venue", {"images": [{"url": "a.jpg"}]}),
         ("event-venue", {"details": {"venue": "  "}}),
         ("event-venue", {"details": {"venue": "Seehaus"}}),
@@ -312,7 +309,7 @@ _RED = pytest.mark.xfail(strict=True, reason="ревью M-1/M-2: окно чи�
         ("event-price", {"details": {"price_includes": ["", " "]}}),
         ("event-price", {"details": {"price_note": "Frühbucher"}}),
         ("event-price", {"details": {"price_excludes": "Anreise"}}),
-        pytest.param("tour-venue", {"images": [{}, {}]}, marks=_RED),
+        ("tour-venue", {"images": [{}, {}]}),
         ("tour-venue", {"details": {"venue": "Rheinufer"}}),
     ],
 )
@@ -416,7 +413,13 @@ def test_probe_registry_closed(caplog, monkeypatch):
     состояние «неизвестно», без импорта и вызова."""
     import importlib
 
-    assert window_parts._PROBES == {"map_point": ("apps.events.services", "map_point")}
+    assert window_parts._PROBES == {
+        "map_point": ("object", "apps.events.services", "map_point"),
+        "allergen_labels": ("field", "apps.catalog.food", "allergen_labels"),
+        "additive_labels": ("field", "apps.catalog.food", "additive_labels"),
+        "landing": ("field", "apps.events.details", "normalize"),
+        "amenity_badges": ("property", "", "amenity_badges"),
+    }
     for module, key in LIST_SECTIONS.values():
         for sf in _sfields(module, key):
             assert not sf.probe or sf.probe in window_parts._PROBES
@@ -441,7 +444,6 @@ def test_map_probe_no_queries():
 # --- a11y H2, M3: разметка списка -----------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="ревью a11y M1, L1: колонки и id")
 def test_woher_list_dom():
     """dt/dd списка — блочные (без `inline`), вводная фраза — `<p id>`, у `<ul>` —
     `role="list"` и `aria-labelledby` на неё; у группы из 3+ полей — вложенный `<ul>`; значок —
