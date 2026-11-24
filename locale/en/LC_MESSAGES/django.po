@@ -40612,6 +40612,16 @@ msgstr "The order list is not available for your account."
 msgid "fb33-stack-anchor-d4a"
 msgstr "fb33-stack-anchor-d4a"
 
+#: apps/core/refunds.py
+#, python-format
+msgid "Doppelte Zahlung nicht erstattet: %(code)s"
+msgstr "Duplicate payment not refunded: %(code)s"
+
+#: apps/core/refunds.py
+#, python-format
+msgid "Zu %(code)s ist eine zweite Zahlung eingegangen. Die automatische Rückerstattung ist fehlgeschlagen — bitte in Stripe prüfen und erstatten."
+msgstr "A second payment was received for %(code)s. The automatic refund failed — please check and refund it in Stripe."
+
 msgid "fb33-stack-anchor-d6"
 msgstr "fb33-stack-anchor-d6"
 

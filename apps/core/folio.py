@@ -145,6 +145,36 @@ def mark_refunded(kind: str, obj, *, intent: str) -> None:
     forget(obj)
 
 
+def has_payment(kind: str, obj, intent: str) -> bool:
+    """FB-33 D4a: платёж Stripe с этим intent уже есть в книге сделки (повтор вебхука)."""
+    from apps.core.models import DealPayment
+
+    if not intent:
+        return False
+    return DealPayment.objects.filter(
+        deal_kind=kind, deal_id=obj.pk, stripe_payment_intent=intent
+    ).exists()
+
+
+def open_card_rows(kind: str, obj=None, *, exclude_intent: str = ""):
+    """FB-33 D4a: строки Stripe с открытым остатком (не всё возвращено) — один отбор для
+    возврата прочих платежей при отмене, пометки «Rückerstattung offen», повтора возврата и
+    `payment_holds.is_new_payment`. `obj=None` — по всем сделкам вида (выборка повтора);
+    `exclude_intent` — без главного платежа сделки."""
+    from django.db.models import F
+
+    from apps.core.models import DealPayment
+
+    qs = DealPayment.objects.filter(deal_kind=kind, refunded_cents__lt=F("amount_cents")).exclude(
+        stripe_payment_intent=""
+    )
+    if obj is not None:
+        qs = qs.filter(deal_id=obj.pk)
+    if exclude_intent:
+        qs = qs.exclude(stripe_payment_intent=exclude_intent)
+    return qs
+
+
 def record_online(kind: str, obj, *, intent: str = ""):
     """Вебхук Stripe: записать онлайн-платёж (депозит или всё — как `_online_paid`)."""
     if kind not in FOLIO_KINDS:

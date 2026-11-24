@@ -40954,6 +40954,16 @@ msgstr "Список замовлень недоступний для вашог
 msgid "fb33-stack-anchor-d4a"
 msgstr "fb33-stack-anchor-d4a"
 
+#: apps/core/refunds.py
+#, python-format
+msgid "Doppelte Zahlung nicht erstattet: %(code)s"
+msgstr "Повторний платіж не повернуто: %(code)s"
+
+#: apps/core/refunds.py
+#, python-format
+msgid "Zu %(code)s ist eine zweite Zahlung eingegangen. Die automatische Rückerstattung ist fehlgeschlagen — bitte in Stripe prüfen und erstatten."
+msgstr "За %(code)s надійшов другий платіж. Автоматичне повернення не вдалося — перевірте та поверніть його в Stripe."
+
 msgid "fb33-stack-anchor-d6"
 msgstr "fb33-stack-anchor-d6"
 

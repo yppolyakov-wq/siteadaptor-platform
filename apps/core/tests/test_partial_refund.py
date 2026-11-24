@@ -269,8 +269,9 @@ def test_refund_path_is_owner_only_prefix():
 
 
 def test_failed_rest_refund_keeps_cancel_retryable(monkeypatch):
-    """error-handling: не прошёл возврат доплаты остатка — сделка не «возвращено»,
-    повтор отмены доберёт остаток (основной платёж — тем же ключом)."""
+    """error-handling: Stripe не ответил по доплате остатка — FB-33 D4a (ревью H2, «не
+    ответил ≠ отказал»): главный уже возвращён, «возвращено» не откатываем (UNCERTAIN),
+    строка остатка открыта; повтор отмены доберёт её тем же ключом."""
     calls = []
 
     def refund(**kw):
@@ -282,9 +283,9 @@ def test_failed_rest_refund_keeps_cancel_retryable(monkeypatch):
     b = _stay()
     _card_row(b, cents=3000)
     _card_row(b, cents=2000, intent="pi_rest")
-    assert refunds.refund_payment("stay", b, TENANT) == refunds.RefundResult.FAILED
+    assert refunds.refund_payment("stay", b, TENANT) == refunds.RefundResult.UNCERTAIN
     b.refresh_from_db()
-    assert b.payment_state == StayBooking.PAYMENT_PAID
+    assert b.payment_state == StayBooking.PAYMENT_REFUNDED
     assert refunds.refund_payment("stay", b, TENANT) == refunds.RefundResult.REFUNDED
     rest = DealPayment.objects.get(deal_id=b.pk, stripe_payment_intent="pi_rest")
     assert rest.refunded_cents == 2000

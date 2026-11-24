@@ -94,11 +94,19 @@
             <p>{% trans "Verwendungszweck" %}: <span class="font-mono font-medium">{{ offer.order.reference_code }}</span></p>
             <p>{% trans "Betrag" %}: <span class="font-medium">{{ offer.order.total }} {{ offer.order.currency|cursym }}</span></p>
           </div>
-        {% elif offer.order.payment_method == 'stripe' and offer.order.payment_state == 'unpaid' and offer.order.status == 'new' %}
+        {% elif pay_state == 'open' %}
           <form method="post">{% csrf_token %}
             <input type="hidden" name="action" value="pay">
             <button class="inline-block text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm" style="background: var(--accent);">{% trans "Jetzt bezahlen" %}</button>
           </form>
+        {% elif pay_state == 'processing' %}
+          <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2" data-pay-state="processing">{% trans "Ihre Zahlung wird bereits verarbeitet." %}</p>
+        {% elif pay_state == 'closed' %}
+          <p class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2" data-pay-state="closed">{% trans "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu." %}</p>
+        {% elif pay_state == 'unavailable' %}
+          <p class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2" data-pay-state="unavailable">{% trans "Payment is temporarily unavailable. Please try again later." %}</p>
+        {% elif pay_state == 'cancelled' %}
+          <p class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2" data-pay-state="cancelled">{% trans "Bestellung storniert" %}</p>
         {% endif %}
         {% include "storefront/_problem_cta.html" with pc_kind="order" pc_id=offer.order.reference_code %}
         {% if order_link %}

@@ -23,7 +23,6 @@ pytestmark = pytest.mark.django_db
 
 ACCOUNT = "acct_d4a_btn"
 STRIPE_URL = "https://stripe.test/pay"
-_RED = pytest.mark.xfail(strict=True, reason="FB-33 D4a: до правки")
 
 TEXTS = {
     "processing": "Ihre Zahlung wird bereits verarbeitet.",
@@ -97,7 +96,6 @@ EXPECTED = {
 }
 
 
-@_RED
 @pytest.mark.parametrize("state", STATES)
 def test_pay_state_one_source(monkeypatch, state):
     biz = _biz(enabled=state != "unavailable")
@@ -127,10 +125,10 @@ def test_pay_state_one_source(monkeypatch, state):
     pay_href = f'href="/bestellung/{order.reference_code}/bezahlen/"'
     assert (pay_href in html) is (state == "open")
     if state in TEXTS:
-        assert TEXTS[state] in html
+        with translation.override("de"):
+            assert translation.gettext(TEXTS[state]) in html
 
 
-@_RED
 def test_cancelled_stripe_order_is_not_pay_in_store():
     biz = _biz()
     order = _state_order("cancelled")
@@ -142,13 +140,13 @@ def test_cancelled_stripe_order_is_not_pay_in_store():
     assert "Zahlung bei Abholung" not in html and "Pay in store at pickup." not in html
 
 
-@_RED
 def test_order_pay_unavailable_says_so(monkeypatch):
     biz = _biz(enabled=False)
     order = _state_order("unavailable")
     monkeypatch.setattr(public_views, "_require_orders_active", lambda r: None)
     request = _request(f"/bestellung/{order.reference_code}/bezahlen/", biz)
-    public_views.order_pay(request, order.reference_code)
+    with translation.override("en"):
+        public_views.order_pay(request, order.reference_code)
     assert [str(m) for m in get_messages(request)] == [TEXTS["unavailable"]]
 
 
@@ -162,5 +160,6 @@ def test_on_site_order_confirmation_unchanged():
             _request(f"/bestellung/{order.reference_code}/", biz), code=order.reference_code
         ).content.decode()
     assert "/bezahlen/" not in html
-    for text in TEXTS.values():
-        assert text not in html
+    with translation.override("de"):
+        for text in TEXTS.values():
+            assert translation.gettext(text) not in html

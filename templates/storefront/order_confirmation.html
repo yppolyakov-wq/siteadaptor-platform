@@ -66,9 +66,17 @@
         <p>{% trans "Reference" %} (Verwendungszweck): <span class="font-mono font-medium">{{ order.reference_code }}</span></p>
         <p>{% trans "Amount" %}: <span class="font-medium">{{ order.total }} {{ order.currency|cursym }}</span></p>
       </div>
-    {% elif order.payment_method == 'stripe' and order.status == 'new' %}
-      {# B2.1: незавершённая онлайн-оплата — повторный Stripe Checkout на лету. #}
+    {% elif pay_state == 'open' %}
+      {# B2.1: незавершённая онлайн-оплата — повторный Stripe Checkout на лету; FB-33 D4a: условие одно с /bezahlen/ (payments.pay_state). #}
       <a href="{% url 'storefront-order-pay' order.reference_code %}" class="inline-block text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm" style="background: var(--accent);">{% trans "Jetzt bezahlen" %}</a>
+    {% elif pay_state == 'processing' %}
+      <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2" data-pay-state="processing">{% trans "Ihre Zahlung wird bereits verarbeitet." %}</p>
+    {% elif pay_state == 'closed' %}
+      <p class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2" data-pay-state="closed">{% trans "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu." %}</p>
+    {% elif pay_state == 'unavailable' %}
+      <p class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2" data-pay-state="unavailable">{% trans "Payment is temporarily unavailable. Please try again later." %}</p>
+    {% elif pay_state == 'cancelled' %}
+      <p class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2" data-pay-state="cancelled">{% trans "Bestellung storniert" %}</p>
     {% elif order.is_delivery %}
       <p class="text-sm text-gray-500">{% trans "Pay on delivery." %}</p>
     {% else %}

@@ -21,10 +21,7 @@ from apps.orders.models import Order
 from apps.orders.tests.test_fb33_m2i71_abandoned import _order
 from apps.tenants.tests.factories import TenantFactory
 
-pytestmark = [
-    pytest.mark.django_db(transaction=False),
-    pytest.mark.xfail(strict=True, reason="FB-33 D4a: до правки"),
-]
+pytestmark = pytest.mark.django_db
 
 ACCOUNT = "acct_d4a_exp"
 

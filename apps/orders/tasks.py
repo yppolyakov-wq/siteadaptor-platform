@@ -214,6 +214,7 @@ def expire_abandoned_online(now=None) -> int:
     now = now or timezone.now()
     schema = connection.schema_name
     cancelled = 0
+    cancelled_pks: list = []
     failed: list = []
     full = True
     for _batch in range(ABANDONED_MAX_BATCHES):
@@ -226,6 +227,7 @@ def expire_abandoned_online(now=None) -> int:
                         continue  # оплатили/подтвердили/появился адрес — не трогаем
                     OrderSM().apply(order, "cancelled", actor=ABANDONED_ACTOR)
                     cancelled += 1
+                    cancelled_pks.append(pk)
             except Exception:  # noqa: BLE001 — один заказ не роняет проход; в лог без PII
                 failed.append(pk)
                 logger.exception("abandoned-online %s: заказ %s не отменён", schema, pk)
@@ -244,7 +246,30 @@ def expire_abandoned_online(now=None) -> int:
         )
     if full:
         logger.warning("abandoned-online %s: batch full — остаток уйдёт в следующий проход", schema)
+    if cancelled_pks:
+        _expire_sessions(schema, cancelled_pks)
     return cancelled
+
+
+def _expire_sessions(schema: str, pks) -> None:
+    """FB-33 D4a: закрыть сессии Stripe отменённых заказов — ПОСЛЕ транзакций отмены
+    (вызов Stripe не держит блокировку строки). Тенант — один раз на проход. Сбой не
+    роняет проход: сессия закроется своим сроком, поздняя оплата вернётся."""
+    from django_tenants.utils import get_tenant_model
+
+    from .payments import expire_open_sessions
+
+    tenant = get_tenant_model().objects.filter(schema_name=schema).first()
+    connect_id = (getattr(tenant, "stripe_connect_id", "") or "").strip()
+    if not connect_id:
+        return
+    try:
+        closed = expire_open_sessions(pks, connect_id=connect_id)
+    except Exception:  # noqa: BLE001 — отмена уже записана
+        logger.exception("abandoned-online %s: checkout sessions not expired", schema)
+        return
+    if closed:
+        logger.info("abandoned-online %s: checkout sessions closed=%s", schema, closed)
 
 
 #: Повторы возврата поздней оплаты: сколько раз и за какой срок после платежа.
@@ -253,17 +278,28 @@ REFUND_RETRY_DAYS = 3
 _REFUND_RETRY_STEP = timezone.timedelta(minutes=15)
 
 
-def _refund_retry_due(schema: str, pk, now) -> bool:
+#: Исход `_refund_retry_state`: повторять сейчас · ждать паузу · попытки исчерпаны.
+_RETRY_DUE, _RETRY_WAIT, _RETRY_EXHAUSTED = "due", "wait", "exhausted"
+
+
+def _refund_retry_due(schema: str, pk, now, *, intent: str = "") -> bool:
+    return _refund_retry_state(schema, pk, now, intent=intent) == _RETRY_DUE
+
+
+def _refund_retry_state(schema: str, pk, now, *, intent: str = "") -> str:
     """Пора ли повторить возврат: не больше `REFUND_RETRY_MAX` раз, с растущей паузой
     (15 мин · 2ⁿ). Счётчик — в кэше; кэш недоступен — не повторяем (иначе повторы и
-    письма владельцу о сбое шли бы без предела)."""
+    письма владельцу о сбое шли бы без предела). FB-33 D4a: `intent` — счётчик второго
+    платежа, свой на (заказ, платёж), не общий с возвратом главного."""
     from django.core.cache import cache
 
-    key = f"order-refund-retry:{schema}:{pk}"
+    key = f"order-refund-retry:{schema}:{pk}" + (f":{intent}" if intent else "")
     try:
         state = cache.get(key) or {"n": 0, "next": 0}
-        if state["n"] >= REFUND_RETRY_MAX or now.timestamp() < state["next"]:
-            return False
+        if state["n"] >= REFUND_RETRY_MAX:
+            return _RETRY_EXHAUSTED
+        if now.timestamp() < state["next"]:
+            return _RETRY_WAIT
         pause = _REFUND_RETRY_STEP * (2 ** state["n"])
         cache.set(
             key,
@@ -272,8 +308,8 @@ def _refund_retry_due(schema: str, pk, now) -> bool:
         )
     except Exception:  # noqa: BLE001
         logger.warning("refund-retry %s: счётчик недоступен — заказ %s пропущен", schema, pk)
-        return False
-    return True
+        return _RETRY_WAIT
+    return _RETRY_DUE
 
 
 def retry_late_refunds(now=None) -> int:
@@ -313,10 +349,10 @@ def retry_late_refunds(now=None) -> int:
         .exclude(stripe_payment_intent="")
         .order_by("created_at")[:ABANDONED_BATCH]
     )
-    if not due:
-        return 0
     tenant = get_tenant_model().objects.filter(schema_name=schema).first()
-    done = 0
+    done = _retry_extra_refunds(schema, tenant, now)
+    if not due:
+        return done
     for order in due:
         if not _refund_retry_due(schema, order.pk, now):
             continue
@@ -326,6 +362,65 @@ def retry_late_refunds(now=None) -> int:
             logger.exception("refund-retry %s: заказ %s — сбой", schema, order.pk)
             continue
         logger.warning("refund-retry %s: заказ %s → %s", schema, order.pk, result)
+        if result in (refunds.RefundResult.REFUNDED, refunds.RefundResult.ALREADY):
+            done += 1
+    return done
+
+
+def _retry_extra_refunds(schema: str, tenant, now) -> int:
+    """FB-33 D4a: повтор возврата ВТОРОГО платежа (Stripe не ответил или отказал) —
+    свежие (`REFUND_RETRY_DAYS`) строки Stripe ≠ главного intent, без частичного возврата
+    (такие открыл владелец сам), `[:ABANDONED_BATCH]`; счётчик — на (заказ, платёж);
+    попытки исчерпаны — одно письмо владельцу `duplicate`. → сколько вернули."""
+    from django.db.models import Exists, OuterRef
+
+    from apps.core import folio, refunds
+
+    # строка — не главный платёж своего онлайн-заказа (главный возвращает отмена)
+    second = (
+        Order.objects.filter(pk=OuterRef("deal_id"), payment_method=Order.METHOD_STRIPE)
+        .exclude(stripe_payment_intent="")
+        .exclude(stripe_payment_intent=OuterRef("stripe_payment_intent"))
+    )
+    rows = list(
+        folio.open_card_rows("order")
+        .filter(
+            Exists(second),
+            method="stripe",
+            refunded_cents=0,
+            created_at__gte=now - timezone.timedelta(days=REFUND_RETRY_DAYS),
+        )
+        .order_by("created_at")
+        .values_list("deal_id", "stripe_payment_intent")[: ABANDONED_BATCH * 2]
+    )
+    if not rows:
+        return 0
+    orders = Order.objects.in_bulk({deal_id for deal_id, _intent in rows})
+    done = tried = 0
+    for deal_id, intent in rows:
+        order = orders.get(deal_id)
+        if (
+            order is None
+            or order.payment_method != Order.METHOD_STRIPE
+            or not order.stripe_payment_intent
+            or intent == order.stripe_payment_intent
+        ):
+            continue
+        if tried >= ABANDONED_BATCH:
+            break
+        state = _refund_retry_state(schema, order.pk, now, intent=intent)
+        if state == _RETRY_EXHAUSTED:
+            refunds.notify_duplicate_failed("order", order, tenant, intent=intent)
+            continue
+        if state != _RETRY_DUE:
+            continue
+        tried += 1
+        try:
+            result = refunds.refund_intent("order", order, intent, tenant)
+        except Exception:  # noqa: BLE001 — один платёж не роняет проход
+            logger.exception("refund-retry %s: второй платёж заказа %s — сбой", schema, order.pk)
+            continue
+        logger.warning("refund-retry %s: второй платёж заказа %s → %s", schema, order.pk, result)
         if result in (refunds.RefundResult.REFUNDED, refunds.RefundResult.ALREADY):
             done += 1
     return done

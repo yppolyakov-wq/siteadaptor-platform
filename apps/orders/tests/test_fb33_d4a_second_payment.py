@@ -32,7 +32,6 @@ pytestmark = pytest.mark.django_db
 
 ACCOUNT = "acct_d4a"
 OWNER = "chef@example.com"
-_RED = pytest.mark.xfail(strict=True, reason="FB-33 D4a: до правки")
 
 
 @pytest.fixture(autouse=True)
@@ -105,7 +104,6 @@ def _dup_mails(order):
 # ───────────── матрица второго платежа ─────────────
 
 
-@_RED
 def test_second_payment_on_paid_order_is_booked_and_refunded(biz, stripe_refunds):
     """Оплачен картой, затем вторая сессия (SEPA) — строка в книге, возврат один раз."""
     order = _live_paid()
@@ -118,7 +116,6 @@ def test_second_payment_on_paid_order_is_booked_and_refunded(biz, stripe_refunds
     assert order.payment_state == Order.PAYMENT_PAID
 
 
-@_RED
 def test_second_payment_on_refunded_live_order_is_booked_and_refunded(biz, stripe_refunds):
     order = _live_paid()
     Order.objects.filter(pk=order.pk).update(payment_state=Order.PAYMENT_REFUNDED)
@@ -141,7 +138,6 @@ def test_processing_sepa_then_card_is_not_a_duplicate(biz, stripe_refunds):
     assert order.stripe_payment_intent == "pi_card" and stripe_refunds == []
 
 
-@_RED
 def test_processing_sepa_succeeds_after_card_is_refunded(biz, stripe_refunds):
     order = _order(hours_ago=1, email="gast@example.com")
     payments.mark_order_processing(
@@ -159,7 +155,6 @@ def test_repeat_of_same_intent_does_nothing(biz, stripe_refunds):
     assert stripe_refunds == [] and len(_rows(order)) == 1
 
 
-@_RED
 def test_second_payment_on_legacy_order_without_rows(biz, stripe_refunds):
     """Легаси без строк книги: второй платёж — строка opening с главным + своя строка."""
     order = _order(hours_ago=1, email="gast@example.com")
@@ -198,7 +193,6 @@ def test_cash_then_online_is_kept_with_warning(biz, stripe_refunds, caplog):
     assert "pi_online" in _rows(order)
 
 
-@_RED
 def test_cash_then_online_warns(biz, stripe_refunds, caplog):
     order = _order(hours_ago=1, email="gast@example.com")
     Order.objects.filter(pk=order.pk).update(payment_state=Order.PAYMENT_PAID)
@@ -208,7 +202,6 @@ def test_cash_then_online_warns(biz, stripe_refunds, caplog):
     assert any("manual" in r.getMessage() and r.levelno == logging.WARNING for r in caplog.records)
 
 
-@_RED
 def test_extra_row_amount_is_stripe_amount(biz, stripe_refunds):
     """10.1 M5: сумма строки — `amount_total` вебхука, а не расчёт сделки."""
     order = _live_paid()
@@ -216,7 +209,6 @@ def test_extra_row_amount_is_stripe_amount(biz, stripe_refunds):
     assert _rows(order)["pi_second"].amount_cents == 777
 
 
-@_RED
 def test_extra_decided_under_lock(biz, stripe_refunds):
     """№9: признак «второй платёж» — из строки под блокировкой (FOR UPDATE до книги)."""
     order = _live_paid()
@@ -232,7 +224,6 @@ def test_extra_decided_under_lock(biz, stripe_refunds):
 # ───────────── отмена после дубля, сбои ─────────────
 
 
-@_RED
 def test_cancel_after_duplicate_no_double_refund(biz, stripe_refunds):
     order = _live_paid()
     _pay(order, "pi_second", amount=1000)
@@ -244,7 +235,6 @@ def test_cancel_after_duplicate_no_double_refund(biz, stripe_refunds):
     assert stripe_refunds[0]["payment_intent"] == "pi_second"  # вернули сразу, до отмены
 
 
-@_RED
 def test_other_rows_refund_shared(biz, stripe_refunds):
     """№1: `_refund_other_card_rows` и `refund_intent` — один ключ, одна запись."""
     order = _live_paid()
@@ -257,7 +247,6 @@ def test_other_rows_refund_shared(biz, stripe_refunds):
     assert _rows(order)["pi_second"].refunded_cents == 1000
 
 
-@_RED
 def test_duplicate_refund_failure_marks_and_mails(biz, monkeypatch):
     def card_error(**kw):
         raise stripe.error.CardError("declined", None, "card_declined")
@@ -272,7 +261,6 @@ def test_duplicate_refund_failure_marks_and_mails(biz, monkeypatch):
     assert "html" not in (mails[0].payload or {})
 
 
-@_RED
 def test_duplicate_refund_timeout_is_uncertain_without_mail_then_retried(biz, monkeypatch):
     calls = []
     state = {"down": True}
@@ -294,7 +282,6 @@ def test_duplicate_refund_timeout_is_uncertain_without_mail_then_retried(biz, mo
     assert payments.refund_open(order) is False
 
 
-@_RED
 def test_retry_extra_exhausted_mails_owner(biz, monkeypatch):
     def refund(**kw):
         raise stripe.error.APIConnectionError("timeout")
@@ -308,7 +295,6 @@ def test_retry_extra_exhausted_mails_owner(biz, monkeypatch):
     assert _dup_mails(order).count() == 1
 
 
-@_RED
 def test_retry_counters_per_intent(biz, monkeypatch):
     """10.2 M4: счётчик повтора — на (сделка, платёж), не общий с главным возвратом."""
     from django.core.cache import cache
@@ -327,7 +313,6 @@ def test_retry_counters_per_intent(biz, monkeypatch):
     assert cache.get(f"order-refund-retry:{schema}:{order.pk}") is None
 
 
-@_RED
 def test_retry_extra_bounded(biz, monkeypatch):
     monkeypatch.setattr(tasks, "ABANDONED_BATCH", 2)
     calls = []
@@ -357,7 +342,6 @@ def test_retry_extra_ignores_partial_refund_rows_of_main(biz, stripe_refunds):
 # ───────────── refund_intent ─────────────
 
 
-@_RED
 def test_refund_intent_without_row_is_noop(biz, stripe_refunds, caplog):
     order = _live_paid()
     with caplog.at_level(logging.ERROR):
@@ -366,14 +350,12 @@ def test_refund_intent_without_row_is_noop(biz, stripe_refunds, caplog):
     assert any(r.levelno == logging.ERROR for r in caplog.records)
 
 
-@_RED
 def test_refund_intent_without_row_does_not_touch_main_row(biz, stripe_refunds):
     order = _live_paid()
     refunds.refund_intent("order", order, "pi_ghost", biz)
     assert _rows(order)["pi_main"].refunded_cents == 0
 
 
-@_RED
 def test_refund_intent_refuses_main_intent(biz, stripe_refunds, caplog):
     order = _live_paid()
     with caplog.at_level(logging.ERROR):
@@ -381,7 +363,6 @@ def test_refund_intent_refuses_main_intent(biz, stripe_refunds, caplog):
     assert result == refunds.RefundResult.NONE and stripe_refunds == []
 
 
-@_RED
 def test_refund_intent_idempotency_in_progress_is_uncertain(biz, monkeypatch):
     order = _live_paid()
     monkeypatch.setattr("apps.billing.connect.refund", lambda **kw: None)
@@ -398,7 +379,6 @@ def test_refund_intent_idempotency_in_progress_is_uncertain(biz, monkeypatch):
     assert not _dup_mails(order).exists()
 
 
-@_RED
 def test_concurrent_cancel_and_duplicate_refund_main_state_kept(biz, monkeypatch):
     """10.1 H2: отмена возвращает главный, а возврат второго «в полёте» у вебхука —
     `IdempotencyError` не откатывает «возвращено» главного."""
@@ -427,7 +407,6 @@ def test_concurrent_cancel_and_duplicate_refund_main_state_kept(biz, monkeypatch
     assert result == refunds.RefundResult.UNCERTAIN
 
 
-@_RED
 def test_cancel_other_rows_timeout_is_uncertain(biz, monkeypatch):
     def refund(**kw):
         if kw["payment_intent"] == "pi_second":
@@ -472,7 +451,6 @@ def test_cancel_other_rows_refusal_still_rolls_back(biz, monkeypatch):
     assert refunds.refund_payment("order", order, biz) == refunds.RefundResult.FAILED
 
 
-@_RED
 def test_extra_rows_one_source(biz, stripe_refunds, monkeypatch):
     """10.2 M3: «прочие stripe-строки с остатком» — один отбор в книге (`folio`)."""
     order = _live_paid()
@@ -503,7 +481,6 @@ _MSGIDS = (
 )
 
 
-@_RED
 @pytest.mark.parametrize("lang", ["de", "en", "ru", "tr", "uk"])
 def test_d4a_msgids_in_all_po(lang):
     po = polib.pofile(f"locale/{lang}/LC_MESSAGES/django.po")

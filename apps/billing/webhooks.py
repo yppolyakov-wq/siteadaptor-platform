@@ -263,6 +263,7 @@ def handle_event(event_type: str, obj: dict, account: str = "", event_id: str = 
             order_id=meta.get("order_id", ""),
             payment_intent=obj.get("payment_intent", ""),
             payer_email=details.get("email") if isinstance(details, dict) else None,
+            amount_cents=int(obj.get("amount_total") or 0),
         )
         if not ok:
             _money_not_booked("order_payment", meta, obj, id_key="order_id", event_id=event_id)

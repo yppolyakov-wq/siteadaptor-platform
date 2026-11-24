@@ -121,7 +121,60 @@ def set_connect_status(account_id: str, charges_enabled: bool) -> bool:
 # --- Платежи на connected account (P2.5b/c) -------------------------------
 
 
-def connected_checkout_session(
+def connected_checkout_session(**kwargs) -> str:
+    """Checkout на connected account бизнеса → URL оплаты (`_create_connected_session`)."""
+    return _create_connected_session(**kwargs)["url"]
+
+
+def connected_checkout(**kwargs) -> tuple[str, str]:
+    """FB-33 D4a: то же, что `connected_checkout_session`, плюс id сессии — чтобы закрыть
+    её (`expire_session`), когда заказ отменили раньше её срока."""
+    session = _create_connected_session(**kwargs)
+    return session["url"], str(session.get("id") or "")
+
+
+#: FB-33 D4a: исходы `expire_session`.
+EXPIRED = "expired"  # сессию закрыли сейчас
+CLOSED = "closed"  # её уже нет или она уже завершена/истекла
+UNKNOWN = "unknown"  # Stripe не ответил или отказал иначе — ничего не помечаем
+
+
+def _session_not_open(exc) -> bool:
+    if getattr(exc, "code", "") == "resource_missing":
+        return True
+    text = str(getattr(exc, "user_message", "") or exc).lower()
+    return "status of" in text and ("complete" in text or "expired" in text)
+
+
+def expire_session(*, connect_id: str, session_id: str) -> str:
+    """FB-33 D4a: закрыть открытую сессию Checkout на connected account бизнеса.
+
+    «Не ответил ≠ отказал»: `closed` — только «нет такой» (`resource_missing`) или «уже
+    complete/expired»; прочие ошибки — `unknown` (в лог с кодом, наружу не бросаем)."""
+    import logging
+
+    log = logging.getLogger("billing")
+    try:
+        _client().checkout.Session.expire(session_id, stripe_account=connect_id)
+    except stripe.error.InvalidRequestError as exc:
+        if _session_not_open(exc):
+            log.info("checkout session %s already closed (%s)", session_id, exc.code or "-")
+            return CLOSED
+        log.warning("checkout session %s not expired (%s)", session_id, exc.code or "-")
+        return UNKNOWN
+    except Exception as exc:  # noqa: BLE001 — нет ответа: сессия, возможно, открыта
+        log.warning(
+            "checkout session %s not expired (%s, %s)",
+            session_id,
+            type(exc).__name__,
+            getattr(exc, "code", "") or "-",
+        )
+        return UNKNOWN
+    log.info("checkout session %s expired", session_id)
+    return EXPIRED
+
+
+def _create_connected_session(
     *,
     connect_id: str,
     amount_cents: int,
@@ -133,12 +186,12 @@ def connected_checkout_session(
     currency: str = "eur",
     payment_method_types: list | None = None,
     expires_at: int | None = None,
-) -> str:
+):
     """Checkout (mode=payment) НА connected account бизнеса — деньги идут ему.
 
     application_fee удерживаем только при ненулевом проценте типа (вариант A);
     при варианте B (процент 0, текущая модель) комиссия не удерживается — бизнес
-    получает 100 %. Возвращает URL оплаты.
+    получает 100 %. Возвращает сессию Stripe (url, id).
 
     E7-3: `payment_method_types` (["card","paypal","klarna","sepa_debit"]) —
     из `Tenant.stripe_payment_methods`; пусто/None → параметр НЕ передаём
@@ -173,7 +226,7 @@ def connected_checkout_session(
         metadata=metadata,
         payment_intent_data=intent_data,
     )
-    return session["url"]
+    return session
 
 
 def refund(

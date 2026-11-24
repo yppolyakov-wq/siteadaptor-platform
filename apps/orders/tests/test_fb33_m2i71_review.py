@@ -389,8 +389,8 @@ def test_order_with_a_later_payment_term_stays_payable(biz, monkeypatch):
 
     seen = {}
     monkeypatch.setattr(
-        "apps.billing.connect.connected_checkout_session",
-        lambda **kw: seen.update(kw) or "https://stripe.test/pay",
+        "apps.billing.connect.connected_checkout",
+        lambda **kw: seen.update(kw) or ("https://stripe.test/pay", "cs_test"),
     )
     monkeypatch.setattr(public_views, "_require_orders_active", lambda r: None)
     resp = public_views.order_pay(_pay_request(order, biz), order.reference_code)

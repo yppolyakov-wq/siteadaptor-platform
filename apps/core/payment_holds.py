@@ -274,6 +274,49 @@ def payable(kind: str, obj, tenant=None) -> bool:
     return not payment_in_flight(kind, obj)
 
 
+def is_new_payment(kind: str, obj, intent: str) -> bool:
+    """FB-33 D4a: пришли новые деньги — платёж, которого нет в книге сделки (повтор вебхука
+    находит свою строку). Легаси без книги (ревью H1): повтор по главному intent уже
+    оплаченной сделки новым платежом не считаем — иначе вернули бы законный платёж."""
+    from apps.core import folio
+
+    if not intent:
+        return False
+    model = type(obj)
+    unpaid = (getattr(model, "PAYMENT_UNPAID", None),) + tuple(_UNPAID.get(kind, ()))
+    if (
+        getattr(obj, "stripe_payment_intent", "") == intent
+        and getattr(obj, "payment_state", "") not in unpaid
+    ):
+        return False
+    return not folio.has_payment(kind, obj, intent)
+
+
+#: Виды, у которых сбой возврата второго платежа повторяет задача по расписанию
+#: (`orders.tasks.retry_late_refunds`); у прочих «Stripe не ответил» — сразу письмо.
+EXTRA_RETRY_KINDS = ("order",)
+
+
+def settle_extra_payment(kind: str, obj, *, intent: str):
+    """FB-33 D4a: второй платёж Stripe к НЕотменённой сделке (решение владельца
+    2026-11-24) — уже записан строкой книги, возвращается только он (`refund_intent`).
+    Звать после блокировки сделки. Сбой → письмо владельцу `duplicate` (одно на платёж);
+    «Stripe не ответил» у вида с повтором — без письма (письмо после исчерпания повторов),
+    у прочих — письмо сразу (повтора нет, ревью H4)."""
+    from django_tenants.utils import get_tenant_model
+
+    from apps.core import refunds
+
+    tenant = get_tenant_model().objects.filter(schema_name=connection.schema_name).first()
+    result = refunds.refund_intent(kind, obj, intent, tenant)
+    logger.warning("second payment on %s %s → %s", kind, obj.pk, result)
+    if result == refunds.RefundResult.FAILED or (
+        result == refunds.RefundResult.UNCERTAIN and kind not in EXTRA_RETRY_KINDS
+    ):
+        refunds.notify_duplicate_failed(kind, obj, tenant, intent=intent)
+    return result
+
+
 def settle_late_payment(kind: str, obj, *, newly_paid: bool) -> None:
     """Оплата пришла, а сделка уже снята (удержание истекло, отменили вручную):
     деньги не должны остаться у бизнеса за отменённую бронь — возвращаем сразу.

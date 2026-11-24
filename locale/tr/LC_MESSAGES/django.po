@@ -40759,6 +40759,16 @@ msgstr "Sipariş listesi hesabınız için açık değil."
 msgid "fb33-stack-anchor-d4a"
 msgstr "fb33-stack-anchor-d4a"
 
+#: apps/core/refunds.py
+#, python-format
+msgid "Doppelte Zahlung nicht erstattet: %(code)s"
+msgstr "Mükerrer ödeme iade edilmedi: %(code)s"
+
+#: apps/core/refunds.py
+#, python-format
+msgid "Zu %(code)s ist eine zweite Zahlung eingegangen. Die automatische Rückerstattung ist fehlgeschlagen — bitte in Stripe prüfen und erstatten."
+msgstr "%(code)s için ikinci bir ödeme alındı. Otomatik iade başarısız oldu — lütfen Stripe'ta kontrol edip iade edin."
+
 msgid "fb33-stack-anchor-d6"
 msgstr "fb33-stack-anchor-d6"
 

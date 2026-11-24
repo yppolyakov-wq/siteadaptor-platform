@@ -161,7 +161,11 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
     obj.refresh_from_db(fields=["payment_state"])
     previous = obj.payment_state
     if previous not in refundable:
-        return RefundResult.ALREADY if previous == model.PAYMENT_REFUNDED else RefundResult.NONE
+        if previous == model.PAYMENT_REFUNDED:
+            # FB-33 D4a (ревью H2): главный возвращён, а вторая строка осталась открытой
+            # (Stripe не ответил) — повтор отмены добирает её тем же ключом.
+            return _finish_other_rows(kind, obj, connect_id, intent, tenant)
+        return RefundResult.NONE
     rest = _offline_rest(kind, obj)
     claimed = model.objects.filter(
         pk=obj.pk, payment_state=previous, stripe_payment_intent=intent
@@ -198,64 +202,161 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
     folio.mark_refunded(kind, obj, intent=intent)  # KA-12 B2-3: книга знает о возврате
     # KA-12 B2-5: остаток, доплаченный онлайн отдельным платежом, — свой intent;
     # вернуть и его (иначе карта осталась бы списанной, а книга — «возвращено»).
-    extra_cents, extra_failed = _refund_other_card_rows(kind, obj, connect_id, intent)
+    extra_cents, extra_outcome = _refund_other_card_rows(kind, obj, connect_id, intent)
     rest = max(rest - Decimal(extra_cents) / 100, Decimal("0"))
-    if extra_failed:
+    if extra_outcome == ROW_REFUSED:
         # error-handling: «возвращено» оставило бы доплату остатка без повтора —
         # возвращаем прежнее состояние; повтор отмены перезапустит возврат (основной
         # платёж Stripe повторит по тому же ключу, без второго списания).
         return _rollback(kind, obj, previous, tenant)
+    if extra_outcome == ROW_UNCERTAIN:
+        # FB-33 D4a (ревью H2): Stripe не ответил по второй строке (таймаут, тот же ключ
+        # «в работе» у вебхука) — деньги могли уйти. Главный платёж уже возвращён, откат
+        # «возвращено» был бы ложью; строка остаётся открытой, владельцу — «проверьте».
+        logger.warning("refund of extra payment uncertain: %s %s", kind, obj.pk)
+        _notify_owner_failed(kind, obj, tenant)
+        return RefundResult.UNCERTAIN
     if rest > 0:
         _OFFLINE_REST.set(rest)
         _notify_owner_rest(kind, obj, rest, tenant)
     return RefundResult.REFUNDED
 
 
-def _refund_other_card_rows(kind: str, obj, connect_id: str, main_intent: str):
-    """Вернуть прочие платежи Stripe сделки (доплата остатка B2-5). Возвращает
-    (сколько вернули в центах, был ли сбой). Повтор безопасен: ключ — на intent."""
+def _finish_other_rows(kind: str, obj, connect_id: str, main_intent: str, tenant):
+    """Сделка уже «возвращено»: вернуть оставшиеся открытыми прочие строки Stripe."""
+    cents, outcome = _refund_other_card_rows(kind, obj, connect_id, main_intent)
+    if outcome == ROW_REFUSED:
+        _notify_owner_failed(kind, obj, tenant)
+        return RefundResult.FAILED
+    if outcome == ROW_UNCERTAIN:
+        return RefundResult.UNCERTAIN
+    return RefundResult.REFUNDED if cents else RefundResult.ALREADY
+
+
+#: FB-33 D4a: исходы возврата одной строки книги (`_refund_row`).
+ROW_DONE = "done"  # Stripe вернул (или уже было возвращено) — строка закрыта
+ROW_REFUSED = "refused"  # Stripe явно отказал — денег не вернули
+ROW_UNCERTAIN = "uncertain"  # нет ответа / тот же ключ «в работе» — деньги могли уйти
+
+
+def _refund_row(kind: str, obj, row, connect_id: str) -> str:
+    """Вернуть одну строку Stripe книги сделки — одна точка для `_refund_other_card_rows`
+    (отмена) и `refund_intent` (второй платёж): тот же ключ идемпотентности, поэтому
+    поздняя отмена не вернёт второй раз. «Не ответил ≠ отказал»: таймаут, обрыв и
+    `IdempotencyError` (параллельный возврат с тем же ключом) — `ROW_UNCERTAIN`, строка
+    остаётся открытой; явный отказ — `ROW_REFUSED`."""
     import stripe
 
     from apps.billing import connect
     from apps.core import folio
-    from apps.core.models import DealPayment
+
+    open_cents = row.amount_cents - row.refunded_cents
+    if open_cents <= 0:
+        return ROW_DONE
+    intent = row.stripe_payment_intent
+    try:
+        if row.refunded_cents:
+            connect.refund(
+                connect_id=connect_id,
+                payment_intent=intent,
+                idempotency_key=_partial_key(kind, obj.pk, intent, row.amount_cents),
+                amount_cents=open_cents,
+            )
+        else:
+            connect.refund(
+                connect_id=connect_id,
+                payment_intent=intent,
+                idempotency_key=_idempotency_key(kind, obj.pk, intent),
+            )
+    except stripe.error.IdempotencyError:
+        logger.warning("refund of payment row uncertain (in progress): %s %s", kind, obj.pk)
+        return ROW_UNCERTAIN
+    except stripe.error.InvalidRequestError as exc:
+        if getattr(exc, "code", "") != "charge_already_refunded":
+            logger.warning("refund of payment row refused: %s %s", kind, obj.pk)
+            return ROW_REFUSED
+    except (
+        stripe.error.CardError,
+        stripe.error.PermissionError,
+        stripe.error.AuthenticationError,
+    ):
+        logger.warning("refund of payment row refused: %s %s", kind, obj.pk)
+        return ROW_REFUSED
+    except Exception:  # noqa: BLE001 — нет ответа: возврат мог пройти, строку не закрываем
+        logger.warning("refund of payment row uncertain: %s %s", kind, obj.pk, exc_info=True)
+        return ROW_UNCERTAIN
+    folio.mark_refunded(kind, obj, intent=intent)
+    return ROW_DONE
+
+
+def _refund_other_card_rows(kind: str, obj, connect_id: str, main_intent: str):
+    """Вернуть прочие платежи Stripe сделки (доплата остатка B2-5, второй платёж).
+    Возвращает (сколько вернули в центах, исход: None — всё вернули, `ROW_REFUSED` или
+    `ROW_UNCERTAIN` — на первой несостоявшейся строке). Повтор безопасен: ключ — на intent."""
+    from apps.core import folio
 
     refunded = 0
-    rows = (
-        DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk)
-        .exclude(stripe_payment_intent="")
-        .exclude(stripe_payment_intent=main_intent)
-    )
-    for row in rows:
+    for row in folio.open_card_rows(kind, obj, exclude_intent=main_intent):
         open_cents = row.amount_cents - row.refunded_cents
-        if open_cents <= 0:
-            continue
-        try:
-            if row.refunded_cents:
-                connect.refund(
-                    connect_id=connect_id,
-                    payment_intent=row.stripe_payment_intent,
-                    idempotency_key=_partial_key(
-                        kind, obj.pk, row.stripe_payment_intent, row.amount_cents
-                    ),
-                    amount_cents=open_cents,
-                )
-            else:
-                connect.refund(
-                    connect_id=connect_id,
-                    payment_intent=row.stripe_payment_intent,
-                    idempotency_key=_idempotency_key(kind, obj.pk, row.stripe_payment_intent),
-                )
-        except stripe.error.InvalidRequestError as exc:
-            if getattr(exc, "code", "") != "charge_already_refunded":
-                logger.warning("refund of extra payment failed: %s %s", kind, obj.pk)
-                return refunded, True
-        except Exception:  # noqa: BLE001 — сбой виден владельцу, не «возвращено»
-            logger.warning("refund of extra payment failed: %s %s", kind, obj.pk)
-            return refunded, True
-        folio.mark_refunded(kind, obj, intent=row.stripe_payment_intent)
+        outcome = _refund_row(kind, obj, row, connect_id)
+        if outcome != ROW_DONE:
+            return refunded, outcome
         refunded += open_cents
-    return refunded, False
+    return refunded, None
+
+
+def refund_intent(kind: str, obj, intent: str, tenant=None) -> RefundResult:
+    """FB-33 D4a: вернуть ОДИН платёж Stripe сделки — второй платёж к неотменённой сделке
+    (решение владельца 2026-11-24). Главный платёж и прочие строки не трогаются: у номера с
+    «nicht erstatten» главный остаётся у бизнеса.
+
+    Только по строке книги с этим intent (ревью H2): строки нет — NONE + ERROR, Stripe и
+    `mark_refunded` не зовутся (тот пометил бы легаси-строку главного). Главный intent —
+    отказ (NONE + ERROR). Строка читается под блокировкой сделки, вызов Stripe — после."""
+    from apps.core import transactions
+    from apps.core.models import DealPayment
+
+    connect_id = _connect_id(tenant)
+    if not connect_id or not intent:
+        return RefundResult.NONE
+    with transaction.atomic():
+        locked = (
+            transactions.model_for(kind)
+            .objects.select_for_update(of=("self",))
+            .filter(pk=obj.pk)
+            .first()
+        )
+        if locked is None:
+            return RefundResult.NONE
+        if intent == (getattr(locked, "stripe_payment_intent", "") or ""):
+            logger.error("refund_intent: %s %s — main payment is not refunded here", kind, obj.pk)
+            return RefundResult.NONE
+        row = DealPayment.objects.filter(
+            deal_kind=kind, deal_id=locked.pk, stripe_payment_intent=intent
+        ).first()
+    if row is None:
+        logger.error("refund_intent: %s %s — no ledger row for the payment", kind, obj.pk)
+        return RefundResult.NONE
+    if row.amount_cents - row.refunded_cents <= 0:
+        return RefundResult.ALREADY
+    outcome = _refund_row(kind, obj, row, connect_id)
+    if outcome == ROW_DONE:
+        return RefundResult.REFUNDED
+    if outcome == ROW_REFUSED:
+        return RefundResult.FAILED
+    return RefundResult.UNCERTAIN
+
+
+def duplicate_key(kind: str, pk, intent: str) -> str:
+    """Ключ «письмо о сбое возврата второго платежа» — один на (сделка, платёж)."""
+    return _idempotency_key(kind, pk, intent).removeprefix("refund:")
+
+
+def notify_duplicate_failed(kind: str, obj, tenant, *, intent: str) -> None:
+    """Возврат второго платежа не состоялся — одно письмо владельцу на (сделка, платёж)."""
+    _notify_owner_failed(
+        kind, obj, tenant, reason="duplicate", once=duplicate_key(kind, obj.pk, intent)
+    )
 
 
 def _offline_rest(kind: str, obj) -> Decimal:
@@ -759,10 +860,13 @@ def _rollback(kind: str, obj, previous: str, tenant) -> RefundResult:
     return RefundResult.FAILED
 
 
-def _notify_owner_failed(kind: str, obj, tenant, *, reason: str = "cancel", cents: int = 0) -> None:
+def _notify_owner_failed(
+    kind: str, obj, tenant, *, reason: str = "cancel", cents: int = 0, once: str = ""
+) -> None:
     """Письмо владельцу о сбое возврата. `reason`: cancel (отмена) · partial (частичный
-    возврат) · price (деньги вернули, цену не снизили). Ключ — на причину и сумму:
-    второй сбой по той же сделке тоже доходит (ревью silent-failure)."""
+    возврат) · price (деньги вернули, цену не снизили) · duplicate (второй платёж не
+    вернули, FB-33 D4a). Ключ — на причину и сумму: второй сбой по той же сделке тоже
+    доходит (ревью silent-failure). `once` — ключ без минуты: письмо одно на платёж."""
     from django.db import connection
     from django.utils import timezone, translation
     from django.utils.translation import gettext as _
@@ -779,7 +883,13 @@ def _notify_owner_failed(kind: str, obj, tenant, *, reason: str = "cancel", cent
     amount = f"{Decimal(int(cents or 0)) / 100:.2f}".replace(".", ",")
     with translation.override(email_locale()):
         subject = _("Erstattung nicht bestätigt: %(code)s") % {"code": code}
-        if reason == "price":
+        if reason == "duplicate":
+            subject = _("Doppelte Zahlung nicht erstattet: %(code)s") % {"code": code}
+            body = _(
+                "Zu %(code)s ist eine zweite Zahlung eingegangen. Die automatische "
+                "Rückerstattung ist fehlgeschlagen — bitte in Stripe prüfen und erstatten."
+            ) % {"code": code}
+        elif reason == "price":
             body = _(
                 "Für %(code)s wurden %(amount)s € erstattet, aber der Preis konnte nicht "
                 "angepasst werden. Bitte setzen Sie den Rabatt in der Buchung von Hand."
@@ -798,7 +908,9 @@ def _notify_owner_failed(kind: str, obj, tenant, *, reason: str = "cancel", cent
     try:
         notify(
             dedupe_key=(
-                f"refund-failed:{connection.schema_name}:{kind}:{obj.pk}:{reason}:{cents}:"
+                f"refund-failed:{connection.schema_name}:{kind}:{obj.pk}:{reason}:{once}"
+                if once
+                else f"refund-failed:{connection.schema_name}:{kind}:{obj.pk}:{reason}:{cents}:"
                 f"{timezone.now():%Y%m%d%H%M}"
             ),
             type="refund_failed_owner",
@@ -849,6 +961,11 @@ def flash(request, result: RefundResult, kind: str) -> None:
             )
     elif result == RefundResult.FAILED:
         messages.error(request, _("Refund failed — please check Stripe."))
+    elif result == RefundResult.UNCERTAIN:  # FB-33 D4a: вторая строка без ответа Stripe
+        messages.warning(
+            request,
+            _("Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."),
+        )
     elif result == RefundResult.MANUAL:  # доля оплачена вне Stripe
         messages.warning(
             request,

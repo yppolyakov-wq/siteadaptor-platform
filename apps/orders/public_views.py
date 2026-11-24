@@ -1459,23 +1459,20 @@ def order_pay(request, code):
         return HttpResponse(status=429)
     order = get_object_or_404(Order, reference_code=code)
     tenant = request.tenant
-    payable = (
-        order.payment_method == Order.METHOD_STRIPE
-        and order.payment_state == Order.PAYMENT_UNPAID
-        and order.status == Order.STATUS_NEW
-        and order.total > 0
-        and getattr(tenant, "payments_enabled", False)
-    )
-    if payable and order_payments.payment_processing(order):
+    # FB-33 D4a: «можно ли платить» — одно условие с подтверждением и предложением.
+    state = order_payments.pay_state(order, tenant)
+    if state == order_payments.PAY_PROCESSING:
         # FB-33 M2i-7.1: оплата «в пути» (SEPA) — вторую сессию не открываем.
         messages.info(request, _("Ihre Zahlung wird bereits verarbeitet."))
-    elif payable and order_payments.pay_window_closed(order):
+    elif state == order_payments.PAY_CLOSED:
         # FB-33 M2i-7.1: до автоотмены брошенного заказа — минуты; платить уже поздно.
         messages.info(
             request,
             _("Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."),
         )
-    elif payable:
+    elif state == order_payments.PAY_UNAVAILABLE:
+        messages.error(request, _("Payment is temporarily unavailable. Please try again later."))
+    elif state == order_payments.PAY_OPEN:
         order_url = request.build_absolute_uri(
             reverse("storefront-order", args=[order.reference_code])
         )
@@ -1507,6 +1504,8 @@ def order_confirmation(request, code):
         {
             "order": order,
             "just_paid": request.GET.get("paid") == "1",
+            # FB-33 D4a: кнопка «Jetzt bezahlen» и тексты вместо неё — одно условие.
+            "pay_state": order_payments.pay_state(order, getattr(request, "tenant", None)),
             # TG3: кнопка привязки к Telegram-боту (пусто, если бот не настроен).
             "telegram_link": deep_link_for_page(request, order.customer),
         },
@@ -1615,16 +1614,9 @@ def offer_page(request, token):
             # Повторная онлайн-оплата (клиент отменил Checkout) — зеркало
             # order_pay без orders-гейта (страница предложения без модуля жива).
             order = offer.order
-            payable = (
-                order.payment_method == Order.METHOD_STRIPE
-                and order.payment_state == Order.PAYMENT_UNPAID
-                and order.status == Order.STATUS_NEW
-                and order.total > 0
-                # FB-33 M2i-7.1: оплата «в пути» / минуты до автоотмены — без новой сессии
-                and not order_payments.payment_processing(order)
-                and not order_payments.pay_window_closed(order)
-            )
-            if payable:
+            # FB-33 D4a: то же условие, что у `order_pay` (оплата «в пути», минуты до
+            # автоотмены, онлайн-оплата выключена — без новой сессии).
+            if order_payments.pay_state(order, tenant) == order_payments.PAY_OPEN:
                 return _offer_stripe_redirect(request, offer, order, tenant)
         return redirect("storefront-offer", token=token)
 
@@ -1636,6 +1628,7 @@ def offer_page(request, token):
             "offer": offer,
             "lines": list(offer.lines.all()),
             "just_paid": request.GET.get("paid") == "1",
+            "pay_state": order_payments.pay_state(offer.order, tenant) if offer.order else "",
             "order_link": offer.order is not None and orders_on,
             # Пикер способа — только при >1 (паритет-семантика E7-2 checkout).
             "payment_methods": order_payments.picker_rows(methods, tenant)

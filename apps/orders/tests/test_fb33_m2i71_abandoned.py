@@ -344,9 +344,9 @@ def _checkout_kwargs(order, biz, monkeypatch):
 
     def fake(**kw):
         seen.update(kw)
-        return "https://stripe.test/pay"
+        return "https://stripe.test/pay", "cs_test"
 
-    monkeypatch.setattr("apps.billing.connect.connected_checkout_session", fake)
+    monkeypatch.setattr("apps.billing.connect.connected_checkout", fake)
     payments.order_checkout_url(order, biz, success_url="https://s/ok", cancel_url="https://s/no")
     return seen
 

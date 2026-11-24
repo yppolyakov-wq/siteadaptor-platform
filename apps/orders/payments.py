@@ -6,6 +6,7 @@ application_fee=0). Подтверждение оплаты ставит веб�
 """
 
 import logging
+import time
 
 from apps.billing import connect
 
@@ -105,9 +106,9 @@ def payment_processing(order) -> bool:
     return order.payment_state == Order.PAYMENT_UNPAID and bool(order.stripe_payment_intent)
 
 
-def refund_open(order) -> bool:
+def _late_refund_open(order) -> bool:
     """Отменённый заказ, оплаченный онлайн, деньги не возвращены: у заказа отмена всегда
-    возвращает оплату, значит возврат не прошёл (сбой Stripe) — владельцу пометка."""
+    возвращает оплату, значит возврат не прошёл (сбой Stripe)."""
     from .models import Order
 
     return (
@@ -116,6 +117,56 @@ def refund_open(order) -> bool:
         and order.payment_method == Order.METHOD_STRIPE
         and bool(order.stripe_payment_intent)
     )
+
+
+def refund_open(order) -> bool:
+    """Пометка «Rückerstattung offen» в карточке: возврат поздней оплаты отменённого заказа
+    не прошёл ИЛИ (FB-33 D4a) у заказа есть платёж Stripe помимо главного с открытым
+    остатком — второй платёж, возврат которого не состоялся (у заказа второй платёж
+    всегда возвращается). +1 запрос, только у онлайн-заказа."""
+    from apps.core import folio
+
+    from .models import Order
+
+    if _late_refund_open(order):
+        return True
+    if order.payment_method != Order.METHOD_STRIPE or not order.stripe_payment_intent:
+        return False
+    return folio.open_card_rows("order", order, exclude_intent=order.stripe_payment_intent).exists()
+
+
+#: FB-33 D4a: состояния «Jetzt bezahlen» (`pay_state`).
+PAY_OPEN = "open"
+PAY_PROCESSING = "processing"
+PAY_CLOSED = "closed"
+PAY_UNAVAILABLE = "unavailable"
+PAY_CANCELLED = "cancelled"
+
+
+def pay_state(order, tenant) -> str:
+    """FB-33 D4a: можно ли сейчас платить заказ онлайн — одно условие для `order_pay`,
+    оплаты предложения и подтверждения. "open" — кнопка; "processing" — оплата «в пути»;
+    "closed" — минуты до автоотмены; "unavailable" — онлайн-оплата у бизнеса выключена;
+    "cancelled" — онлайн-заказ отменён; "" — не онлайн-заказ, уже оплачен или не «new»."""
+    from .models import Order
+
+    if order.payment_method != Order.METHOD_STRIPE:
+        return ""
+    if order.status == Order.STATUS_CANCELLED:
+        return PAY_CANCELLED
+    if (
+        order.payment_state != Order.PAYMENT_UNPAID
+        or order.status != Order.STATUS_NEW
+        or order.total <= 0
+    ):
+        return ""
+    if not getattr(tenant, "payments_enabled", False):
+        return PAY_UNAVAILABLE
+    if payment_processing(order):
+        return PAY_PROCESSING
+    if pay_window_closed(order):
+        return PAY_CLOSED
+    return PAY_OPEN
 
 
 #: actor перехода FSM при автоотмене брошенного заказа (журнал audit, карточка).
@@ -163,9 +214,112 @@ def _session_expires_at(order, *, now=None) -> int | None:
     return int(expires.timestamp())
 
 
+#: FB-33 D4a: сколько id сессий Checkout помнить на заказ (дальше — WARNING, сессия
+#: закроется своим сроком, поздняя оплата вернётся).
+ORDER_SESSIONS_MAX = 10
+#: Потолок вызовов `Session.expire` и бюджет времени на проход автоотмены по схеме.
+EXPIRE_CALLS_MAX = 50
+EXPIRE_BUDGET_SECONDS = 60
+_monotonic = time.monotonic
+
+
+def _sessions_key(schema: str, pk) -> str:
+    return f"order-sessions:{schema}:{pk}"
+
+
+def _sessions_ttl() -> int:
+    from datetime import timedelta
+
+    from apps.core import payment_holds
+
+    return int((payment_holds.ONLINE_HOLD + timedelta(hours=1)).total_seconds())
+
+
+def _remember_session(order, session_id: str, connect_id: str, *, schema: str = "") -> None:
+    """Запомнить id сессии Checkout заказа (кэш, не модель: сессия живёт ≤ 24 ч). Слот —
+    атомарным `incr`: параллельные «Jetzt bezahlen» не затирают друг друга. Кэш недоступен
+    или слоты кончились — WARNING: такую сессию закроет её срок."""
+    from django.core.cache import cache
+    from django.db import connection
+
+    if not session_id:
+        return
+    key = _sessions_key(schema or connection.schema_name, order.pk)
+    ttl = _sessions_ttl()
+    try:
+        cache.add(f"{key}:n", 0, ttl)
+        slot = cache.incr(f"{key}:n")
+        if slot > ORDER_SESSIONS_MAX:
+            logger.warning(
+                "order %s: more than %d checkout sessions — session not remembered",
+                order.pk,
+                ORDER_SESSIONS_MAX,
+            )
+            return
+        cache.set(f"{key}:{slot}", {"id": session_id, "acct": connect_id}, ttl)
+    except Exception:  # noqa: BLE001 — оплата важнее: сессия закроется своим сроком
+        logger.warning("order %s: checkout session not remembered (cache)", order.pk)
+
+
+def remembered_sessions(order_pk, *, schema: str = "") -> list[dict]:
+    """Запомненные сессии заказа: [{"id", "acct", "key"}] (кэш недоступен — пусто)."""
+    from django.core.cache import cache
+    from django.db import connection
+
+    key = _sessions_key(schema or connection.schema_name, order_pk)
+    try:
+        count = min(int(cache.get(f"{key}:n") or 0), ORDER_SESSIONS_MAX)
+        slots = [f"{key}:{n}" for n in range(1, count + 1)]
+        found = cache.get_many(slots) if slots else {}
+    except Exception:  # noqa: BLE001
+        logger.warning("order %s: checkout sessions unreadable (cache)", order_pk)
+        return []
+    return [
+        {**found[slot], "key": slot}
+        for slot in slots
+        if isinstance(found.get(slot), dict) and found[slot].get("id")
+    ]
+
+
+def expire_open_sessions(order_pks, *, connect_id: str) -> int:
+    """FB-33 D4a: после автоотмены закрыть открытые сессии Checkout отменённых заказов на
+    connected account бизнеса (аккаунт — из `Tenant`, не из кэша). Звать ВНЕ транзакции.
+
+    «Не ответил ≠ отказал»: первое `unknown` останавливает проход по схеме (WARNING) — id
+    остаются, сессия закроется сроком, поздняя оплата вернётся прежним путём. Закрытые
+    (`expired`/`closed`) id убираются. Потолок вызовов и бюджет времени — на проход.
+    → сколько сессий закрыто."""
+    from django.core.cache import cache
+
+    if not connect_id:
+        return 0
+    started = _monotonic()
+    calls = closed = 0
+    for pk in order_pks:
+        for item in remembered_sessions(pk):
+            if calls >= EXPIRE_CALLS_MAX or _monotonic() - started > EXPIRE_BUDGET_SECONDS:
+                logger.warning("expire sessions: pass budget exhausted after %d calls", calls)
+                return closed
+            if item.get("acct") != connect_id:
+                logger.warning("order %s: checkout session of another account skipped", pk)
+                continue
+            calls += 1
+            outcome = connect.expire_session(connect_id=connect_id, session_id=item["id"])
+            if outcome == connect.UNKNOWN:
+                logger.warning("expire sessions: Stripe did not answer — pass stopped")
+                return closed
+            closed += 1
+            try:
+                cache.delete(item["key"])
+            except Exception:  # noqa: BLE001
+                logger.warning("order %s: closed session not forgotten (cache)", pk)
+    return closed
+
+
 def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> str:
-    """URL Stripe-оплаты заказа (на connected account бизнеса)."""
-    return connect.connected_checkout_session(
+    """URL Stripe-оплаты заказа (на connected account бизнеса). FB-33 D4a: id сессии
+    запоминается — автоотмена заказа закроет её (`expire_open_sessions`)."""
+    url, session_id = connect.connected_checkout(
         connect_id=tenant.stripe_connect_id,
         amount_cents=int(round(order.total * 100)),
         product_name=f"Bestellung {order.reference_code}",
@@ -181,6 +335,8 @@ def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> s
         currency=(order.currency or "EUR").lower(),
         expires_at=_session_expires_at(order),
     )
+    _remember_session(order, session_id, tenant.stripe_connect_id)
+    return url
 
 
 def _clean_payer_email(raw) -> str:
@@ -251,20 +407,13 @@ def _is_late_new_payment(order, payment_intent: str) -> bool:
     вторая открытая сессия Stripe, в т.ч. раньше, чем вернули первую. Такой платёж
     записывается и возвращается, в каком бы состоянии (paid / refunded) ни был заказ.
     Легаси без книги: повтор по intent самого заказа новым платежом не считаем."""
-    from apps.core.models import DealPayment
+    from apps.core import payment_holds
 
     from .models import Order
 
-    if not payment_intent or order.status != Order.STATUS_CANCELLED:
+    if order.status != Order.STATUS_CANCELLED:
         return False
-    if (
-        order.payment_state != Order.PAYMENT_UNPAID
-        and order.stripe_payment_intent == payment_intent
-    ):
-        return False
-    return not DealPayment.objects.filter(
-        deal_kind="order", deal_id=order.pk, stripe_payment_intent=payment_intent
-    ).exists()
+    return payment_holds.is_new_payment("order", order, payment_intent)
 
 
 def _locked_order(order_id):
@@ -333,7 +482,12 @@ def release_failed_payment(*, tenant_schema: str, order_id: str, payment_intent:
 
 
 def mark_order_paid(
-    *, tenant_schema: str, order_id: str, payment_intent: str = "", payer_email=None
+    *,
+    tenant_schema: str,
+    order_id: str,
+    payment_intent: str = "",
+    payer_email=None,
+    amount_cents: int | None = None,
 ) -> bool:
     """Вебхук: заказ оплачен → payment_state=paid + авто-confirm (new→confirmed).
     Кросс-схемно, идемпотентно.
@@ -341,7 +495,13 @@ def mark_order_paid(
     FB-33 M2i-7: `payer_email` — `customer_details.email` оплаченной сессии. Заказу без
     адреса он становится адресом клиента, и письма «принят» и текущего статуса уходят на
     него — ровно по разу (dedupe_key письма), у незакрытого заказа. Выключенный канал и
-    отписка уважаются внутри `enqueue_order_email`."""
+    отписка уважаются внутри `enqueue_order_email`.
+
+    FB-33 D4a (решение владельца 2026-11-24): второй платёж Stripe к оплаченному или
+    возвращённому НЕотменённому заказу (главный платёж Stripe есть) — строкой книги на
+    сумму `amount_cents` (`amount_total` сессии) и сразу назад (`settle_extra_payment`);
+    главный intent не перезаписывается. «Касса, потом онлайн» (главного нет) — как раньше:
+    строка пишется, переплата видна в карточке, WARNING без возврата."""
     from django.db import transaction
     from django_tenants.utils import schema_context
 
@@ -369,23 +529,54 @@ def mark_order_paid(
             newly_paid = order.payment_state == Order.PAYMENT_UNPAID or _is_late_new_payment(
                 order, payment_intent
             )
+            # FB-33 D4a: второй платёж Stripe к неотменённому заказу — решение по свежей
+            # строке под блокировкой (повтор того же intent находит свою строку; легаси —
+            # повтор главного intent не дубль, ревью H1).
+            extra = (
+                not newly_paid
+                and not cancelled
+                and bool(order.stripe_payment_intent)
+                and payment_intent != order.stripe_payment_intent
+                and order.payment_state in (Order.PAYMENT_PAID, Order.PAYMENT_REFUNDED)
+                and payment_holds.is_new_payment("order", order, payment_intent)
+            )
+            main_before = order.stripe_payment_intent
             fields = []
             if newly_paid and order.payment_state != Order.PAYMENT_PAID:
                 order.payment_state = Order.PAYMENT_PAID
                 fields.append("payment_state")
             new_intent = bool(payment_intent) and order.stripe_payment_intent != payment_intent
-            # У отменённого заказа главный платёж вторым не перезаписываем: возврат первого
-            # захватывает заказ по своему intent, а остальные платежи возвращаются строками
-            # книги (`refunds._refund_other_card_rows`).
-            if new_intent and not (cancelled and order.stripe_payment_intent):
+            # Главный платёж вторым не перезаписываем: у отменённого возврат первого
+            # захватывает заказ по своему intent, у неотменённого второй возвращается
+            # строкой (D4a); остальные платежи — строками книги
+            # (`refunds._refund_other_card_rows`). Главного нет (касса, потом онлайн) —
+            # этот платёж становится главным, как раньше.
+            if new_intent and (not order.stripe_payment_intent or (newly_paid and not cancelled)):
                 order.stripe_payment_intent = payment_intent
                 fields.append("stripe_payment_intent")
-            if (newly_paid or new_intent) and order.payment_state != Order.PAYMENT_REFUNDED:
+            from apps.core import folio
+
+            if extra:
+                folio.record(
+                    "order",
+                    order,
+                    amount_cents=int(amount_cents or 0) or int(round(order.total * 100)),
+                    purpose="full",
+                    method="stripe",
+                    source="webhook",
+                    intent=payment_intent,
+                )
+            elif (newly_paid or new_intent) and order.payment_state != Order.PAYMENT_REFUNDED:
                 # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси);
                 # новый intent пишется и у уже «оплаченной» сделки (поздний вебхук
                 # после кассы) — иначе онлайн-деньги выпали бы из книги.
-                from apps.core import folio
-
+                if not newly_paid and not main_before and order.payment_state == Order.PAYMENT_PAID:
+                    # §9 №4 (владелец): «bezahlt» вручную, потом онлайн — не возвращаем,
+                    # переплата видна в карточке.
+                    logger.warning(
+                        "order %s: online payment after a manual 'paid' — kept, see overpayment",
+                        order.pk,
+                    )
                 folio.record_online("order", order, intent=payment_intent)
             if fields:
                 fields.append("updated_at")
@@ -399,8 +590,15 @@ def mark_order_paid(
             payment_holds.settle_late_payment("order", order, newly_paid=newly_paid)
         except Exception:  # noqa: BLE001 — оплата уже записана; возврат повторит задача
             logger.exception("order %s: refund of a late payment crashed", order.pk)
+        if extra:
+            # FB-33 D4a: второй платёж — назад сразу; сбой не роняет вебхук (пометка в
+            # карточке, повтор — `retry_late_refunds`).
+            try:
+                payment_holds.settle_extra_payment("order", order, intent=payment_intent)
+            except Exception:  # noqa: BLE001 — строка в книге; возврат повторит задача
+                logger.exception("order %s: refund of a second payment crashed", order.pk)
         order.refresh_from_db(fields=["payment_state"])
-        if newly_paid and refund_open(order):
+        if newly_paid and _late_refund_open(order):
             logger.error("order %s: late payment on a cancelled order is not refunded", order.pk)
         # FB-33 M2i-7: письма, не ушедшие без адреса, — после записи адреса И на повторе
         # вебхука (ревью п.1: сбой постановки после записи иначе терял их навсегда).
