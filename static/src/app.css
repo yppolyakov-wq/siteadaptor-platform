@@ -1787,7 +1787,10 @@ input[type="datetime-local"] {
      в «Seitenaufbau»); правило сильнее класса высоты у элемента (min-h-[…]) — как и в окне */
   [data-schema-panel] :is(button, summary, select, [role="tab"], a.ui-btn) { min-height: 2.75rem; }
   /* FB-33 M5d-1: «Inhalt bearbeiten: …» — отдельная ссылка (не в строке текста), цель 44 px */
-  [data-schema-panel] a[data-inhalt-link], .ui-bwin a[data-inhalt-link] { display: inline-flex; align-items: center; min-height: 2.75rem; }
+  [data-schema-panel] a[data-inhalt-link], .ui-bwin a[data-inhalt-link] { display: inline-flex; align-items: center; min-height: 2.75rem; max-width: 100%; }
+  /* FB-33 M5d-2b: подпись ссылки — flex-элемент; без min-width: 0 длинное имя объекта без
+     пробелов не переносится и ссылка шире окна (320 px) */
+  [data-schema-panel] a[data-inhalt-link] > span, .ui-bwin a[data-inhalt-link] > span { min-width: 0; overflow-wrap: anywhere; }
   /* значок «🔒 fest» окна «Inhalt» — без точки ui-badge (статус, а не метка состояния) */
   .ui-badge[data-inhalt-fixed]::before { display: none; }
   .ui-bwin [role="tablist"] { display: flex; flex-wrap: wrap; gap: 0.25rem; }
