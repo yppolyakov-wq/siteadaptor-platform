@@ -6,7 +6,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -117,9 +117,12 @@ def event_create(request):
 
 def _faq_ctx(request, obj, kind: str, conflict: bool = False) -> dict:
     """FB-33 M2b-2b: общий редактор своих вопросов FAQ (пары полей, переводы, отпечаток).
-    FB-33 стопка 14 E4: рядом — отпечаток `details_base` (`landing.fingerprint`). После отказа
-    (`conflict`) отпечаток свежий, а свои вопросы — как набраны в POST, со старым `faq_base`
-    (их сверка остаётся за `object_faq.save_from_form`)."""
+
+    FB-33 стопка 14 E4: рядом — отпечаток `details_base` (`landing.fingerprint`).
+    - Перерисовка после POST без отказа (невалидная форма): оба отпечатка — ИЗ POST (ревью
+      диффа HIGH-1: свежие из базы молча узаконили бы чужую правку при следующем Save).
+    - После отказа (`conflict`): оба отпечатка свежие, свои вопросы — как набраны в POST;
+      если и вопросы изменены в другом месте — сообщение `object_faq.form_changed_note`."""
     from apps.core import object_faq
     from apps.core.i18n_input import extra_locales
 
@@ -128,12 +131,20 @@ def _faq_ctx(request, obj, kind: str, conflict: bool = False) -> dict:
     tenant = getattr(request, "tenant", None)
     ctx = object_faq.form_ctx(obj, kind, tenant)
     ctx["details_base"] = landing.fingerprint(obj) if obj is not None else ""
-    if conflict:
-        rows = object_faq.post_rows(request.POST, kind, extra_locales(tenant))
-        if rows is not None:
-            ctx["faq_rows"] = rows
-        if "faq_base" in request.POST:
-            ctx["faq_base"] = request.POST["faq_base"]
+    post = request.POST if request.method == "POST" else {}
+    if not conflict:
+        for key in ("details_base", "faq_base"):
+            if key in post:
+                ctx[key] = post[key]
+        return ctx
+    notes: list = []
+    rows = object_faq.post_rows(obj, post, kind, extra_locales(tenant), notes)
+    if rows is not None:
+        ctx["faq_rows"] = rows
+    if "faq_base" in post and post["faq_base"] != ctx["faq_base"]:
+        notes.append(object_faq.form_changed_note())
+    for note in notes:
+        messages.warning(request, note)
     return ctx
 
 
@@ -165,12 +176,10 @@ def _save_form_fresh(form, kind: str, post):
     obj = form.instance
     with transaction.atomic():
         locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
-        if (
-            locked is not None
-            and "details_base" in post
-            and post.get("details_base") != landing.fingerprint(locked)
-        ):
-            logger.info(
+        if locked is None:  # удалён параллельно — `save` воскресил бы объект (ревью диффа)
+            raise Http404
+        if "details_base" in post and post.get("details_base") != landing.fingerprint(locked):
+            logger.warning(
                 "events form refused: details changed elsewhere (schema=%s kind=%s pk=%s)",
                 getattr(connection, "schema_name", ""),
                 kind,
@@ -199,7 +208,7 @@ def event_edit(request, pk):
         conflict = _save_form_fresh(form, "event", request.POST) is None
     if conflict:
         messages.error(request, _details_conflict_note())
-        event = Event.objects.get(pk=event.pk)  # свежая строка: отпечаток, фото, структура
+        event = get_object_or_404(Event, pk=event.pk)  # свежая строка: отпечаток, фото
     elif request.method == "POST" and form.is_valid():
         _save_faq(request, event, "event")  # FB-33 M2b-2b: свои вопросы FAQ (пары полей)
         # FB-29 R5: своя структура страницы события — по сентинелу (W0)
@@ -228,17 +237,23 @@ def event_edit(request, pk):
             "event": event,
             "nav": "events",
             "category_presets": taxonomy.CATEGORIES,
-            "page_structure": object_structure_panel(request, event),
+            "page_structure": object_structure_panel(request, event, post=conflict),
             "page_structure_url": reverse("site-schema") + "?seite=event",
             **_faq_ctx(request, event, "event", conflict),
         },
     )
 
 
-def object_structure_panel(request, obj, kind="event"):
-    """FB-29 R5/T1: данные секции «Seitenaufbau» формы события или тура."""
+def object_structure_panel(request, obj, kind="event", post=False):
+    """FB-29 R5/T1: данные секции «Seitenaufbau» формы события или тура. `post` — после
+    отказа формы (FB-33 стопка 14 E4): выбор из POST на копии объекта, без записи."""
+    import copy
+
     from apps.core import object_structure
 
+    if post:
+        obj = copy.copy(obj)
+        object_structure.apply_post(obj, kind, request.POST)  # только атрибуты копии
     config = getattr(getattr(request, "tenant", None), "site_config", None) or {}
     return object_structure.panel(config, kind, obj)
 
@@ -643,7 +658,7 @@ def tour_edit(request, pk):
         conflict = _save_form_fresh(form, "tour", request.POST) is None
     if conflict:
         messages.error(request, _details_conflict_note())
-        tour = Tour.objects.get(pk=tour.pk)  # свежая строка: отпечаток, фото, маршрут
+        tour = get_object_or_404(Tour, pk=tour.pk)  # свежая строка: отпечаток, фото
     elif request.method == "POST" and form.is_valid():
         _save_faq(request, tour, "tour")  # FB-33 M2b-2b: свои вопросы FAQ (пары полей)
         if request.POST.get("it_present"):
@@ -658,7 +673,10 @@ def tour_edit(request, pk):
             _delete_tour_photo(tour, request.POST["delete_image"])
         messages.success(request, _("Tour saved."))
         return redirect("events:tour-edit", pk=tour.pk)
-    stops = itinerary.normalize(tour.itinerary)
+    if conflict and request.POST.get("it_present"):
+        stops = itinerary.from_post(request.POST)  # отказ: маршрут как набран (без записи)
+    else:
+        stops = itinerary.normalize(tour.itinerary)
     return render(
         request,
         "events/tour_form.html",
@@ -670,7 +688,7 @@ def tour_edit(request, pk):
             "stops": stops + [{}] * 3,
             "visibility_choices": itinerary.visibility_choices(),
             "departures": tour.departures.order_by("starts_at"),
-            "page_structure": object_structure_panel(request, tour, "tour"),
+            "page_structure": object_structure_panel(request, tour, "tour", post=conflict),
             **_faq_ctx(request, tour, "tour", conflict),
             "page_structure_url": reverse("site-schema") + "?seite=event",
         },
