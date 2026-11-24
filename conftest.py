@@ -65,3 +65,26 @@ def _legacy_template_codes(request):
 
     with legacy_view(True):
         yield
+
+
+@pytest.hookimpl(wrapper=True)
+def pytest_runtest_teardown(item, nextitem):
+    """Замок FB-33 стопка 14: утечка схемы роняла воркер каскадом.
+
+    Тест оставил на соединении схему тенанта или сам тенант (`connection.tenant = t` без
+    возврата) — следующий `schema_context` «возвращает» соединение в эту схему, и любой
+    `TenantFactory` дальше на воркере падает «Can't create tenant outside the public schema».
+    Проверка — после разборки ВСЕХ фикстур теста (и monkeypatch), чтобы не ловить откаты.
+    """
+    result = yield
+    from django.db import connection
+
+    tenant = getattr(connection, "tenant", None)
+    leaked = connection.schema_name, getattr(tenant, "schema_name", "public")
+    if leaked != ("public", "public"):
+        connection.set_schema_to_public()
+        pytest.fail(
+            f"тест оставил соединение в схеме тенанта {leaked} — верните public в finally "
+            "(или `connection.tenant = before` в фикстуре)"
+        )
+    return result
