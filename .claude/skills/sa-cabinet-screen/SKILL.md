@@ -145,6 +145,10 @@ metadata:
 - Детали кабинета — только классы с префиксом `ui-`; поля ввода 16 px · посл. 2026-10-30.
 - Замки конвенций экрана находятся только полным прогоном `apps/core` · посл. 2026-11-14.
 
+- Ссылка на экран по готовому адресу: `view_perms.url_allowed` пускает к цели БЕЗ правила — проверять
+  через `nav_registry.screen_closed(request, name, target_url=…)` (без правила — закрыто)
+  · посл. 2026-11-24.
+
 ## Что гейтить
 - `uv run python scripts/preflight.py`; новый экран — весь `apps/core`:
   `uv run pytest apps/core -q -n 4 --reuse-db -p no:cacheprovider`.

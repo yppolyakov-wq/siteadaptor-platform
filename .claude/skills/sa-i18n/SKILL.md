@@ -142,6 +142,12 @@ realign_list_overlays`.
 - Форма с оверлеями получает тенанта явно (`form.init_overlay_i18n(tenant)`), не патчем
   `connection` · посл. 2026-10-31.
 
+- Варианты select, которые сохраняются, — пары `(value, label)`: value немецкий и стабильный,
+  перевод только в подписи `<option>` (иначе ломаются `selected`, CSV, сохранённые ответы)
+  · посл. 2026-11-24.
+- `polib` — только читать и собирать `.mo`: `save()` переписывает переносы всего `.po`; правки `.po`
+  — текстом · посл. 2026-11-24.
+
 ## Что гейтить
 - `uv run python scripts/preflight.py` (шаг i18n = quickcheck + `i18n_untranslated.py --check`).
 - Перед пушем стопки: `uv run python scripts/i18n_quickcheck.py $(git diff --name-only

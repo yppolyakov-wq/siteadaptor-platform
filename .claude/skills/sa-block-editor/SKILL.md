@@ -155,6 +155,20 @@ default_op, field_meta`; части-формы — `APPLY_FORM_PARTS`. Поря�
 - Открытое `<details>` поверх соседних строк — свой `z-index`; ⠿ — только при `matchMedia`
   · посл. 2026-11-23.
 
+Окно «Inhalt» (M5d, стопка 12):
+- Источник содержимого раздела — `apps/core/detail_sections.py::ContentSource` у `DetailSection.source`
+  (`object_only`, `kinds`, `only_if`, `more_nav`); модель части — `apps/core/window_parts.py::content_part`.
+  Раздел делят тип и объект: часть только на объекте — `object_only` · посл. 2026-11-24.
+- `enabled` строки ≠ «блок показан»: у раздела с гейтом присутствия `only_if` обязателен; «ausgefüllt»
+  — только поля модели (`_meta`), callable не звать · посл. 2026-11-24.
+- `lang` у имени — только когда язык имени ≠ язык окна; имя системной страницы — строка интерфейса
+  (без `lang`), заголовок своей (`seite:`) — содержимое · посл. 2026-11-24.
+- Подпись в `inline-flex`-ссылке — одним `<span>` с `min-width:0; overflow-wrap:anywhere`, иначе
+  пробел режется и длинное имя вылезает за окно · посл. 2026-11-24.
+- Фразы артборда о поведении («берёт товары с галочкой», «рисуется у тура») сверять с кодом витрины
+  ДО утверждения; прогноз эталонов — с неэталонными замками окна (`test_fb33_m37_preview`,
+  `test_fb33_m3_window`) и эталоном реестра `golden_fb33m5d2/registry.json` · посл. 2026-11-24.
+
 ## Что гейтить
 - `uv run python scripts/preflight.py` (правка `apps/core` тянет импортёров сама).
 - Эталоны окна: `apps/core/tests/test_fb33_m3_window_before.py` (пересъёмка `FB33_M3_REGEN=1`,
