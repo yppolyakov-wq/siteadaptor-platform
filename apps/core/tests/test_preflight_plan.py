@@ -204,7 +204,8 @@ def test_slice_mode_runs_only_fast_checks_and_own_tests():
             "apps/core/tests/test_fb33_x.py",
             "apps/orders/tests/test_new.py",
             "templates/tenant/_bw_x.html",
-        ]
+        ],
+        exists=lambda path: True,
     )
     assert p.steps[:3] == ["ruff_check", "ruff_format", "i18n"] and "css" not in p.steps
     assert "apps/core/tests/test_fb33_x.py" in p.pytest_targets

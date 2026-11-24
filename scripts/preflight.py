@@ -5,6 +5,7 @@
 
     uv run python scripts/preflight.py            # всё по изменённым путям
     uv run python scripts/preflight.py --fast     # без pytest (ruff, i18n, CSS)
+    uv run python scripts/preflight.py --slice    # исполнитель среза: быстрое и свои тесты (T-16)
     uv run python scripts/preflight.py --plan     # только показать, что будет запущено
     uv run python scripts/preflight.py --jobs 0   # pytest в один процесс (по умолчанию 4)
     uv run python scripts/preflight.py --base origin/claude/x
@@ -180,6 +181,46 @@ def plan(
     return Plan(steps, sorted(targets), create_db, sorted(set(notes)))
 
 
+# Статические замки шаблонов: без БД, секунды — их исполнитель среза гоняет сам.
+FAST_TEMPLATE_LOCKS = ("template_comments", "template_tags", "template_extends")
+SLICE_NOTE = (
+    "режим среза: только быстрое и свои тесты. Полный прогон (приложения, эталоны, CSS) — CI на ветке "
+    "среза: запушь ветку и заверши ход, не жди — кэш агента живёт 5 минут, ожидание дороже прогона"
+)
+
+
+def slice_plan(files: list[str], exists=lambda path: (ROOT / path).is_file()) -> Plan:
+    """Набор исполнителя среза (T-16): линт, переводы, изменённые тесты и статические замки шаблонов.
+
+    Запись расхода стопки 13: 47 % счёта — перезапись контекста агентов, ждавших тесты дольше
+    пяти минут. Целые приложения, эталоны и сборку CSS гоняет GitHub на ветке среза — бесплатно
+    по токенам; результат читает координатор.
+    """
+    steps = ["ruff_check", "ruff_format"]
+    targets: set[str] = set()
+    notes = [SLICE_NOTE]
+    for f in files:
+        parts = f.split("/")
+        is_html = f.endswith(".html")
+        if (
+            parts[0] in ("apps", "templates", "config") and (f.endswith(".py") or is_html)
+        ) or parts[0] == "locale":
+            if "i18n" not in steps:
+                steps.append("i18n")
+        if is_html and (parts[0] == "templates" or "/templates/" in f):
+            targets.update(LOCKS[k] for k in FAST_TEMPLATE_LOCKS)
+        name = parts[-1]
+        if "/tests/" in f and name.startswith("test_") and name.endswith(".py") and exists(f):
+            targets.add(f)
+    if not any("/tests/test_" in t and t not in LOCKS.values() for t in targets):
+        notes.append(
+            "своих тестов в срезе нет — замки первого коммита обязательны (sa-increment, шаг 5)"
+        )
+    if targets:
+        steps.append("pytest")
+    return Plan(steps, sorted(targets), False, notes)
+
+
 def pytest_command(p: Plan, jobs: int = 0) -> list[str]:
     cmd = ["uv", "run", "pytest", "-q", "-ra", *p.pytest_targets]
     cmd.append("--create-db" if p.create_db else "--reuse-db")
@@ -256,6 +297,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Финальный гейт перед пушем (T-13.1)")
     ap.add_argument("--base", default="origin/main")
     ap.add_argument("--fast", action="store_true", help="без pytest")
+    ap.add_argument(
+        "--slice",
+        action="store_true",
+        help="исполнитель среза: быстрые проверки и свои тесты; полный прогон — CI на ветке среза",
+    )
     ap.add_argument("--plan", action="store_true", help="только показать набор проверок")
     # Ядро с импортёрами в один процесс идёт больше 20 минут (замер 2026-11-21) — по умолчанию
     # как в рабочей практике срезов: 4 процесса, у каждого своя тест-БД. `--jobs 0` — в один.
@@ -263,13 +309,15 @@ def main() -> int:
     args = ap.parse_args()
 
     files = changed_files(args.base)
-    p = plan(files)
+    p = slice_plan(files) if args.slice else plan(files)
     print(f"preflight: {len(files)} изменённых путей относительно {args.base}")
     print("  шаги: " + ", ".join(p.steps))
     if p.pytest_targets:
         print(
             "  pytest: " + " ".join(p.pytest_targets) + ("  [--create-db]" if p.create_db else "")
         )
+    for note in p.notes:
+        print(f"  ! {note}")
     if args.plan:
         return 0
 
@@ -286,7 +334,7 @@ def main() -> int:
         "pytest": lambda: (
             (False, f"уже идёт другой pytest ({other_pytest()}) — на общей тест-БД не запускаю")
             if other_pytest()
-            else (_run(pytest_command(p, args.jobs)), "")
+            else (_run(pytest_command(p, 0 if args.slice else args.jobs)), "")
         ),
     }
     results: list[tuple[str, str, str]] = []
