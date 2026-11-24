@@ -7,7 +7,8 @@
 события, «Ausstattung» у типа «Unterkunft». Проверки: `<ul role=list aria-labelledby>` на
 вводную фразу, dt/dd не `inline`; 1440 — две колонки, 390 — одна; «›» в тексте списка нет;
 без горизонтальной прокрутки; `a11y_check` по части окна. Крайние размеры (с JS, de) —
-320×568 и `html{font-size:200%}` на 1440: без горизонтальной прокрутки окна.
+320×568, 720×450 (200 %) и 360×225 (400 %): без горизонтальной прокрутки окна;
+слово в 60 символов на 320 и 390 — тоже.
 
 Запуск (демо-киты стенд-БД: restaurant-demo, shop, retreat, hotel; вход `<kit>@example.com`):
 
@@ -62,6 +63,7 @@ LIST_JS = """() => {
     dtDisplay: getComputedStyle(dt).display, ddDisplay: getComputedStyle(dd).display,
     sideBySide: b.left > a.right - 1 && b.top < a.bottom, stacked: b.top >= a.bottom - 1,
     text: dd.innerText,
+    ids: document.querySelectorAll('#inhalt-woher-intro').length,
     winOver: (() => { const w = document.querySelector('dialog.ui-bwin[open]')
       || document.querySelector('[data-schema-panel]');
       return w ? w.scrollWidth - w.clientWidth : 0; })(),
@@ -108,6 +110,7 @@ def check_list(rep, pg, t, w, nested, is_object, lang):
     if not rep.check(m is not None, f"{t}: список «Woher» есть", code="list"):
         return
     rep.check(m["role"] == "list" and m["introOk"], f"{t}: ul role=list, aria-labelledby → <p>")
+    rep.check(m["ids"] == 1, f"{t}: id вводной фразы один ({m['ids']})", code="id")
     rep.check(
         m["dtDisplay"] != "inline" and m["ddDisplay"] != "inline",
         f"{t}: dt/dd не inline ({m['dtDisplay']}, {m['ddDisplay']})",
@@ -164,32 +167,60 @@ def run_kit(rep, pg, out, slug, lang, js):
             scope = f"{DLG}[open]" if js else "[data-inhalt-woher-list]"
             sl.a11y_check(rep, pg, t, scope=scope, minimum=44)
             sl.shot(pg, out, t.replace(" ", "_").replace("/", "-"))
-        if js and lang == "de" and nested:
+        if js and lang == "de" and (nested or (is_object and slug == "restaurant-demo")):
             run_extremes(rep, pg, out, slug, code, ref)
 
 
+#: ревью a11y M2: зум — меньшим вьюпортом (1440×900 при 200 % ≈ 720×450, при 400 % ≈ 360×225)
+EXTREMES = ((320, 568, "320"), (720, 450, "200 %"), (360, 225, "400 %"))
+#: ревью a11y M1: слово без пробелов в 60 символов — колонка не раздувается
+LONG_WORD_JS = """() => { const li = document.querySelector('[data-inhalt-woher-item]');
+  if (!li) return false; li.append(' ' + 'Ä'.repeat(60)); return true; }"""
+
+
+def doc_over_without_window(pg, slug, code):
+    """Ширина кабинета без окна на том же вьюпорте — старый долг отличаем от среза."""
+    pg.goto(f"{base_of(slug)}/dashboard/site/aufbau/?seite={code}")
+    sl.settle(pg, True)
+    return sl.overflow(pg)
+
+
 def run_extremes(rep, pg, out, slug, code, ref):
-    """Крайние размеры (с JS, de): 320×568 и `html{font-size:200%}` на 1440 и 390."""
-    for w, h, zoom in ((320, 568, False), (1440, 900, True), (390, 844, True)):
+    """Крайние размеры (с JS, de): 320×568, 720×450 (200 %), 360×225 (400 %) — окно без
+    горизонтальной прокрутки; документ — как без окна (иначе ✗). Длинное слово на 320 и 390."""
+    for w, h, name in EXTREMES:
         pg.set_viewport_size({"width": w, "height": h})
-        t = f"{w}{' 200%' if zoom else ''} {slug} {code.split('@')[0]}/{ref}"
+        t = f"{name} ({w}×{h}) {slug} {code.split('@')[0]}/{ref}"
         if not open_window(pg, slug, code, ref, True):
             rep.check(False, f"{t}: окно открыто")
             continue
-        if zoom:
-            pg.add_style_tag(content="html{font-size:200%}")
-            pg.wait_for_timeout(200)
+        m = pg.evaluate(LIST_JS)
+        over = sl.overflow(pg)
+        sl.shot(pg, out, t.replace(" ", "_").replace("/", "-").replace("%", ""))
+        rep.check(
+            m is not None and m["winOver"] <= 0,
+            f"{t}: окно без гор. прокрутки ({m and m['winOver']})",
+            code="extreme",
+        )
+        if over > 0:
+            base = doc_over_without_window(pg, slug, code)
+            if rep.check(base >= over, f"{t}: документ {over}px — как без окна ({base}px)"):
+                rep.note(f"{name} ({w}×{h}): кабинет шире экрана на {base}px и без окна")
+    for w, h in ((320, 568), (390, 844)):
+        pg.set_viewport_size({"width": w, "height": h})
+        t = f"{w} длинное слово {slug} {code.split('@')[0]}/{ref}"
+        if not open_window(pg, slug, code, ref, True):
+            rep.check(False, f"{t}: окно открыто")
+            continue
+        pg.evaluate(LONG_WORD_JS)
         m = pg.evaluate(LIST_JS)
         over = sl.overflow(pg)
         rep.check(
-            m is not None and m["winOver"] <= 0 and (zoom or over <= 0),
+            m is not None and m["winOver"] <= 0 and over <= 0,
             f"{t}: без гор. прокрутки (окно {m and m['winOver']}, документ {over})",
-            code="extreme",
+            code="long-word",
         )
-        if zoom and over > 0:
-            # кабинет под окном при 200 % шире экрана и без окна (до E7 так же) — не предмет среза
-            rep.note(f"{w} 200 %: документ кабинета шире экрана на {over}px (и без окна)")
-        sl.shot(pg, out, t.replace(" ", "_").replace("/", "-").replace("%", ""))
+        sl.shot(pg, out, t.replace(" ", "_").replace("/", "-"))
 
 
 def main(out):
