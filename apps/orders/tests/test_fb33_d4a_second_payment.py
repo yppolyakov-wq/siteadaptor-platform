@@ -308,13 +308,13 @@ def test_retry_counters_per_intent(biz, monkeypatch):
     _pay(order, "pi_third", amount=1000)
     tasks.retry_late_refunds(timezone.now() + timedelta(hours=1))
     schema = connection.schema_name
-    assert cache.get(f"order-refund-retry:{schema}:{order.pk}:pi_second")
-    assert cache.get(f"order-refund-retry:{schema}:{order.pk}:pi_third")
+    assert cache.get(f"extra-refund-retry:{schema}:order:{order.pk}:pi_second")
+    assert cache.get(f"extra-refund-retry:{schema}:order:{order.pk}:pi_third")
     assert cache.get(f"order-refund-retry:{schema}:{order.pk}") is None
 
 
 def test_retry_extra_bounded(biz, monkeypatch):
-    monkeypatch.setattr(tasks, "ABANDONED_BATCH", 2)
+    monkeypatch.setattr(payment_holds, "EXTRA_RETRY_BATCH", 2)
     calls = []
 
     def refund(**kw):

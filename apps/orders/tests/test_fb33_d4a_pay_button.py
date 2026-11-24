@@ -154,7 +154,7 @@ def test_on_site_order_confirmation_unchanged():
     """Контроль: заказ «на месте» — без кнопки и без текстов состояний."""
     biz = _biz()
     order = _order(hours_ago=1, method=Order.METHOD_ON_SITE)
-    assert payments.pay_state(order, biz) == "" if hasattr(payments, "pay_state") else True
+    assert payments.pay_state(order, biz) == ""
     with translation.override("de"):
         html = public_views.order_confirmation(
             _request(f"/bestellung/{order.reference_code}/", biz), code=order.reference_code

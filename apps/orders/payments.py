@@ -220,6 +220,8 @@ ORDER_SESSIONS_MAX = 10
 #: Потолок вызовов `Session.expire` и бюджет времени на проход автоотмены по схеме.
 EXPIRE_CALLS_MAX = 50
 EXPIRE_BUDGET_SECONDS = 60
+#: «Stripe не ответил» подряд — стоп прохода (общий счёт по схемам, `ExpirePass`).
+EXPIRE_UNKNOWN_STOP = 3
 _monotonic = time.monotonic
 
 
@@ -281,33 +283,57 @@ def remembered_sessions(order_pk, *, schema: str = "") -> list[dict]:
     ]
 
 
-def expire_open_sessions(order_pks, *, connect_id: str) -> int:
+class ExpirePass:
+    """FB-33 D4a: счёт одного прохода автоотмены по всем схемам — вызовы, время, `unknown`
+    подряд. Общий на проход: зависший Stripe останавливает весь проход, а не схему."""
+
+    def __init__(self):
+        self.started = _monotonic()
+        self.calls = 0
+        self.unknown_streak = 0
+
+    def exhausted(self) -> bool:
+        return (
+            self.calls >= EXPIRE_CALLS_MAX
+            or self.unknown_streak >= EXPIRE_UNKNOWN_STOP
+            or _monotonic() - self.started > EXPIRE_BUDGET_SECONDS
+        )
+
+
+def expire_open_sessions(order_pks, *, connect_id: str, run: ExpirePass | None = None) -> int:
     """FB-33 D4a: после автоотмены закрыть открытые сессии Checkout отменённых заказов на
     connected account бизнеса (аккаунт — из `Tenant`, не из кэша). Звать ВНЕ транзакции.
 
-    «Не ответил ≠ отказал»: первое `unknown` останавливает проход по схеме (WARNING) — id
-    остаются, сессия закроется сроком, поздняя оплата вернётся прежним путём. Закрытые
-    (`expired`/`closed`) id убираются. Потолок вызовов и бюджет времени — на проход.
+    «Не ответил ≠ отказал»: `unknown` ничего не помечает — id остаются, этот заказ
+    пропускается (сессия закроется сроком, поздняя оплата вернётся прежним путём); после
+    `EXPIRE_UNKNOWN_STOP` таких подряд проход (`run`, общий по схемам) останавливается.
+    Закрытые (`expired`/`closed`) id убираются. Потолок вызовов и бюджет — на проход.
     → сколько сессий закрыто."""
     from django.core.cache import cache
 
     if not connect_id:
         return 0
-    started = _monotonic()
-    calls = closed = 0
+    run = run or ExpirePass()
+    closed = 0
     for pk in order_pks:
         for item in remembered_sessions(pk):
-            if calls >= EXPIRE_CALLS_MAX or _monotonic() - started > EXPIRE_BUDGET_SECONDS:
-                logger.warning("expire sessions: pass budget exhausted after %d calls", calls)
+            if run.exhausted():
+                logger.warning(
+                    "expire sessions: pass stopped (calls=%d, unknown in a row=%d)",
+                    run.calls,
+                    run.unknown_streak,
+                )
                 return closed
             if item.get("acct") != connect_id:
                 logger.warning("order %s: checkout session of another account skipped", pk)
                 continue
-            calls += 1
+            run.calls += 1
             outcome = connect.expire_session(connect_id=connect_id, session_id=item["id"])
             if outcome == connect.UNKNOWN:
-                logger.warning("expire sessions: Stripe did not answer — pass stopped")
-                return closed
+                run.unknown_streak += 1
+                logger.warning("order %s: Stripe did not answer — sessions skipped", pk)
+                break
+            run.unknown_streak = 0
             closed += 1
             try:
                 cache.delete(item["key"])
@@ -557,13 +583,18 @@ def mark_order_paid(
             from apps.core import folio
 
             if extra:
+                if not amount_cents:
+                    logger.warning(
+                        "order %s: second payment without amount_total — booked at order total",
+                        order.pk,
+                    )
                 folio.record(
                     "order",
                     order,
                     amount_cents=int(amount_cents or 0) or int(round(order.total * 100)),
                     purpose="full",
                     method="stripe",
-                    source="webhook",
+                    source=payment_holds.EXTRA_SOURCE,
                     intent=payment_intent,
                 )
             elif (newly_paid or new_intent) and order.payment_state != Order.PAYMENT_REFUNDED:

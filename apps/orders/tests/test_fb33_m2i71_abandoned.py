@@ -430,11 +430,11 @@ def test_one_failing_schema_does_not_stop_the_pass(monkeypatch, caplog):
     real = tasks.expire_abandoned_online
     calls = []
 
-    def flaky(now=None):
+    def flaky(now=None, **kw):  # FB-33 D4a: проход передаёт свой бюджет `expire_run`
         calls.append(1)
         if len(calls) == 1:
             raise RuntimeError("схема сломана")
-        return real(now)
+        return real(now, **kw)
 
     monkeypatch.setattr(tasks, "expire_abandoned_online", flaky)
     with caplog.at_level(logging.ERROR):

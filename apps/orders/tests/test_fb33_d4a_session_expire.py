@@ -55,6 +55,7 @@ class _FakeStripe:
         self.created = 0
         self.expired = []
         self.errors = {}
+        self.status = {}
         self.atomic_depth = []
 
     def create(self, **kw):
@@ -85,6 +86,27 @@ def fake(monkeypatch):
         checkout = _Checkout
 
     monkeypatch.setattr(connect, "_client", lambda: _Client)
+
+    def session_client(connect_id):
+        class _Sessions:
+            @staticmethod
+            def expire(session_id, params=None, options=None):
+                return f.expire(session_id, stripe_account=connect_id)
+
+            @staticmethod
+            def retrieve(session_id, params=None, options=None):
+                return {"id": session_id, "status": f.status.get(session_id, "open")}
+
+        class _V1:
+            class checkout:  # noqa: N801
+                sessions = _Sessions
+
+        class _C:
+            v1 = _V1
+
+        return _C
+
+    monkeypatch.setattr(connect, "_session_client", session_client)
     return f
 
 
@@ -162,11 +184,9 @@ def test_expire_invalid_request_other_code_is_unknown(fake):
 
 
 def test_expire_already_complete_is_closed(fake):
-    fake.errors["cs_done"] = stripe.error.InvalidRequestError(
-        'Only Checkout Sessions with a status in ["open"] can be expired. This Checkout '
-        'Session has a status of "complete".',
-        None,
-    )
+    """Неоднозначный `InvalidRequestError` — исход решает статус сессии (`retrieve`)."""
+    fake.errors["cs_done"] = stripe.error.InvalidRequestError("cannot be expired", None)
+    fake.status["cs_done"] = "complete"
     assert connect.expire_session(connect_id=ACCOUNT, session_id="cs_done") == "closed"
 
 
@@ -195,14 +215,17 @@ def test_remember_sessions_concurrent(biz):
     assert len(ids) == 8
 
 
-def test_expire_stops_after_unknown(biz, fake):
+def test_expire_unknown_skips_only_that_order(biz, fake):
+    """Ревью: `unknown` — пропуск этого заказа, остальные закрываются (стоп — после
+    `EXPIRE_UNKNOWN_STOP` подряд)."""
     orders = [_order(hours_ago=30 - i) for i in range(3)]
     for order in orders:
         _checkout(order, biz)
     fake.errors["cs_1"] = stripe.error.APIConnectionError("timeout")
     tasks.expire_abandoned_online()
-    assert [sid for sid, _acct in fake.expired] == ["cs_1"]
+    assert [sid for sid, _acct in fake.expired] == ["cs_1", "cs_2", "cs_3"]
     assert payments.remembered_sessions(orders[0].pk)  # не помечено — осталось
+    assert payments.remembered_sessions(orders[1].pk) == []
 
 
 def test_expire_calls_capped(biz, fake, monkeypatch):

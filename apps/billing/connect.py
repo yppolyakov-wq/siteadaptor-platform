@@ -139,28 +139,52 @@ CLOSED = "closed"  # её уже нет или она уже завершена/
 UNKNOWN = "unknown"  # Stripe не ответил или отказал иначе — ничего не помечаем
 
 
-def _session_not_open(exc) -> bool:
-    if getattr(exc, "code", "") == "resource_missing":
-        return True
-    text = str(getattr(exc, "user_message", "") or exc).lower()
-    return "status of" in text and ("complete" in text or "expired" in text)
+#: FB-33 D4a (ревью): таймаут вызова `expire`/`retrieve`, секунд. Автоотмена идёт по всем
+#: схемам одним проходом — зависший Stripe не должен держать его минутами.
+EXPIRE_TIMEOUT = 10
+
+
+def _session_client(connect_id: str):
+    """Свой клиент Stripe для закрытия сессий: короткий таймаут, без сетевых повторов,
+    сразу на connected account бизнеса."""
+    return stripe.StripeClient(
+        _secret(),
+        stripe_account=connect_id,
+        max_network_retries=0,
+        http_client=stripe.RequestsClient(timeout=EXPIRE_TIMEOUT),
+    )
 
 
 def expire_session(*, connect_id: str, session_id: str) -> str:
     """FB-33 D4a: закрыть открытую сессию Checkout на connected account бизнеса.
 
-    «Не ответил ≠ отказал»: `closed` — только «нет такой» (`resource_missing`) или «уже
-    complete/expired»; прочие ошибки — `unknown` (в лог с кодом, наружу не бросаем)."""
+    «Не ответил ≠ отказал»: `closed` — «нет такой» (`resource_missing`) или, при ином
+    `InvalidRequestError`, статус сессии из `retrieve` — complete/expired (текст ошибки не
+    разбираем); прочее — `unknown` (в лог с кодом, наружу не бросаем)."""
     import logging
 
     log = logging.getLogger("billing")
+    client = _session_client(connect_id)
     try:
-        _client().checkout.Session.expire(session_id, stripe_account=connect_id)
+        client.v1.checkout.sessions.expire(session_id)
     except stripe.error.InvalidRequestError as exc:
-        if _session_not_open(exc):
-            log.info("checkout session %s already closed (%s)", session_id, exc.code or "-")
+        if getattr(exc, "code", "") == "resource_missing":
+            log.info("checkout session %s already gone", session_id)
             return CLOSED
-        log.warning("checkout session %s not expired (%s)", session_id, exc.code or "-")
+        try:
+            status = (client.v1.checkout.sessions.retrieve(session_id) or {}).get("status")
+        except Exception as again:  # noqa: BLE001 — нет ответа: исход неизвестен
+            log.warning(
+                "checkout session %s not expired (%s; retrieve %s)",
+                session_id,
+                exc.code or "-",
+                type(again).__name__,
+            )
+            return UNKNOWN
+        if status in ("complete", "expired"):
+            log.info("checkout session %s already %s", session_id, status)
+            return CLOSED
+        log.warning("checkout session %s not expired (%s, %s)", session_id, exc.code or "-", status)
         return UNKNOWN
     except Exception as exc:  # noqa: BLE001 — нет ответа: сессия, возможно, открыта
         log.warning(

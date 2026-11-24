@@ -28,7 +28,6 @@ from apps.orders.tests.test_fb33_d4a_second_payment import _live_paid, _pay
 from apps.orders.tests.test_fb33_m2i71_abandoned import _order
 
 pytestmark = pytest.mark.django_db
-_RED = pytest.mark.xfail(strict=True, reason="FB-33 D4a ревью: до правки")
 ACCOUNT = "acct_d4a"
 
 
@@ -95,7 +94,6 @@ def _row(order, intent, *, source="extra", refunded=0, age=None):
 # ───────────── повтор возврата второго платежа ─────────────
 
 
-@_RED
 def test_extra_row_is_marked_extra(biz, stripe_refunds):
     order = _live_paid()
     _pay(order, "pi_second", amount=1000)
@@ -103,7 +101,6 @@ def test_extra_row_is_marked_extra(biz, stripe_refunds):
     assert row.source == "extra"
 
 
-@_RED
 def test_retry_only_rows_of_the_new_path(biz, stripe_refunds):
     """Прежняя двойная оплата (строка до деплоя, `source="webhook"`) — не автовозврат."""
     order = _live_paid()
@@ -114,7 +111,6 @@ def test_retry_only_rows_of_the_new_path(biz, stripe_refunds):
     assert [c["payment_intent"] for c in stripe_refunds] == ["pi_new"]
 
 
-@_RED
 def test_retry_extra_cache_down_mails_owner(biz, monkeypatch):
     from django.core.cache import cache
 
@@ -131,7 +127,6 @@ def test_retry_extra_cache_down_mails_owner(biz, monkeypatch):
     assert _dup_mails(order).count() == 1
 
 
-@_RED
 def test_retry_extra_not_starved_by_exhausted(biz, stripe_refunds, monkeypatch):
     monkeypatch.setattr(payment_holds, "EXTRA_RETRY_BATCH", 2)
     now = timezone.now()
@@ -154,7 +149,6 @@ def test_retry_extra_not_starved_by_exhausted(biz, stripe_refunds, monkeypatch):
     assert [c["payment_intent"] for c in stripe_refunds] == ["pi_fresh"]
 
 
-@_RED
 def test_retry_exhausted_notifies_once_per_row(biz, monkeypatch):
     sent = []
     monkeypatch.setattr("apps.billing.connect.refund", _down)
@@ -204,7 +198,6 @@ def svc(monkeypatch):
     return s
 
 
-@_RED
 def test_session_client_has_timeout_and_no_retries(monkeypatch):
     seen = {}
 
@@ -218,7 +211,6 @@ def test_session_client_has_timeout_and_no_retries(monkeypatch):
     assert getattr(seen["http_client"], "_timeout", None) == connect.EXPIRE_TIMEOUT
 
 
-@_RED
 def test_retrieve_decides_outcome(svc):
     ambiguous = stripe.error.InvalidRequestError("This session cannot be expired.", None)
     svc.errors = {"cs_done": ambiguous, "cs_open": ambiguous}
@@ -227,7 +219,6 @@ def test_retrieve_decides_outcome(svc):
     assert connect.expire_session(connect_id=ACCOUNT, session_id="cs_open") == connect.UNKNOWN
 
 
-@_RED
 def test_unknown_on_first_order_second_closed(biz, svc):
     first, second = _order(hours_ago=30), _order(hours_ago=29)
     payments._remember_session(first, "cs_a", ACCOUNT)
@@ -238,7 +229,6 @@ def test_unknown_on_first_order_second_closed(biz, svc):
     assert payments.remembered_sessions(second.pk) == []
 
 
-@_RED
 def test_unknown_streak_stops_pass_across_schemas(svc):
     run = payments.ExpirePass()
     pks = []
@@ -255,7 +245,6 @@ def test_unknown_streak_stops_pass_across_schemas(svc):
 # ───────────── refund_intent, возвращённая сделка, удержание ─────────────
 
 
-@_RED
 def test_refund_intent_rereads_row_before_stripe(biz, stripe_refunds, monkeypatch):
     """Владелец вернул строку между чтением под блокировкой и вызовом Stripe — без
     второго возврата и без ложного письма."""
@@ -274,7 +263,6 @@ def test_refund_intent_rereads_row_before_stripe(biz, stripe_refunds, monkeypatc
     assert result == refunds.RefundResult.ALREADY and stripe_refunds == []
 
 
-@_RED
 def test_refunded_deal_retry_skips_partially_refunded_rows(biz, stripe_refunds):
     order = _live_paid()
     _row(order, "pi_kept", refunded=300)
@@ -287,7 +275,6 @@ def test_refunded_deal_retry_skips_partially_refunded_rows(biz, stripe_refunds):
     assert stripe_refunds == [] and result == refunds.RefundResult.ALREADY
 
 
-@_RED
 def test_refund_on_cancel_uncertain_keeps_no_retained_revenue(biz, monkeypatch):
     from apps.core import money_contract
 
@@ -299,7 +286,6 @@ def test_refund_on_cancel_uncertain_keeps_no_retained_revenue(biz, monkeypatch):
     assert retained == []
 
 
-@_RED
 def test_cancel_uncertain_mail_once_not_per_minute(biz, monkeypatch):
     order = _live_paid()
     _row(order, "pi_second", source="extra")
@@ -317,7 +303,6 @@ def test_cancel_uncertain_mail_once_not_per_minute(biz, monkeypatch):
     )
 
 
-@_RED
 def test_extra_without_amount_warns(biz, stripe_refunds, caplog):
     order = _live_paid()
     with caplog.at_level(logging.WARNING):
