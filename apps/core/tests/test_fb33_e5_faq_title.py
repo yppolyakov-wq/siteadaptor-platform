@@ -42,8 +42,6 @@ CONFLICT = (
     "gespeichert."
 )
 LOCALES = ("de", "en", "ru", "tr", "uk")
-#: замки правок ревью диффа E5 — красные до правки (снимаются в коммите правки)
-RED = pytest.mark.xfail(strict=True, reason="FB-33 E5: ревью диффа, до правки")
 
 
 def _saved(b):
@@ -233,7 +231,6 @@ def _req_of(b):
     return req
 
 
-@RED
 def test_title_conflict_before_write():
     """№9/№10, ревью E5 №3: заголовок успели сменить в другом месте — без `force` конфликт ДО
     записи (ничего не опубликовано, черновик с набранным заголовком цел), экран конфликта."""
@@ -252,7 +249,6 @@ def test_title_conflict_before_write():
         aufbau_draft.commit(_req_of(b), Tenant.objects.get(pk=b.tenant.pk), "home")
 
 
-@RED
 def test_title_conflict_force_writes_over():
     """Ревью E5 №3: «Trotzdem speichern» (`force`) — заголовок поверх, как вопросы при `force`."""
     b = Browser(_tenant())
@@ -263,7 +259,6 @@ def test_title_conflict_force_writes_over():
     assert "home" not in _drafts(b)
 
 
-@RED
 def test_title_and_question_translations_both_written():
     """Ревью E5 №1 (а): правка переводов вопросов + заголовок (без `faq`) — оба на сайте."""
     from apps.core.tests.test_fb33_m35c_faq import _ml
@@ -276,7 +271,6 @@ def test_title_and_question_translations_both_written():
     assert cfg["i18n"]["ru"]["faq"][1]["q"] == "Б-новый?" and _title(cfg) == "Neu"
 
 
-@RED
 def test_questions_and_translations_no_false_skip_note():
     """Ревью E5 №1 (б): ↑↓ + перевод — ветка переводов один раз, ложной заметки нет."""
     from apps.core import block_i18n
@@ -290,7 +284,6 @@ def test_questions_and_translations_no_false_skip_note():
     assert _saved(b)["i18n"]["ru"]["faq"][0]["q"] == "Б-новый?"
 
 
-@RED
 def test_title_counts_as_one_change():
     """Ревью E5 №2 (silent-failure M-1): только заголовок — одна правка; с вопросами — две
     (каждая часть FAQ — одна правка, как `faq` и `ofaq`)."""

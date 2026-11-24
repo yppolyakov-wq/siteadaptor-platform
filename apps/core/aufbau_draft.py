@@ -486,6 +486,18 @@ def faq_conflict(config: dict, draft: dict) -> bool:
     return draft.get("faq_base") != faq_content.fingerprint(faq_content.base_items(config))
 
 
+def title_conflict(config: dict, draft: dict) -> bool:
+    """FB-33 E5: общий заголовок FAQ, который держит черновик, успели изменить в другом месте
+    (только пока в черновике есть строка FAQ — без неё заголовок и не публикуется)."""
+    from apps.core import faq_content
+
+    if "faq_title" not in draft:
+        return False
+    if not any(_is_faq_row(draft, it) for it in draft.get("items") or ()):
+        return False
+    return draft.get("faq_title_base") != faq_content.title(config)
+
+
 def _faq_op(config: dict, draft: dict, ref: str, post, notes: list | None, request=None) -> str:
     """Правка вопросов в черновике. Кнопки ↑↓/Entfernen несут отпечаток состояния (`faq_rev`):
     вторая вкладка браузера со старым номером — отказ с сообщением, ничего не меняется."""
@@ -771,6 +783,8 @@ def changes(saved: dict, draft: dict) -> int:
         count += 1
     if "faq" in draft:  # FB-33 M3-5b: вопросы FAQ — одно изменение
         count += 1
+    if "faq_title" in draft:  # FB-33 E5: общий заголовок FAQ — своё одно изменение
+        count += 1
 
     if "ofaq" in draft:  # FB-33 M2b-2b: свои вопросы объекта — одно изменение
         count += 1
@@ -798,6 +812,7 @@ def info(request, config: dict, code: str) -> dict:
         or _keys_conflict(config, draft)
         or _scope_conflict(config, draft)  # FB-33 M4c
         or faq_conflict(config, draft)
+        or title_conflict(config, draft)  # FB-33 E5: экран конфликта с «Trotzdem speichern»
         or _block_i18n().conflict(config, draft),  # FB-33 M3-5c
     }
 
@@ -1375,14 +1390,13 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
         _base_fingerprint(_saved_state(config, home, host), config, draft) != draft.get("base")
         or _keys_conflict(config, draft)
         or _scope_conflict(config, draft)  # FB-33 M4c: тип акции правили в «Aktionstypen»
+        # FB-33 E5 (ревью №3): заголовок FAQ правили в другом месте — до записи, как страница
+        or title_conflict(config, draft)
     ):
         raise DraftConflict(code)
     faq_moved = faq_conflict(config, draft)  # FB-33 M3-5b: только при вопросах в черновике
     from apps.core import faq_content
 
-    # FB-33 E5: заголовок FAQ успели изменить в другом месте — сверка ДО записи (под
-    # блокировкой строки); правка не пишется (и при `force`), её текст — в заметке
-    title_moved = "faq_title" in draft and draft.get("faq_title_base") != faq_content.title(config)
     if faq_moved and not force:
         # своё сообщение: страницу никто не трогал — изменились общие вопросы (Студия, канва)
         raise site_schema.SchemaError("faq_conflict")
@@ -1425,8 +1439,6 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     if "faq" in draft:
         # FB-33 M3-5b: вопросы — под блокировкой строки, единственным писателем; запись
         # поверх (force) при изменённом сохранённом — по тексту и в лог (`faq_content.put`)
-        from apps.core import faq_content
-
         pending = draft["faq"]
         if not any(_is_faq_row(draft, it) for it in draft["items"]):
             # блок FAQ из черновика убрали — правку вопросов «в тени» не публикуем
@@ -1442,24 +1454,11 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
             )
             if faq_moved and notes is not None:
                 notes.append(faq_content.faq_forced_note())
-    if "faq_title" in draft:
-        # FB-33 E5 (ревью H2): блока FAQ в черновике нет — заголовок «в тени» не публикуем
-        if not any(_is_faq_row(draft, it) for it in draft["items"]):
-            note = faq_content.dropped_note()
-            if notes is not None and note not in notes:
-                notes.append(note)
-        elif title_moved:
-            if notes is not None:
-                notes.append(faq_content.title_conflict_note(str(draft["faq_title"])))
-        else:
-            faq_content.put_title(config, draft["faq_title"])
     elif _block_i18n().explicit(draft, "faq") and any(
         _is_faq_row(draft, it) for it in draft["items"]
     ):
         # FB-33 M3-5c: только переводы общих вопросов — вопросы те же, по своим местам; список
         # изменили в другом месте (запись поверх) — номера ничего не значат: не применяем (ревью)
-        from apps.core import faq_content
-
         if _block_i18n().faq_moved(config, draft):
             if notes is not None:
                 notes.append(_block_i18n().window_skipped_note())
@@ -1468,6 +1467,14 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
             faq_content.put(
                 config, kept, list(range(len(kept))), explicit=_block_i18n().explicit(draft, "faq")
             )
+    if "faq_title" in draft:
+        # FB-33 E5: общий заголовок FAQ — отдельно от цепочки вопросов и переводов (ревью №1);
+        # конфликт уже отвергнут выше (без `force`), с `force` — поверх. Блока FAQ в черновике
+        # нет — заголовок «в тени» не публикуем (ревью H2)
+        if any(_is_faq_row(draft, it) for it in draft["items"]):
+            faq_content.put_title(config, draft["faq_title"])
+        elif notes is not None and faq_content.dropped_note() not in notes:
+            notes.append(faq_content.dropped_note())
     if "form" in draft and site_schema.form_of(host):
         # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: дельта черновика
         # поверх заблокированного сохранённого (ревью H2), номера новых вопросов — от
