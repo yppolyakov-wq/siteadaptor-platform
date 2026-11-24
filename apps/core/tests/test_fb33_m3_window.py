@@ -32,7 +32,7 @@ def test_every_row_key_is_a_panel_part_or_a_row_label():
     known = set(block_window.PANEL_KEYS) | block_window.ROW_KEYS
     for _g, items in site_schema.type_groups(tenant, cfg):
         for row in items:
-            for b in site_schema.blocks_for(cfg, row.code, host=row.host):
+            for b in site_schema.blocks_for(cfg, row.code, host=row.host, tenant=None):
                 assert _nonempty(b) <= known, (row.code, b["ref"], _nonempty(b) - known)
     for case in CASES:
         code, ref, extra = (*case, "")[:3]

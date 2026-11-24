@@ -102,7 +102,7 @@ def test_narrow_neighbours_share_a_row_and_hidden_blocks_are_listed_apart():
             }
         }
     )
-    layout = site_schema.schema_layout(site_schema.blocks_for(cfg, "text"))
+    layout = site_schema.schema_layout(site_schema.blocks_for(cfg, "text", tenant=None))
     rows = [[b["ref"] for b in row] for row in layout["rows"]]
     assert ["a1", "a2"] in rows and ["a3"] in rows
     assert [b["ref"] for b in layout["hidden"]] == ["a4"]
@@ -123,7 +123,7 @@ def test_schema_rows_match_storefront_grouping():
         [x["id"] for x in g["row"]] if g.get("key") == "_row" else [g["id"]]
         for g in siteconfig.group_block_rows(stored)
     ]
-    layout = site_schema.schema_layout(site_schema.blocks_for(cfg, "text"))
+    layout = site_schema.schema_layout(site_schema.blocks_for(cfg, "text", tenant=None))
     got = [[b["ref"] for b in row] for row in layout["rows"] if not row[0]["fixed"]]
     assert got == expected
 
@@ -142,7 +142,7 @@ def test_selected_block_opens_panel_with_separate_hide_and_remove():
     tenant = _biz("online_shop")
     site_schema.apply(tenant, "text", "add", block_type="text")
     cfg = siteconfig.normalize(tenant.site_config)
-    ref = next(b["ref"] for b in site_schema.blocks_for(cfg, "text") if b["cblock"])
+    ref = next(b["ref"] for b in site_schema.blocks_for(cfg, "text", tenant=None) if b["cblock"])
     html = site_schema_view(
         _request("get", tenant, query=f"?seite=text&block={ref}")
     ).content.decode()
@@ -159,7 +159,7 @@ def test_action_keeps_the_block_selected():
     tenant = _biz("online_shop")
     site_schema.apply(tenant, "text", "add", block_type="text")
     cfg = siteconfig.normalize(tenant.site_config)
-    ref = next(b["ref"] for b in site_schema.blocks_for(cfg, "text") if b["cblock"])
+    ref = next(b["ref"] for b in site_schema.blocks_for(cfg, "text", tenant=None) if b["cblock"])
     resp = site_schema_view(_request("post", tenant, {"seite": "text", "op": "toggle", "ref": ref}))
     assert resp.status_code == 302
     assert "seite=text" in resp["Location"] and f"block={ref}" in resp["Location"]
@@ -201,10 +201,12 @@ def test_move_skips_hidden_neighbours():
     site_schema.apply(tenant, "text", "up", ref=refs[2])
     cfg = siteconfig.normalize(tenant.site_config)
     visible = [
-        b["ref"] for b in site_schema.blocks_for(cfg, "text") if b["enabled"] and b["cblock"]
+        b["ref"]
+        for b in site_schema.blocks_for(cfg, "text", tenant=None)
+        if b["enabled"] and b["cblock"]
     ]
     assert visible == [refs[2], refs[0]]
-    first = next(b for b in site_schema.blocks_for(cfg, "text") if b["ref"] == refs[2])
+    first = next(b for b in site_schema.blocks_for(cfg, "text", tenant=None) if b["ref"] == refs[2])
     # FB-32 S6a: выше — ещё место над карточкой контактов (разделы «Über uns» — строки)
     assert first["can_up"] is True and first["can_down"] is True
 
@@ -259,7 +261,7 @@ def test_v1_rows_carry_summary_and_thumbnail_like_the_mockup():
             ],
         }
     )
-    rows = {b["ref"]: b for b in site_schema.blocks_for(cfg, "home")}
+    rows = {b["ref"]: b for b in site_schema.blocks_for(cfg, "home", tenant=None)}
     assert rows["t"]["summary"] == "«Tee aus Gärten»" and rows["t"]["thumb"] == "lines"
     assert "8" in rows["l"]["summary"] and "Slider" in rows["l"]["summary"]
     assert rows["l"]["thumb"] == "cards" and rows["products"]["thumb"] == "cards"

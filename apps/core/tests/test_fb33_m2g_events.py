@@ -55,7 +55,7 @@ def test_stored_own_order_cannot_pull_an_in_place_section_into_the_flow():
 
 def test_schema_rows_follow_booking_are_fixed_and_say_whose_they_are():
     cfg = siteconfig.normalize({"page_blocks": {"event_detail": [B1]}})
-    rows = site_schema.blocks_for(cfg, "event")
+    rows = site_schema.blocks_for(cfg, "event", tenant=None)
     keys = [r["key"] for r in rows]
     at = keys.index("kauf")
     assert keys[at + 1 : at + 4] == list(IN_PLACE) and keys[-1] == "text"

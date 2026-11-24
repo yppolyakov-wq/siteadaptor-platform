@@ -36,7 +36,7 @@ def test_blocks_render_before_and_after_reviews(kind, host):
 
 def test_product_rows_toggle_but_do_not_move():
     tenant = TenantFactory(site_config={})
-    rows = site_schema.blocks_for(siteconfig.normalize({}), "product")
+    rows = site_schema.blocks_for(siteconfig.normalize({}), "product", tenant=None)
     # FB-33 M2f: разделы первого экрана и «Zuletzt angesehen» — тоже строки схемы
     assert [r["key"] for r in rows][:12] == [
         "kauf",

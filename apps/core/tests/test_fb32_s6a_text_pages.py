@@ -25,7 +25,7 @@ def test_info_and_own_pages_have_section_rows_without_purchase():
     assert detail_parts.section_keys("seite:") == ()
     assert not detail_parts.has_kauf("info") and not detail_parts.has_kauf("seite:x")
     assert detail_parts.has_kauf("event_detail")
-    rows = site_schema.blocks_for({}, "text")
+    rows = site_schema.blocks_for({}, "text", tenant=None)
     by = {r["ref"]: r for r in rows}
     assert by["pagetext"]["pinned"] and by["pagetext"]["fixed"]
     assert by["contact"]["fixed"] and not by["contact"]["pinned"]
@@ -85,7 +85,7 @@ def test_own_block_between_sections_moves_up_and_down():
     t = _tenant()
     t.site_config = {"page_blocks": {"info": [{"key": "pagetext"}, TEXT, {"key": "contact"}]}}
     t.save(update_fields=["site_config"])
-    rows = {r["ref"]: r for r in site_schema.blocks_for(_cfg(t), "text")}
+    rows = {r["ref"]: r for r in site_schema.blocks_for(_cfg(t), "text", tenant=None)}
     assert rows["t-s6"]["can_up"] and rows["t-s6"]["can_down"]
     assert not rows["pagetext"]["can_up"] and not rows["contact"]["can_down"]
     site_schema.apply(t, "text", "up", ref="t-s6")
@@ -138,7 +138,7 @@ def test_draft_started_before_section_rows_is_not_a_false_conflict():
 
 def test_versand_rows_are_fixed_and_cannot_be_hidden():
     assert detail_parts.section_keys("versand") == ("pagetext", "costs")
-    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "text@versand")}
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "text@versand", tenant=None)}
     assert rows["pagetext"]["pinned"] and rows["costs"]["pinned"], "§ 6 PAngV: не скрываются"
     t = _tenant()
     with pytest.raises(site_schema.SchemaError):
@@ -195,7 +195,7 @@ def test_versand_without_own_text_shows_the_list_even_with_the_box_unticked():
 )
 def test_form_pages_have_one_fixed_form_row(host, code, key):
     assert detail_parts.section_keys(host) == (key,)
-    rows = {r["ref"]: r for r in site_schema.blocks_for({}, code)}
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, code, tenant=None)}
     assert rows[key]["pinned"] and not detail_parts.has_kauf(host)
 
 
@@ -269,7 +269,7 @@ def test_promo_offer_is_a_pinned_axis_row_and_related_hides():
     assert detail_parts.flow_section_keys("promo_detail") == ("offer", "related")
     assert detail_parts.anchor_keys("promo_detail") == frozenset({"related"})
     cfg = siteconfig.normalize({"page_blocks": {"promo_detail": [OFFER, TEXT, {"key": "related"}]}})
-    rows = {r["ref"]: r for r in site_schema.blocks_for(cfg, "promo")}
+    rows = {r["ref"]: r for r in site_schema.blocks_for(cfg, "promo", tenant=None)}
     assert rows["offer"]["pinned"] and not rows["related"]["pinned"]
     assert detail_parts.KAUF_REF not in rows, "покупка — сама строка «Angebot»"
 
@@ -368,7 +368,7 @@ def test_new_page_types_have_one_fixed_row(host, key):
 
     assert detail_parts.section_keys(host) == (key,)
     pt = next(p for p in studio_pages.PAGE_TYPES if p.block_host == host)
-    rows = {r["ref"]: r for r in site_schema.blocks_for({}, pt.code)}
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, pt.code, tenant=None)}
     assert rows[key]["pinned"] and not detail_parts.has_kauf(host)
 
 
@@ -427,7 +427,7 @@ def test_slots_page_type_and_preview():
     assert site_schema._preview_url(pt) == ""
     res = _resource()
     assert site_schema._preview_url(pt).endswith(f"/{res.pk}/")
-    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "booking_slots")}
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "booking_slots", tenant=None)}
     assert rows["slots"]["pinned"]
 
 
@@ -442,7 +442,7 @@ def test_combo_rows_config_fixed_others_hide():
         "cta",
         "related",
     )
-    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "combo")}
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "combo", tenant=None)}
     assert rows["config"]["pinned"] and not rows["related"]["pinned"]
     assert detail_parts.KAUF_REF not in rows
 

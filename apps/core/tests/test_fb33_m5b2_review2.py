@@ -141,13 +141,13 @@ def test_main_list_name_every_host_named():
     fallback = list_blocks.source_label(NO_SOURCE)
     with translation.override("de"):
         for host in siteconfig.MAIN_LIST_HOSTS:
-            name = site_schema.main_list_name(host)
+            name = site_schema.main_list_name(host, None)
             assert name, host
             if host not in PROMO_HOSTS:
                 assert name != fallback, host
-        assert site_schema.main_list_name("combos") == list_blocks.source_label("combos")
-        assert site_schema.main_list_name("reviews") == list_blocks.source_label("reviews")
-        assert site_schema.main_list_name("stay_rooms") == list_blocks.source_label("stays")
+        assert site_schema.main_list_name("combos", None) == list_blocks.source_label("combos")
+        assert site_schema.main_list_name("reviews", None) == list_blocks.source_label("reviews")
+        assert site_schema.main_list_name("stay_rooms", None) == list_blocks.source_label("stays")
 
 
 def test_main_list_sources_only_renamed():

@@ -101,7 +101,7 @@ def _by(lines, code, key):
 
 def _block(tenant, code, key) -> dict:
     saved = siteconfig.normalize(tenant.site_config)
-    return next(b for b in site_schema.blocks_for(saved, code) if b["key"] == key)
+    return next(b for b in site_schema.blocks_for(saved, code, tenant=None) if b["key"] == key)
 
 
 def _naive(tenant, code, key) -> bool:

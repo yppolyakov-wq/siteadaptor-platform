@@ -33,7 +33,7 @@ def test_add_move_toggle_delete_on_a_page():
     t = _tenant()
     site_schema.apply(t, "catalog", "add", block_type="text")
     site_schema.apply(t, "catalog", "add", block_type="banner")
-    blocks = site_schema.blocks_for(siteconfig.normalize(t.site_config), "catalog")
+    blocks = site_schema.blocks_for(siteconfig.normalize(t.site_config), "catalog", tenant=None)
     # FB-30.16 R4/R5b (осознанно): строки каталога закреплены — шапка первой,
     # «Kategorien» прямо над ★; свои блоки — дальше (сеты — только когда наборы есть)
     assert [b["key"] for b in blocks[:2]] == ["page_head", "categories"] and blocks[2]["main"]

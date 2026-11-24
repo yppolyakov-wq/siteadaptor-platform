@@ -47,7 +47,7 @@ def test_unknown_host_is_rejected():
 
 def test_contact_card_toggles_and_is_not_deletable():
     t = _tenant()
-    rows = site_schema.blocks_for(siteconfig.normalize(t.site_config), "text")
+    rows = site_schema.blocks_for(siteconfig.normalize(t.site_config), "text", tenant=None)
     # FB-32 S6a: текст и карточка контактов — строки разделов (текст не скрывается)
     assert [r["ref"] for r in rows[:2]] == ["pagetext", "contact"] and rows[1]["enabled"]
     site_schema.apply(t, "text", "toggle", ref="contact")

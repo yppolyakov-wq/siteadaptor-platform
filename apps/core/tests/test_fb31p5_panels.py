@@ -33,7 +33,7 @@ def _cfg(tenant):
 
 def test_sections_are_rows_and_booking_is_pinned_after_them():
     cfg = siteconfig.normalize({"page_blocks": {"event_detail": [B1]}})
-    rows = site_schema.blocks_for(cfg, "event")
+    rows = site_schema.blocks_for(cfg, "event", tenant=None)
     keys = [r["key"] for r in rows]
     assert keys[0] == "for_whom" and "kauf" in keys
     assert keys.index("kauf") == keys.index("certifications") + 1, "Buchung — после разделов"
@@ -72,7 +72,7 @@ def test_review_counts_widths_stale_drafts_and_booking_drop():
     from apps.core import aufbau_draft, detail_parts
 
     cfg = siteconfig.normalize({})
-    rows = site_schema.blocks_for(cfg, "event")
+    rows = site_schema.blocks_for(cfg, "event", tenant=None)
     assert all(not r["widths"] for r in rows if r["key"] in ("faq", "testimonials")), (
         "у раздела нет ширины"
     )

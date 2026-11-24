@@ -110,15 +110,17 @@ def test_main_list_name_is_source_label():
     assert set(SOURCE_OF) | set(OWN_NAMES) == set(siteconfig.MAIN_LIST_HOSTS)
     with translation.override("de"):
         for host, source in SOURCE_OF.items():
-            assert site_schema.main_list_name(host) == list_blocks.source_label(source), host
+            assert site_schema.main_list_name(host, None) == list_blocks.source_label(source), host
         for host, name in OWN_NAMES.items():
-            assert site_schema.main_list_name(host) == name, host
-        assert site_schema.main_list_name(siteconfig.CATEGORY_HOST_PREFIX + "brot") == "Produkte"
+            assert site_schema.main_list_name(host, None) == name, host
+        assert (
+            site_schema.main_list_name(siteconfig.CATEGORY_HOST_PREFIX + "brot", None) == "Produkte"
+        )
         group = siteconfig.PROMO_GROUP_HOST_PREFIX + "0" * 32
-        assert site_schema.main_list_name(group) == "Aktionen"
-        assert site_schema.main_list_name("services") == "Leistungen"
-        assert site_schema.main_list_name("blog") == "Blog"
-        assert site_schema.main_list_name("combos") == "Sets & Pakete"
+        assert site_schema.main_list_name(group, None) == "Aktionen"
+        assert site_schema.main_list_name("services", None) == "Leistungen"
+        assert site_schema.main_list_name("blog", None) == "Blog"
+        assert site_schema.main_list_name("combos", None) == "Sets & Pakete"
         gastro = _tenant("restaurant")
         assert site_schema.main_list_name("combos", gastro) == "Menü-Pakete"
         assert site_schema.main_list_name("combos", _tenant("online_shop")) == "Sets & Pakete"
@@ -159,14 +161,16 @@ def test_main_row_summary_names_current_view():
     """Вид — из уже заполненных `mainview` (второго списка видов нет)."""
     tenant = _tenant("online_shop")
     saved = siteconfig.normalize(tenant.site_config)
-    blocks = site_schema.blocks_for(saved, "catalog")
+    blocks = site_schema.blocks_for(saved, "catalog", tenant=None)
     main = next(b for b in blocks if b.get("main"))
     current = next(
         str(lab) for v, lab, _h, _t in main["mainview"]["choices"]
         if v == main["mainview"]["value"]
     )  # fmt: skip
     assert main["summary"] == f"Hauptliste · {current}"
-    services = site_schema.blocks_for(siteconfig.normalize(_tenant().site_config), "services")
+    services = site_schema.blocks_for(
+        siteconfig.normalize(_tenant().site_config), "services", tenant=None
+    )
     assert next(b for b in services if b.get("main"))["summary"] == "Hauptliste"
 
 
@@ -178,7 +182,9 @@ def test_no_star_literal_in_row_labels():
         saved = siteconfig.normalize(tenant.site_config)
         for _label, items in site_schema.type_groups(tenant, saved):
             for row in items:
-                for b in site_schema.blocks_for(saved, row.code, host=row.host or None):
+                for b in site_schema.blocks_for(
+                    saved, row.code, host=row.host or None, tenant=None
+                ):
                     assert "★" not in str(b.get("label") or ""), (bt, row.code, b["ref"])
     src = (ROOT / "apps" / "core" / "site_schema.py").read_text(encoding="utf-8")
     assert not re.search(r"""f["']★""", src), "подпись строки с ★"
@@ -207,9 +213,11 @@ def test_star_row_labels_ru():
     """Имена и плашка — переводы по ключу (свежие `.mo`), тенант de+ru."""
     tenant = _tenant(locales=["de", "ru"])
     with translation.override("ru"):
-        assert site_schema.main_list_name("services") == "Услуги"
-        assert site_schema.main_list_name("team") == "Команда"
-        services = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), "services")
+        assert site_schema.main_list_name("services", None) == "Услуги"
+        assert site_schema.main_list_name("team", None) == "Команда"
+        services = site_schema.blocks_for(
+            siteconfig.normalize(tenant.site_config), "services", tenant=None
+        )
         main = next(b for b in services if b.get("main"))
         assert main["label"] == "Услуги" and main["summary"] == "Основной список"
         panel = _panel(Browser(tenant).get(f"?seite=services&block={MAIN}"))

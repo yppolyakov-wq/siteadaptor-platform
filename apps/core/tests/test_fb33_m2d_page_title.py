@@ -75,7 +75,7 @@ def test_schema_shows_the_title_row_where_the_page_draws_h1(host):
     cfg = siteconfig.normalize({"page_blocks": {host: [
         {"key": "text", "id": "t1", "enabled": True, "data": {"title": "x"}}, _anchor(host)
     ]}})  # fmt: skip
-    rows = site_schema.blocks_for(cfg, code)
+    rows = site_schema.blocks_for(cfg, code, tenant=None)
     refs = [r["ref"] for r in rows]
     assert page_title.TITLE_REF not in refs
     at = site_schema.title_hint_at(host, rows)

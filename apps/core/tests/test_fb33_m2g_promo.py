@@ -18,7 +18,7 @@ def _urlconf(settings, frozen_now):
 
 
 def test_schema_rows_stand_in_the_offer_column_and_only_hide():
-    rows = site_schema.blocks_for(siteconfig.normalize({}), "promo")
+    rows = site_schema.blocks_for(siteconfig.normalize({}), "promo", tenant=None)
     keys = [r["key"] for r in rows]
     assert keys[:4] == ["offer", "share", "card", "related"]
     by = {r["key"]: r for r in rows}

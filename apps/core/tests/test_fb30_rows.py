@@ -23,7 +23,7 @@ def _urlconf(settings):
 
 def _rows(tenant):
     cfg = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
-    layout = site_schema.schema_layout(site_schema.blocks_for(cfg, "text"))
+    layout = site_schema.schema_layout(site_schema.blocks_for(cfg, "text", tenant=None))
     return [[(b["ref"], b.get("width") or "") for b in row] for row in layout["rows"]]
 
 
@@ -137,12 +137,12 @@ def test_structure_list_offers_a_slot_where_a_row_has_room():
     t = _tenant()
     a = _add(t, width="w12")
     cfg = siteconfig.normalize(Tenant.objects.get(pk=t.pk).site_config)
-    lines = site_schema.schema_layout(site_schema.blocks_for(cfg, "text"))["lines"]
+    lines = site_schema.schema_layout(site_schema.blocks_for(cfg, "text", tenant=None))["lines"]
     line = next(li for li in lines if li["blocks"][0]["ref"] == a)
     assert line["slot"] == {"ref": a, "label": "½"}
     site_schema.apply(t, "text", "beside", ref=_add(t), value=a)
     cfg = siteconfig.normalize(Tenant.objects.get(pk=t.pk).site_config)
-    lines = site_schema.schema_layout(site_schema.blocks_for(cfg, "text"))["lines"]
+    lines = site_schema.schema_layout(site_schema.blocks_for(cfg, "text", tenant=None))["lines"]
     line = next(li for li in lines if li["blocks"][0]["ref"] == a)
     assert line["slot"] is None, "ряд полон — места нет"
 

@@ -242,7 +242,7 @@ def test_every_main_window_not_empty(bt):
         seen.add(row.host)
         panel = _main_window(tenant, row.code)
         assert 'value="window_done"' in panel, (bt, row.code)
-        blocks = site_schema.blocks_for(saved, row.code, host=row.host)
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host, tenant=None)
         main = next(b for b in blocks if b.get("main"))
         own_view = bool(main.get("mainview") or main.get("groupview"))
         link = re.search(

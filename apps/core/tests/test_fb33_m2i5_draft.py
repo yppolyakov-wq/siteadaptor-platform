@@ -271,7 +271,7 @@ def test_preview_overlay_shows_draft_form():
     labels = [q["label"] for q in form_spec.questions(siteconfig.normalize(shown), "anfrage")]
     assert labels[-1] == "Allergien"
     assert form_spec.EDIT_KEY not in siteconfig.normalize(shown)  # на сайт ключ не попадает
-    rows = site_schema.blocks_for(shown, "anfrage", "anfrage")
+    rows = site_schema.blocks_for(shown, "anfrage", "anfrage", tenant=None)
     panel = next(r for r in rows if r["ref"] == "form")[form_spec.PANEL_KEY]
     assert panel["custom"][-1]["id"] == "n1" and panel["custom"][-1]["new"]
 

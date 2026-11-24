@@ -50,7 +50,9 @@ def _li(html, ref):
 
 def test_kauf_row_is_pinned_without_grip_but_is_a_drop_target():
     cfg = siteconfig.normalize({})
-    kauf = next(r for r in site_schema.blocks_for(cfg, "product") if r["ref"] == "__kauf")
+    kauf = next(
+        r for r in site_schema.blocks_for(cfg, "product", tenant=None) if r["ref"] == "__kauf"
+    )
     assert kauf["pinned"] is True
     html = Browser(_shop()).get("?seite=product")
     li = _li(html, "__kauf")

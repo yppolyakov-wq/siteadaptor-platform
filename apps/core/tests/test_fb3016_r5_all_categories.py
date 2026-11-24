@@ -88,5 +88,7 @@ def test_review_panel_before_first_save_shows_the_template_view():
         page_blocks={"catalog": [{"key": "categories", "style": "tabs"}, {"key": "main"}]},
     )
     cfg = siteconfig.normalize(tenant.site_config)
-    row = next(b for b in site_schema.blocks_for(cfg, "category") if b["key"] == "categories")
+    row = next(
+        b for b in site_schema.blocks_for(cfg, "category", tenant=None) if b["key"] == "categories"
+    )
     assert row["catview"]["value"] == "regale"

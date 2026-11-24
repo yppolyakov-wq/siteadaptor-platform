@@ -201,11 +201,11 @@ def test_more_summary_no_haspopup():
 
 def test_can_hide_from_blocks_for():
     cfg = siteconfig.normalize({})
-    rows = {r["ref"]: r for r in site_schema.blocks_for(cfg, "product")}
+    rows = {r["ref"]: r for r in site_schema.blocks_for(cfg, "product", tenant=None)}
     assert rows[detail_parts.KAUF_REF]["can_hide"] is False
-    cart = {r["ref"]: r for r in site_schema.blocks_for(cfg, "cart")}
+    cart = {r["ref"]: r for r in site_schema.blocks_for(cfg, "cart", tenant=None)}
     assert not any(cart[k]["can_hide"] for k in ("items", "form", "summary") if k in cart)
-    cat = {r["ref"]: r for r in site_schema.blocks_for(cfg, "catalog")}
+    cat = {r["ref"]: r for r in site_schema.blocks_for(cfg, "catalog", tenant=None)}
     assert cat["main"]["can_hide"] is False
     assert "can_hide" in block_window.ROW_KEYS
 
@@ -219,7 +219,7 @@ def test_more_actions_match_mutate(code):
     items = site_schema.load_items(cfg, home, host)
     if detail_parts.module_of(host):
         items = detail_parts.edit_rows(cfg, host, items)
-    for row in site_schema.blocks_for(cfg, code, host=host):
+    for row in site_schema.blocks_for(cfg, code, host=host, tenant=None):
         trial = [dict(i) for i in items]
         try:
             site_schema.mutate(trial, code, "toggle", ref=row["ref"])

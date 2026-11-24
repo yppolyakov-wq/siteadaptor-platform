@@ -116,7 +116,7 @@ def test_screen_row_follows_the_view_rule(bt):
     browser = Browser(tenant)
     kinds = set()
     for row in rows:
-        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None)
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None, tenant=None)
         want = _oracle(tenant, row.code, blocks)
         kinds.add("page" if want == PAGE else want and "carrier" or "none")
         html = browser.get(f"?seite={row.code}&block={PAGE}")
@@ -143,7 +143,7 @@ def test_page_row_ref_is_the_view_rule(bt):
     saved, rows = _rows(tenant)
     req = _req(tenant)
     for row in rows:
-        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None)
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None, tenant=None)
         want = _oracle(tenant, row.code, blocks)
         assert site_schema.page_row_ref(tenant, row.code, blocks) == want, (bt, row.code)
         # ⚙ Студии видит те же строки, что экран (L2 по всем страницам)
@@ -166,7 +166,7 @@ def test_page_row_ref_edges(caplog):
         "SchemaError не глотается молча (ревью M5b-1)"
     )
     assert site_schema.page_row_ref(tenant, NO_SETTINGS, []) == ""
-    home = site_schema.blocks_for(saved, "home")
+    home = site_schema.blocks_for(saved, "home", tenant=None)
     assert site_schema.page_row_ref(tenant, "home", home) == "hero"
     assert site_schema.page_row_ref(tenant, "home", []) == PAGE, "нет «Banner» — строка `__page`"
 
@@ -178,7 +178,7 @@ def test_window_snapshot_settings_follow_the_rule(bt):
     tenant = _tenant(bt)
     saved, rows = _rows(tenant)
     for row in rows:
-        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None)
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None, tenant=None)
         want = site_schema.page_row_ref(tenant, row.code, blocks)
         try:
             codes = list(site_schema.setting_codes(tenant, row.code))
@@ -209,15 +209,20 @@ def test_settings_url_leads_to_an_existing_row(bt, config):
     for row in rows:
         if site_schema.is_object_code(row.code):
             continue
-        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None)
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None, tenant=None)
         want = site_schema.page_row_ref(tenant, row.code, blocks)
         if not want:
             continue
         assert site_schema.page_row_ref(None, row.code) == want, (bt, row.code)
         query = parse_qs(urlsplit(site_schema.settings_url(row.code.split("@", 1)[0])).query)
         seite, block = query["seite"][0], query["block"][0]
-        refs = {b["ref"] for b in site_schema.blocks_for(saved, seite)}
-        if site_schema.page_row_ref(tenant, seite, site_schema.blocks_for(saved, seite)) == PAGE:
+        refs = {b["ref"] for b in site_schema.blocks_for(saved, seite, tenant=None)}
+        if (
+            site_schema.page_row_ref(
+                tenant, seite, site_schema.blocks_for(saved, seite, tenant=None)
+            )
+            == PAGE
+        ):
             refs.add(PAGE)
         assert block in refs, (bt, row.code, seite, block)
 
