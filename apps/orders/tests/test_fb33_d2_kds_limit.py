@@ -209,3 +209,132 @@ def test_d2_msgids_in_all_po():
         assert forms and all("%(counter)s" in f for f in forms), (lang, forms)
         if lang != "de":
             assert forms[0] != MSGID, lang
+
+
+# --- ревью диффа (план §10.4) -----------------------------------------------------------------
+#: замки правок ревью — снимаются своими коммитами
+REVIEW = pytest.mark.xfail(strict=True, reason="FB-33 D2 §10.4: до правки")
+PARTIAL = ROOT / "templates/orders/_kitchen_board.html"
+
+
+def _more(html):
+    """Строка переполнения `[data-kds-more]` (любая разметка) — внутренний HTML или None."""
+    match = re.search(r"<p[^>]*data-kds-more[^>]*>(.*?)</p>", html, re.S)
+    return match.group(1) if match else None
+
+
+def _sales_url():
+    return reverse("verkaeufe") + "?tab=order&view=liste"
+
+
+@REVIEW
+def test_overflow_line_is_not_a_live_region():
+    """a11y HIGH: доска пересоздаётся поллингом каждые 8 с — live region внутри неё
+    пересоздавался бы и объявлялся заново; строка — обычный абзац."""
+    source = PARTIAL.read_text(encoding="utf-8")
+    assert 'role="status"' not in source and "aria-live" not in source
+    _orders(LIMIT + 1)
+    html = _board()
+    assert _more(html) is not None and 'role="status"' not in html
+
+
+@REVIEW
+def test_focus_targets_have_stable_ids():
+    """a11y HIGH: htmx возвращает фокус после замены `outerHTML` по `id` — у кнопок действия
+    и у ссылки он постоянный."""
+    _orders(LIMIT + 1)
+    html = _board()
+    shown = list(Order.objects.order_by("created_at")[:LIMIT])
+    for order in shown[:3]:
+        assert f'id="kds-act-{order.pk}"' in html
+    assert len(re.findall(r'id="kds-act-', html)) == LIMIT
+    assert 'id="kds-more-link"' in _more(html)
+
+
+@REVIEW
+def test_link_named_open_list_and_count_is_text():
+    """Имя ссылки — «Bestellliste öffnen»; число — текстом перед ссылкой, не в ней."""
+    _orders(LIMIT + 2)
+    more = _more(_board())
+    link = re.search(r"<a ([^>]*)>(.*?)</a>", more, re.S)
+    assert link and " ".join(link.group(2).split()) == "Bestellliste öffnen"
+    assert "underline" in link.group(1) and "min-h-[44px]" in link.group(1)
+    before = more[: link.start()]
+    assert "2 weitere offene Bestellungen" in before
+
+
+@REVIEW
+def test_link_targets_the_sales_screen():
+    """MEDIUM: цель — экран «Verkäufe» (вкладка заказов, список), не легаси с 302."""
+    _orders(LIMIT + 1)
+    link = re.search(r'<a [^>]*href="([^"]+)"', _more(_board()))
+    assert link and link.group(1).replace("&amp;", "&") == _sales_url()
+
+
+@REVIEW
+def test_closed_link_explains(monkeypatch):
+    """Право на KDS есть, на «Verkäufe» нет — ссылки нет, строка поясняет почему."""
+    from apps.core import view_perms
+    from apps.core.models import Membership
+    from apps.core.tests.test_staff_walk import _user
+
+    monkeypatch.setitem(
+        view_perms.RULES, "verkaeufe", view_perms.Rule("kunden.view", "kunden.edit")
+    )
+    staff = _user(Membership.ROLE_STAFF)
+    Membership.objects.filter(user=staff).update(
+        permissions={"add": ["verkaeufe.view"], "remove": ["kunden.view", "kunden.edit"]}
+    )
+    staff = get_user_model().objects.get(pk=staff.pk)
+    _orders(LIMIT + 1)
+    more = _more(_board(_req(user=staff)))
+    assert more is not None and "<a " not in more
+    assert "Die Bestellliste ist für Ihr Konto nicht freigegeben." in more
+
+
+@REVIEW
+def test_new_orders_beyond_the_limit_are_named():
+    """MEDIUM: 48 принятых и один новый за потолком — строка называет «davon 1 neu»."""
+    _orders(LIMIT + 1)
+    newest = Order.objects.order_by("-created_at").first()
+    Order.objects.exclude(pk=newest.pk).update(status=Order.STATUS_CONFIRMED)
+    more = _more(_board())
+    assert more is not None and "davon 1 neu" in more
+
+
+@REVIEW
+def test_no_new_count_when_hidden_are_confirmed():
+    _orders(LIMIT + 1)
+    newest = Order.objects.order_by("-created_at").first()
+    Order.objects.filter(pk=newest.pk).update(status=Order.STATUS_CONFIRMED)
+    more = _more(_board())
+    assert more is not None and "neu" not in more and "Bestellliste öffnen" in more
+
+
+REVIEW_MSGIDS = [
+    (
+        "%(counter)s weitere offene Bestellung wird hier nicht angezeigt",
+        "%(counter)s weitere offene Bestellungen werden hier nicht angezeigt",
+    ),
+    ("davon %(counter)s neu", "davon %(counter)s neu"),
+    ("Bestellliste öffnen", None),
+    ("Die Bestellliste ist für Ihr Konto nicht freigegeben.", None),
+]
+
+
+@REVIEW
+def test_d2_review_msgids_in_all_po():
+    """Новые строки — во всех пяти каталогах; старая строка «… — in der Bestellliste» снята."""
+    for lang in ("de", "en", "tr", "ru", "uk"):
+        po = polib.pofile(str(ROOT / f"locale/{lang}/LC_MESSAGES/django.po"))
+        entries = {(e.msgctxt, e.msgid): e for e in po if not e.obsolete}
+        assert (None, MSGID) not in entries, lang
+        for msgid, plural in REVIEW_MSGIDS:
+            entry = entries.get((None, msgid))
+            assert entry is not None, (lang, msgid)
+            if plural:
+                assert entry.msgid_plural == plural, (lang, msgid)
+                forms = list(entry.msgstr_plural.values())
+                assert forms and all("%(counter)s" in f for f in forms), (lang, msgid)
+            elif lang != "de":
+                assert entry.msgstr and entry.msgstr != msgid, (lang, msgid)
