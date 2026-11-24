@@ -75,6 +75,7 @@ def _page(request, status: int, is_preview: bool = False):
         "archetype_cover": {},
         "seo_meta": {},
         "storefront_search_noindex": False,
+        "storefront_personal_noindex": False,  # FB-33 D8: тело 404 не зависит от маршрута
         "storefront_return_path": "/",
     }
     return render(request, TEMPLATE, context, status=status)

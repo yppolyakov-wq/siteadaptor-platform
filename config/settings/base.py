@@ -181,6 +181,8 @@ MIDDLEWARE = [
     "apps.core.middleware.SuspendedTenantMiddleware",
     # SEC-E-M3: CSP в режиме отчёта (ничего не блокирует).
     "apps.core.middleware.CSPReportOnlyMiddleware",
+    # FB-33 D8: личные страницы по коду/токену — noindex и Referrer-Policy (и не-HTML).
+    "apps.core.middleware.PersonalPageHeadersMiddleware",
     # HIGH-10: сессия привязана к схеме логина — кука из чужой схемы сбрасывается
     # (защита от pk-коллизии auth_user при расширении SESSION_COOKIE_DOMAIN).
     "apps.core.middleware.SessionSchemaGuardMiddleware",

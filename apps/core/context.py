@@ -7,7 +7,7 @@
 from django.conf import settings
 from django.utils.translation import get_language, get_language_info
 
-from . import modules
+from . import modules, personal_pages
 from .i18n_cabinet import cabinet_languages
 
 
@@ -640,6 +640,8 @@ def modules_nav(request):
         "storefront_search_url": storefront_search_url,
         # M5a-2: выдача поиска по `?q=` — `noindex,follow` без canonical (`_base.html`)
         "storefront_search_noindex": _search_noindex(request),
+        # FB-33 D8: личная страница по коду/токену — `noindex,nofollow` и без LD (`_base.html`)
+        "storefront_personal_noindex": personal_pages.is_personal(request),
         # DS-7b: активна ли продажа (orders) — при ней цены в меню скрывать
         # нельзя (PAngV), тумблер menu_show_prices игнорируется рендером.
         "storefront_orders_active": modules.is_module_active(tenant, "orders"),

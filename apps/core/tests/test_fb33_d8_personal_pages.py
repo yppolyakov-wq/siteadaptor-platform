@@ -24,7 +24,7 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-RED = pytest.mark.xfail(strict=True, reason="FB-33 D8: до реализации")
+
 rf = RequestFactory()
 LD = '<script type="application/ld+json">'
 META = '<meta name="robots" content="noindex,nofollow">'
@@ -82,7 +82,6 @@ def _middleware(request, response):
     return PersonalPageHeadersMiddleware(lambda r: response)(request)
 
 
-@RED
 def test_every_token_route_is_classified():
     """Замок покрытия: маршрут с `<code>`/`<token>` в пути — в реестре или в исключениях."""
     pp = _pp()
@@ -95,7 +94,6 @@ def test_every_token_route_is_classified():
     assert pp.PERSONAL_ROUTES <= names, pp.PERSONAL_ROUTES - names  # без опечаток
 
 
-@RED
 def test_middleware_registered_after_security():
     stack = list(dj_settings.MIDDLEWARE)
     mine = "apps.core.middleware.PersonalPageHeadersMiddleware"
@@ -122,7 +120,6 @@ PERSONAL = sorted(
 )
 
 
-@RED
 @pytest.mark.parametrize(
     "content_type", ["text/html; charset=utf-8", "image/svg+xml", "application/pdf"]
 )
@@ -136,7 +133,6 @@ def test_headers_on_every_personal_route(content_type):
         assert out["Referrer-Policy"] == "same-origin", name
 
 
-@RED
 def test_base_meta_and_no_ld_on_every_personal_route():
     tenant = _tenant()
     for name in sorted(_pp().PERSONAL_ROUTES):
@@ -147,7 +143,6 @@ def test_base_meta_and_no_ld_on_every_personal_route():
         assert LD not in html, name
 
 
-@RED
 def test_real_reservation_confirmation_page():
     """Сквозной: настоящая страница резерва `/r/<code>/` — заголовки, мета, без LD."""
     from apps.promotions import public_views
@@ -192,7 +187,6 @@ def test_regular_pages_unchanged():
         assert "nofollow" not in html and LD in html, path
 
 
-@RED
 def test_middleware_leaves_regular_pages_alone():
     tenant = _tenant()
     for path, req, resp in _home_and_product(tenant):
@@ -202,7 +196,6 @@ def test_middleware_leaves_regular_pages_alone():
         assert "X-Robots-Tag" not in out, path
 
 
-@RED
 def test_not_personal_routes_get_no_headers():
     tenant = _tenant()
     for name in _pp().NOT_PERSONAL:

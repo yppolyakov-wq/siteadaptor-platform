@@ -620,3 +620,23 @@ class CSPReportOnlyMiddleware:
                 f"{policy}; report-uri {uri}" if uri else policy
             )
         return response
+
+
+class PersonalPageHeadersMiddleware:
+    """FB-33 D8: личная страница по коду/токену (`personal_pages.PERSONAL_ROUTES`) —
+    `X-Robots-Tag: noindex, nofollow` и `Referrer-Policy: same-origin` у любого ответа
+    (HTML, SVG, PDF, ICS): адрес с токеном — ключ к данным клиента. Обычные страницы — как
+    были. Стоит после SecurityMiddleware: ответ идёт снизу вверх, её `setdefault` не
+    перебивает наш Referrer-Policy."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from apps.core import personal_pages
+
+        response = self.get_response(request)
+        if personal_pages.is_personal(request):
+            response["X-Robots-Tag"] = personal_pages.ROBOTS
+            response["Referrer-Policy"] = personal_pages.REFERRER_POLICY
+        return response
