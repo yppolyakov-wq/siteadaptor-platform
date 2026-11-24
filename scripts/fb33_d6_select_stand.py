@@ -212,14 +212,15 @@ def _one_message(rep, page, tag, lang):
     )
 
 
-def _clear_of_bars(rep, page, tag, name):
+def _clear_of_bars(rep, page, tag, name, js=True):
     """Поле с ошибкой целиком в окне и не под нижней панелью покупки (`[data-buybar]`).
     Плавная прокрутка (без reduced-motion) идёт до ~1 с — ждём, пока `scrollY` не замрёт."""
-    page.evaluate(
-        """() => new Promise(done => { let last = -1, still = 0, n = 0;
+    if js:  # без JS таймеры страницы не идут — и плавной прокрутки нет
+        page.evaluate(
+            """() => new Promise(done => { let last = -1, still = 0, n = 0;
           const tick = () => { n += 1; still = scrollY === last ? still + 1 : 0; last = scrollY;
             if (still >= 3 || n > 60) done(); else setTimeout(tick, 50); }; tick(); })"""
-    )
+        )
     got = page.evaluate(
         """(name) => {
           const el = document.querySelector(`[name="${name}"]`);
@@ -286,7 +287,7 @@ def booking(browser, rep, w, h, lang, js, event_pk, control):
     rep.check("HYPERLINK" not in body and "evil.example" not in body, f"{tag}: подделка не эхом")
     _one_message(rep, page, tag, lang)
     _wait_focus(page, "reg_diet")
-    _clear_of_bars(rep, page, tag, "reg_diet")
+    _clear_of_bars(rep, page, tag, "reg_diet", js)
     st = _field_state(page, "reg_diet") or {}
     rep.check(st.get("invalid") == "true", f"{tag}: aria-invalid у select", code="a11y")
     rep.check(LABEL[lang] in st.get("described", ""), f"{tag}: aria-describedby → текст ошибки")
@@ -353,7 +354,7 @@ def guest(browser, rep, w, h, lang, js, token):
     rep.check("HYPERLINK" not in body, f"{tag}: подделка не эхом")
     _one_message(rep, page, tag, lang)
     _wait_focus(page, "p2_reg_diet")
-    _clear_of_bars(rep, page, tag, "p2_reg_diet")
+    _clear_of_bars(rep, page, tag, "p2_reg_diet", js)
     st = _field_state(page, "p2_reg_diet") or {}
     rep.check(st.get("invalid") == "true", f"{tag}: aria-invalid у select", code="a11y")
     rep.check(LABEL[lang] in st.get("described", ""), f"{tag}: aria-describedby → текст ошибки")
