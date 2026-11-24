@@ -98,6 +98,10 @@ OWNER_MAIL_EXEMPT = {
     "event-cancel": "сводка отмены события — коды билетов и числа, без имён",
 }
 OWNER_MAIL_SUFFIXES = (":owner", ":owner:tg")
+#: Сделки без FK на клиента — по адресу (как `_email_linked`): метка → (поле адреса, префикс).
+OWNER_MAIL_BY_EMAIL = {"orders.Offer": ("customer_email", "offer")}
+#: Префиксов в одном OR — пачка; клиент с сотнями сделок даёт несколько UPDATE в той же atomic.
+OWNER_MAIL_BATCH = 200
 
 # Дочерние строки, которые входят в выгрузку вместе с родителем.
 CHILDREN = {
@@ -328,7 +332,7 @@ def erase_customer(customer, tenant=None) -> dict:
             raise ErasureBlocked(blockers)
         email = customer.email
         # FB-33 D5: ключи писем владельцу — ДО стирания (тред удаляется с сообщениями)
-        owner_mails = _owner_mail_q(customer)
+        owner_prefixes = _owner_mail_prefixes(customer)
         for label, model, field in _related_specs():
             action, arg = ERASURE_POLICY[label]
             qs = model.objects.filter(**{field: customer})
@@ -371,13 +375,7 @@ def erase_customer(customer, tenant=None) -> dict:
         if files:
             transaction.on_commit(lambda: _delete_files(files))
         stats.update(_erase_email_linked(email, chats))
-        if owner_mails is not None:
-            from apps.notifications.models import Notification
-
-            # адрес владельца остаётся (не данные клиента); тема и тело — с именем и ответами
-            stats["notifications.owner"] = Notification.objects.filter(owner_mails).update(
-                subject="", payload={}
-            )
+        stats["notifications.owner"] = _erase_owner_mails(owner_prefixes)
         _anonymize_customer(customer)
         if documents:
             from apps.documents import services as document_services
@@ -387,27 +385,44 @@ def erase_customer(customer, tenant=None) -> dict:
     return stats
 
 
-def _owner_mail_q(customer):
-    """Q писем владельцу о сделках клиента (`OWNER_MAIL_KEYS`); None — сделок нет.
-
-    pk сделок — через `_related_specs()` (без импорта моделей сделок), ключ — с завершающим
-    `:` после pk (иной pk с тем же началом не совпадёт) и окончанием из `OWNER_MAIL_SUFFIXES`."""
-    from django.db.models import Q
+def _owner_mail_prefixes(customer) -> list[str]:
+    """Префиксы ключей писем владельцу о сделках клиента (`OWNER_MAIL_KEYS`, сделки по
+    адресу — `OWNER_MAIL_BY_EMAIL`): `"<префикс>:<pk>:"` — завершающий `:` не даёт совпасть
+    иному pk с тем же началом. pk — через `_related_specs()`, без импорта моделей сделок."""
+    from django.apps import apps as django_apps
 
     prefixes = []
     for label, model, field in _related_specs():
         for prefix, path in OWNER_MAIL_KEYS.get(label, ()):
             ids = model.objects.filter(**{field: customer}).values_list(path, flat=True)
             prefixes.extend(f"{prefix}:{pk}:" for pk in ids if pk is not None)
-    if not prefixes:
-        return None
-    starts = Q()
-    for prefix in prefixes:
-        starts |= Q(dedupe_key__startswith=prefix)
+    if customer.email:
+        for label, (email_field, prefix) in OWNER_MAIL_BY_EMAIL.items():
+            model = django_apps.get_model(label)
+            ids = model.objects.filter(**{f"{email_field}__iexact": customer.email}).values_list(
+                "pk", flat=True
+            )
+            prefixes.extend(f"{prefix}:{pk}:" for pk in ids)
+    return sorted(set(prefixes))
+
+
+def _erase_owner_mails(prefixes) -> int:
+    """Стереть тему и содержимое писем владельцу по префиксам — пачками по
+    `OWNER_MAIL_BATCH`; адрес владельца остаётся (не данные клиента)."""
+    from django.db.models import Q
+
+    from apps.notifications.models import Notification
+
     ends = Q()
     for suffix in OWNER_MAIL_SUFFIXES:
         ends |= Q(dedupe_key__endswith=suffix)
-    return starts & ends
+    count = 0
+    for start in range(0, len(prefixes), OWNER_MAIL_BATCH):
+        starts = Q()
+        for prefix in prefixes[start : start + OWNER_MAIL_BATCH]:
+            starts |= Q(dedupe_key__startswith=prefix)
+        count += Notification.objects.filter(starts & ends).update(subject="", payload={})
+    return count
 
 
 def _delete_files(names):

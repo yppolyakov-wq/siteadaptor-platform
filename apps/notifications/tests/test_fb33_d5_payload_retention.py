@@ -23,8 +23,6 @@ from apps.promotions.models import Customer
 
 pytestmark = pytest.mark.django_db
 
-#: правки ревью §10.6 — красные до своей правки
-RED = pytest.mark.xfail(strict=True, reason="FB-33 D5 §10.6: до правки")
 
 OWNER_BODY = {"body": "Neue Bestellung von Erika Muster, Tel. 0170 1, Antwort: ohne Nüsse"}
 
@@ -322,7 +320,6 @@ def _owner_key_prefixes(tree) -> set[str]:
     return found
 
 
-@RED
 def test_owner_mail_keys_registry_covers_code():
     """Одна константа ключей: каждый ключ письма владельцу в коде (`…:owner`, `…:owner:tg`,
     в том числе `f"{key}:tg"`) либо в `dsgvo.OWNER_MAIL_KEYS`, либо в `dsgvo.OWNER_MAIL_EXEMPT`
@@ -437,7 +434,6 @@ def test_erased_failed_is_not_requeued():
     assert retry_failed() == 0
 
 
-@RED
 def test_erase_owner_mails_of_email_only_offers():
     """MEDIUM: предложение без FK на клиента (только адрес) — его письма владельцу тоже."""
     from apps.orders.models import Offer
@@ -453,13 +449,11 @@ def test_erase_owner_mails_of_email_only_offers():
     assert stats["notifications.owner"] == 1
 
 
-@RED
 def test_owner_stats_always_present():
     """MEDIUM: счёт писем владельцу в статистике всегда — 0 без сделок."""
     assert dsgvo.erase_customer(_customer())["notifications.owner"] == 0
 
 
-@RED
 def test_owner_mails_erased_in_batches():
     """MEDIUM: 450 сделок — префиксы пачками (≤ 200 в одном OR), стёрто всё."""
     from apps.orders.models import Order
