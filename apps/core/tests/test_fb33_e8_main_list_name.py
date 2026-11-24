@@ -60,13 +60,33 @@ def test_blocks_for_requires_tenant():
     assert site_schema.blocks_for({}, "combos", tenant=None) is not None
 
 
+#: L3 (ревью E8): места, где `tenant=None` передаётся осознанно — счёт строк, вид, умолчания
+#: типа, места баннера (имя главного списка там не нужно). Новый `None` вне списка — красный.
+TENANT_NONE_OK = {
+    ("apps/core/site_schema.py", "page_rows"),
+    ("apps/core/site_schema.py", "_row"),
+    ("apps/core/site_schema.py", "check_view_available"),
+    ("apps/core/site_schema.py", "_default_rows"),
+    ("apps/core/window_banner.py", "_chosen"),
+}
+
+
 def _calls(tree, name):
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call):
-            func = node.func
-            called = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
-            if called == name:
-                yield node
+    """Вызовы `name(...)` с именем объемлющей функции (`""` — уровень модуля)."""
+
+    def walk(node, func):
+        for child in ast.iter_child_nodes(node):
+            inner = func
+            if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef):
+                inner = child.name
+            if isinstance(child, ast.Call):
+                f = child.func
+                called = f.attr if isinstance(f, ast.Attribute) else getattr(f, "id", "")
+                if called == name:
+                    yield child, inner
+            yield from walk(child, inner)
+
+    yield from walk(tree, "")
 
 
 def _sources():
@@ -77,28 +97,61 @@ def _sources():
             yield path
 
 
+def _is_none(node) -> bool:
+    return isinstance(node, ast.Constant) and node.value is None
+
+
+def _tenant_arg(call, name):
+    """Узел тенанта в вызове, `...` — передан через `**kwargs`, `None` — не передан."""
+    for k in call.keywords:
+        if k.arg == "tenant":
+            return k.value
+    if name == "main_list_name" and len(call.args) >= 2:
+        return call.args[1]
+    if any(k.arg is None for k in call.keywords):
+        return ...
+    return None
+
+
 @pytest.mark.parametrize("name", ["blocks_for", "main_list_name"])
 def test_main_list_name_everywhere_calls(name):
     """№3 / №13: каждый вызов (код, стенды, тесты) передаёт тенанта — `blocks_for`
-    именем `tenant=`, `main_list_name` вторым аргументом; обхода `name_main_rows` нет."""
-    missing = []
+    именем `tenant=`, `main_list_name` вторым аргументом; обхода `name_main_rows` нет.
+    L3: явный `tenant=None` вне тестов — только в местах `TENANT_NONE_OK`."""
+    missing, unlisted, used = [], [], set()
     for path in _sources():
         text = path.read_text(encoding="utf-8")
         if f"{name}(" not in text:
             continue
-        for call in _calls(ast.parse(text), name):
-            if name == "blocks_for":
-                ok = any(k.arg == "tenant" for k in call.keywords) or any(
-                    k.arg is None for k in call.keywords
-                )
+        rel = str(path.relative_to(ROOT))
+        in_tests = "tests" in path.parts
+        for call, func in _calls(ast.parse(text), name):
+            arg = _tenant_arg(call, name)
+            if arg is None:
+                if not path.name.startswith("test_fb33_e8_"):
+                    missing.append(f"{rel}:{call.lineno}")
+                continue
+            if arg is ... or in_tests or not _is_none(arg):
+                continue
+            if (rel, func) in TENANT_NONE_OK:
+                used.add((rel, func))
             else:
-                ok = len(call.args) >= 2 or any(k.arg == "tenant" for k in call.keywords)
-            if not ok and not path.name.startswith("test_fb33_e8_"):
-                missing.append(f"{path.relative_to(ROOT)}:{call.lineno}")
+                unlisted.append(f"{rel}:{call.lineno} ({func})")
     assert missing == []
+    assert unlisted == []
+    if name == "blocks_for":
+        assert used == TENANT_NONE_OK  # список не устаревает: каждое место ещё живо
     assert not hasattr(site_schema, "name_main_rows")
     views = (ROOT / "apps/core/site_schema_views.py").read_text(encoding="utf-8")
     assert "name_main_rows" not in views
+
+
+def test_tenant_none_lock_catches_new_place():
+    """L3: замок ловит новый `tenant=None` вне списка (проверка самого разбора)."""
+    tree = ast.parse("def fresh(c):\n    return site_schema.blocks_for(c, 'x', tenant=None)\n")
+    [(call, func)] = list(_calls(tree, "blocks_for"))
+    assert func == "fresh" and _is_none(_tenant_arg(call, "blocks_for"))
+    assert ("apps/core/site_schema.py", func) not in TENANT_NONE_OK
 
 
 @pytest.mark.parametrize(

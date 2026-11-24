@@ -6,6 +6,9 @@
 конфиг с поиском вне 404 (импорт, ассистент) его не рисует.
 """
 
+import logging
+from unittest import mock
+
 import pytest
 from django.db import connection
 from django.template import Context, Template
@@ -15,6 +18,7 @@ from apps.core import site_schema
 from apps.core.modules import default_disabled_for
 from apps.tenants import siteconfig
 from apps.tenants.models import Tenant
+from apps.tenants.templatetags import siteui
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -53,11 +57,11 @@ def _tenant(site_config):
     return tenant
 
 
-def _render(tenant, host):
+def _render(tenant, host, **extra):
     request = RequestFactory().get("/")
     request.tenant = Tenant.objects.get(pk=tenant.pk)
     source = "{% load siteui %}{% page_blocks " + f'"{host}"' + " %}"
-    ctx = {"request": request, "storefront_search_url": "/suche/"}
+    ctx = {"request": request, "storefront_search_url": "/suche/", **extra}
     return Template(source).render(Context(ctx))
 
 
@@ -95,13 +99,78 @@ def test_old_config_site_search_elsewhere(host):
     assert "Infotext" in html and "data-block-site-search" not in html
 
 
-def test_page_blocks_render_unchanged_outside_formless():
-    """M8 (охранный): вне `FORMLESS_HOSTS` обычные блоки рисуются полным контекстом, как
-    раньше — фильтр запретов не уводит их в ветку чистого контекста."""
-    tenant = _tenant({"page_blocks": {"catalog": [TEXT]}})
-    html = _render(tenant, "catalog")
+@pytest.mark.parametrize("host", ["catalog", "seite:x"])
+def test_tag_filters_unnormalized_site_search(host):
+    """M1 (ревью E8): показ сам спрашивает `banned_blocks` — даже если строки пришли мимо
+    normalize (`page_rows` подменён), «Suche» вне 404 не рисуется, соседний блок — да."""
+    tenant = _tenant({"page_blocks": {host: [TEXT]}})
+    with mock.patch.object(siteconfig, "page_rows", return_value=[dict(TEXT), dict(SEARCH)]):
+        html = _render(tenant, host)
     assert "Infotext" in html
-    assert html.count("Infotext") == _render(tenant, "catalog").count("Infotext")
+    assert "data-block-site-search" not in html
+
+
+def test_tag_keeps_site_search_on_not_found():
+    """Охранный к M1: тот же путь на 404 поиск рисует (фильтр — по хосту, не по ключу)."""
+    tenant = _tenant({"page_blocks": {"not_found": [TEXT, SEARCH]}})
+    html = _render(tenant, "not_found")
+    assert "data-block-site-search" in html
+
+
+PROBE = "e8_view_probe"
+
+
+def _block_context(host):
+    """Контекст, с которым тег рисует `_page_blocks.html` на хосте (вьюха кладёт `PROBE`)."""
+    tenant = _tenant({"page_blocks": {host: [TEXT]}})
+    with mock.patch.object(siteui, "render_to_string", wraps=siteui.render_to_string) as spy:
+        html = _render(tenant, host, **{PROBE: "x"})
+    [ctx] = [c.args[1] for c in spy.call_args_list if c.args[0] == "storefront/_page_blocks.html"]
+    return html, ctx
+
+
+def test_page_blocks_full_context_outside_formless():
+    """M2 (ревью E8): вне `FORMLESS_HOSTS` блоки получают ПОЛНЫЙ контекст вьюхи (фильтр
+    запретов не уводит их в ветку чистого контекста)."""
+    html, ctx = _block_context("catalog")
+    assert "Infotext" in html
+    assert ctx.get(PROBE) == "x"
+
+
+@pytest.mark.parametrize("host", ["confirmation", "not_found"])
+def test_page_blocks_clean_context_on_formless(host):
+    """M2 / M2h (ПДн): на подтверждении и 404 — чистый контекст, данных вьюхи в блоках нет."""
+    html, ctx = _block_context(host)
+    assert "Infotext" in html
+    assert PROBE not in ctx and "request" not in ctx
+
+
+@pytest.mark.parametrize(
+    ("config", "host"),
+    [
+        ({"sections": [SEARCH, TEXT]}, "home"),
+        ({"page_blocks": {"catalog": [TEXT, SEARCH]}}, "catalog"),
+    ],
+)
+def test_normalize_logs_dropped_site_search(caplog, config, host):
+    """Находка silent-failure-hunter: снятие «Suche» оставляет след в логе (хост, без ПДн)."""
+    with caplog.at_level(logging.INFO, logger="apps.tenants.siteconfig"):
+        siteconfig.normalize(config)
+    assert f"siteconfig: dropped site_search from {host}" in caplog.messages
+
+
+def test_normalize_no_log_when_nothing_dropped(caplog):
+    with caplog.at_level(logging.INFO, logger="apps.tenants.siteconfig"):
+        siteconfig.normalize({"page_blocks": {"catalog": [TEXT]}, "sections": [TEXT]})
+    assert not any("dropped site_search" in m for m in caplog.messages)
+
+
+@pytest.mark.parametrize("host", ["category:x", "catalog", "seite:x"])
+def test_only_site_search_keeps_empty_page(host):
+    """Находка silent-failure-hunter: страница, где «Suche» был единственным блоком, после
+    снятия хранит пустой список (`[]`), а не уходит молча к блокам по умолчанию."""
+    cfg = siteconfig.normalize({"page_blocks": {host: [SEARCH]}})
+    assert cfg["page_blocks"].get(host, "missing") == []
 
 
 def test_not_found_keeps_its_search_block():
