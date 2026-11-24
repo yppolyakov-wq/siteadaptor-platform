@@ -15,8 +15,9 @@
   вне текущих вариантов не пропадают молча, а хранятся с признаком `stale` (`dropped` — что
   не легло ответом; в лог только id).
 
-До M2i-2 (миграции `custom_answers`) потребитель `collect`/`validate`/`snapshot` — только тесты:
-это заготовка для вопросов заявки (M2i-2) и корзины (M2i-4), не мёртвый код.
+Потребители: заявка (`apps/jobs/public_views.py`, M2i-2) и корзина
+(`apps/orders/public_views.py`, M2i-34) — снимок через `answers_for_deal`; `form_spec.missing`
+— проверка обязательных; показ — `rows` (карточка, письма владельцу, KDS, ЛК, PDF заявки).
 """
 
 from __future__ import annotations
@@ -243,7 +244,8 @@ def answers_for_deal(questions: list[dict], post, *, kind: str, next_id, prefix:
       `{"label": "", "type": "text", "stale": "removed"}` — подпись из POST не берём;
     * выбор вне текущих вариантов — подпись вопроса и `"stale": "changed"`.
     Битые число и дата — ошибка ввода гостя, не правка владельца: не хранятся. Всё, что не
-    легло обычным ответом, — строка INFO с id и числом, без значений (ПДн)."""
+    легло обычным ответом, — строка журнала с id и числом, без значений (ПДн): INFO, если всё
+    сохранено с пометкой, иначе WARNING со схемой бизнеса."""
     answers = collect(questions, post, prefix)
     out = snapshot(questions, answers)
     lost = dropped(questions, post, prefix, answers)
@@ -273,12 +275,22 @@ def answers_for_deal(questions: list[dict], post, *, kind: str, next_id, prefix:
         if value:
             out[qid] = {"label": label, "value": value, "type": "text", "stale": stale}
             stored.append(qid)
-    logger.info(
-        "%s: answers to %d unknown/changed questions not taken as answers: %s; kept as stale: %s",
+    # ревью §10.4: сохранено меньше, чем не легло ответом (сверх `STALE_MAX`, номер не
+    # выдавался, битое число/дата) — WARNING со схемой бизнеса; значения не пишем (ПДн)
+    from django.db import connection
+
+    level = logging.WARNING if len(stored) < len(lost) else logging.INFO
+    kept = set(stored)
+    logger.log(
+        level,
+        "%s (schema=%s): answers to %d unknown/changed questions not taken as answers: %s;"
+        " kept as stale: %s; lost: %s",
         kind,
+        getattr(connection, "schema_name", "?"),
         len(lost),
         ",".join(lost[:LOG_IDS_MAX]) + (",..." if len(lost) > LOG_IDS_MAX else ""),
         ",".join(stored) or "-",
+        ",".join([qid for qid in lost if qid not in kept][:LOG_IDS_MAX]) or "-",
     )
     return out
 

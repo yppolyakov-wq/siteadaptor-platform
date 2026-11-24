@@ -324,8 +324,6 @@ def test_d1_msgids_in_all_po():
 
 
 # --- ревью диффа (план §10.4) -----------------------------------------------------------------
-#: замки правок ревью — снимаются своими коммитами
-REVIEW = pytest.mark.xfail(strict=True, reason="FB-33 D1 §10.4: до правки")
 
 
 @pytest.mark.parametrize(
@@ -388,7 +386,6 @@ def test_bool_false_not_logged(caplog):
     assert not _records(caplog)
 
 
-@REVIEW
 def test_lost_answers_warn_with_schema(caplog):
     """Сохранено меньше потерянного — WARNING со схемой; названы потерянные id; без значений."""
     caplog.set_level(logging.INFO, logger=LOGGER)
@@ -401,7 +398,6 @@ def test_lost_answers_warn_with_schema(caplog):
     assert "q12" in message and SECRET not in message
 
 
-@REVIEW
 def test_everything_kept_logs_info(caplog):
     caplog.set_level(logging.INFO, logger=LOGGER)
     form_answers.answers_for_deal(QUESTIONS, _post({"q2": "a"}), kind="order", next_id=NEXT_ID)
