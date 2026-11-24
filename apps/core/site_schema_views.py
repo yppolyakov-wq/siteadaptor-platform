@@ -18,11 +18,36 @@ logger = logging.getLogger(__name__)
 
 #: FB-33 M5c-1: вставка блока — читает поле позиции `after`
 INSERT_OPS = ("add", "add_row")
+#: E1 (стопка 14): предел длины пути страницы `von` — длиннее не принимается
+VON_MAX = 300
 
 
-def _keep(source) -> dict:
+def _page_path(tenant, raw, code: str) -> str:
+    """E1: путь страницы витрины `von` (с неё открыли окно: ⚙ Студии) — только если чистка
+    канвы ничего не отрезала (ревью M1), длина не больше `VON_MAX` и код страницы пути —
+    код открытой схемы; со страницы объекта со своими блоками (`<вид>@…`) — и общая схема
+    его типа (план §9 №1). Иначе "" — экран как без `von`. Зовёт вызывающий, раз на запрос
+    (ревью M2, M3): `code_for_path` — только при непустом `von`."""
+    from apps.core.views import _safe_preview_page
+
+    if not isinstance(raw, str) or not raw or len(raw) > VON_MAX:
+        return ""
+    if _safe_preview_page(raw) != raw:
+        return ""
+    found = site_schema.code_for_path(tenant, raw)
+    if found == code:
+        return raw
+    if site_schema.is_object_code(found):
+        kind = found.split("@", 1)[0]
+        if site_schema.OBJECT_PAGE_TYPES.get(kind, kind) == code:
+            return raw
+    return ""
+
+
+def _keep(source, von: str = "") -> dict:
     """Вид схемы («Telefon») и открытый способ «Welche» — переживают действие с блоком.
-    Только значения из белого списка: в адрес возврата не попадает ничего из запроса."""
+    Только значения из белого списка: в адрес возврата не попадает ничего из запроса.
+    `von` (E1) — уже проверенный вызывающим путь страницы (`_page_path`)."""
     from apps.core import list_panel
 
     keep = {}
@@ -45,6 +70,8 @@ def _keep(source) -> dict:
     lang = source.get("f_sprache") or source.get("sprache")
     if lang in form_answers.overlay_locales():
         keep["sprache"] = lang
+    if von:
+        keep["von"] = von
     return keep
 
 
@@ -168,15 +195,16 @@ def _is_anfrage_ref(row: dict) -> bool:
     )
 
 
-def _block_preview(request, code: str, current, selected: dict) -> dict:
+def _block_preview(request, code: str, current, selected: dict, page: str) -> dict:
     """FB-33 M3-7: «Vorschau» в окне блока — адрес кадра (черновик страницы
     `?preview=1&aufbau=<код>`: только у члена с правом сайта, `page_settings.preview_raw`) и
     якорь блока на витрине. Путь — тем же фильтром, что старт канвы Студии (только
-    внутренний путь витрины, не кабинет). Ничего не пишет."""
+    внутренний путь витрины, не кабинет). `page` — путь страницы (E1: `von` или образец
+    типа). Ничего не пишет."""
     from apps.core import window_links
     from apps.core.views import _safe_preview_page
 
-    path = _safe_preview_page(current.preview_url)
+    path = _safe_preview_page(page)
     sep = "&" if "?" in path else "?"
     return {
         "src": f"{path}{sep}{urlencode({'preview': '1', 'aufbau': code})}",
@@ -440,7 +468,8 @@ def site_schema_view(request):
         # Блок остаётся выбранным (новый — тоже), удалённый — нет.
         # FB-33 M3-1b: «Fertig» и «Abbrechen» закрывают окно блока
         closed = op in ("delete", "revert") or op in aufbau_draft.WINDOW_OPS
-        keep = _keep(request.POST)
+        # E1 (ревью M2): `von` из формы — сверка заново, подделанный не попадает в адрес
+        keep = _keep(request.POST, _page_path(tenant, request.POST.get("von"), code))
         if op in INSERT_OPS:
             # FB-33 M5c-1: новый блок — новое открытие окна (токен и вкладку выдаёт GET), а не
             # продолжение окна, из которого пришла форма; отказ окно закрывает
@@ -740,7 +769,10 @@ def site_schema_view(request):
         for row in site_schema.schema_layout(blocks)["rows"]:
             if any(b["ref"] == selected["ref"] for b in row):
                 width_mates = [b["label"] for b in row if b["ref"] != selected["ref"]]
-    preview_url = current.preview_url if current else ""
+    # E1: страница, с которой открыли окно (`von`, сверка раз на запрос) — и для «Auf der
+    # Seite bearbeiten», и для «Vorschau»; без неё — образец типа
+    von = _page_path(tenant, request.GET.get("von"), code)
+    preview_url = von or (current.preview_url if current else "")
     studio = reverse("site-home")
     if preview_url:
         studio = f"{studio}?{urlencode({'page': preview_url})}"
@@ -835,7 +867,7 @@ def site_schema_view(request):
         selected, {"settings": settings, "design_rows": design_rows}, request.GET.get("tab", "")
     )
     bw_preview = (
-        _block_preview(request, code, current, selected)
+        _block_preview(request, code, current, selected, preview_url)
         if selected and block_window.has_preview(window) and not confirm_remove and preview_url
         else None
     )
@@ -911,7 +943,10 @@ def site_schema_view(request):
             "width_mates": width_mates,
             "which": (selected or {}).get("which", ""),
             # Вид «Telefon» — во всех ссылках экрана (способ «Welche» — только в формах)
-            "keep_q": "&ansicht=telefon" if request.GET.get("ansicht") == "telefon" else "",
+            "keep_q": ("&ansicht=telefon" if request.GET.get("ansicht") == "telefon" else "")
+            + (f"&{urlencode({'von': von})}" if von else ""),
+            # E1: проверенный путь страницы — скрытым полем всех форм (`_schema_keep.html`)
+            "von": von,
             # Панель правит текст ОСНОВНОГО языка; при нескольких языках — подсказка.
             "multi_lang": len(tenant.active_locales) > 1,
         },
