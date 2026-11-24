@@ -42,8 +42,6 @@ CONFLICT = (
     "gespeichert."
 )
 LOCALES = ("de", "en", "ru", "tr", "uk")
-#: замки первого коммита — красные до кода среза (снимаются в коммите реализации)
-RED = pytest.mark.xfail(strict=True, reason="FB-33 E5: до кода")
 
 
 def _saved(b):
@@ -92,10 +90,9 @@ def _title(cfg):
     return (cfg.get("section_titles") or {}).get("faq", "")
 
 
-# ─────────────────────────────── красные (до кода) ───────────────────────────────
+# ──────────────────── были красными до кода (strict xfail первого коммита) ────────────────────
 
 
-@RED
 def test_one_title_writer(monkeypatch):
     """№1: заголовок пишет только `faq_content.put_title` («Speichern» окна — через него)."""
     calls = []
@@ -126,7 +123,6 @@ def _studio_post(tenant, data):
     return views.home_builder_view(req)
 
 
-@RED
 def test_studio_save_keeps_unknown_title_keys(settings):
     """M6: Save Студии пересобирает только `SECTION_TITLE_KEYS`, прочие ключи переносит."""
     settings.ROOT_URLCONF = "config.urls_tenant"
@@ -139,7 +135,6 @@ def test_studio_save_keeps_unknown_title_keys(settings):
     assert cfg["section_titles"] == {"events": "E", "faq": "Fragen zu uns"}
 
 
-@RED
 def test_studio_preview_keeps_faq_title():
     """M6: превью Студии (`site_preview_draft`) не стирает общий заголовок FAQ."""
     from apps.core import views
@@ -155,7 +150,6 @@ def test_studio_preview_keeps_faq_title():
     assert draft["section_titles"] == {"events": "E", "faq": "Fragen zu uns"}
 
 
-@RED
 def test_window_shows_draft_title():
     """H2: правка — в черновик; окно и «Vorschau» (`overlay`) показывают её, сайт — нет."""
     b = Browser(_tenant())
@@ -170,7 +164,6 @@ def test_window_shows_draft_title():
     assert aufbau_draft.get(SimpleNamespace(session=b.session), "home") is not None
 
 
-@RED
 def test_title_back_to_saved_clears_draft():
     b = Browser(_tenant())
     _set_saved_title(b.tenant, "Alt")
@@ -181,7 +174,6 @@ def test_title_back_to_saved_clears_draft():
     assert "faq_title" not in draft and "faq_title_base" not in draft
 
 
-@RED
 def test_cancel_restores_title():
     b = Browser(_tenant())
     b.get(f"?seite=home&block=faq&tab=texte&wopen={WOPEN}")
@@ -192,7 +184,6 @@ def test_cancel_restores_title():
     assert aufbau_draft.get(SimpleNamespace(session=b.session), "home") is None
 
 
-@RED
 def test_title_not_written_without_faq_row():
     """H2: блок FAQ из черновика убрали — заголовок «в тени» не публикуется (с заметкой)."""
     b = Browser(_tenant())
@@ -215,7 +206,6 @@ def _object_html(scope, monkeypatch):
     return tenant, svc, code
 
 
-@RED
 @pytest.mark.parametrize("scope", ["object", "each", "noaccess"])
 def test_title_field_only_shared(scope, monkeypatch, settings):
     """H3: поле заголовка — только при общем источнике; POST при своём ничего не пишет."""
@@ -234,7 +224,6 @@ def test_title_field_only_shared(scope, monkeypatch, settings):
     assert 'name="faq_title"' in Browser(shared).get(f"?seite={scode}&block=faqsh01&tab=texte")
 
 
-@RED
 def test_title_conflict_before_write():
     """№9/№10, a11y M4: заголовок успели сменить в другом месте — не перезаписан, отвергнутый
     текст — в сообщении; остальное записано."""
@@ -249,7 +238,6 @@ def test_title_conflict_before_write():
     assert said and "Meine Fassung" in said[0]
 
 
-@RED
 def test_german_title_change_drops_translation():
     b = Browser(_tenant())
     _set_saved_title(b.tenant, "Alt", ru="Старый")
@@ -261,7 +249,6 @@ def test_german_title_change_drops_translation():
     assert "faq" not in ((cfg.get("i18n") or {}).get("ru") or {}).get("section_titles", {})
 
 
-@RED
 def test_title_maxlength():
     b = Browser(_tenant())
     field = _title_field(_form(b.get("?seite=home&block=faq&tab=texte")))
@@ -270,7 +257,6 @@ def test_title_maxlength():
     assert _drafts(b)["home"]["faq_title"] == "x" * siteconfig._SECTION_TITLE_MAX
 
 
-@RED
 @override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
 def test_storefront_title_with_page_cache(settings):
     """№13: «Speichern» сбрасывает кэш витрины; витрина показывает свой заголовок."""
@@ -289,7 +275,6 @@ def test_storefront_title_with_page_cache(settings):
     assert ">Fragen zu uns</h2>" in detail and "Allgemeine Fragen" not in detail
 
 
-@RED
 def test_title_field_named():
     """№22, a11y M4: подпись «Überschrift», видимая подсказка с уникальным id в
     `aria-describedby`, поле — до «Fragen»."""

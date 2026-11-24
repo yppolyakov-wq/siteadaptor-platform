@@ -2906,8 +2906,15 @@ def home_builder_view(request):
             )
             arch[key] = entry
         config["archetypes"] = arch
-        # M20U-7: кастомные заголовки секций главной (normalize чистит/обрезает).
-        titles = {}
+        # M20U-7: кастомные заголовки секций главной (normalize чистит/обрезает). FB-33 E5
+        # (ревью M6): пересобираются только ключи формы, прочие (общий заголовок FAQ окна
+        # блока) переносятся как есть
+        kept = config.get("section_titles")
+        titles = {
+            k: v
+            for k, v in (kept.items() if isinstance(kept, dict) else ())
+            if k not in siteconfig.SECTION_TITLE_KEYS
+        }
         for tkey in siteconfig.SECTION_TITLE_KEYS:
             tval = request.POST.get(f"title_{tkey}", "").strip()
             if tval:
@@ -3953,9 +3960,22 @@ def site_preview_draft(request):
                 cur["hidden"] = bool(ov.get("hidden"))
                 arch[key] = cur
         cfg["archetypes"] = arch
-    # M20U-7: кастомные заголовки секций — в превью (normalize чистит ключи/длину).
+    # M20U-7: кастомные заголовки секций — в превью (normalize чистит ключи/длину). FB-33 E5
+    # (ревью M6): как Save — из черновика только ключи формы, прочие — сохранённые
     if isinstance(data.get("section_titles"), dict):
-        cfg["section_titles"] = data["section_titles"]
+        kept = cfg.get("section_titles")
+        cfg["section_titles"] = {
+            **{
+                k: v
+                for k, v in (kept.items() if isinstance(kept, dict) else ())
+                if k not in siteconfig.SECTION_TITLE_KEYS
+            },
+            **{
+                k: v
+                for k, v in data["section_titles"].items()
+                if k in siteconfig.SECTION_TITLE_KEYS
+            },
+        }
     # H1: описания секций — в превью (normalize чистит ключи/длину).
     if isinstance(data.get("section_intros"), dict):
         cfg["section_intros"] = data["section_intros"]

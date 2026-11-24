@@ -35,6 +35,9 @@ MAX_A = 2000
 FIELDS = ("q", "a")
 #: строки, в окне которых правятся вопросы: секция главной и блок-ссылка на страницах
 ROW_KEYS = ("faq", "faq_ref")
+#: FB-33 E5: общий заголовок FAQ — `site_config["section_titles"][TITLE_KEY]` (не в
+#: `siteconfig.SECTION_TITLE_KEYS`: канва его не правит, пишет только `put_title`)
+TITLE_KEY = "faq"
 
 
 def _s(value) -> str:
@@ -48,6 +51,58 @@ def base_items(config: dict) -> list[dict]:
         if isinstance(item, dict) and _s(item.get("q")):
             out.append({"q": _s(item.get("q")), "a": _s(item.get("a"))})
     return out
+
+
+def title_max() -> int:
+    """Потолок заголовка — как у прочих заголовков секций (ленивый импорт, ревью L5)."""
+    from apps.tenants import siteconfig
+
+    return siteconfig._SECTION_TITLE_MAX
+
+
+def clean_title(value) -> str:
+    return _s(value)[: title_max()]
+
+
+def title(config: dict) -> str:
+    """Сохранённый общий заголовок FAQ ("" — витрина берёт заголовок по умолчанию)."""
+    titles = (config or {}).get("section_titles")
+    return clean_title(titles.get(TITLE_KEY)) if isinstance(titles, dict) else ""
+
+
+def put_title(config: dict, text) -> None:
+    """FB-33 E5: единственный писатель общего заголовка FAQ. Пусто — ключ снимается; правка
+    немецкого текста снимает его переводы (`i18n[*].section_titles.faq`). Мутирует `config`."""
+    new = clean_title(text)
+    old = title(config)
+    titles = config.get("section_titles")
+    titles = dict(titles) if isinstance(titles, dict) else {}
+    if new:
+        titles[TITLE_KEY] = new
+    else:
+        titles.pop(TITLE_KEY, None)
+    config["section_titles"] = titles
+    if new == old:
+        return
+    overlay = config.get("i18n")
+    for node in overlay.values() if isinstance(overlay, dict) else ():
+        tr = node.get("section_titles") if isinstance(node, dict) else None
+        if isinstance(tr, dict) and TITLE_KEY in tr:
+            tr = {k: v for k, v in tr.items() if k != TITLE_KEY}
+            if tr:
+                node["section_titles"] = tr
+            else:
+                node.pop("section_titles")
+
+
+def title_conflict_note(rejected: str) -> str:
+    """Заголовок успели изменить в другом месте — правка окна не записана (её текст — в
+    сообщении, ревью a11y M4: набранное не теряется)."""
+    note = _(
+        "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde "
+        "nicht gespeichert."
+    )
+    return f"{note} „{rejected}“" if rejected else note
 
 
 def fingerprint(items) -> str:
@@ -422,4 +477,5 @@ def panel(items: list[dict], src: list, config: dict, opened: int | None = None)
         "max_a": MAX_A,
         "rev": revision(items, src),
         "base": fingerprint(base_items(config)),
+        "title_max": title_max(),  # FB-33 E5: поле заголовка (значение кладёт окно)
     }

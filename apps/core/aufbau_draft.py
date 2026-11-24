@@ -384,6 +384,10 @@ def overlay(config: dict, draft: dict, *, scope: bool = True) -> dict:
         out = _put_form(out, draft, site_schema.form_of(host))
     if "faq" in draft:
         _put_faq_shown(out, draft)
+    if "faq_title" in draft:  # FB-33 E5: общий заголовок FAQ — в окне и «Vorschau»
+        from apps.core import faq_content
+
+        faq_content.put_title(out, draft["faq_title"])
 
     if "ofaq" in draft or _block_i18n().explicit(draft, "ofaq"):  # свои вопросы — в превью
         _object_faq().put_shown(out, draft)
@@ -404,6 +408,9 @@ def overlay(config: dict, draft: dict, *, scope: bool = True) -> dict:
 # страницы с нетронутым FAQ не конфликтует, когда вопросы правят в Студии. Состояние, равное
 # сохранённому, черновик не держит (как `form`).
 FAQ_KEYS = ("faq", "faq_base")
+#: FB-33 E5: общий заголовок FAQ (`section_titles.faq`) из окна — правка и сохранённое на
+#: первой правке (вне `_saved_state`, как вопросы); пишет `faq_content.put_title`
+FAQ_TITLE_KEYS = ("faq_title", "faq_title_base")
 #: сессия: номер вопроса, который только что двигали (окно откроет его, один раз)
 FAQ_OPENED = "aufbau_faq_opened"
 
@@ -505,7 +512,23 @@ def _faq_op(config: dict, draft: dict, ref: str, post, notes: list | None, reque
     else:
         draft["faq"] = {"items": new_items, "src": new_src}
         draft.setdefault("faq_base", faq_content.fingerprint(saved))
+    if "faq_title" in post:  # FB-33 E5: поле есть только у общего источника (H3)
+        _faq_title_op(config, draft, post.get("faq_title"))
     return ref
+
+
+def _faq_title_op(config: dict, draft: dict, value) -> None:
+    """FB-33 E5: общий заголовок FAQ в черновике; равный сохранённому — правки нет (ревью H2)."""
+    from apps.core import faq_content
+
+    saved = faq_content.title(config)
+    new = faq_content.clean_title(value)
+    if new == saved:
+        for key in FAQ_TITLE_KEYS:
+            draft.pop(key, None)
+    else:
+        draft["faq_title"] = new
+        draft.setdefault("faq_title_base", saved)
 
 
 def _put_faq_shown(config: dict, draft: dict) -> None:
@@ -535,6 +558,7 @@ FORM_KEYS = ("form", "form_base")
 SIDE_PARTS = (
     ("form", FORM_KEYS),  # FB-33 M2i-5 «Felder»
     ("faq", FAQ_KEYS),  # FB-33 M3-5b вопросы FAQ
+    ("faq_title", FAQ_TITLE_KEYS),  # FB-33 E5 общий заголовок FAQ (снимок — у строки FAQ)
     ("ofaq", ("ofaq", "ofaq_base")),  # FB-33 M2b-2b свои вопросы объекта (`object_faq`)
     ("show_on", ("show_on", "show_on_base")),  # FB-33 M3-6 «Wo zeigen» баннера (`window_banner`)
     ("btr", ("btr", "btr_base")),  # FB-33 M3-5c переводы текстов блока (`block_i18n`)
@@ -868,6 +892,9 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
             # несло — заголовок в снимок попадает до первой правки в этом окне после деплоя
             # (до неё заголовок в этом окне не правили): «Abbrechen» откатит и его
             old["title"] = ["title" in source, copy.deepcopy(source.get("title"))]
+        if "faq_title" not in old and isinstance(old.get("faq"), dict):
+            # FB-33 E5: окно FAQ, открытое до деплоя, — заголовок в снимок до первой правки
+            old["faq_title"] = {k: source[k] for k in FAQ_TITLE_KEYS if k in source}
         draft[WINDOW_KEY] = window
         return
     items = source.get("items") or []
@@ -895,6 +922,8 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["form"] = {k: copy.deepcopy(source[k]) for k in FORM_KEYS if k in source}
     if at is not None and _is_faq_row(source, items[at]):  # FB-33 M3-5b: вопросы FAQ
         proto["faq"] = {k: copy.deepcopy(source[k]) for k in FAQ_KEYS if k in source}
+        # FB-33 E5: общий заголовок FAQ — «Abbrechen» по той же таблице `SIDE_PARTS`
+        proto["faq_title"] = {k: source[k] for k in FAQ_TITLE_KEYS if k in source}
 
     if at is not None and siteconfig.cblock_type(items[at].get("key")) == "list":
         # FB-33 M4c: охват только этого блока (тип на момент выбора или "")
@@ -1349,6 +1378,11 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     ):
         raise DraftConflict(code)
     faq_moved = faq_conflict(config, draft)  # FB-33 M3-5b: только при вопросах в черновике
+    from apps.core import faq_content
+
+    # FB-33 E5: заголовок FAQ успели изменить в другом месте — сверка ДО записи (под
+    # блокировкой строки); правка не пишется (и при `force`), её текст — в заметке
+    title_moved = "faq_title" in draft and draft.get("faq_title_base") != faq_content.title(config)
     if faq_moved and not force:
         # своё сообщение: страницу никто не трогал — изменились общие вопросы (Студия, канва)
         raise site_schema.SchemaError("faq_conflict")
@@ -1408,6 +1442,17 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
             )
             if faq_moved and notes is not None:
                 notes.append(faq_content.faq_forced_note())
+    if "faq_title" in draft:
+        # FB-33 E5 (ревью H2): блока FAQ в черновике нет — заголовок «в тени» не публикуем
+        if not any(_is_faq_row(draft, it) for it in draft["items"]):
+            note = faq_content.dropped_note()
+            if notes is not None and note not in notes:
+                notes.append(note)
+        elif title_moved:
+            if notes is not None:
+                notes.append(faq_content.title_conflict_note(str(draft["faq_title"])))
+        else:
+            faq_content.put_title(config, draft["faq_title"])
     elif _block_i18n().explicit(draft, "faq") and any(
         _is_faq_row(draft, it) for it in draft["items"]
     ):

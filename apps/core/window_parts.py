@@ -74,6 +74,13 @@ def decorate(
         selected["faq_items"] = faq_content.panel(items, src, saved, opened)
         if own:  # детальная: общие вопросы и выбор источника
             selected["faq_items"].update(own)
+        # FB-33 E5: общий заголовок FAQ — только при общем источнике (ревью H3); в окне — правка
+        # черновика, иначе сохранённый
+        pending = draft or {}
+        selected["faq_items"]["title_on"] = True
+        selected["faq_items"]["title"] = (
+            pending["faq_title"] if "faq_title" in pending else faq_content.title(saved)
+        )
     elif own:
         selected["faq_items"] = own  # FB-33 M2b-2b: свои вопросы объекта (или подсказка)
     if selected.get("cblock") and (siteconfig.cblock_type(key) or key) == "quick_links":
