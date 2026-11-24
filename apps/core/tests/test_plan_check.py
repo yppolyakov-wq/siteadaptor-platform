@@ -50,7 +50,7 @@ def test_clean_plan_has_no_problems():
     slices = _plan(
         "| P0 | — | `apps/core/a.py` | — | 0 | |",
         "| G1 | P0 | `apps/core/a.py:10-20` | — | 0 | |",
-        "| G2 | P0 | `apps/core/a.py:30-40` | — | 1 | |",
+        "| G2 | G1 | `apps/core/a.py:30-40` | — | 1 | |",
     )
     assert _mod().check(slices, _exists("apps/core/a.py")) == []
 
@@ -67,8 +67,11 @@ def test_parallel_slices_may_not_share_a_file_or_overlapping_lines():
     assert any("A" in p and "B" in p and "x.py" in p for p in _mod().check(whole, _exists("x.py")))
     lines = _plan("| A | — | `x.py:1-10` | — | 0 | |", "| B | — | `x.py:8-20` | — | 0 | |")
     assert any("x.py" in p for p in _mod().check(lines, _exists("x.py")))
+    # T-17: разные строки одного файла — тоже пересечение. Первый срез сдвигает строки, и
+    # разделение «по номерам» перестаёт быть точным (план стопки 14: три среза в одном файле).
     apart = _plan("| A | — | `x.py:1-10` | — | 0 | |", "| B | — | `x.py:11-20` | — | 0 | |")
-    assert _mod().check(apart, _exists("x.py")) == []
+    found = _mod().check(apart, _exists("x.py"))
+    assert any("x.py" in p and "по очереди" in p for p in found), found
 
 
 def test_dependent_slices_may_touch_the_same_file():
@@ -186,3 +189,26 @@ def test_verify_compares_a_chained_slice_by_its_own_range():
     m = _mod()
     assert m.diff_spec("P0", "claude/x-d4a..claude/x-d4b") == "claude/x-d4a...claude/x-d4b"
     assert m.diff_spec("P0", "claude/x-d3") == "P0...claude/x-d3"
+
+
+# --- T-17 (2026-11-24): последовательность вместо параллельности ---------------------------------
+
+
+def test_file_repeated_in_slices_must_be_done_in_sequence():
+    chain = _plan("| A | — | `x.py:1-10` | — | 0 | |", "| B | A | `x.py:11-20` | — | 0 | |")
+    assert _mod().check(chain, _exists("x.py")) == [], "тот же файл по очереди — можно"
+
+
+def test_wave_wider_than_the_limit_is_reported():
+    # Стопка 13: исполнители и агенты — ≈ 80 % счёта. Семь исполнителей сразу — семь больших контекстов.
+    mod = _mod()
+    rows = ["| P0 | — | `p.py` | — | 0 | |"] + [
+        f"| S{i} | P0 | `f{i}.py` | — | 0 | |" for i in range(mod.MAX_PARALLEL + 1)
+    ]
+    files = ["p.py"] + [f"f{i}.py" for i in range(mod.MAX_PARALLEL + 1)]
+    found = mod.check(_plan(*rows), _exists(*files))
+    assert any("волна 2" in p and str(mod.MAX_PARALLEL) in p for p in found), found
+    ok = ["| P0 | — | `p.py` | — | 0 | |"] + [
+        f"| S{i} | P0 | `f{i}.py` | — | 0 | |" for i in range(mod.MAX_PARALLEL)
+    ]
+    assert mod.check(_plan(*ok), _exists(*files)) == []
