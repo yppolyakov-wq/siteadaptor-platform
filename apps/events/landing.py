@@ -9,6 +9,9 @@
 идут последними — порядок формы события остаётся прежним.
 """
 
+import hashlib
+import json
+
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
@@ -116,3 +119,14 @@ def apply(obj, kind: str, cleaned_data: dict) -> None:
     old = obj.details if isinstance(obj.details, dict) else {}
     new.update(faq=old.get("faq") or [])  # прежние вопросы — их меняет только `object_faq`
     obj.details = new
+
+
+def fingerprint(obj) -> str:
+    """FB-33 стопка 14 E4: отпечаток `details` объекта БЕЗ своих вопросов (`faq` — свой
+    отпечаток `object_faq.fingerprint`). Форма несёт его скрытым `details_base`; запись формы
+    сверяет его под блокировкой строки (`events/views.py::_save_form_fresh`). Не словарь — как `{}`."""
+    raw = obj.details if isinstance(obj.details, dict) else {}
+    rest = {k: v for k, v in raw.items() if k != "faq"}
+    return hashlib.sha256(
+        json.dumps(rest, sort_keys=True, ensure_ascii=False, default=str).encode()
+    ).hexdigest()
