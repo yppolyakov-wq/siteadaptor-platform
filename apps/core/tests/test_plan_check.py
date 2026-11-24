@@ -177,3 +177,12 @@ def test_verify_does_not_pass_a_slice_it_could_not_compare():
     found = _mod().verify(slices, {"A": [], "B": ["y.py"]})
     assert any("A" in p and "не отличается" in p for p in found), found
     assert any("B" in p and "прогноз" in p for p in found), found
+
+
+def test_verify_compares_a_chained_slice_by_its_own_range():
+    """FB-33 стопка 13: ветки срезов шли цепочкой (d4b от d4a от d3) — сверка «база...ветка»
+    приписывала срезу файлы предшественников (52 ложных ✗). В колонке «Ветка» — диапазон
+    `откуда..куда`: сверяется только он; простая ветка — как раньше, от `--base`."""
+    m = _mod()
+    assert m.diff_spec("P0", "claude/x-d4a..claude/x-d4b") == "claude/x-d4a...claude/x-d4b"
+    assert m.diff_spec("P0", "claude/x-d3") == "P0...claude/x-d3"
