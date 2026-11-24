@@ -241,30 +241,52 @@ def test_gift_voucher_checks_only_the_base(monkeypatch):
     assert {kw.get("direction") for kw in seen} == {""}
 
 
-def _calls_without_channel(source: str) -> list[str]:
-    """Имена вызовов сервиса продажи в `source` без `channel="storefront"` (или проброса
-    `channel=channel`): окно 2500 символов после открывающей скобки."""
-    import re
+SALE_CALLS = ("book", "book_many", "book_stay", "book_ticket", "create_order", "purchase")
+#: вызовы, которые замок обязан найти (иначе разбор сломался и замок молчит)
+EXPECTED_CALLS = {
+    "apps/booking/public_views.py:book",
+    "apps/booking/public_views.py:book_many",
+    "apps/events/public_views.py:book_ticket",
+    "apps/orders/public_views.py:create_order",
+    "apps/promotions/public_views.py:purchase",
+    "apps/stays/public_views.py:book_stay",
+}
 
-    calls = re.compile(
-        r"(?<![\w.])(?:\w*services\.)?(book|book_many|book_stay|book_ticket|create_order|purchase)\("
-    )
+
+def _sale_calls(source: str) -> list[tuple[str, bool]]:
+    """Вызовы сервиса продажи в `source` (имя без модуля или `<…>services.<имя>`) и есть ли у
+    вызова `channel="storefront"` (или проброс `channel=channel`). Разбор — `ast`: аргументы
+    вызова целиком, а не окно символов (ревью диффа D1, §10.4)."""
+    import ast
+
     out = []
-    for m in calls.finditer(source):
-        if source[max(0, m.start() - 4) : m.start()] == "def ":
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.Call):
             continue
-        window = source[m.end() : m.end() + 2500]
-        depth, end = 1, 0
-        for i, ch in enumerate(window):
-            depth += ch == "("
-            depth -= ch == ")"
-            if depth == 0:
-                end = i
-                break
-        args = window[:end]
-        if not ("channel=" in args and ('"storefront"' in args or "channel=channel" in args)):
-            out.append(m.group(1))
+        func = node.func
+        if isinstance(func, ast.Name):
+            name = func.id
+        elif (
+            isinstance(func, ast.Attribute)
+            and isinstance(func.value, ast.Name)
+            and func.value.id.endswith("services")
+        ):
+            name = func.attr
+        else:
+            continue
+        if name not in SALE_CALLS:
+            continue
+        channel = {kw.arg: kw.value for kw in node.keywords}.get("channel")
+        gated = channel is not None and (
+            (isinstance(channel, ast.Name) and channel.id == "channel")
+            or "'storefront'" in ast.unparse(channel)
+        )
+        out.append((name, gated))
     return out
+
+
+def _calls_without_channel(source: str) -> list[str]:
+    return [name for name, gated in _sale_calls(source) if not gated]
 
 
 def test_every_storefront_sale_call_passes_the_channel():
@@ -277,20 +299,19 @@ def test_every_storefront_sale_call_passes_the_channel():
         # пробрасывает channel вызывающего (публичного вызова нет; витрина передаст storefront)
         "apps/promotions/price_layer.py:book",
     }
-    missing_channel = []
+    missing_channel, found = [], set()
     paths = [*root.glob("apps/*/public_views.py"), root / "apps/promotions/price_layer.py"]
     for path in paths:
-        for name in _calls_without_channel(path.read_text(encoding="utf-8")):
+        for name, gated in _sale_calls(path.read_text(encoding="utf-8")):
             key = f"{path.relative_to(root)}:{name}"
-            if not any(key.startswith(a) for a in allow):
+            found.add(key)
+            if not gated and not any(key.startswith(a) for a in allow):
                 missing_channel.append(key)
+    lost = EXPECTED_CALLS - found
+    assert not lost, f"вызов продажи не найден разбором (переименован или разбор сломан): {lost}"
     assert not missing_channel, missing_channel
 
 
-SALE_CALLS = ("book", "book_many", "book_stay", "book_ticket", "create_order", "purchase")
-
-
-@pytest.mark.xfail(strict=True, reason="FB-33 D1 §10.4: до правки")
 def test_channel_check_reads_the_whole_call():
     """Ревью диффа D1 (§10.4): `channel=` ищется в аргументах вызова (ast), а не окном
     символов — длинный вызов не даёт ложного «нет channel», вызов без него — ловится."""
