@@ -826,6 +826,18 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
   и окно «Seitenaufbau»); свой флаг `__i18nTranslateBound`; второй копии JS не заводить.
 - `templates/storefront/_form_questions.html` (FB-33 M2i-34) — свои вопросы формы; общий для заявки и корзины (вынесен байт-в-байт из формы заявки).
 
+### FB-33 стопка 13 (2026-11-24)
+- `apps/core/form_answers.py::answers_for_deal, dropped` — единственный снимок ответов сделки (корзина и заявка): удалённый вопрос (`stale="removed"`, только `≤ next_id`) и вариант вне списка (`stale="changed"`); показ — только `rows`. `apps/core/form_spec.py::next_id` — тонкий читатель номера.
+- `apps/orders/views.py::KDS_MAX_ORDERS` — потолок доски кухни.
+- `apps/core/payment_holds.py::is_new_payment, is_extra_payment, record_extra_payment, settle_extra_payment, settle_extra_safely, settle_late_safely, locked_deal, retry_extra_refunds, EXTRA_SOURCE` — второй платёж Stripe к оплаченной сделке: строка книги `source="extra"`, возврат одним intent, повтор только таких строк; блокировка `FOR UPDATE OF self`.
+- `apps/core/refunds.py::refund_intent, _refund_row` (исходы done/refused/uncertain), `_finish_other_rows(untouched_only)`; `apps/core/folio.py::has_payment, open_card_rows` — единственный отбор «прочие stripe-строки».
+- `apps/billing/connect.py::connected_checkout, expire_session, _session_client`; `apps/orders/payments.py::pay_state` (кнопка «Jetzt bezahlen» — один источник), `ExpirePass`, `remembered_sessions`.
+- `apps/orders/notifications.py::customer_dedupe_key, missing_customer_mails`; `apps/billing/webhooks.py::_money_not_booked, _log_id`; `apps/core/balance_pay.py::_notify_unbooked` — письмо в `schema_context`.
+- `apps/crm/dsgvo.py::OWNER_MAIL_KEYS, OWNER_MAIL_EXEMPT` — письма владельцу о сделках клиента для Art. 17 (замок покрытия по AST); `apps/notifications/tasks.py::ERASED` (`content-erased`).
+- `apps/events/registration.py::invalid_selects, NO_ECHO_KEYS, error_summary` — select анкеты только из списка, данные Art. 9 не возвращаются.
+- `apps/core/personal_pages.py::PERSONAL_ROUTES, NOT_PERSONAL, is_personal` + `apps/core/middleware.py::PersonalPageHeadersMiddleware` — личные страницы вне индекса (замок покрытия всех urlconf).
+- Решения владельца 2026-11-24: D6 select только из списка; второй платёж Stripe к неотменённой сделке — возвращать сразу; «касса, потом онлайн» — не возвращать; ответ на удалённый вопрос — хранить с пометкой; Art. 17 стирает письма владельцу; D8 — личные страницы `noindex`; FAQPage на `?q=` — убрать.
+
 ## 4. Сырые выписки по периодам: открытое и ops
 
 Выписки агентов с их пометками уверенности («точно / вероятно открыто» — оценка агента от

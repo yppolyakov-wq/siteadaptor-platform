@@ -24845,3 +24845,17 @@ security/silent-failure): тупик в двусторонних прятках,
   модулей, неоднозначное имя, битый файл — закрыто замками. Не видно справке по-прежнему: миграции, `reverse()`, сигналы
   и задачи Celery по имени, `{% include %}`. Не покрыто тестами: `--plan`, `--mutual`, `main()`.
 - Вписано в цикл: `sa-increment` (разведка начинается со справки), `docs/review-checklist.md` (вопрос 4), `CLAUDE.md` §5.
+
+## 2026-11-24 — FB-33 стопка 13: учёт + данные и деньги (без миграций; план `docs/fb33-stack13-plan-2026-11-24.md`)
+- **M7-0:** отложенное стопок 1–12 одним списком по классам в `roadmap-next-sprints.md` («FB-33 — отложено (по классам)»), 36 ✅ по сверке, каталог про FB-31.7 и FB-32.
+- **D1:** ответ на удалённый вопрос корзины и заявки хранится с пометкой (`form_answers.answers_for_deal`, `stale`, показ через `rows`: «Entfernte Frage», «(nicht mehr in der Liste)»), только номера `≤ next_id` (`form_spec.next_id`), лог без значений; замок `test_sell_gate` через `ast`.
+- **D2:** доска KDS — не больше `KDS_MAX_ORDERS` (48), расшифровка только показанных, строка переполнения «davon N neu» и «Bestellliste öffnen» (Verkäufe, по праву), фокус переживает поллинг.
+- **D3:** вебхук «платёж не записан» — ERROR без ПДн и письмо владельцу «Zahlung nicht verbucht»; письма `balance_pay` создаются в схеме бизнеса (давний дефект прода); повтор «same» догоняет только недостающие письма.
+- **D4a/D4b:** второй платёж Stripe к оплаченной сделке (заказ, запись, номер, билет) пишется строкой книги `source="extra"` и возвращается одним intent (`refunds.refund_intent`, три исхода `_refund_row`); повтор возврата в ядре (`payment_holds.retry_extra_refunds`), письма при сбое/без ответа/без кэша; `Session.expire` после автоотмены (id сессий в кэше, таймаут, `ExpirePass`); «Jetzt bezahlen» по одному `pay_state`; запись/номер/билет под `FOR UPDATE OF self`.
+- **D5:** `Notification.payload/subject` в карте DSGVO; Art. 17 стирает письма владельцу о сделках клиента (`OWNER_MAIL_KEYS`); ретеншн чистит `payload/subject/last_error`, стёртое не уходит (`content-erased`).
+- **D6:** select анкеты события — только из списка, ошибка у поля, введённое возвращается (без данных Art. 9), участники без частичной записи, CSV-шапка через `csv_safe`; прокрутка шага 2 уважает `prefers-reduced-motion` (29 эталонов).
+- **D7:** без JSON-LD (LocalBusiness, BreadcrumbList, FAQPage) на выдаче `?q=` и в превью подтверждения.
+- **D8 (добавлен по ревью SEO, решение владельца):** личные страницы по коду/токену (подтверждения, смета, участники, QR/PDF, ЛК `/konto/`, подписки портала) — `X-Robots-Tag: noindex, nofollow`, мета, без JSON-LD (`apps/core/personal_pages.py`, `PersonalPageHeadersMiddleware`).
+- Процесс: сервер стенда на своей базе Redis (`test_stand_redis_isolated`); `plan_check --verify` сверяет ветки-цепочки диапазоном.
+- Проверки: `preflight` верхушки 17 247 passed; CI зелёный; стенды D2 161 ✓, D4a 1168 ✓, D6 676 ✓; золотые пути 51 ok. Ревью: план (architect, security), диффы всех срезов (django, security, silent-failure-hunter; database — D4; a11y — D2, D6; seo — D7), три круга по деньгам.
+- **Ops после деплоя:** миграций нет. Автоповтор возврата второго платежа трогает только строки нового пути — прежние двойные оплаты не возвращаются.
