@@ -182,6 +182,12 @@ def _field_errors() -> list:
                     continue
                 if field.is_relation:
                     bad.append(f"{module}/{s.key}: {kind}.{head} is a relation")
+        # ревью L-3: пункт одного вида проверен хотя бы у одной модели своих `kinds`
+        kinds = set(_kinds_of(module, s))
+        for path in s.source.fields:
+            own = set(getattr(path, "kinds", ()) or ())
+            if own and not own & kinds:
+                bad.append(f"{module}/{s.key}: {path} - none of its kinds {sorted(own)} checked")
     return bad
 
 

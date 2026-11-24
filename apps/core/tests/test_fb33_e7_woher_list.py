@@ -226,24 +226,115 @@ def test_filled_matches_storefront_gate(case):
 
 
 @pytest.mark.parametrize(
-    "images, lat, online, expected",
+    "images, lat, online, photos, point",
     [
-        (["a.jpg"], None, False, "leer"),
-        (["a.jpg", "b.jpg"], None, False, "ausgefüllt"),
-        ([], "51.17", False, "ausgefüllt"),
-        ([], "51.17", True, "leer"),
+        (["a.jpg"], None, False, "leer", "leer"),
+        (["a.jpg", "b.jpg"], None, False, "ausgefüllt", "leer"),
+        ([], "51.17", False, "leer", "ausgefüllt"),
+        ([], "51.17", True, "leer", "leer"),
     ],
 )
-def test_venue_state_follows_the_gate(images, lat, online, expected):
-    """Фото — со второго; точка — у события с координатами (или адресом бизнеса), не онлайн."""
+def test_venue_state_follows_the_gate(images, lat, online, photos, point):
+    """Фото — со второго; точка — у события с координатами (или адресом бизнеса), не онлайн.
+    Ревью L-1: состояние — по своему пункту (`items[1]` фото, `items[2]` карта)."""
     tenant = _event_tenant()
     tenant.latitude = tenant.longitude = None
     kw = {"latitude": lat, "longitude": "7.08"} if lat else {}
     event = _event(images=images, is_online=online, **kw)
     code = object_structure.schema_code("event", event)
     _part, ct = _event_inhalt(tenant, f"?seite={code}&block=venue")
-    states = [it["text"].rsplit("— ", 1)[1] for it in ct["woher_list"]["items"][1:]]
-    assert expected in states if expected == "ausgefüllt" else set(states) == {"leer"}
+    items = ct["woher_list"]["items"]
+    assert items[1]["text"] == f"{EVENT_PHOTOS} — {photos}"
+    assert items[2]["text"] == f"{MAP} — {point}"
+
+
+# --- ревью M-1/M-2: «ausgefüllt» окна = показ витрины (поведенчески) ---------------------------------
+
+
+def _product_gate(product) -> bool:
+    """Гейт `product_has_info` витрины — то же выражение, что во вьюхе (без копии)."""
+    view = (ROOT / "apps/promotions/public_views.py").read_text(encoding="utf-8")
+    start = view.index('"product_has_info": bool(') + len('"product_has_info": ')
+    expr = view[start : view.index("),", start) + 1]
+    return eval(expr, {"product": product})  # noqa: S307 — выражение из нашего же исходника
+
+
+def _stay_gate(unit) -> bool:
+    view = (ROOT / "apps/stays/public_views.py").read_text(encoding="utf-8")
+    expr = re.search(r'"amenities": (bool\([^)]*\))', view).group(1)
+    return eval(expr, {"unit": unit})  # noqa: S307 — выражение из нашего же исходника
+
+
+def _event_gate(obj, key, tenant) -> bool:
+    """Показ раздела — рендер `_event_thematic.html` с контекстом витрины."""
+    from django.template.loader import render_to_string
+
+    from apps.events import services
+    from apps.events.models import Event
+
+    point = services.map_point(obj, tenant) if isinstance(obj, Event) else None
+    html = render_to_string(
+        "storefront/_event_thematic.html",
+        {"k": key, "event": obj, "L": obj.landing, "map_point": point, "map_link": ""},
+    )
+    return "<section" in html
+
+
+def _window_shown(obj, module, key, host, kind, tenant) -> bool:
+    src = section(module, key).source
+    words = site_schema.object_words(host)
+    _woher, _filled, wl = window_parts._content_woher(src, host, key, kind, obj, words, tenant)
+    return any(it["icon"] == "✓" for it in wl["items"])
+
+
+_RED = pytest.mark.xfail(strict=True, reason="ревью M-1/M-2: окно читает сырое поле")
+
+
+@pytest.mark.parametrize(
+    "kind, data",
+    [
+        ("product", {}),
+        ("product", {"allergens": ["gluten"]}),
+        pytest.param("product", {"allergens": ["xyz"]}, marks=_RED),
+        pytest.param("product", {"additives": ["xyz"]}, marks=_RED),
+        ("product", {"brand": "Lavazza"}),
+        ("stay", {}),
+        ("stay", {"amenities": ["wifi"]}),
+        pytest.param("stay", {"amenities": ["xyz"]}, marks=_RED),
+        ("stay", {"area_sqm": 0, "bed_type": ""}),
+        ("stay", {"bed_type": "Doppelbett"}),
+        ("event-venue", {}),
+        pytest.param("event-venue", {"images": [{}, {}]}, marks=_RED),
+        ("event-venue", {"images": [{"url": "a.jpg"}]}),
+        ("event-venue", {"details": {"venue": "  "}}),
+        ("event-venue", {"details": {"venue": "Seehaus"}}),
+        ("event-venue", {"latitude": "51.17", "longitude": "7.08"}),
+        ("event-price", {"details": {"price_includes": ["", " "]}}),
+        ("event-price", {"details": {"price_note": "Frühbucher"}}),
+        ("event-price", {"details": {"price_excludes": "Anreise"}}),
+        pytest.param("tour-venue", {"images": [{}, {}]}, marks=_RED),
+        ("tour-venue", {"details": {"venue": "Rheinufer"}}),
+    ],
+)
+def test_window_state_equals_storefront_gate(kind, data):
+    """Раздел «ausgefüllt» в окне (хоть один пункт ✓) ⇔ витрина показывает раздел: те же
+    производные значения (подписи аллергенов и удобств из каталога, `landing`, число фото)."""
+    if kind == "product":
+        tenant, obj = _shop("bakery", **data)
+        obj = Product.objects.get(pk=obj.pk)
+        args, gate = ("catalog", "info", f"product:{obj.pk.hex}", "product"), _product_gate(obj)
+    elif kind == "stay":
+        tenant, obj = _hotel(**data)
+        obj = type(obj).objects.get(pk=obj.pk)
+        args, gate = ("stays", "amenities", f"stay:{obj.pk.hex}", "stay"), _stay_gate(obj)
+    else:
+        tenant = _event_tenant()
+        tenant.latitude = tenant.longitude = None
+        obj = _tour(**data) if kind == "tour-venue" else _event(**data)
+        obj = type(obj).objects.get(pk=obj.pk)
+        okind, key = kind.split("-")
+        args, gate = ("events", key, f"{okind}:{obj.pk.hex}", okind), _event_gate(obj, key, tenant)
+    assert _window_shown(obj, *args, tenant) == gate
 
 
 # --- №13: подписи — те же, что на форме кабинета -------------------------------------------------
@@ -350,6 +441,7 @@ def test_map_probe_no_queries():
 # --- a11y H2, M3: разметка списка -----------------------------------------------------------------------
 
 
+@pytest.mark.xfail(strict=True, reason="ревью a11y M1, L1: колонки и id")
 def test_woher_list_dom():
     """dt/dd списка — блочные (без `inline`), вводная фраза — `<p id>`, у `<ul>` —
     `role="list"` и `aria-labelledby` на неё; у группы из 3+ полей — вложенный `<ul>`; значок —
@@ -361,7 +453,12 @@ def test_woher_list_dom():
     dt = re.search(r"<dt\b([^>]*)>", html).group(1)
     ddt = re.search(r"<dd\b([^>]*)>", html).group(1)
     assert "inline" not in dt and "inline" not in ddt
-    intro = re.search(r'<p id="(inhalt-woher-info)"[^>]*>', html)
+    # ревью a11y M1 (WCAG 1.4.10): колонки в rem и minmax(0, …), dd переносит длинное слово
+    assert "sm:grid-cols-[minmax(0,8rem)_minmax(0,1fr)]" in html
+    assert "min-w-0" in ddt and "[overflow-wrap:anywhere]" in ddt
+    # ревью a11y L1: окно одно на странице — id постоянный (ref бывает «shared:0»)
+    intro = re.search(r'<p id="(inhalt-woher-intro)"[^>]*>', html)
+    assert part.count('id="inhalt-woher-intro"') == 1
     assert intro
     ul = re.search(r"<ul\b([^>]*)>", html).group(1)
     assert 'role="list"' in ul and f'aria-labelledby="{intro.group(1)}"' in ul
