@@ -378,7 +378,6 @@ def test_orphan_not_stored_when_form_has_no_questions(form):
     assert snap == {}
 
 
-@REVIEW
 def test_bool_false_not_logged(caplog):
     """Снятая галочка (`0/off/no/false`) — не потерянный ответ."""
     caplog.set_level(logging.INFO, logger=LOGGER)

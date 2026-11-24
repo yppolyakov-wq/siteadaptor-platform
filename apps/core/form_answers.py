@@ -43,6 +43,8 @@ TEMP_ID = re.compile(r"^n[0-9]{1,3}$")
 STALE_MAX = 10
 #: сколько id лишних ответов пишет одна строка лога (ключей `q<n>` в POST может быть тысячи)
 LOG_IDS_MAX = 20
+#: «нет» у вопроса-галочки (снятая галочка) — не потерянный ответ
+BOOL_OFF = frozenset({"0", "off", "no", "false"})
 STALE_REMOVED = "removed"  # вопроса больше нет — подпись «Entfernte Frage» при показе
 STALE_CHANGED = "changed"  # выбор вне текущих вариантов — подпись вопроса и пометка
 #: невидимые символы (нулевой ширины, BOM) — строка из них не «заполнена»
@@ -209,10 +211,12 @@ def dropped(
 ) -> list[str]:
     """FB-33 D1: id ключей POST вида `q<n>` (ровно, `fullmatch`: `q1` ≠ `q10`, `q5\\n` — не id)
     с непустым значением, которые не легли ответом в `collect`: вопроса нет или значение
-    негодно (выбор вне вариантов, битое число/дата). Порядок — по номеру. `answers` — уже
+    негодно (выбор вне вариантов, битое число/дата; снятая галочка `BOOL_OFF` — не в счёт).
+    Порядок — по номеру. `answers` — уже
     собранный `collect` (вызывающий его знает — второй разбор не нужен)."""
     if answers is None:
         answers = collect(questions, post, prefix)
+    bools = {q["id"] for q in questions if q["type"] == "bool"}
     out = []
     for key in post.keys() if hasattr(post, "keys") else ():
         if not isinstance(key, str) or not key.startswith(prefix):
@@ -220,7 +224,10 @@ def dropped(
         qid = key[len(prefix) :]
         if not (qid.isascii() and _ID.fullmatch(qid)) or qid in answers:
             continue
-        if _filled_raw(post, key):
+        raw = _filled_raw(post, key)
+        if qid in bools and raw.lower() in BOOL_OFF:
+            continue  # ревью §10.4: снятая галочка — ответ «нет», не потеря
+        if raw:
             out.append(qid)
     return sorted(set(out), key=lambda qid: int(qid[1:]))
 
