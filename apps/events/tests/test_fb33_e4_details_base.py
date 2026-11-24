@@ -32,7 +32,7 @@ CONFLICT = (
     "erneut speichern."
 )
 MSGIDS = (CONFLICT,)
-RED = pytest.mark.xfail(strict=True, reason="FB-33 стопка 14 E4: ещё не сделано")
+# Строку во все пять `.po` пишет координатор на верхушке стопки — тогда снять отметку.
 OWN = [{"q": "Parken?", "a": "Ja."}]
 
 
@@ -166,7 +166,6 @@ def test_missing_base_no_check(kind):
 # ───────────── красные ─────────────
 
 
-@RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_base_checked_under_lock(kind, monkeypatch):
     """№9 (M7): форма несёт отпечаток; одна `FOR UPDATE` строки раньше её `UPDATE`, и та же
@@ -195,7 +194,6 @@ def test_base_checked_under_lock(kind, monkeypatch):
     assert seen and seen[0].pk == obj.pk and seen[0] is not obj
 
 
-@RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_writes_nothing(kind):
     """№10: отказ до записи — ни поля формы, ни `details`, ни свои вопросы, ни маршрут."""
@@ -211,7 +209,6 @@ def test_conflict_writes_nothing(kind):
         assert fresh.itinerary == before.itinerary
 
 
-@RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_returns_typed(kind):
     """№7: 200, набранное и свои вопросы из POST, свежий `details_base`."""
@@ -228,7 +225,6 @@ def test_conflict_returns_typed(kind):
     assert _base_in(page) != data["details_base"]
 
 
-@RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_retry_after_conflict_overwrites(kind):
     """Решение владельца: повторный POST после отказа (свежий отпечаток) пишет набранное."""
@@ -240,7 +236,6 @@ def test_retry_after_conflict_overwrites(kind):
     assert _model(kind).objects.get(pk=obj.pk).details["idea"] == "Meins"
 
 
-@RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_logged(kind, caplog):
     """№8: отказ в журнале — схема, вид, pk; без значений полей."""
@@ -254,7 +249,6 @@ def test_conflict_logged(kind, caplog):
     assert "Meins" not in text and "Fremd" not in text
 
 
-@RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_message_before_form(kind):
     """L5: сообщение отказа — перед `<form>` в DOM, с просьбой выбрать фото заново."""
@@ -263,11 +257,10 @@ def test_conflict_message_before_form(kind):
     at = page.find(html.escape(CONFLICT))
     assert at != -1, "нет сообщения отказа"
     assert "Fotos bitte erneut auswählen" in CONFLICT
-    assert at < page.find('<form method="post"')
+    assert at < page.find('<form method="post" enctype="multipart/form-data"')
     assert 'role="alert"' in page[max(0, at - 300) : at]
 
 
-@RED
 def test_e4_msgids_in_all_po():
     """№16: новая строка E4 во всех пяти каталогах (пишет координатор на верхушке)."""
     for lang in ("de", "en", "tr", "ru", "uk"):

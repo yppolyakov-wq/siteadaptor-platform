@@ -21,6 +21,7 @@ MT-1: правка тура. Маршрут — таблица строк (бе�
   </div>
 </div>
 
+{% include "tenant/_settings_messages.html" %}{# FB-33 стопка 14 E4 (a11y L5): отказ формы — перед <form> #}
 <form method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-3xl space-y-4">
   {% csrf_token %}
   {% for field in form %}
@@ -41,6 +42,7 @@ MT-1: правка тура. Маршрут — таблица строк (бе�
 
   {% comment %}FB-33 M2b-2b (ревью): свои вопросы FAQ тура — пары полей, как у услуги, товара и номера.{% endcomment %}
   {% include "tenant/_object_faq_fields.html" with rows=faq_rows base=faq_base sentinel=True %}
+  {% if tour %}<input type="hidden" name="details_base" value="{{ details_base }}">{% endif %}{# FB-33 стопка 14 E4: отпечаток details без faq — сверка под блокировкой #}
   <div>
     <span class="block text-sm font-medium mb-1">{% trans "Photos" %}</span>
     {% include "catalog/_photo_add_tile.html" with target="photos" %}

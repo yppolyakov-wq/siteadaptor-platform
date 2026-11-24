@@ -385,11 +385,15 @@ def _put_base(obj, kind: str, new: list[dict], changed: list[str]) -> None:
 # ───────────── формы объекта в кабинете (услуга, товар, номер) ─────────────
 
 
-def form_rows(obj, kind: str, locales) -> list[dict]:
+def form_rows(obj, kind: str, locales, parsed: tuple | None = None) -> list[dict]:
     """Строки редактора формы объекта: существующие пары + одна пустая (слоты дорастают
-    после Save, без JS) — с полями переводов по языкам бизнеса."""
-    base = items(obj, kind) if obj is not None else []
-    overlay = overlays(obj, kind) if obj is not None else {}
+    после Save, без JS) — с полями переводов по языкам бизнеса. `parsed` — (база, переводы)
+    из `from_form` вместо сохранённого (форма, возвращённая с набранным, — `post_rows`)."""
+    if parsed is not None:
+        base, overlay = parsed
+    else:
+        base = items(obj, kind) if obj is not None else []
+        overlay = overlays(obj, kind) if obj is not None else {}
     rows = []
     for i, item in enumerate(base + [{"q": "", "a": ""}]):
         tr = []
@@ -461,13 +465,27 @@ def from_form(
     return base, per_locale
 
 
-def lock_fresh(obj, kind: str) -> None:
+def post_rows(post, kind: str, locales) -> list[dict] | None:
+    """Строки редактора своих вопросов — как набраны в POST (форма объекта возвращена
+    отказом, FB-33 стопка 14 E4). Без сентинела `faq_present` — None (показать сохранённые)."""
+    parsed = from_form(post, locales, kind)
+    return None if parsed is None else form_rows(None, kind, locales, parsed=parsed)
+
+
+_FETCH = object()
+
+
+def lock_fresh(obj, kind: str, locked=_FETCH) -> None:
     """Перед полной записью объекта формой (`ModelForm.save` пишет все столбцы) — свежие свои
     вопросы под блокировкой строки (ревью M2b-2b: иначе форма, открытая до чужой правки,
-    вернула бы старые вопросы). Звать внутри `transaction.atomic`; нового объекта — нет."""
+    вернула бы старые вопросы). Звать внутри `transaction.atomic`; нового объекта — нет.
+
+    `locked` — строка, уже заблокированная вызывающим (`select_for_update` в том же `atomic`,
+    FB-33 стопка 14 E4, ревью M7): второй блокировки нет; `None` — строки нет."""
     if getattr(getattr(obj, "_state", None), "adding", True) or obj.pk is None:
         return
-    locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
+    if locked is _FETCH:
+        locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
     if locked is not None:
         _sync(obj, locked, kind)
 

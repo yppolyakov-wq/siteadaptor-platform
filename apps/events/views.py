@@ -1,6 +1,7 @@
 """Кабинет событий (A6b): CRUD, ростер участников, действия FSM, CSV-экспорт."""
 
 import csv
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -26,6 +27,8 @@ from .forms import EventForm, TeacherForm, TourForm, unique_tour_slug
 from .models import Event, Teacher, Ticket, Tour
 from .services import book_ticket, notify_event_waitlist
 from .state_machine import EventSM
+
+logger = logging.getLogger(__name__)
 
 
 def _add_event_photos(event, uploaded) -> None:
@@ -112,11 +115,26 @@ def event_create(request):
     )
 
 
-def _faq_ctx(request, obj, kind: str) -> dict:
-    """FB-33 M2b-2b: общий редактор своих вопросов FAQ (пары полей, переводы, отпечаток)."""
+def _faq_ctx(request, obj, kind: str, conflict: bool = False) -> dict:
+    """FB-33 M2b-2b: общий редактор своих вопросов FAQ (пары полей, переводы, отпечаток).
+    FB-33 стопка 14 E4: рядом — отпечаток `details_base` (`landing.fingerprint`). После отказа
+    (`conflict`) отпечаток свежий, а свои вопросы — как набраны в POST, со старым `faq_base`
+    (их сверка остаётся за `object_faq.save_from_form`)."""
     from apps.core import object_faq
+    from apps.core.i18n_input import extra_locales
 
-    return object_faq.form_ctx(obj, kind, getattr(request, "tenant", None))
+    from . import landing
+
+    tenant = getattr(request, "tenant", None)
+    ctx = object_faq.form_ctx(obj, kind, tenant)
+    ctx["details_base"] = landing.fingerprint(obj) if obj is not None else ""
+    if conflict:
+        rows = object_faq.post_rows(request.POST, kind, extra_locales(tenant))
+        if rows is not None:
+            ctx["faq_rows"] = rows
+        if "faq_base" in request.POST:
+            ctx["faq_base"] = request.POST["faq_base"]
+    return ctx
 
 
 def _save_faq(request, obj, kind: str) -> None:
@@ -129,17 +147,46 @@ def _save_faq(request, obj, kind: str) -> None:
         messages.warning(request, note)
 
 
-def _save_form_fresh(form, kind: str):
+def _save_form_fresh(form, kind: str, post):
     """Запись формы события/тура: свои вопросы FAQ в экземпляре — свежие, под блокировкой
     строки (ревью M2b-2b: `save` пишет все столбцы — форма, открытая до чужой правки
-    вопросов, вернула бы старые)."""
-    from django.db import transaction
+    вопросов, вернула бы старые).
+
+    FB-33 стопка 14 E4: `details` форма собирает целиком (`landing.apply`), поэтому отпечаток
+    `details_base` формы сверяется под ТОЙ ЖЕ блокировкой (ревью M7: одна `select_for_update`,
+    строка уходит в `object_faq._sync`). Разошёлся — None ДО записи: не пишется ничего.
+    Поля в POST нет (форма открыта до деплоя) — проверки нет."""
+    from django.db import connection
 
     from apps.core import object_faq
 
+    from . import landing
+
+    obj = form.instance
     with transaction.atomic():
-        object_faq.lock_fresh(form.instance, kind)
+        locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
+        if (
+            locked is not None
+            and "details_base" in post
+            and post.get("details_base") != landing.fingerprint(locked)
+        ):
+            logger.info(
+                "events form refused: details changed elsewhere (schema=%s kind=%s pk=%s)",
+                getattr(connection, "schema_name", ""),
+                kind,
+                obj.pk,
+            )
+            return None
+        object_faq.lock_fresh(obj, kind, locked=locked)
         return form.save()
+
+
+def _details_conflict_note() -> str:
+    return _(
+        "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde "
+        "gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und "
+        "erneut speichern."
+    )
 
 
 @login_required
@@ -147,8 +194,13 @@ def event_edit(request, pk):
     event = get_object_or_404(Event, pk=pk)
     was_published = event.status == Event.STATUS_PUBLISHED
     form = EventForm(request.POST or None, instance=event)
+    conflict = False
     if request.method == "POST" and form.is_valid():
-        _save_form_fresh(form, "event")
+        conflict = _save_form_fresh(form, "event", request.POST) is None
+    if conflict:
+        messages.error(request, _details_conflict_note())
+        event = Event.objects.get(pk=event.pk)  # свежая строка: отпечаток, фото, структура
+    elif request.method == "POST" and form.is_valid():
         _save_faq(request, event, "event")  # FB-33 M2b-2b: свои вопросы FAQ (пары полей)
         # FB-29 R5: своя структура страницы события — по сентинелу (W0)
         from apps.core import object_structure
@@ -178,7 +230,7 @@ def event_edit(request, pk):
             "category_presets": taxonomy.CATEGORIES,
             "page_structure": object_structure_panel(request, event),
             "page_structure_url": reverse("site-schema") + "?seite=event",
-            **_faq_ctx(request, event, "event"),
+            **_faq_ctx(request, event, "event", conflict),
         },
     )
 
@@ -586,8 +638,13 @@ def tour_edit(request, pk):
         messages.success(request, _("Tour deleted."))
         return redirect("events:tour-list")
     form = TourForm(request.POST or None, instance=tour)
+    conflict = False
     if request.method == "POST" and form.is_valid():
-        _save_form_fresh(form, "tour")
+        conflict = _save_form_fresh(form, "tour", request.POST) is None
+    if conflict:
+        messages.error(request, _details_conflict_note())
+        tour = Tour.objects.get(pk=tour.pk)  # свежая строка: отпечаток, фото, маршрут
+    elif request.method == "POST" and form.is_valid():
         _save_faq(request, tour, "tour")  # FB-33 M2b-2b: свои вопросы FAQ (пары полей)
         if request.POST.get("it_present"):
             tour.itinerary = itinerary.from_post(request.POST)
@@ -614,7 +671,7 @@ def tour_edit(request, pk):
             "visibility_choices": itinerary.visibility_choices(),
             "departures": tour.departures.order_by("starts_at"),
             "page_structure": object_structure_panel(request, tour, "tour"),
-            **_faq_ctx(request, tour, "tour"),
+            **_faq_ctx(request, tour, "tour", conflict),
             "page_structure_url": reverse("site-schema") + "?seite=event",
         },
     )
