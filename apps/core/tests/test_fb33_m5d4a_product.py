@@ -60,8 +60,9 @@ EXPECT = {
         "sellable-manage",
         "die Kennzeichnung des Produkts: Marke, Zustand, Material, Pflege, Herkunft, Zutaten, "
         "Allergene und Zusatzstoffe",
-        "Feld „Kennzeichnung“ bei jedem Produkt. "
-        "Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist.",
+        # FB-33 M5d-8 (E7): «Woher» — списком полей; здесь вводная фраза, список — замки
+        # `test_fb33_e7_woher_list.py`
+        "Diese Felder bei jedem Produkt:",
     ),
     "sizes": (
         "setting",
@@ -232,6 +233,12 @@ def dd(part: str, name: str) -> str:
     return _text(found.group(1)) if found else ""
 
 
+def woher_of(part: str, selected: dict) -> str:
+    """«Woher» фразой; FB-33 M5d-8 (E7): у списка полей — его вводная фраза."""
+    woher_list = selected["content"].get("woher_list")
+    return woher_list["intro"] if woher_list else dd(part, "woher")
+
+
 def link_of(part: str):
     a = re.search(r"<a\b([^>]*data-inhalt-link[^>]*)>(.*?)</a>", part, re.S)
     if a is None:
@@ -320,7 +327,7 @@ def test_type_row_window(key):
     assert [t["parts"] for t in block_window.tabs(selected, view)] == [["inhalt"]]
     assert "data-window-tabs" not in panel and "data-bw-preview" not in panel
     assert f"Dieser Block zeigt: {shows}." in _text(part)
-    assert dd(part, "woher") == woher
+    assert woher_of(part, selected) == woher
     moves = selected["can_up"] or selected["can_down"]
     actions = ACT_HIDE_MOVE if moves else ACT_HIDE
     visible = "sichtbar — bei allen Produkten." if kind == "field" else "sichtbar."
@@ -405,13 +412,16 @@ def test_object_info_filled_by_any_field(fields, filled):
     `product_has_info` витрины)."""
     tenant, product = _shop(**fields)
     code = object_structure.schema_code("product", product)
-    part, _panel_html, _selected, _view = _inhalt(tenant, f"?seite={code}&block=info")
-    assert dd(part, "woher") == f"Feld „Kennzeichnung“ dieses Produkts {filled}"
+    _part, _panel_html, selected, _view = _inhalt(tenant, f"?seite={code}&block=info")
+    # FB-33 M5d-8 (E7): «Woher» — списком полей с итогом «N von M»; «заполнено ли» раздела —
+    # прежнее «хватает одного»
+    assert selected["content"]["woher_list"]["intro"].startswith("Felder dieses Produkts — ")
+    assert selected["content"]["filled"] == filled
 
 
 def test_info_fields_are_the_storefront_gate():
     """Поля «заполнено ли» у «Kennzeichnung» — поля модели, по которым витрина решает показ."""
-    fields = set(section("catalog", "info").source.fields)
+    fields = {str(f) for f in section("catalog", "info").source.fields}
     assert fields == {
         "brand",
         "condition",

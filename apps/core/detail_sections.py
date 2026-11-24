@@ -25,6 +25,50 @@ from django.utils.translation import gettext_lazy as _
 
 
 @dataclass(frozen=True)
+class SourceField:
+    """FB-33 M5d-8 (E7): одно поле раздела «Woher» из нескольких полей — путь «ausgefüllt»
+    и подпись пункта списка окна «Inhalt» (`window_parts._content_woher`). Строка в
+    `ContentSource.fields` — прежнее поведение (одна подпись раздела, «хватает одного»).
+    Подписи — те же msgid, что на форме кабинета (замок `test_labels_on_cabinet_form`)."""
+
+    #: поле МОДЕЛИ и ключи его словаря через точку ("brand", "details.venue", "images")
+    path: str
+    #: имя поля формы объекта — подпись из кода формы (`site_schema.object_field_label`)
+    field: str = ""
+    #: подпись, если её нет в коде формы; словарь «вид объекта → подпись», где "" — у общего
+    #: типа двух видов (описание, а не подпись поля — без кавычек)
+    label: object = ""
+    #: вкладка формы («Grundlagen», «Kennzeichnung») и её подраздел («Marke & Zustand»)
+    tab: object = ""
+    section: object = ""
+    #: сколько элементов списка нужно для «ausgefüllt» (фото — со второго: 2)
+    min_items: int = 1
+    #: только у этих видов объекта (у общего типа — с пометкой вида, `KIND_ONLY`)
+    kinds: tuple[str, ...] = ()
+    #: ключ закрытого реестра проб `window_parts._PROBES` (точка карты); путь — для замков
+    probe: str = ""
+    #: подстановки в подпись («%(lat)s» → подпись поля формы); подпись — целой фразой
+    args: tuple = ()
+    #: подпись — в кавычках «„…“» (как имя поля формы); False — целая фраза
+    quote: bool = True
+
+    def __str__(self) -> str:
+        return self.path
+
+
+#: FB-33 M5d-8: «Woher» из нескольких полей — у типа после списка
+ONLY_IF_ANY = _("Erscheint nur, wenn mindestens eines davon ausgefüllt ist.")
+#: FB-33 M5d-8: пункт со `min_items` 2 (фото со второго; первое — в шапке страницы)
+FROM_SECOND_PHOTO = _("%(label)s — ab dem zweiten Foto")
+#: FB-33 M5d-8: пункт «Ort» — точка на карте (`apps/events/services.py::map_point`)
+MAP_POINT = _(
+    "Punkt auf der Karte — „%(lat)s“ und „%(lng)s“ (sonst Ihre Adresse; nicht bei Online)"
+)
+#: FB-33 M5d-8: пометка пункта одного вида у общего типа (`SourceField.kinds`)
+KIND_ONLY = {"event": _("(nur bei Veranstaltungen)")}
+
+
+@dataclass(frozen=True)
 class ContentSource:
     """FB-33 M5d-2: откуда содержимое раздела и где оно правится — для части окна «Inhalt»
     (`apps/core/window_parts.py::content_part`). Только описание: ссылку, право и тексты
@@ -46,7 +90,9 @@ class ContentSource:
     field: str = ""
     field_label: object = ""
     #: что считать «ausgefüllt» у объекта: атрибуты и ключи словаря ("description",
-    #: "details.idea"); хватает одного заполненного
+    #: "details.idea"); хватает одного заполненного. M5d-8: `SourceField` вместо строк —
+    #: «Woher» списком полей (у объекта — каждое со своим «ausgefüllt»); это же описание —
+    #: гейт показа витрины (замок `test_filled_matches_storefront_gate`)
     fields: tuple = ()
     #: добавка к адресу экрана («?tab=lieferung») и её подпись («Lieferung» → «… › Lieferung»)
     query: str = ""
@@ -141,19 +187,27 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 ),
                 # подпись вкладки формы товара (тот же msgid, что в `product_form.html`)
                 field_label=_("Labeling"),
-                # ревью срезов (MEDIUM 2): Marke и Zustand — не на вкладке «Kennzeichnung»
-                note=_("Marke und Zustand stehen im Formular unter „Marke & Zustand“."),
+                # M5d-8: поля по вкладкам формы (`product_form.html`); подписи — как на форме
                 fields=(
-                    "brand",
-                    "condition",
-                    "material",
-                    "care",
-                    "origin",
-                    "ingredients",
-                    "allergens",
-                    "additives",
+                    SourceField(
+                        "brand", label=_("Marke"), tab=_("Basics"), section=_("Marke & Zustand")
+                    ),
+                    SourceField(
+                        "condition",
+                        label=_("Zustand"),
+                        tab=_("Basics"),
+                        section=_("Marke & Zustand"),
+                    ),
+                    SourceField(
+                        "material", label=_("Material / Zusammensetzung"), tab=_("Labeling")
+                    ),
+                    SourceField("care", label=_("Pflegehinweise"), tab=_("Labeling")),
+                    SourceField("origin", label=_("Origin"), tab=_("Labeling")),
+                    SourceField("ingredients", label=_("Ingredients"), tab=_("Labeling")),
+                    SourceField("allergens", label=_("Allergens"), tab=_("Labeling")),
+                    SourceField("additives", label=_("Additives"), tab=_("Labeling")),
                 ),
-                only_if=_("Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."),
+                only_if=ONLY_IF_ANY,
             ),
         ),
         # FB-33 M2f: разделы первого экрана, которые раньше были зашиты в страницу товара
@@ -317,11 +371,29 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 "field",
                 shows=_("den Ort — Text, Karte und weitere Fotos"),
                 field="venue",
-                fields=("details.venue",),
-                only_if=_(
-                    "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der "
-                    "Ort auf der Karte liegt."
+                # M5d-8: гейт `_event_thematic.html` — поле, фото со второго, точка карты
+                # (у тура её нет: `tour_detail` не кладёт `map_point`)
+                fields=(
+                    SourceField("details.venue", field="venue"),
+                    SourceField(
+                        "images",
+                        label={
+                            "event": _("Photos (venue, past events)"),
+                            "tour": _("Photos"),
+                            "": _("Photos"),
+                        },
+                        min_items=2,
+                    ),
+                    SourceField(
+                        "latitude",
+                        label=MAP_POINT,
+                        args=(("lat", _("Latitude")), ("lng", _("Longitude"))),
+                        quote=False,
+                        kinds=("event",),
+                        probe="map_point",
+                    ),
                 ),
+                only_if=ONLY_IF_ANY,
                 more_nav=_TOURS,
             ),
         ),
@@ -375,8 +447,12 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 "field",
                 shows=_("den Preis und was enthalten ist"),
                 field="price_includes_text",
-                fields=("details.price_includes", "details.price_excludes", "details.price_note"),
-                only_if=_("Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."),
+                fields=(
+                    SourceField("details.price_includes", field="price_includes_text"),
+                    SourceField("details.price_excludes", field="price_excludes_text"),
+                    SourceField("details.price_note", field="price_note"),
+                ),
+                only_if=ONLY_IF_ANY,
                 more_nav=_TOURS,
             ),
         ),
@@ -836,8 +912,13 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 "field",
                 shows=_("Ausstattung, Bettart und Fläche der Unterkunft"),
                 field_label=_("Amenities"),
-                fields=("amenities", "bed_type", "area_sqm"),
-                only_if=_("Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."),
+                # M5d-8: подписи — как на странице номера (`stays/unit_page.html`)
+                fields=(
+                    SourceField("amenities", label=_("Amenities")),
+                    SourceField("bed_type", label=_("Bed type")),
+                    SourceField("area_sqm", label=_("Area (m², 0 = hide)")),
+                ),
+                only_if=ONLY_IF_ANY,
             ),
         ),
         DetailSection("reviews", _("Customer reviews")),

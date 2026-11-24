@@ -41,6 +41,7 @@ from apps.core.tests.test_fb33_m5d4a_product import (
     sources,
     tenant_of,
     without_sources,
+    woher_of,
 )
 from apps.stays.models import StayUnit
 
@@ -58,8 +59,8 @@ EXPECT = {
         "field",
         "stays:units",
         "Ausstattung, Bettart und Fläche der Unterkunft",
-        "Feld „Ausstattung“ bei jeder Unterkunft. "
-        "Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist.",
+        # FB-33 M5d-8 (E7): «Woher» — списком полей; здесь вводная фраза
+        "Diese Felder bei jeder Unterkunft:",
     ),
     "similar": (
         "auto",
@@ -144,8 +145,9 @@ def test_gated_sections_have_only_if():
     for key in GATED:
         src = section("stays", key).source
         assert str(src.only_if).startswith("Erscheint nur, wenn"), key
-        assert set(src.fields) <= names, key
-    assert set(section("stays", "amenities").source.fields) == {"amenities", "bed_type", "area_sqm"}
+        assert {str(f) for f in src.fields} <= names, key
+    amenities = {str(f) for f in section("stays", "amenities").source.fields}
+    assert amenities == {"amenities", "bed_type", "area_sqm"}
 
 
 # --- строка типа -----------------------------------------------------------------------------------
@@ -159,7 +161,7 @@ def test_type_row_window(key):
     assert [t["parts"] for t in block_window.tabs(selected, view)] == [["inhalt"]]
     assert "data-window-tabs" not in panel and "data-bw-preview" not in panel
     assert f"Dieser Block zeigt: {shows}." in _text(part)
-    assert dd(part, "woher") == woher
+    assert woher_of(part, selected) == woher
     # A13: «Verschieben» — только если строка номера двигается (по флагам строки)
     moves = selected["can_up"] or selected["can_down"]
     actions = ACT_HIDE_MOVE if moves else ACT_HIDE
@@ -204,7 +206,14 @@ def test_object_filled_state(key, fields, filled):
     tenant, unit = _hotel(**fields)
     code = object_structure.schema_code("stay", unit)
     part, _panel_html, selected, _view = _inhalt(tenant, f"?seite={code}&block={key}")
-    assert dd(part, "woher") == f"Feld „{FIELD_LABELS[key]}“ dieser Unterkunft {filled}"
+    woher_list = selected["content"]["woher_list"]
+    if key == "amenities":
+        # FB-33 M5d-8 (E7): три поля — списком с итогом «N von 3»
+        n = sum(1 for v in fields.values() if v)
+        assert woher_list["intro"] == f"Felder dieser Unterkunft — {n} von 3 ausgefüllt:"
+    else:
+        assert not woher_list
+        assert dd(part, "woher") == f"Feld „{FIELD_LABELS[key]}“ dieser Unterkunft {filled}"
     assert selected["content"]["filled"] == filled
     assert "Erscheint nur" not in dd(part, "woher")
     href, name = link_of(part)

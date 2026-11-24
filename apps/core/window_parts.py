@@ -149,6 +149,26 @@ _FIELD_THIS = gettext_lazy("Feld „%(field)s“ %(this)s")
 #: FB-33 M5d-2b: раздел рисуется не у этого вида объекта (`ContentSource.kinds`) — вместо
 #: видимости; «all» — слова вида строки («bei allen Reisen»)
 _NOT_FOR_KIND = gettext_lazy("%(all)s wird dieser Block nicht gezeigt.")
+#: FB-33 M5d-8 (E7): «Woher» из нескольких полей — списком (`detail_sections.SourceField`)
+_LIST_EVERY = gettext_lazy("Diese Felder %(every)s:")
+_LIST_THIS = gettext_lazy("Felder %(this)s — %(n)s von %(m)s ausgefüllt:")
+#: группа полей одной вкладки формы (a11y M3: без «›» в озвучиваемом тексте)
+_GROUP_TAB = gettext_lazy("Formular, Reiter „%(tab)s“:")
+_GROUP_SECTION = gettext_lazy("Formular, Reiter „%(tab)s“, Abschnitt „%(section)s“:")
+_QUOTED = gettext_lazy("„%(field)s“")
+_ITEM_FILLED = gettext_lazy("„%(field)s“ — ausgefüllt")
+_ITEM_EMPTY = gettext_lazy("„%(field)s“ — leer")
+#: у группы из стольких полей и больше — вложенный список, меньше — через запятую (a11y M3)
+_NESTED_FROM = 3
+#: значок состояния — только украшение (`aria-hidden`), состояние сказано словом (a11y M1)
+_ICONS = {True: "✓", False: "–"}
+#: ревью M4: пробы «заполнено ли», которые не читаются полем модели, — ЗАКРЫТЫЙ реестр
+#: «имя → (модуль, функция(obj, tenant))»; помощник импортируется лениво, незнакомое имя — в
+#: журнал без вызова
+_PROBES = {"map_point": ("apps.events.services", "map_point")}
+#: ревью M5: видно ли поле в форме объекта этого бизнеса — «вид → (модуль, функция(tenant,
+#: имя поля, объект|None))»; вида нет в реестре — видны все поля
+_FORM_GATES = {"product": ("apps.catalog.form_flags", "field_shown")}
 
 
 def content_part(
@@ -215,6 +235,7 @@ def content_part(
         "summary": str(selected.get("summary") or selected.get("label") or section.label),
         "note": "",
         "woher": "",
+        "woher_list": {},
         "filled": "",
         "visibility": "",
         "actions": "",
@@ -284,9 +305,12 @@ def _source_content(
             return
         content["visibility"] = _NOT_FOR_KIND % {"all": words["all"]}
         return
-    content["woher"], content["filled"] = _content_woher(source, host, key, kind, obj, words)
+    tenant = getattr(request, "tenant", None)
+    content["woher"], content["filled"], content["woher_list"] = _content_woher(
+        source, host, key, kind, obj, words, tenant
+    )
     content["visibility"], content["actions"] = _content_visibility(
-        selected, source, module, key, bool(kind), words, getattr(request, "tenant", None)
+        selected, source, module, key, bool(kind), words, tenant
     )
     if source.kind == "field" and obj is not None and back is None:
         logger.error("window_parts: object of %s/%s has no form link - no link", host, key)
@@ -297,13 +321,20 @@ def _source_content(
         content["more_links"] = _more_links(source, host, key, request)
 
 
-def _content_woher(source, host: str, key: str, kind: str, obj, words: dict) -> tuple[str, str]:
-    """(«Woher», «заполнено ли» у объекта). У поля — подпись поля и слово вида объекта."""
+def _content_woher(
+    source, host: str, key: str, kind: str, obj, words: dict, tenant=None
+) -> tuple[str, str, dict]:
+    """(«Woher», «заполнено ли» у объекта, список полей). У поля — подпись поля и слово вида
+    объекта; M5d-8: у раздела из нескольких полей (`SourceField`) — список (`_woher_list`),
+    фраза тогда пустая."""
     from apps.core import site_schema
 
     only_if = str(source.only_if or "")
     if source.kind != "field":
-        return " ".join(t for t in (str(source.woher or ""), only_if) if t), ""
+        return " ".join(t for t in (str(source.woher or ""), only_if) if t), "", {}
+    woher_list = _woher_list(source, host, key, kind, obj, words, tenant)
+    if woher_list:
+        return "", woher_list.pop("filled"), woher_list
     label = str(source.field_label or "") or site_schema.object_field_label(
         site_schema.word_kind(host), source.field
     )
@@ -311,13 +342,232 @@ def _content_woher(source, host: str, key: str, kind: str, obj, words: dict) -> 
         logger.error(
             "window_parts: field source of %s/%s has no field label or object words", host, key
         )
-        return str(source.woher or ""), ""
+        return str(source.woher or ""), "", {}
     if kind and "this" in words:
         base = _FIELD_THIS % {"field": label, "this": words["this"]}
         filled = _filled(obj, source.fields, host, key)
-        return (f"{base} {filled}" if filled else f"{base}."), filled
+        return (f"{base} {filled}" if filled else f"{base}."), filled, {}
     woher = _FIELD_EVERY % {"field": label, "every": words["every"]}
-    return " ".join(t for t in (woher, only_if) if t), ""
+    return " ".join(t for t in (woher, only_if) if t), "", {}
+
+
+def _woher_list(source, host: str, key: str, kind: str, obj, words: dict, tenant) -> dict:
+    """M5d-8: «Woher» раздела из нескольких полей — `{intro, items, after, filled}`, пункт —
+    `{text, sub, icon}`. У типа — группы по вкладкам формы (у 3+ полей — `sub`, вложенный
+    список), «когда появляется» — `after`; у объекта — каждое поле со словом «ausgefüllt» или
+    «leer» и итог «N von M». Пункт есть, если поле видно в форме бизнеса или заполнено (§9 №6);
+    пункт одного вида (`SourceField.kinds`) — только у него, у общего типа — с пометкой вида.
+    Меньше двух пунктов или подписи нет — {} (прежняя фраза). Без запросов: поля объекта и
+    бизнеса, пробы и гейт формы — лениво из закрытых реестров."""
+    from apps.core import detail_sections
+
+    fields = [f for f in source.fields if isinstance(f, detail_sections.SourceField)]
+    is_object = bool(kind)
+    if not fields or (is_object and obj is None):
+        return {}
+    if ("this" if is_object else "every") not in words:
+        return {}
+    shown = []
+    for sf in fields:
+        if is_object and sf.kinds and kind not in sf.kinds:
+            continue
+        text = _sf_text(sf, host, key, kind)
+        if not text:
+            return {}  # подписи нет — ошибка в журнале; прежняя фраза раздела
+        state = _sf_state(obj, sf, host, key, tenant) if is_object else None
+        if not state and not _form_shown(host, kind, tenant, sf, obj if is_object else None):
+            continue
+        if not is_object and len(sf.kinds) == 1:
+            note = detail_sections.KIND_ONLY.get(sf.kinds[0], "")
+            text = f"{text} {note}" if note else text
+        shown.append((sf, text, state))
+    if len(shown) < 2:
+        return {}
+    if not is_object:
+        return {
+            "intro": str(_LIST_EVERY % {"every": words["every"]}),
+            "items": _type_items(shown),
+            "after": str(source.only_if or ""),
+            "filled": "",
+        }
+    known = [state for _sf, _text, state in shown if state is not None]
+    n = sum(1 for state in known if state)
+    return {
+        "intro": str(_LIST_THIS % {"this": words["this"], "n": n, "m": len(known)}),
+        "items": [_object_item(sf, text, state, host, key, kind) for sf, text, state in shown],
+        "after": "",
+        "filled": (str(_FILLED) if n else str(_EMPTY)) if known else "",
+    }
+
+
+def _type_items(shown: list) -> list[dict]:
+    """Пункты строки типа: поля одной вкладки и подраздела — одной группой («Formular, Reiter
+    „…“, Abschnitt „…“:»), у 3+ полей — вложенным списком; поле без вкладки — само по себе."""
+    items, groups = [], {}
+    for sf, text, _state in shown:
+        if not sf.tab:
+            items.append({"text": text, "sub": [], "icon": ""})
+            continue
+        group_key = (str(sf.tab), str(sf.section or ""))
+        if group_key not in groups:
+            groups[group_key] = {"text": "", "sub": [], "icon": ""}
+            items.append(groups[group_key])
+        groups[group_key]["sub"].append(text)
+    for (tab, part), group in groups.items():
+        if part:
+            head = str(_GROUP_SECTION % {"tab": tab, "section": part})
+        else:
+            head = str(_GROUP_TAB % {"tab": tab})
+        if len(group["sub"]) < _NESTED_FROM:
+            group["text"], group["sub"] = f"{head} {', '.join(group['sub'])}", []
+        else:
+            group["text"] = head
+    return items
+
+
+def _object_item(sf, text: str, state, host: str, key: str, kind: str) -> dict:
+    """Пункт строки объекта: «„X“ — ausgefüllt» / «— leer» словом, значок — украшение;
+    состояние неизвестно (ошибка в журнале) — подпись без слова и значка."""
+    if state is None:
+        return {"text": text, "sub": [], "icon": ""}
+    icon = _ICONS[bool(state)]
+    if sf.quote and sf.min_items <= 1 and not sf.args:
+        word = _ITEM_FILLED if state else _ITEM_EMPTY
+        return {
+            "text": str(word % {"field": _sf_plain(sf, host, key, kind)}),
+            "sub": [],
+            "icon": icon,
+        }
+    # подпись-фраза («… — ab dem zweiten Foto», точка карты): слово — то же, что у раздела
+    word = str(_FILLED if state else _EMPTY).rstrip(".")
+    return {"text": f"{text} {word}", "sub": [], "icon": icon}
+
+
+def _sf_plain(sf, host: str, key: str, kind: str) -> str:
+    """Подпись поля без кавычек и добавок: `label` (словарь — по виду объекта, "" — у общего
+    типа) либо подпись поля формы (`site_schema.object_field_label`); "" — подписи нет."""
+    from apps.core import site_schema
+
+    label = sf.label
+    if isinstance(label, dict):
+        label = label.get(kind or "", "")
+    if not label and sf.field:
+        label = site_schema.object_field_label(kind or site_schema.word_kind(host), sf.field)
+    if not label:
+        logger.error("window_parts: field %r of %s/%s has no label - no list", sf.path, host, key)
+        return ""
+    text = str(label)
+    if sf.args:
+        text = text % {name: str(value) for name, value in sf.args}
+    return text
+
+
+def _sf_text(sf, host: str, key: str, kind: str) -> str:
+    """Подпись пункта: «„X“» (у общего типа подпись-описание из словаря — без кавычек),
+    «… — ab dem zweiten Foto» у `min_items` 2, подпись-фраза (`quote=False`) — как есть."""
+    from apps.core import detail_sections
+
+    text = _sf_plain(sf, host, key, kind)
+    if not text:
+        return ""
+    if sf.quote and not (isinstance(sf.label, dict) and not kind):
+        text = str(_QUOTED % {"field": text})
+    if sf.min_items > 1:
+        text = str(detail_sections.FROM_SECOND_PHOTO % {"label": text})
+    return text
+
+
+def _form_shown(host: str, kind: str, tenant, sf, obj) -> bool:
+    """Видно ли поле в форме объекта этого бизнеса (`_FORM_GATES`); вида в реестре нет или
+    бизнеса нет — видно; сбой — видно (лишний пункт лучше пропавшего), ошибка в журнал."""
+    import importlib
+
+    from apps.core import site_schema
+
+    spec = _FORM_GATES.get(kind or site_schema.word_kind(host))
+    if spec is None or tenant is None:
+        return True
+    try:
+        gate = getattr(importlib.import_module(spec[0]), spec[1])
+        return bool(gate(tenant, sf.path.split(".")[0], obj))
+    except Exception:  # noqa: BLE001 — окно со всеми полями лучше упавшего экрана
+        logger.exception("window_parts: form gate for %r failed - field shown", sf.path)
+        return True
+
+
+def _probe(name: str, obj, tenant, host: str, key: str) -> bool | None:
+    """Ревью M4: «заполнено ли» пробой из закрытого реестра `_PROBES`; незнакомое имя —
+    ошибка в журнал и None («неизвестно») без импорта и вызова; сбой помощника — тоже None."""
+    import importlib
+
+    spec = _PROBES.get(name)
+    if spec is None:
+        logger.error(
+            "window_parts: unknown probe %r of %s/%s - filled state unknown", name, host, key
+        )
+        return None
+    try:
+        helper = getattr(importlib.import_module(spec[0]), spec[1])
+        return bool(helper(obj, tenant))
+    except Exception:  # noqa: BLE001 — окно без состояния пункта лучше упавшего экрана
+        logger.exception("window_parts: probe %r of %s/%s failed - state unknown", name, host, key)
+        return None
+
+
+def _sf_state(obj, sf, host: str, key: str, tenant) -> bool | None:
+    """Заполнено ли поле `sf` у объекта: проба, иначе значение пути (как `_filled`); у
+    `min_items` > 1 — столько заполненных элементов списка. None — неизвестно (в журнал)."""
+    if sf.probe:
+        return _probe(sf.probe, obj, tenant, host, key)
+    ok, value = _path_value(obj, sf.path, host, key)
+    if not ok:
+        return None
+    if sf.min_items > 1:
+        if value is None:
+            return False
+        if not isinstance(value, list | tuple):
+            logger.error(
+                "window_parts: %r of %s/%s is not a list - filled state unknown", sf.path, host, key
+            )
+            return None
+        return sum(1 for item in value if _has_content(item)) >= sf.min_items
+    return _has_content(value)
+
+
+def _path_value(obj, path: str, host: str, key: str) -> tuple[bool, object]:
+    """(прочитано ли, значение) пути `ContentSource.fields`: поле МОДЕЛИ и ключи его словаря
+    через точку. Путь — не поле модели (метод, свойство, связь) или ключ ждёт словарь, а там
+    другое значение — ошибка конфигурации, в журнал, (False, None)."""
+    from django.core.exceptions import FieldDoesNotExist
+
+    head, *rest = str(path).split(".")
+    try:
+        field = getattr(obj, "_meta", None).get_field(head)
+    except (AttributeError, FieldDoesNotExist):
+        field = None
+    if field is None or field.is_relation:
+        logger.error(
+            "window_parts: %r of %s/%s is not a model field of the object - filled state unknown",
+            head,
+            host,
+            key,
+        )
+        return False, None
+    value = getattr(obj, field.attname)
+    for part in rest:
+        if value is None:
+            break  # ключа нет (или поле пустое) — «leer»
+        if not isinstance(value, dict):
+            logger.error(
+                "window_parts: %r of %s/%s - %r is not a dict - filled state unknown",
+                path,
+                host,
+                key,
+                part,
+            )
+            return False, None
+        value = value.get(part)
+    return True, value
 
 
 def _has_content(value) -> bool:
@@ -338,40 +588,12 @@ def _filled(obj, fields, host: str, key: str) -> str:
 
     "" — сказать нечего: полей нет, объекта нет; путь — не поле модели (метод, свойство, связь)
     или ключ ждёт словарь, а там другое значение — ошибка конфигурации, в журнал."""
-    from django.core.exceptions import FieldDoesNotExist
-
     if obj is None or not fields:
         return ""
-    meta = getattr(obj, "_meta", None)
     for path in fields:
-        head, *rest = str(path).split(".")
-        try:
-            field = meta.get_field(head)
-        except (AttributeError, FieldDoesNotExist):
-            field = None
-        if field is None or field.is_relation:
-            logger.error(
-                "window_parts: %r of %s/%s is not a model field of the object"
-                " - filled state unknown",
-                head,
-                host,
-                key,
-            )
+        ok, value = _path_value(obj, str(path), host, key)
+        if not ok:
             return ""
-        value = getattr(obj, field.attname)
-        for part in rest:
-            if value is None:
-                break  # ключа нет (или поле пустое) — «leer»
-            if not isinstance(value, dict):
-                logger.error(
-                    "window_parts: %r of %s/%s - %r is not a dict - filled state unknown",
-                    path,
-                    host,
-                    key,
-                    part,
-                )
-                return ""
-            value = value.get(part)
         if _has_content(value):
             return str(_FILLED)
     return str(_EMPTY)

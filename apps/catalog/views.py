@@ -21,7 +21,7 @@ from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_
 from apps.core.richtext import clean_input
 from apps.inventory.services import log_catalog_change
 
-from . import writers
+from . import form_flags, writers
 from .forms import CategoryForm, ProductForm, move_category_blocks
 from .images import delete_stored_image, save_product_image
 from .models import (
@@ -42,26 +42,12 @@ from .option_styles import MODIFIER_STYLE_KEYS, MODIFIER_STYLES, VARIANT_STYLES
 # apps/core/archetypes.py (его же читает навигация); имя здесь сохранено —
 # на него ссылаются public_views/siteui/тесты.
 FOOD_BUSINESS_TYPES = _FOOD_BUSINESS_TYPES
-# M1 Boutique: типы с текстильной маркировкой (Textilkennzeichnung EU 1007/2011).
-TEXTILE_BUSINESS_TYPES = frozenset({"clothing"})
 
 
 def _product_form_flags(request):
-    """W2: флаги вида формы товара — режим Простой/Эксперт (S5) + гейт пищевой секции.
-    M1 Boutique: текстильная маркировка (material/care) — вкладка Kennzeichnung
-    видна и одежде (W0-инвариант: поля всегда в DOM, скрытие CSS)."""
-    tenant = getattr(request, "tenant", None)
-    bt = getattr(tenant, "business_type", "") or ""
-    show_food = bt in FOOD_BUSINESS_TYPES
-    show_textile = bt in TEXTILE_BUSINESS_TYPES
-    return {
-        "show_food_labeling": show_food,
-        "show_textile_labeling": show_textile,
-        "show_labeling_tab": show_food or show_textile,
-        # KA-12 WR-3 (E3.11): «Marke & Zustand» и UVP — товарная розница/аутлет, не кухня.
-        # Заполненное значение у гастро всё равно видно (шаблон), поля всегда в DOM (W0).
-        "show_retail_fields": not show_food,
-    }
+    """W2: флаги вида формы товара. FB-33 M5d-8 (ревью M5): один источник —
+    `apps/catalog/form_flags.py::product_form_flags` (его же читает окно «Inhalt»)."""
+    return form_flags.product_form_flags(getattr(request, "tenant", None))
 
 
 def _i18n_ctx(form, request):

@@ -60,7 +60,8 @@ FIELDS = {
     "for_whom": ("for_whom_text", ("details.for_whom",)),
     "idea": ("idea", ("details.idea",)),
     "includes": ("includes_text", ("details.includes",)),
-    "venue": ("venue", ("details.venue",)),
+    # FB-33 M5d-8 (E7): «Ort» — поле, фото со второго и точка карты (гейт витрины)
+    "venue": ("venue", ("details.venue", "images", "latitude")),
     "accommodation": ("accommodation_text", ("details.accommodation",)),
     "food": ("food", ("details.food",)),
     "price": (
@@ -70,6 +71,12 @@ FIELDS = {
     "bring": ("bring_text", ("details.bring",)),
     "before_after": ("before_after_text", ("details.before_after",)),
     "certifications": ("certifications_text", ("details.certifications",)),
+}
+#: FB-33 M5d-8 (E7): фразы, которые срез E7 снял из кода (из `.po` их снимает координатор)
+E7_RETIRED = {
+    "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist.",
+    "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der "
+    "Karte liegt.",
 }
 #: «Ablauf» — поле самой формы события (`EventForm.program_text`), в `landing` его нет; у тура
 #: программы нет вовсе — M5d-2b: источник только события (`kinds`), «ausgefüllt» — по
@@ -170,7 +177,7 @@ def test_sources_follow_the_map():
     for key, (field, fields) in FIELDS.items():
         section, source = _section(key), sources[key]
         assert (source.kind, section.content_nav) == ("field", TYPE_LIST), key
-        assert (source.field, source.fields) == (field, fields), key
+        assert (source.field, tuple(str(f) for f in source.fields)) == (field, fields), key
         assert not source.field_label, key  # подпись — из кода формы, копии нет
         assert field in landing.form_fields(), key
     program = sources["program"]
@@ -323,8 +330,10 @@ def test_type_rows_of_special_sources():
         _part_html, ct = _inhalt(tenant, f"?seite=event&block={key}")
         label = str(landing.form_fields()[FIELDS[key][0]].label)
         both = "bei jeder Veranstaltung und Reise"
-        assert ct["woher"].startswith(f"Feld „{label}“ {both}. Erscheint"), key
-        assert ONLY_IF_FILLED not in ct["woher"], key
+        # FB-33 M5d-8 (E7): поля — списком; первое — поле формы события
+        assert ct["woher"] == "" and ct["woher_list"]["intro"] == f"Diese Felder {both}:", key
+        assert ct["woher_list"]["items"][0]["text"] == f"„{label}“", key
+        assert ct["woher_list"]["after"] != ONLY_IF_FILLED, key
     _part_html, ct = _inhalt(tenant, "?seite=event&block=program")
     assert ct["woher"] == f"Feld „{PROGRAM_LABEL}“ bei jeder Veranstaltung. {ONLY_IF_FILLED}"
 
@@ -510,7 +519,7 @@ def test_new_msgids_in_all_po():
         text = path.read_text(encoding="utf-8")
         start = text.index(f"# {ANCHOR}\n")
         block = text[start : text.index("# fb33-stack-anchor-", start + 1)]
-        own = set(re.findall(r'^msgid "(.+)"$', block, re.M))
+        own = set(re.findall(r'^msgid "(.+)"$', block, re.M)) - E7_RETIRED
         assert own and own <= {m.replace('"', '\\"') for m in msgids} | {ANCHOR}, (lang, own)
 
 
