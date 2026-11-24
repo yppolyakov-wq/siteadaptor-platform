@@ -1,0 +1,438 @@
+diff --git a/apps/core/detail_sections.py b/apps/core/detail_sections.py
+index 9b0951b..6b3a1c0 100644
+--- a/apps/core/detail_sections.py
++++ b/apps/core/detail_sections.py
+@@ -58,10 +58,19 @@ class ContentSource:
+     only_if: object = ""
+     #: источник только у строки ОБЪЕКТА: у типа у этой строки своё окно («Ähnliche Produkte»)
+     object_only: bool = False
++    #: FB-33 M5d-2b: ещё экраны-списки для строки ТИПА общего хоста двух видов (события и
++    #: туры: «Inhalt bearbeiten: Reisen») — имена URL записей `nav_registry`; только у раздела
++    #: обоих видов (`DetailSection.only == ""`, без `kinds`), у строки одного объекта не действует
++    more_nav: tuple[str, ...] = ()
++    #: FB-33 M5d-2b: виды объекта, у которых раздел вообще рисуется (пусто — у всех видов хоста);
++    #: у строки объекта другого вида окно говорит, что блока там нет
++    kinds: tuple[str, ...] = ()
+ 
+ 
+ #: FB-33 M5d-2: обычное «когда появляется» раздела-поля
+ ONLY_IF_FILLED = _("Erscheint nur, wenn das Feld ausgefüllt ist.")
++#: FB-33 M5d-2b: второй список общего типа «Veranstaltungen» (`ContentSource.more_nav`)
++_TOURS = ("events:tour-list",)
+ 
+ 
+ @dataclass(frozen=True)
+@@ -118,8 +127,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+     ),
+     # --- events ---
+     # FB-33 M5d-4d: откуда содержимое разделов (окно «Inhalt»). Хост события и тура общий —
+-    # ссылка у типа одна, на список событий; у строки объекта — на его форму. Поля — блоки
+-    # `details` общего редактора (`apps/events/landing.py`, подпись — по имени поля формы).
++    # у типа ссылка на список событий и (M5d-2b, `more_nav`) вторая — на список туров; у строки
++    # объекта — на его форму. Поля — блоки `details` общего редактора
++    # (`apps/events/landing.py`, подпись — по имени поля формы).
+     "events": (
+         DetailSection(
+             "for_whom",
+@@ -132,6 +142,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="for_whom_text",
+                 fields=("details.for_whom",),
+                 only_if=ONLY_IF_FILLED,
++                more_nav=_TOURS,
+             ),
+         ),
+         DetailSection(
+@@ -145,6 +156,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="idea",
+                 fields=("details.idea",),
+                 only_if=ONLY_IF_FILLED,
++                more_nav=_TOURS,
+             ),
+         ),
+         DetailSection(
+@@ -158,10 +170,12 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="includes_text",
+                 fields=("details.includes",),
+                 only_if=ONLY_IF_FILLED,
++                more_nav=_TOURS,
+             ),
+         ),
+-        # «Ablauf» — поле формы СОБЫТИЯ (`EventForm.program_text`), в общем редакторе его нет;
+-        # у тура программы нет (атрибута `program` тоже) — «ausgefüllt» не утверждаем
++        # «Ablauf» — поле формы СОБЫТИЯ (`EventForm.program_text` → `Event.program`), в общем
++        # редакторе его нет. M5d-2b: у тура программы нет вовсе (ни поля, ни вывода — `agenda`
++        # собирает только страница события) — `kinds`: строка одного тура говорит, что блока нет
+         DetailSection(
+             "program",
+             _("Schedule"),
+@@ -171,7 +185,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 "field",
+                 shows=_("den Ablauf als Zeitleiste"),
+                 field_label=_("Ablauf / Programm (ein Punkt pro Zeile)"),
++                fields=("program",),
+                 only_if=ONLY_IF_FILLED,
++                kinds=("event",),
+             ),
+         ),
+         DetailSection(
+@@ -188,6 +204,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                     "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der "
+                     "Ort auf der Karte liegt."
+                 ),
++                more_nav=_TOURS,
+             ),
+         ),
+         DetailSection(
+@@ -201,6 +218,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="accommodation_text",
+                 fields=("details.accommodation",),
+                 only_if=ONLY_IF_FILLED,
++                more_nav=_TOURS,
+             ),
+         ),
+         DetailSection(
+@@ -214,6 +232,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="food",
+                 fields=("details.food",),
+                 only_if=ONLY_IF_FILLED,
++                more_nav=_TOURS,
+             ),
+         ),
+         # сначала — назначенные в форме ведущие (экран «Gastgeber»), иначе блок «Leitung»
+@@ -240,6 +259,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="price_includes_text",
+                 fields=("details.price_includes", "details.price_excludes", "details.price_note"),
+                 only_if=_("Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."),
++                more_nav=_TOURS,
+             ),
+         ),
+         DetailSection(
+@@ -253,6 +273,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="bring_text",
+                 fields=("details.bring",),
+                 only_if=ONLY_IF_FILLED,
++                more_nav=_TOURS,
+             ),
+         ),
+         DetailSection("faq", _("FAQ"), orderable=True),
+@@ -268,6 +289,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="before_after_text",
+                 fields=("details.before_after",),
+                 only_if=ONLY_IF_FILLED,
++                more_nav=_TOURS,
+             ),
+         ),
+         DetailSection(
+@@ -281,6 +303,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
+                 field="certifications_text",
+                 fields=("details.certifications",),
+                 only_if=ONLY_IF_FILLED,
++                more_nav=_TOURS,
+             ),
+         ),
+         # FB-33 M2g: после «Buchung», скрываются на месте (у тура — свой раздел приватного выезда)
+diff --git a/apps/core/site_schema.py b/apps/core/site_schema.py
+index 5cf7fc6..433b329 100644
+--- a/apps/core/site_schema.py
++++ b/apps/core/site_schema.py
+@@ -586,6 +586,28 @@ def word_kind(host: str, only: str = "") -> str:
+     return kind
+ 
+ 
++#: FB-33 M5d-2b: общий хост ДВУХ видов (события и туры) — слова строки ТИПА у раздела, который
++#: есть у обоих («Feld „…“ bei jeder Veranstaltung und Reise»). Не вид объекта: в `OBJECT_WORDS`
++#: не входит, формы «this» нет (у строки одного объекта — слова его вида).
++_SHARED_TYPE_WORDS = {
++    "event_detail": {
++        "every": gettext_lazy("bei jeder Veranstaltung und Reise"),
++        "all": gettext_lazy("bei allen Veranstaltungen und Reisen"),
++    },
++}
++
++
++def object_words(host: str, only: str = "", kinds: tuple = ()) -> dict:
++    """FB-33 M5d-2b: слова вида объекта для строки раздела (`OBJECT_WORDS`). `only` — чей раздел
++    на общем хосте (`DetailSection.only`), `kinds` — у каких видов он рисуется
++    (`ContentSource.kinds`). Раздел обоих видов на общем типе событий и туров — слова обоих
++    видов; раздел одного вида и строка одного объекта — слова своего вида. {} — слов нет."""
++    one = only or (kinds[0] if len(kinds) == 1 else "")
++    if not one and host in _SHARED_TYPE_WORDS:
++        return _SHARED_TYPE_WORDS[host]
++    return OBJECT_WORDS.get(word_kind(host, one), {})
++
++
+ #: Адрес витрины объекта, у которого он не строится по pk маршрутом типа: (маршрут, поле).
+ #: FB-33 M3-9a: и образец типа «Kategorie» — по pk его адрес ловил маршрут товара (404).
+ _OBJECT_PREVIEW_ROUTES = {
+diff --git a/apps/core/site_schema_views.py b/apps/core/site_schema_views.py
+index 5925fab..b32bae4 100644
+--- a/apps/core/site_schema_views.py
++++ b/apps/core/site_schema_views.py
+@@ -427,8 +427,11 @@ def site_schema_view(request):
+         )
+         if moved:
+             keep["tab"] = goto
+-        if op in aufbau_draft.WINDOW_OPS and ref:
+-            # FB-33 M5c-3 (a11y B4): после «Fertig» «＋ Block» остаётся под этой строкой
++        if (op in aufbau_draft.WINDOW_OPS or op == "revert") and ref:
++            # FB-33 M5c-3 (a11y B4): после «Fertig» «＋ Block» остаётся под этой строкой.
++            # M5d-2b: и после «Abbrechen» — по `zuletzt` список «Ausgeblendet» остаётся раскрытым
++            # у скрытой строки (фокус на её ссылку ставит `aufbau.js`); якоря нет — сообщение
++            # об отмене стоит вверху страницы
+             keep["zuletzt"] = ref
+         target = _url(code, "" if closed else ref, keep)
+         if op in aufbau_draft.WINDOW_OPS and ref:
+diff --git a/apps/core/window_parts.py b/apps/core/window_parts.py
+index a9b1515..b17019a 100644
+--- a/apps/core/window_parts.py
++++ b/apps/core/window_parts.py
+@@ -146,6 +146,9 @@ _FILLED = gettext_lazy("— ausgefüllt.")
+ _EMPTY = gettext_lazy("— leer.")
+ _FIELD_EVERY = gettext_lazy("Feld „%(field)s“ %(every)s.")
+ _FIELD_THIS = gettext_lazy("Feld „%(field)s“ %(this)s")
++#: FB-33 M5d-2b: раздел рисуется не у этого вида объекта (`ContentSource.kinds`) — вместо
++#: видимости; «all» — слова вида строки («bei allen Reisen»)
++_NOT_FOR_KIND = gettext_lazy("%(all)s wird dieser Block nicht gezeigt.")
+ 
+ 
+ def content_part(
+@@ -161,7 +164,7 @@ def content_part(
+     """Часть окна «Inhalt» у строки раздела: что блок показывает, откуда содержимое и где оно
+     правится. Описание — в реестре (`DetailSection.content_nav` и `.source`, своих списков
+     здесь нет): `selected["content"] = {summary, note, woher, filled, visibility, actions,
+-    fixed, link, reason, screen, sourced}`.
++    fixed, link, more_links, reason, screen, sourced}`.
+ 
+     Без `source` — неподвижная строка G2 (M5d-1): сводка — `summary` строки (пусто — подпись),
+     ссылка `{"label", "url", "only_here"}` — запись `nav_registry`. С `source` (M5d-2,
+@@ -173,6 +176,10 @@ def content_part(
+     - `page` — редактор страницы (`content_pages.edit_url_for_code(code)`), подпись
+       «Seiten › <имя>»;
+     - `auto` — без ссылки.
++    M5d-2b: у строки ТИПА общего хоста двух видов (события и туры) раздел обоих видов даёт ещё
++    ссылки `more_links` (`[{"label", "url"}]`, записи `source.more_nav`) — только открытые этому
++    пользователю, закрытая — без причины. Раздел рисуется не у вида этой строки объекта
++    (`source.kinds`) — одна фраза в `visibility`, без «Woher», ссылки и действий.
+     Имя объекта и страницы в подписи — в `<span lang>`, когда язык содержимого не язык
+     интерфейса. Видимость и действия — из флагов строки (`enabled`, `can_hide`, `can_up`,
+     `can_down`, `pinned`) и её `summary` у объекта — без запросов; «bei allen …» — только у
+@@ -213,6 +220,7 @@ def content_part(
+         "actions": "",
+         "fixed": bool(selected.get("pinned")),
+         "link": None,
++        "more_links": [],
+         "reason": "",
+         "screen": "",
+         "sourced": False,
+@@ -259,7 +267,7 @@ def _source_content(
+             back = site_schema.object_back(f"{kind}@{host}", obj)
+         if obj is None:
+             logger.error("window_parts: no object for the content of %s/%s - no link", host, key)
+-    words = site_schema.OBJECT_WORDS.get(site_schema.word_kind(host, section.only), {})
++    words = site_schema.object_words(host, section.only, source.kinds)
+     # ревью M5d-2: сводка строки (`selected["summary"]`) здесь не годится — у строки объекта
+     # это её статус («Standard: sichtbar», «nur hier ausgeblendet»)
+     shows = str(source.shows or "")
+@@ -268,16 +276,25 @@ def _source_content(
+     else:
+         content["summary"] = str(section.label)
+     content["note"] = str(source.note or "")
++    content["sourced"] = True
++    if kind and source.kinds and kind not in source.kinds:
++        # M5d-2b: у этого вида объекта раздел не рисуется — править и скрывать здесь нечего
++        if "all" not in words:
++            logger.error("window_parts: no object words for %s/%s - no visibility", host, key)
++            return
++        content["visibility"] = _NOT_FOR_KIND % {"all": words["all"]}
++        return
+     content["woher"], content["filled"] = _content_woher(source, host, key, kind, obj, words)
+     content["visibility"], content["actions"] = _content_visibility(
+         selected, source, module, key, bool(kind), words, getattr(request, "tenant", None)
+     )
+     if source.kind == "field" and obj is not None and back is None:
+         logger.error("window_parts: object of %s/%s has no form link - no link", host, key)
+-    content["sourced"] = True
+     content["link"], content["reason"], content["screen"] = _content_link(
+         section, source, host, request, code, kind, back if obj is not None else None, page_label
+     )
++    if not kind and not section.only and not source.kinds:
++        content["more_links"] = _more_links(source, host, key, request)
+ 
+ 
+ def _content_woher(source, host: str, key: str, kind: str, obj, words: dict) -> tuple[str, str]:
+@@ -390,6 +407,39 @@ def _content_visibility(
+     return str(_VISIBLE), actions
+ 
+ 
++def _more_links(source, host: str, key: str, request) -> list[dict]:
++    """M5d-2b: ещё ссылки строки ТИПА общего хоста двух видов (`ContentSource.more_nav`) —
++    `[{"label", "url"}]` по записям `nav_registry`. Экран закрыт этому пользователю — ссылки
++    нет и причины нет (первая ссылка говорит сама за себя); записи нет или адрес не строится —
++    ошибка в журнал."""
++    from django.urls import NoReverseMatch, reverse
++
++    from apps.core import nav_registry
++
++    links = []
++    for url_name in source.more_nav:
++        entry = nav_registry.entry_by_url(url_name)
++        if entry is None:
++            logger.error(
++                "window_parts: no nav entry %r for the content of %s/%s - no link",
++                url_name,
++                host,
++                key,
++            )
++            continue
++        try:
++            if nav_registry.screen_closed(request, url_name):
++                continue
++            links.append({"label": str(entry.label), "url": reverse(entry.url_name) + entry.query})
++        except NoReverseMatch:
++            logger.error("window_parts: nav entry %r does not reverse - no content link", url_name)
++        except Exception:  # noqa: BLE001 — окно без второй ссылки лучше упавшего экрана
++            logger.exception(
++                "window_parts: content link for %r failed (%s/%s) - no link", url_name, host, key
++            )
++    return links
++
++
+ def _closed_reason(closed: str, host: str, key: str) -> str:
+     """Видимая причина по ответу `nav_registry.screen_closed`; кода нет в `_CLOSED_REASONS` —
+     ссылки всё равно нет (экран закрыт), пустая причина — с ошибкой в журнале."""
+diff --git a/locale/de/LC_MESSAGES/django.po b/locale/de/LC_MESSAGES/django.po
+index 49cd8f3..350012b 100644
+--- a/locale/de/LC_MESSAGES/django.po
++++ b/locale/de/LC_MESSAGES/django.po
+@@ -40232,6 +40232,19 @@ msgstr "bei jedem Beitrag"
+ msgid "bei allen Beiträgen"
+ msgstr "bei allen Beiträgen"
+ 
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei jeder Veranstaltung und Reise"
++msgstr "bei jeder Veranstaltung und Reise"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei allen Veranstaltungen und Reisen"
++msgstr "bei allen Veranstaltungen und Reisen"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++#, python-format
++msgid "%(all)s wird dieser Block nicht gezeigt."
++msgstr "%(all)s wird dieser Block nicht gezeigt."
++
+ # fb33-stack-anchor-m5d3
+ msgid "fb33-stack-anchor-m5d3"
+ msgstr "fb33-stack-anchor-m5d3"
+diff --git a/locale/en/LC_MESSAGES/django.po b/locale/en/LC_MESSAGES/django.po
+index 78c969d..48bca13 100644
+--- a/locale/en/LC_MESSAGES/django.po
++++ b/locale/en/LC_MESSAGES/django.po
+@@ -40145,6 +40145,19 @@ msgstr "of every post"
+ msgid "bei allen Beiträgen"
+ msgstr "for all posts"
+ 
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei jeder Veranstaltung und Reise"
++msgstr "of every event and trip"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei allen Veranstaltungen und Reisen"
++msgstr "for all events and trips"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++#, python-format
++msgid "%(all)s wird dieser Block nicht gezeigt."
++msgstr "%(all)s this block is never shown."
++
+ # fb33-stack-anchor-m5d3
+ msgid "fb33-stack-anchor-m5d3"
+ msgstr "fb33-stack-anchor-m5d3"
+diff --git a/locale/ru/LC_MESSAGES/django.po b/locale/ru/LC_MESSAGES/django.po
+index c127c84..0325c0f 100644
+--- a/locale/ru/LC_MESSAGES/django.po
++++ b/locale/ru/LC_MESSAGES/django.po
+@@ -40496,6 +40496,19 @@ msgstr "у каждой записи"
+ msgid "bei allen Beiträgen"
+ msgstr "у всех записей"
+ 
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei jeder Veranstaltung und Reise"
++msgstr "у каждого мероприятия и тура"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei allen Veranstaltungen und Reisen"
++msgstr "у всех мероприятий и туров"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++#, python-format
++msgid "%(all)s wird dieser Block nicht gezeigt."
++msgstr "%(all)s этот блок не показывается."
++
+ # fb33-stack-anchor-m5d3
+ msgid "fb33-stack-anchor-m5d3"
+ msgstr "fb33-stack-anchor-m5d3"
+diff --git a/locale/tr/LC_MESSAGES/django.po b/locale/tr/LC_MESSAGES/django.po
+index 83ba4d0..6a173bc 100644
+--- a/locale/tr/LC_MESSAGES/django.po
++++ b/locale/tr/LC_MESSAGES/django.po
+@@ -40292,6 +40292,19 @@ msgstr "her yazıda"
+ msgid "bei allen Beiträgen"
+ msgstr "tüm yazılarda"
+ 
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei jeder Veranstaltung und Reise"
++msgstr "her etkinlikte ve turda"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei allen Veranstaltungen und Reisen"
++msgstr "tüm etkinliklerde ve turlarda"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++#, python-format
++msgid "%(all)s wird dieser Block nicht gezeigt."
++msgstr "%(all)s bu blok gösterilmez."
++
+ # fb33-stack-anchor-m5d3
+ msgid "fb33-stack-anchor-m5d3"
+ msgstr "fb33-stack-anchor-m5d3"
+diff --git a/locale/uk/LC_MESSAGES/django.po b/locale/uk/LC_MESSAGES/django.po
+index 0b0e709..9e0d41f 100644
+--- a/locale/uk/LC_MESSAGES/django.po
++++ b/locale/uk/LC_MESSAGES/django.po
+@@ -40483,6 +40483,19 @@ msgstr "у кожного допису"
+ msgid "bei allen Beiträgen"
+ msgstr "у всіх дописів"
+ 
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei jeder Veranstaltung und Reise"
++msgstr "у кожного заходу й туру"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++msgid "bei allen Veranstaltungen und Reisen"
++msgstr "у всіх заходів і турів"
++
++#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
++#, python-format
++msgid "%(all)s wird dieser Block nicht gezeigt."
++msgstr "%(all)s цей блок не показується."
++
+ # fb33-stack-anchor-m5d3
+ msgid "fb33-stack-anchor-m5d3"
+ msgstr "fb33-stack-anchor-m5d3"
+diff --git a/templates/tenant/_bw_inhalt.html b/templates/tenant/_bw_inhalt.html
+index 13d9110..899823c 100644
+--- a/templates/tenant/_bw_inhalt.html
++++ b/templates/tenant/_bw_inhalt.html
+@@ -1,8 +1,9 @@
+-{% load i18n %}{% comment %}FB-33 M5d-1 (макет M5dWindow, вариант A) / M5d-2: что показывает строка раздела и где правится её содержимое (apps/core/window_parts.py::content_part; экран и подпись — запись nav_registry по DetailSection.content_nav, источник — DetailSection.source). Порядок (a11y Y1): «Dieser Block zeigt» → dl «Woher» / «Auf der Seite» (только при источнике; у G2 нет) → ссылка или причина → подсказка. Имя ссылки = видимый текст; «nur hier» — отдельной плашкой ПОСЛЕ ссылки (Y3); экран закрыт (право, модуль, пакет) — причина одним абзацем без ссылки (Y6). «🔒 fest» и фраза про «fest» — только у закреплённой строки (Y5); значок целиком aria-hidden: «fest» уже в заголовке окна и во фразе. Без «Platz», «Vorschau» и переключателей; без скриптов — та же колонка. Ревью M5d-2 (a11y M3, M4), только при источнике (`ct.sourced`; вывод G2 прежний байт-в-байт): подпись ссылки — одним `<span>` (ссылка — `inline-flex`: текст и вложенный `<span lang>` иначе разные flex-элементы, пробел между ними пропадает — «Seiten ›Über uns»); абзацы ссылки и причины — `break-words` (длинное имя объекта без пробелов).{% endcomment %}{% with ct=selected.content %}
++{% load i18n %}{% comment %}FB-33 M5d-1 (макет M5dWindow, вариант A) / M5d-2: что показывает строка раздела и где правится её содержимое (apps/core/window_parts.py::content_part; экран и подпись — запись nav_registry по DetailSection.content_nav, источник — DetailSection.source). Порядок (a11y Y1): «Dieser Block zeigt» → dl «Woher» / «Auf der Seite» (только при источнике; у G2 нет) → ссылка или причина → подсказка. Имя ссылки = видимый текст; «nur hier» — отдельной плашкой ПОСЛЕ ссылки (Y3); экран закрыт (право, модуль, пакет) — причина одним абзацем без ссылки (Y6). «🔒 fest» и фраза про «fest» — только у закреплённой строки (Y5); значок целиком aria-hidden: «fest» уже в заголовке окна и во фразе. Без «Platz», «Vorschau» и переключателей; без скриптов — та же колонка. Ревью M5d-2 (a11y M3, M4), только при источнике (`ct.sourced`; вывод G2 прежний байт-в-байт): подпись ссылки — одним `<span>` (ссылка — `inline-flex`: текст и вложенный `<span lang>` иначе разные flex-элементы, пробел между ними пропадает — «Seiten ›Über uns»); абзацы ссылки и причины — `break-words` (длинное имя объекта без пробелов). M5d-2b: `ct.more_links` — ещё ссылки строки ТИПА общего хоста двух видов («Inhalt bearbeiten: Reisen»), тем же видом, каждая своим абзацем после первой; пометка `data-inhalt-more`.{% endcomment %}{% with ct=selected.content %}
+ <p class="mt-3 text-sm text-gray-800" data-inhalt-summary>{% blocktrans with summary=ct.summary %}Dieser Block zeigt: {{ summary }}.{% endblocktrans %}{% if ct.note %} {{ ct.note }}{% endif %}</p>
+ {% if ct.fixed %}<p class="mt-2 text-sm text-gray-700"><span class="ui-badge" aria-hidden="true" data-inhalt-fixed>🔒 {% trans "fest" %}</span> {% trans "Er gehört fest zur Seite und lässt sich nicht ausblenden oder verschieben." %}</p>
+ {% endif %}{% if ct.woher or ct.visibility %}<dl class="mt-2 space-y-1 break-words text-sm text-gray-700" data-inhalt-dl>{% if ct.woher %}<div><dt class="inline font-semibold">{% trans "Woher:" %}</dt> <dd class="inline" data-inhalt-woher>{{ ct.woher }}</dd></div>{% endif %}{% if ct.visibility %}<div><dt class="inline font-semibold">{% trans "Auf der Seite:" %}</dt> <dd class="inline" data-inhalt-visibility>{{ ct.visibility }}{% if ct.actions %} {{ ct.actions }}{% endif %}</dd></div>{% endif %}</dl>
+ {% endif %}{% if ct.link %}<p class="mt-3{% if ct.sourced %} break-words{% endif %}"><a href="{{ ct.link.url }}" class="font-semibold text-indigo-700 underline underline-offset-2 hover:text-indigo-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" data-inhalt-link>{% if ct.sourced %}<span>{% endif %}{% blocktrans with screen=ct.link.label %}Inhalt bearbeiten: {{ screen }}{% endblocktrans %}{% if ct.sourced %}</span>{% endif %}</a>{% if ct.link.only_here %} <span class="ui-badge" data-inhalt-only-here>{% trans "nur hier" %}</span>{% endif %}</p>
+ {% elif ct.reason %}<p class="mt-3{% if ct.sourced %} break-words{% endif %} text-sm font-semibold text-gray-800" data-inhalt-reason>{% if ct.screen %}{% blocktrans with screen=ct.screen reason=ct.reason %}Inhalt bearbeiten: {{ screen }} — {{ reason }}{% endblocktrans %}{% else %}{{ ct.reason }}{% endif %}</p>
+-{% endif %}<p class="mt-3 text-xs text-gray-700" data-inhalt-hint>{% trans "Eigene Blöcke darüber oder darunter fügen Sie mit „Block hinzufügen“ in der Liste ein." %}</p>
++{% endif %}{% for more in ct.more_links %}<p class="mt-2 break-words"><a href="{{ more.url }}" class="font-semibold text-indigo-700 underline underline-offset-2 hover:text-indigo-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" data-inhalt-link data-inhalt-more><span>{% blocktrans with screen=more.label %}Inhalt bearbeiten: {{ screen }}{% endblocktrans %}</span></a></p>
++{% endfor %}<p class="mt-3 text-xs text-gray-700" data-inhalt-hint>{% trans "Eigene Blöcke darüber oder darunter fügen Sie mit „Block hinzufügen“ in der Liste ein." %}</p>
+ {% endwith %}
