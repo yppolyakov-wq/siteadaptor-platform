@@ -95,16 +95,6 @@ def put_title(config: dict, text) -> None:
                 node.pop("section_titles")
 
 
-def title_conflict_note(rejected: str) -> str:
-    """Заголовок успели изменить в другом месте — правка окна не записана (её текст — в
-    сообщении, ревью a11y M4: набранное не теряется)."""
-    note = _(
-        "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde "
-        "nicht gespeichert."
-    )
-    return f"{note} „{rejected}“" if rejected else note
-
-
 def fingerprint(items) -> str:
     """Отпечаток списка вопросов (только тексты, порядок важен)."""
     rows = [[_s((i or {}).get("q")), _s((i or {}).get("a"))] for i in items or ()]
