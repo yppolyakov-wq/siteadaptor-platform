@@ -40775,10 +40775,6 @@ msgstr[1] "Lütfen %(n)s bilgiyi düzeltin."
 msgid "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
 msgstr "Web sitesindeki tüm SSS bloklarında geçerlidir. Standart başlık için boş bırakın."
 
-#: apps/core/aufbau_draft.py
-msgid "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
-msgstr "Başlık bu arada başka bir yerde değiştirildi – sizin sürümünüz kaydedilmedi."
-
 #: apps/core/detail_sections.py
 msgid "Die ersten Fotos der Galerie Ihrer Website."
 msgstr "Web sitenizin galerisindeki ilk fotoğraflar."

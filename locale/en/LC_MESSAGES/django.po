@@ -40628,10 +40628,6 @@ msgstr[1] "Please correct %(n)s entries."
 msgid "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
 msgstr "Applies to all FAQ blocks of the website. Leave empty for the default heading."
 
-#: apps/core/aufbau_draft.py
-msgid "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
-msgstr "The heading was changed elsewhere in the meantime – your version was not saved."
-
 #: apps/core/detail_sections.py
 msgid "Die ersten Fotos der Galerie Ihrer Website."
 msgstr "The first photos of your website's gallery."

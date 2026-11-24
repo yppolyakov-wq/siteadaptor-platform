@@ -37,7 +37,8 @@ pytestmark = pytest.mark.django_db
 
 ROOT = Path(__file__).resolve().parents[3]
 HINT = "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
-CONFLICT = (
+#: строка P0b, снятая после правок ревью (конфликт заголовка — общий `DraftConflict`): в `.po` её нет
+RETIRED_CONFLICT = (
     "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht "
     "gespeichert."
 )
@@ -370,9 +371,10 @@ def test_e5_msgids_in_all_po():
     """№16: строки среза — во всех пяти каталогах, с переводом."""
     for loc in LOCALES:
         po = polib.pofile(str(ROOT / "locale" / loc / "LC_MESSAGES" / "django.po"))
-        for msgid in (HINT, CONFLICT, "Überschrift"):
+        for msgid in (HINT, "Überschrift"):
             entry = po.find(msgid)
             assert entry is not None and entry.msgstr and not entry.obsolete, (loc, msgid)
+        assert po.find(RETIRED_CONFLICT) is None, loc
 
 
 def test_inline_path_rejects_faq_title():

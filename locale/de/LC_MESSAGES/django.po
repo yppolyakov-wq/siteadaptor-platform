@@ -40715,10 +40715,6 @@ msgstr[1] "Bitte %(n)s Angaben korrigieren."
 msgid "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
 msgstr "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
 
-#: apps/core/aufbau_draft.py
-msgid "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
-msgstr "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
-
 #: apps/core/detail_sections.py
 msgid "Die ersten Fotos der Galerie Ihrer Website."
 msgstr "Die ersten Fotos der Galerie Ihrer Website."

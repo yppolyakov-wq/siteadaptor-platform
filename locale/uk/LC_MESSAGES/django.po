@@ -40972,10 +40972,6 @@ msgstr[3] "Виправте %(n)s поля."
 msgid "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
 msgstr "Діє для всіх блоків FAQ сайту. Залиште порожнім — буде стандартний заголовок."
 
-#: apps/core/aufbau_draft.py
-msgid "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
-msgstr "Заголовок тим часом змінили в іншому місці — ваш варіант не збережено."
-
 #: apps/core/detail_sections.py
 msgid "Die ersten Fotos der Galerie Ihrer Website."
 msgstr "Перші фото галереї вашого сайту."
