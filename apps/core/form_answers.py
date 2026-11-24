@@ -204,11 +204,15 @@ def _filled_raw(post, key: str) -> str:
     return _INVISIBLE.sub("", raw).strip() if isinstance(raw, str) else ""
 
 
-def dropped(questions: list[dict], post, prefix: str = "") -> list[str]:
+def dropped(
+    questions: list[dict], post, prefix: str = "", answers: dict | None = None
+) -> list[str]:
     """FB-33 D1: id ключей POST вида `q<n>` (ровно, `fullmatch`: `q1` ≠ `q10`, `q5\\n` — не id)
     с непустым значением, которые не легли ответом в `collect`: вопроса нет или значение
-    негодно (выбор вне вариантов, битое число/дата). Порядок — по номеру."""
-    answers = collect(questions, post, prefix)
+    негодно (выбор вне вариантов, битое число/дата). Порядок — по номеру. `answers` — уже
+    собранный `collect` (вызывающий его знает — второй разбор не нужен)."""
+    if answers is None:
+        answers = collect(questions, post, prefix)
     out = []
     for key in post.keys() if hasattr(post, "keys") else ():
         if not isinstance(key, str) or not key.startswith(prefix):
@@ -232,8 +236,9 @@ def answers_for_deal(questions: list[dict], post, *, kind: str, next_id, prefix:
     * выбор вне текущих вариантов — подпись вопроса и `"stale": "changed"`.
     Битые число и дата — ошибка ввода гостя, не правка владельца: не хранятся. Всё, что не
     легло обычным ответом, — строка INFO с id и числом, без значений (ПДн)."""
-    out = snapshot(questions, collect(questions, post, prefix))
-    lost = dropped(questions, post, prefix)
+    answers = collect(questions, post, prefix)
+    out = snapshot(questions, answers)
+    lost = dropped(questions, post, prefix, answers)
     if not lost:
         return out
     try:
