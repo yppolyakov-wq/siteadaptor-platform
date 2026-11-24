@@ -121,6 +121,8 @@ def test_gallery_link_target_200_when_empty():
     html = resp.content.decode()
     assert 'var BLD_OPEN_BLOCK = "gallery";' in html
     assert 'name="action" value="upload_gallery"' in html
+    # строка секции, которую открывает `openBlockPopup("gallery")` (ревью E6 LOW 1)
+    assert 'name="order_gallery"' in html
 
 
 def test_gallery_palette_card_target_exists():

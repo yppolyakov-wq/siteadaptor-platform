@@ -70,7 +70,7 @@ LINK_LABELS = {
 #: FB-33 стопка 14 E6: у этих экранов запись реестра одна и с query (вход, а не сам экран)
 QUERY_ONLY = {"site-home": "?page=%2F&block=gallery"}
 #: FB-33 стопка 14 E6: «Woher» у «Beispiele» сменился — прежняя строка остаётся под якорем
-#: среза в `.po` (каталоги правит координатор), источником её больше нет
+#: среза в `.po` (каталоги правит координатор), источником её больше нет; снять вместе с ней из `.po`
 RETIRED_MSGIDS = {"automatisch — die ersten Fotos der Galerie Ihrer Website."}
 
 
