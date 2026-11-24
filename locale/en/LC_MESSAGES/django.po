@@ -40471,8 +40471,8 @@ msgstr "the items the customer has put in the cart — with quantity and price"
 msgid "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
 msgstr "automatically — from the customer's cart. Nothing to maintain."
 
-msgid "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
-msgstr "the confirmation after the purchase — number, items, total, payment"
+msgid "die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung"
+msgstr "the customer's confirmation — number, items, total, payment"
 
 msgid "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."
 msgstr "Applies to orders, appointments, rooms, tickets and tables."

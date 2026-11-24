@@ -515,7 +515,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
             hideable=False,
             source=ContentSource(
                 kind="auto",
-                shows=_("die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"),
+                shows=_("die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung"),
                 note=_("Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."),
                 woher=_("automatisch — aus der Bestellung oder Buchung."),
             ),

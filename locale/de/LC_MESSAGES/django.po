@@ -40558,8 +40558,8 @@ msgstr "die Artikel, die der Kunde in den Warenkorb gelegt hat — mit Menge und
 msgid "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
 msgstr "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
 
-msgid "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
-msgstr "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
+msgid "die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung"
+msgstr "die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung"
 
 msgid "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."
 msgstr "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."

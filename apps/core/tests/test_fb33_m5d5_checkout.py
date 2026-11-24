@@ -9,7 +9,7 @@
 Отступления от артборда: ссылка «Empfehlungen» — «Sortiment» (записи «Produkte» в навигации
 нет, ответ владельца §11); у скрытой строки — текст ядра «Schließen Sie das Fenster; dann
 „Einblenden“ unter „Ausgeblendet“.» (§11); начало фразы «Bestätigung» в плане опущено («…») —
-«die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung».
+«die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung».
 """
 
 import re
@@ -49,7 +49,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 SHOWS_ITEMS = "die Artikel, die der Kunde in den Warenkorb gelegt hat — mit Menge und Preis"
 WOHER_ITEMS = "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
-SHOWS_SUMMARY = "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
+SHOWS_SUMMARY = "die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung"
 NOTE_SUMMARY = "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."
 WOHER_SUMMARY = "automatisch — aus der Bestellung oder Buchung."
 SHOWS_RECOMMEND = (

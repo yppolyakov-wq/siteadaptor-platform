@@ -40809,8 +40809,8 @@ msgstr "товари, які клієнт поклав у кошик, — з к�
 msgid "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
 msgstr "автоматично — з кошика клієнта. Заповнювати нічого не потрібно."
 
-msgid "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
-msgstr "підтвердження після покупки — номер, позиції, суму, оплату"
+msgid "die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung"
+msgstr "підтвердження для клієнта — номер, позиції, суму, оплату"
 
 msgid "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."
 msgstr "Діє для замовлення, запису, номера, квитка та столика."

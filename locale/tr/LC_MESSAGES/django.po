@@ -40618,8 +40618,8 @@ msgstr "müşterinin sepete eklediği ürünleri — adet ve fiyatla"
 msgid "automatisch — aus dem Warenkorb des Kunden. Nichts zu pflegen."
 msgstr "otomatik — müşterinin sepetinden. Bakım gerekmez."
 
-msgid "die Bestätigung nach dem Kauf — Nummer, Positionen, Summe, Zahlung"
-msgstr "satın alma sonrası onayı — numara, kalemler, toplam, ödeme"
+msgid "die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung"
+msgstr "müşterinin onayını — numara, kalemler, toplam, ödeme"
 
 msgid "Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch."
 msgstr "Sipariş, randevu, oda, bilet ve masa için geçerlidir."
