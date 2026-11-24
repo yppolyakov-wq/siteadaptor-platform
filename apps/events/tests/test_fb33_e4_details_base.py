@@ -15,7 +15,9 @@ from pathlib import Path
 
 import polib
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
+from django.http import Http404
 from django.test.utils import CaptureQueriesContext
 
 from apps.events import views
@@ -34,6 +36,12 @@ CONFLICT = (
 MSGIDS = (CONFLICT,)
 # Строку во все пять `.po` пишет координатор на верхушке стопки — тогда снять отметку.
 OWN = [{"q": "Parken?", "a": "Ja."}]
+REVIEW = pytest.mark.xfail(strict=True, reason="FB-33 стопка 14 E4: правки ревью диффа")
+IMG = {"id": "img1", "url": "/media/x.jpg", "is_primary": True}
+GIF = (
+    b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00"
+    b"\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+)
 
 
 @pytest.fixture(autouse=True)
@@ -198,10 +206,19 @@ def test_base_checked_under_lock(kind, monkeypatch):
 def test_conflict_writes_nothing(kind):
     """№10: отказ до записи — ни поля формы, ни `details`, ни свои вопросы, ни маршрут."""
     obj, data = _conflict(kind)
+    _model(kind).objects.filter(pk=obj.pk).update(images=[IMG])
+    data.update(
+        photos=SimpleUploadedFile("neu.gif", GIF, content_type="image/gif"),
+        delete_image="img1",
+        page_override_present="1",
+        ps_layout="tabs",
+    )
     before = _model(kind).objects.get(pk=obj.pk)
     resp = _post(kind, obj, data)
     assert resp.status_code == 200
     fresh = _model(kind).objects.get(pk=obj.pk)
+    assert fresh.images == [IMG]  # ни загрузки, ни удаления
+    assert fresh.page_override == before.page_override
     assert fresh.title == before.title
     assert fresh.details == before.details
     assert fresh.details["idea"] == "Fremd" and fresh.details["faq"] == OWN
@@ -236,6 +253,7 @@ def test_retry_after_conflict_overwrites(kind):
     assert _model(kind).objects.get(pk=obj.pk).details["idea"] == "Meins"
 
 
+@REVIEW
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_logged(kind, caplog):
     """№8: отказ в журнале — схема, вид, pk; без значений полей."""
@@ -243,10 +261,123 @@ def test_conflict_logged(kind, caplog):
     with caplog.at_level(logging.INFO, logger="apps.events.views"):
         _post(kind, obj, data)
     recs = [r for r in caplog.records if r.name == "apps.events.views"]
+    assert all(r.levelno == logging.WARNING for r in recs), "отказ — warning (ревью LOW б)"
     assert recs, "отказ не записан в журнал"
     text = " ".join(r.getMessage() for r in recs)
     assert kind in text and str(obj.pk) in text and connection.schema_name in text
     assert "Meins" not in text and "Fremd" not in text
+
+
+@pytest.mark.parametrize("kind", KINDS)
+def test_second_conflict_in_a_row(kind):
+    """Ревью HIGH-1: после отказа снова чужая правка — POST со свежим отпечатком снова отказ."""
+    obj, data = _conflict(kind)
+    page = _post(kind, obj, data).content.decode()
+    _foreign(obj, idea="Fremd 2")
+    resp = _post(kind, obj, _with_base(dict(data), page))
+    assert resp.status_code == 200
+    assert _model(kind).objects.get(pk=obj.pk).details["idea"] == "Fremd 2"
+
+
+# ───────────── правки ревью диффа (красные) ─────────────
+
+
+def _invalid(kind, data):
+    bad = dict(data)
+    if kind == "event":
+        bad["starts_at"] = "kein Datum"
+    else:
+        bad["title"] = ""
+    return bad
+
+
+@REVIEW
+@pytest.mark.parametrize("kind", KINDS)
+def test_invalid_form_keeps_posted_base(kind):
+    """HIGH-1: невалидная форма перерисовывается с отпечатками ИЗ POST, а не свежими — иначе
+    после исправления поля чужая правка затёрлась бы молча."""
+    from apps.core import object_faq
+
+    obj = _make(kind, {"idea": "Alt", "faq": OWN})
+    page = _get(kind, obj)
+    base = _base_in(page)
+    faq_base = object_faq.fingerprint(obj, kind)
+    _foreign(obj, idea="Fremd", faq=[{"q": "Fremd?", "a": ""}])
+    data = _with_base(_data(kind, obj, idea="Meins", faq_base=faq_base), page)
+    resp = _post(kind, obj, _invalid(kind, data))
+    assert resp.status_code == 200
+    again = resp.content.decode()
+    assert _base_in(again) == base
+    assert f'value="{faq_base}"' in again
+    resp = _post(kind, obj, _with_base(dict(data), again))
+    assert resp.status_code == 200  # отказ
+    assert _model(kind).objects.get(pk=obj.pk).details["idea"] == "Fremd"
+
+
+@REVIEW
+@pytest.mark.parametrize("kind", KINDS)
+def test_conflict_keeps_typed_route_and_layout(kind):
+    """HIGH-2: при отказе маршрут тура и шаблон страницы — как набраны, база не меняется."""
+    obj, data = _conflict(kind)
+    data.update(page_override_present="1", ps_layout="tabs")
+    before = _model(kind).objects.get(pk=obj.pk)
+    page = _post(kind, obj, data).content.decode()
+    assert re.search(r'name="ps_layout" value="tabs" checked', page)
+    fresh = _model(kind).objects.get(pk=obj.pk)
+    assert fresh.page_override == before.page_override
+    if kind == "tour":
+        assert 'value="Meine Etappe"' in page
+        assert fresh.itinerary == before.itinerary
+
+
+@REVIEW
+@pytest.mark.parametrize("kind", KINDS)
+def test_conflict_rows_beyond_limit(kind):
+    """MEDIUM а: сохранённые сверх лимита вопросы (данные до среза) при отказе не режутся."""
+    from apps.core import object_faq
+
+    n = object_faq.KINDS[kind].max_items + 2
+    many = [{"q": f"Frage {i}?", "a": ""} for i in range(n)]
+    obj = _make(kind, {"idea": "Alt", "faq": many})
+    page = _get(kind, obj)
+    _foreign(obj, idea="Fremd")
+    data = _with_base(_data(kind, obj, idea="Meins", faq_present="1"), page)
+    for i, item in enumerate(many):
+        data[f"faq_q_{i}"] = item["q"]
+        data[f"faq_a_{i}"] = ""
+    out = _post(kind, obj, data).content.decode()
+    for item in many:
+        assert f'value="{item["q"]}"' in out or f">{item['q']}<" in out, item
+
+
+@REVIEW
+@pytest.mark.parametrize("kind", KINDS)
+def test_conflict_with_faq_changed_two_messages(kind):
+    """MEDIUM б: вопросы тоже изменены в другом месте — в отказе второе (уже существующее)
+    сообщение `object_faq.form_changed_note`."""
+    from apps.core import object_faq
+
+    obj, data = _conflict(kind)
+    data["faq_base"] = object_faq.fingerprint(obj, kind)
+    _foreign(obj, faq=[{"q": "Fremd?", "a": ""}])
+    page = _post(kind, obj, data).content.decode()
+    assert html.escape(CONFLICT) in page
+    assert html.escape(object_faq.form_changed_note()) in page
+
+
+@REVIEW
+@pytest.mark.parametrize("kind", KINDS)
+def test_deleted_row_404(kind, monkeypatch):
+    """LOW а: строку удалили параллельно (после чтения вьюхи) — 404 до записи, объект не
+    воскресает."""
+    obj = _make(kind, {"idea": "Alt"})
+    page = _get(kind, obj)
+    stale = _model(kind).objects.get(pk=obj.pk)
+    _model(kind).objects.filter(pk=obj.pk).delete()
+    monkeypatch.setattr(views, "get_object_or_404", lambda *a, **k: stale)
+    with pytest.raises(Http404):
+        _post(kind, obj, _with_base(_data(kind, obj, idea="Meins"), page))
+    assert not _model(kind).objects.filter(pk=obj.pk).exists()
 
 
 @pytest.mark.parametrize("kind", KINDS)
