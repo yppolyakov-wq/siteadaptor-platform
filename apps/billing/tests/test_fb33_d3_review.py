@@ -18,7 +18,6 @@ pytestmark = pytest.mark.django_db
 
 ACCOUNT = "acct_d3r"
 SCHEMA = "biz_d3r"
-_RED = pytest.mark.xfail(strict=True, reason="FB-33 D3 ревью: до правки")
 
 
 @pytest.fixture
@@ -54,7 +53,6 @@ def _obj(kind, id_key, deal_id=None, **meta):
     }
 
 
-@_RED
 def test_unbooked_mail_goes_to_tenant_schema_from_webhook(biz, spy):
     webhooks.handle_event(
         "checkout.session.completed", _obj("order_payment", "order_id"), account=ACCOUNT
@@ -62,7 +60,6 @@ def test_unbooked_mail_goes_to_tenant_schema_from_webhook(biz, spy):
     assert spy == [SCHEMA]
 
 
-@_RED
 def test_unbooked_mail_goes_to_tenant_schema_from_deal_balance(biz, spy, monkeypatch):
     from types import SimpleNamespace
 
@@ -85,7 +82,6 @@ def test_unbooked_mail_goes_to_tenant_schema_from_deal_balance(biz, spy, monkeyp
     assert spy and set(spy) == {SCHEMA}
 
 
-@_RED
 def test_metadata_id_in_log_has_no_control_chars(biz, spy, caplog):
     caplog.set_level(logging.INFO)
     obj = _obj("event_ticket", "ticket_id", deal_id="q5\nFAKE LINE")

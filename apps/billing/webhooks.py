@@ -8,6 +8,7 @@
 """
 
 import logging
+import re
 from datetime import UTC, datetime
 
 import stripe
@@ -89,6 +90,12 @@ def _connect_account_ok(meta: dict, account: str) -> bool:
 _LOG_ID_MAX = 64
 
 
+def _log_id(value) -> str:
+    """id из metadata для лога: значение пишет отправитель — без управляющих знаков и пробелов
+    (подделка строк лога), не длиннее `_LOG_ID_MAX`."""
+    return re.sub(r"[^\w-]", "?", str(value or ""))[:_LOG_ID_MAX] or "-"
+
+
 def _money_not_booked(
     kind: str, meta: dict, obj: dict, *, id_key: str, event_id: str = "", notify: bool = True
 ) -> None:
@@ -105,7 +112,7 @@ def _money_not_booked(
         kind,
         schema,
         id_key,
-        str(meta.get(id_key) or "")[:_LOG_ID_MAX] or "-",
+        _log_id(meta.get(id_key)),
         intent or "-",
         event_id or "-",
     )

@@ -282,11 +282,15 @@ def _notify_owner(
 
 
 def _notify_unbooked(tenant, schema, kind, deal_id, intent, cents) -> None:
-    """Оплата пришла, а сделки нет — письмо владельцу: проверить в Stripe."""
+    """Оплата пришла, а сделки нет — письмо владельцу: проверить в Stripe.
+
+    FB-33 D3 (ревью): `Notification` — таблица схемы бизнеса, а вебхук работает в public —
+    письмо создаётся в `schema_context(schema)`, иначе в проде оно молча не уходило."""
     from decimal import Decimal
 
     from django.utils import translation
     from django.utils.translation import gettext as _
+    from django_tenants.utils import schema_context
 
     from apps.notifications.services import email_locale, notify
 
@@ -302,12 +306,13 @@ def _notify_unbooked(tenant, schema, kind, deal_id, intent, cents) -> None:
             "Buchung mehr. Bitte prüfen Sie sie im Stripe-Dashboard."
         ) % {"amount": amount, "intent": intent}
     try:
-        notify(
-            dedupe_key=f"unbooked:{schema}:{intent}",
-            type="deal_unbooked_owner",
-            recipient=email,
-            subject=subject,
-            body=body,
-        )
+        with schema_context(schema):
+            notify(
+                dedupe_key=f"unbooked:{schema}:{intent}",
+                type="deal_unbooked_owner",
+                recipient=email,
+                subject=subject,
+                body=body,
+            )
     except Exception:  # noqa: BLE001
         logger.exception("balance_pay: unbooked notify failed %s", intent)
