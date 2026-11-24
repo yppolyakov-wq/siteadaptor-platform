@@ -162,10 +162,21 @@ _ITEM_EMPTY = gettext_lazy("„%(field)s“ — leer")
 _NESTED_FROM = 3
 #: значок состояния — только украшение (`aria-hidden`), состояние сказано словом (a11y M1)
 _ICONS = {True: "✓", False: "–"}
-#: ревью M4: пробы «заполнено ли», которые не читаются полем модели, — ЗАКРЫТЫЙ реестр
-#: «имя → (модуль, функция(obj, tenant))»; помощник импортируется лениво, незнакомое имя — в
-#: журнал без вызова
-_PROBES = {"map_point": ("apps.events.services", "map_point")}
+#: ревью M4, M-1/M-2: пробы «заполнено ли» по тому же ПРОИЗВОДНОМУ значению, что решает показ
+#: витрины, — ЗАКРЫТЫЙ реестр «имя → (вид, модуль, имя)»; помощник импортируется лениво,
+#: незнакомое имя — в журнал без вызова. Виды:
+#: - "object" — функция(obj, tenant) (точка карты: координаты события или адрес бизнеса);
+#: - "field" — функция(значение поля модели — голова пути), дальше ключи пути по результату
+#:   (коды аллергенов → подписи каталога; `details` → `landing` базового языка);
+#: - "property" — свойство модели объекта (только `property`, читает свои поля; модуль пуст).
+#: Без запросов к БД.
+_PROBES = {
+    "map_point": ("object", "apps.events.services", "map_point"),
+    "allergen_labels": ("field", "apps.catalog.food", "allergen_labels"),
+    "additive_labels": ("field", "apps.catalog.food", "additive_labels"),
+    "landing": ("field", "apps.events.details", "normalize"),
+    "amenity_badges": ("property", "", "amenity_badges"),
+}
 #: ревью M5: видно ли поле в форме объекта этого бизнеса — «вид → (модуль, функция(tenant,
 #: имя поля, объект|None))»; вида нет в реестре — видны все поля
 _FORM_GATES = {"product": ("apps.catalog.form_flags", "field_shown")}
@@ -495,9 +506,10 @@ def _form_shown(host: str, kind: str, tenant, sf, obj) -> bool:
         return True
 
 
-def _probe(name: str, obj, tenant, host: str, key: str) -> bool | None:
+def _probe(name: str, obj, tenant, host: str, key: str, path: str = "") -> bool | None:
     """Ревью M4: «заполнено ли» пробой из закрытого реестра `_PROBES`; незнакомое имя —
-    ошибка в журнал и None («неизвестно») без импорта и вызова; сбой помощника — тоже None."""
+    ошибка в журнал и None («неизвестно») без импорта и вызова; сбой помощника — тоже None.
+    `path` — путь пункта (у вида "field": голова — поле модели, хвост — ключи результата)."""
     import importlib
 
     spec = _PROBES.get(name)
@@ -506,19 +518,61 @@ def _probe(name: str, obj, tenant, host: str, key: str) -> bool | None:
             "window_parts: unknown probe %r of %s/%s - filled state unknown", name, host, key
         )
         return None
+    mode, module, attr = spec
     try:
-        helper = getattr(importlib.import_module(spec[0]), spec[1])
-        return bool(helper(obj, tenant))
+        if mode == "property":
+            if not isinstance(getattr(type(obj), attr, None), property):
+                logger.error(
+                    "window_parts: probe %r of %s/%s - %r is not a property - state unknown",
+                    name,
+                    host,
+                    key,
+                    attr,
+                )
+                return None
+            return _has_content(getattr(obj, attr))
+        helper = getattr(importlib.import_module(module), attr)
+        if mode == "object":
+            return bool(helper(obj, tenant))
+        head, *rest = path.split(".")
+        ok, raw = _path_value(obj, head, host, key)
+        if not ok:
+            return None
+        return _has_content(_walk(helper(raw), rest, path, host, key))
+    except _Unknown:
+        return None
     except Exception:  # noqa: BLE001 — окно без состояния пункта лучше упавшего экрана
         logger.exception("window_parts: probe %r of %s/%s failed - state unknown", name, host, key)
         return None
 
 
+class _Unknown(Exception):
+    """Ключ пути ждёт словарь, а там другое значение (уже в журнале)."""
+
+
+def _walk(value, rest, path: str, host: str, key: str):
+    for part in rest:
+        if value is None:
+            return None
+        if not isinstance(value, dict):
+            logger.error(
+                "window_parts: %r of %s/%s - %r is not a dict - filled state unknown",
+                path,
+                host,
+                key,
+                part,
+            )
+            raise _Unknown
+        value = value.get(part)
+    return value
+
+
 def _sf_state(obj, sf, host: str, key: str, tenant) -> bool | None:
     """Заполнено ли поле `sf` у объекта: проба, иначе значение пути (как `_filled`); у
-    `min_items` > 1 — столько заполненных элементов списка. None — неизвестно (в журнал)."""
+    `min_items` > 1 — элементов списка не меньше (счёт как у витрины: `images|length`).
+    None — неизвестно (в журнал)."""
     if sf.probe:
-        return _probe(sf.probe, obj, tenant, host, key)
+        return _probe(sf.probe, obj, tenant, host, key, sf.path)
     ok, value = _path_value(obj, sf.path, host, key)
     if not ok:
         return None
@@ -530,7 +584,7 @@ def _sf_state(obj, sf, host: str, key: str, tenant) -> bool | None:
                 "window_parts: %r of %s/%s is not a list - filled state unknown", sf.path, host, key
             )
             return None
-        return sum(1 for item in value if _has_content(item)) >= sf.min_items
+        return len(value) >= sf.min_items
     return _has_content(value)
 
 
