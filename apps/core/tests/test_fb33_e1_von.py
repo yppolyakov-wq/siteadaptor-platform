@@ -6,7 +6,7 @@
 длина ≤ `VON_MAX` и код страницы пути — код открытой схемы (объект своего типа — §9 №1).
 Сверка — один раз на запрос, в вызывающем; POST сверяет заново (подделка отбрасывается).
 
-Красные (strict xfail до кода): ⚙ несёт `von`, один `code_for_path` на запрос; точная сверка
+Были красными до кода (strict xfail, коммит замков): ⚙ несёт `von`, один `code_for_path` на запрос; точная сверка
 кода; кадр «Vorschau» по `von`; `von` переживает действия окна; число запросов. Охранные:
 отказы чистки, подделка в POST, без `von` вывод байт-в-байт, ссылка простая.
 """
@@ -34,7 +34,6 @@ from apps.tenants import siteconfig
 
 pytestmark = pytest.mark.django_db
 
-RED = pytest.mark.xfail(strict=True, reason="E1: von до кода не принимается")
 OPEN = "/dashboard/site/aufbau/oeffnen/"
 #: запас запросов окна со `von` сверх окна без него (замер E1: 27 и 27 — 0; один — на
 #: объект со своими блоками, `site_schema._own_code`)
@@ -104,7 +103,6 @@ def _spy(monkeypatch):
 # ───────────── красные ─────────────
 
 
-@RED
 def test_studio_gear_passes_path_once(monkeypatch):
     """№3: ⚙ с объекта — адрес окна несёт путь объекта; `code_for_path` — раз на запрос."""
     tenant, first, second = _shop()
@@ -122,7 +120,7 @@ def test_studio_gear_passes_path_once(monkeypatch):
 @pytest.mark.parametrize(
     "found,ok",
     [
-        pytest.param("text@seite:x", True, marks=RED),
+        ("text@seite:x", True),
         ("text@seite:x-2", False),  # соседний ключ — не префиксом
         ("text@seite:", False),
         ("text", False),
@@ -147,9 +145,9 @@ def test_von_must_match_code_exactly(monkeypatch, found, ok):
 @pytest.mark.parametrize(
     "found,ok",
     [
-        # §9 №1: объект своего типа со своими блоками; принятые — красные до кода
-        pytest.param("product@product:abc", True, marks=RED),
-        pytest.param("product", True, marks=RED),
+        # §9 №1: объект своего типа со своими блоками
+        ("product@product:abc", True),
+        ("product", True),
         ("catalog", False),
         ("tour@tour:abc", False),  # объект чужого типа
         ("", False),
@@ -164,7 +162,6 @@ def test_object_code_of_the_type_is_accepted(monkeypatch, found, ok):
     assert ("von=" in ctx["keep_q"]) is ok
 
 
-@RED
 def test_preview_frame_uses_von():
     tenant, first, second = _shop()
     _html, ctx = _ctx(Browser(tenant), f"?seite=product&block=related&von={second}")
@@ -172,7 +169,6 @@ def test_preview_frame_uses_von():
     assert first not in ctx["bw_preview"]["src"]
 
 
-@RED
 @pytest.mark.parametrize("action", ["update", "zu_tab", "revert", "window_done"])
 def test_von_survives_post(action):
     """`von` — скрытым полем форм окна; POST сверяет и кладёт в адрес возврата. «Wie» — форма
@@ -190,7 +186,6 @@ def test_von_survives_post(action):
     assert _q(resp["Location"]).get("von") == ["/"]
 
 
-@RED
 def test_von_queries():
     """№31: `von` стоит не больше `VON_EXTRA_QUERIES` запросов сверх окна без него."""
     tenant, _first, second = _shop()

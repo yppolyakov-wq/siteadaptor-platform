@@ -31,20 +31,40 @@ def schema_url() -> str:
     return reverse("site-schema")
 
 
-def page_url(code: str) -> str:
-    """Схема страницы без выбранного блока (как `site_schema.url_for_path`)."""
-    return f"{schema_url()}?{urlencode({'seite': code})}"
+def page_url(code: str, von: str = "") -> str:
+    """Схема страницы без выбранного блока (как `site_schema.url_for_path`). `von` (E1) —
+    путь страницы витрины, с которой пришли; экран сверяет его сам (`site_schema_views`)."""
+    query = {"seite": code}
+    if von:
+        query["von"] = von
+    return f"{schema_url()}?{urlencode(query)}"
 
 
-def block_window_url(code: str, ref: str, tab: str = "") -> str:
+def block_window_url(code: str, ref: str, tab: str = "", von: str = "") -> str:
     """Адрес окна строки `ref` страницы `code` (по образцу `site_schema.form_window_url`);
-    вкладка — только из белого списка окна."""
+    вкладка — только из белого списка окна; `von` — как у `page_url`."""
     from apps.core import block_window
 
     query = {"seite": code, "block": ref}
     if tab in block_window.TAB_KEYS:
         query["tab"] = tab
+    if von:
+        query["von"] = von
     return f"{schema_url()}?{urlencode(query)}#schema-panel"
+
+
+def _von(tenant, code: str, path: str) -> str:
+    """E1: путь канвы для адреса окна — только когда он не образец строки `code` (первый
+    объект типа; у своей строки объекта — он сам): без `von` адрес прежний (замки M4)."""
+    from apps.core import site_schema
+
+    if not path or site_schema.is_object_code(code):
+        return ""
+    try:
+        pt, _host_key, _home = site_schema.resolve(tenant, code)
+    except site_schema.SchemaError:
+        return ""
+    return "" if site_schema._preview_url(pt) == path else path
 
 
 def clean_ref(raw) -> str:
@@ -168,25 +188,28 @@ def studio_settings_url(request, path: str, ref: str = "", tab: str = "") -> str
         if ref:
             messages.info(request, _("Diesen Block finden Sie im Seitenaufbau nicht."))
         return schema_url()
+    von = _von(tenant, code, path)
     if not ref:
-        return page_url(code)
+        return page_url(code, von)
     host = _host(tenant, code)
     try:
         block = _block_of(request, code, host, ref)
         if block and site_schema.is_title_alias(ref) and block == site_schema.PAGE_REF:
             # FB-33 M5b-2 (A-M5): старый ⚙ «Seitentitel» — окно ★-строки, вкладка «Seite»
-            return block_window_url(code, block, "seite")
+            return block_window_url(code, block, "seite", von)
         if block:
-            return block_window_url(code, block, tab)
+            return block_window_url(code, block, tab, von)
         if _is_page_key(code, host, ref):
+            # E1 (ревью L6): окно «Seite» правит настройки ТИПА — `von` не нужен
             return site_schema.settings_url(_type_code(code))
         if site_schema.is_object_code(code):
             # T2: общий блок типа на странице объекта правится на общей схеме типа
             shared = site_schema.OBJECT_PAGE_TYPES.get(_type_code(code), _type_code(code))
             block = _block_of(request, shared, _host(tenant, shared), ref)
             if block:
-                return block_window_url(shared, block, tab)
+                # §9 №1: общая схема типа — с путём объекта (экран сверяет его тип)
+                return block_window_url(shared, block, tab, _von(tenant, shared, path))
     except Exception:  # noqa: BLE001 — ⚙ не должна ронять переход: экран страницы
         logger.warning("window link: block %r of %s not resolved", ref, code, exc_info=True)
     messages.info(request, _("Diesen Block finden Sie im Seitenaufbau nicht."))
-    return page_url(code)
+    return page_url(code, von)

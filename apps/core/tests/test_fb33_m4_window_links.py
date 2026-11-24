@@ -438,8 +438,9 @@ def test_tour_section_gear_opens_its_row(section, settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     tour, req = _tour_req(lambda t: {})
     path = f"/tour/{tour.slug}/"
+    # E1 (стопка 14): тур — не образец типа «event» — адрес окна несёт путь тура (`von`)
     assert window_links.studio_settings_url(req, path, f"event_{section}") == (
-        window_links.block_window_url("event", section)
+        window_links.block_window_url("event", section, von=path)
     )
     assert _messages(req) == []
     # у тура со своими блоками — его строка «Nur diese Seite»
