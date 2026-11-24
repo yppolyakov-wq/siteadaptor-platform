@@ -9,7 +9,11 @@
 * `collect` — ответы из POST только на заданные вопросы (лишнее отбрасывается);
 * `validate` — какие обязательные вопросы без ответа (проверка сервера, не только HTML);
 * `snapshot` — то, что хранит сделка: `{id: {"label", "value"}}` (у выбора значение — текст
-  варианта) с подписью на момент ответа (переименование вопроса не обесценивает старые сделки).
+  варианта) с подписью на момент ответа (переименование вопроса не обесценивает старые сделки);
+* `answers_for_deal` — снимок для сделки (корзина, заявка) одним путём: FB-33 D1 (решение
+  владельца, вариант A) — ответ на вопрос, удалённый между показом формы и отправкой, и выбор
+  вне текущих вариантов не пропадают молча, а хранятся с признаком `stale` (`dropped` — что
+  не легло ответом; в лог только id).
 
 До M2i-2 (миграции `custom_answers`) потребитель `collect`/`validate`/`snapshot` — только тесты:
 это заготовка для вопросов заявки (M2i-2) и корзины (M2i-4), не мёртвый код.
@@ -17,9 +21,12 @@
 
 from __future__ import annotations
 
+import logging
 import math
 import re
 from datetime import date
+
+logger = logging.getLogger(__name__)
 
 TYPES = ("text", "textarea", "choice", "bool", "number", "date")
 MODES = ("opt", "req")
@@ -32,6 +39,12 @@ ID_MAX = 9999  # q1…q9999 (формат id)
 #: FB-33 M2i-5: временный id нового вопроса в черновике «Seitenaufbau» (настоящий `q<n>`
 #: назначает только запись черновика под блокировкой — `form_spec.put`)
 TEMP_ID = re.compile(r"^n[0-9]{1,3}$")
+#: FB-33 D1: сколько «осиротевших» ответов сделка хранит (POST не раздувает зашифрованное поле)
+STALE_MAX = 10
+#: сколько id лишних ответов пишет одна строка лога (ключей `q<n>` в POST может быть тысячи)
+LOG_IDS_MAX = 20
+STALE_REMOVED = "removed"  # вопроса больше нет — подпись «Entfernte Frage» при показе
+STALE_CHANGED = "changed"  # выбор вне текущих вариантов — подпись вопроса и пометка
 #: невидимые символы (нулевой ширины, BOM) — строка из них не «заполнена»
 _INVISIBLE = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
 
@@ -186,6 +199,73 @@ def snapshot(questions: list[dict], answers: dict) -> dict:
     return out
 
 
+def _filled_raw(post, key: str) -> str:
+    raw = post.get(key, "")
+    return _INVISIBLE.sub("", raw).strip() if isinstance(raw, str) else ""
+
+
+def dropped(questions: list[dict], post, prefix: str = "") -> list[str]:
+    """FB-33 D1: id ключей POST вида `q<n>` (ровно, `fullmatch`: `q1` ≠ `q10`, `q5\\n` — не id)
+    с непустым значением, которые не легли ответом в `collect`: вопроса нет или значение
+    негодно (выбор вне вариантов, битое число/дата). Порядок — по номеру."""
+    answers = collect(questions, post, prefix)
+    out = []
+    for key in post.keys() if hasattr(post, "keys") else ():
+        if not isinstance(key, str) or not key.startswith(prefix):
+            continue
+        qid = key[len(prefix) :]
+        if not (qid.isascii() and _ID.fullmatch(qid)) or qid in answers:
+            continue
+        if _filled_raw(post, key):
+            out.append(qid)
+    return sorted(set(out), key=lambda qid: int(qid[1:]))
+
+
+def answers_for_deal(questions: list[dict], post, *, kind: str, next_id, prefix: str = "") -> dict:
+    """FB-33 D1: снимок ответов сделки (корзина — `kind="order"`, заявка — `"job"`).
+
+    Сверх `snapshot` (решение владельца, вариант A) хранит «осиротевшие» ответы, не больше
+    `STALE_MAX`, значение — текст ≤ `LABEL_MAX * 2`:
+    * ответ на вопрос, которого нет в текущем списке, — только если номер бизнес выдавал
+      (`n <= next_id` писателя `form_spec`; `next_id == 0` — вопросов не было, не хранить):
+      `{"label": "", "type": "text", "stale": "removed"}` — подпись из POST не берём;
+    * выбор вне текущих вариантов — подпись вопроса и `"stale": "changed"`.
+    Битые число и дата — ошибка ввода гостя, не правка владельца: не хранятся. Всё, что не
+    легло обычным ответом, — строка INFO с id и числом, без значений (ПДн)."""
+    out = snapshot(questions, collect(questions, post, prefix))
+    lost = dropped(questions, post, prefix)
+    if not lost:
+        return out
+    try:
+        issued = min(max(int(next_id or 0), 0), ID_MAX)
+    except (TypeError, ValueError, OverflowError):
+        issued = 0
+    by_id = {q["id"]: q for q in questions}
+    stored = []
+    for qid in lost:
+        if len(stored) >= STALE_MAX:
+            break
+        question = by_id.get(qid)
+        if question is None and int(qid[1:]) <= issued:
+            label, stale = "", STALE_REMOVED
+        elif question is not None and question["type"] == "choice":
+            label, stale = question["label"], STALE_CHANGED
+        else:
+            continue
+        value = clean_text(post.get(prefix + qid), LABEL_MAX * 2)
+        if value:
+            out[qid] = {"label": label, "value": value, "type": "text", "stale": stale}
+            stored.append(qid)
+    logger.info(
+        "%s: answers to %d unknown/changed questions not taken as answers: %s; kept as stale: %s",
+        kind,
+        len(lost),
+        ",".join(lost[:LOG_IDS_MAX]) + (",..." if len(lost) > LOG_IDS_MAX else ""),
+        ",".join(stored) or "-",
+    )
+    return out
+
+
 def rows(stored) -> list[tuple[str, str]]:
     """Что показывают карточка сделки, письмо владельцу и PDF: [(подпись, значение)] из
     сохранённого снимка (порядок вопросов на момент ответа). Пусто/мусор — [] (старые сделки
@@ -197,7 +277,16 @@ def rows(stored) -> list[tuple[str, str]]:
 
     out = []
     for item in (stored or {}).values() if isinstance(stored, dict) else ():
-        if not isinstance(item, dict) or not item.get("label"):
+        if not isinstance(item, dict):
+            continue
+        stale = item.get("stale")
+        # FB-33 D1 (ревью M1): строка удалённого вопроса — с пустой подписью; признак раньше
+        # проверки подписи, подпись — при показе (язык читателя)
+        if stale == STALE_REMOVED:
+            label = pgettext("form answer", "Entfernte Frage")
+        elif item.get("label"):
+            label = str(item["label"])
+        else:
             continue
         value = item.get("value")
         kind = item.get("type") or "text"  # старые снимки без типа — как текст
@@ -212,5 +301,8 @@ def rows(stored) -> list[tuple[str, str]]:
             continue
         else:
             shown = str(value)
-        out.append((str(item["label"]), shown))
+        if stale == STALE_CHANGED:
+            note = pgettext("form answer", "(nicht mehr in der Liste)")
+            shown = shown + " " + note
+        out.append((label, shown))
     return out

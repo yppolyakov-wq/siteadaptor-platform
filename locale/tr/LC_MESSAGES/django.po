@@ -40729,6 +40729,14 @@ msgstr "Kendi motosikletim"
 msgid "fb33-stack-anchor-d1"
 msgstr "fb33-stack-anchor-d1"
 
+msgctxt "form answer"
+msgid "Entfernte Frage"
+msgstr "Kaldırılan soru"
+
+msgctxt "form answer"
+msgid "(nicht mehr in der Liste)"
+msgstr "(artık listede yok)"
+
 msgid "fb33-stack-anchor-d2"
 msgstr "fb33-stack-anchor-d2"
 

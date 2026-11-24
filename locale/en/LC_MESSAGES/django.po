@@ -40582,6 +40582,14 @@ msgstr "Own motorcycle"
 msgid "fb33-stack-anchor-d1"
 msgstr "fb33-stack-anchor-d1"
 
+msgctxt "form answer"
+msgid "Entfernte Frage"
+msgstr "Removed question"
+
+msgctxt "form answer"
+msgid "(nicht mehr in der Liste)"
+msgstr "(no longer in the list)"
+
 msgid "fb33-stack-anchor-d2"
 msgstr "fb33-stack-anchor-d2"
 

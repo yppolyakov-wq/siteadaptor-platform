@@ -40933,6 +40933,14 @@ msgstr "Свой мотоцикл"
 msgid "fb33-stack-anchor-d1"
 msgstr "fb33-stack-anchor-d1"
 
+msgctxt "form answer"
+msgid "Entfernte Frage"
+msgstr "Удалённый вопрос"
+
+msgctxt "form answer"
+msgid "(nicht mehr in der Liste)"
+msgstr "(больше нет в списке)"
+
 msgid "fb33-stack-anchor-d2"
 msgstr "fb33-stack-anchor-d2"
 

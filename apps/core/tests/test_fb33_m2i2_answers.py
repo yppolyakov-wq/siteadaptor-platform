@@ -82,7 +82,8 @@ def test_required_question_and_choice_outside_options():
         text = " ".join(str(m) for m in get_messages(req))
     assert not Job.objects.exists() and "Budget" in text
     _post_anfrage({"title": "F", "name": "A", "phone": "1", "q2": "5", "q1": "Party"}, _cfg())
-    assert "q1" not in Job.objects.get().custom_answers  # не из списка владельца — прочь
+    # FB-33 D1 (решение владельца A): не из списка владельца — не ответ, а строка с пометкой
+    assert Job.objects.get().custom_answers["q1"]["stale"] == "changed"
 
 
 def test_band_draws_required_text_questions_or_sends_to_the_full_form():

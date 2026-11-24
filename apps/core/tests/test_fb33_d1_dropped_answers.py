@@ -26,8 +26,6 @@ from apps.core.tests.test_fb33_m2i2_before import _quote_text, quote_job
 from apps.core.tests.test_fb33_m2i_before import _post_anfrage
 
 pytestmark = pytest.mark.django_db
-#: замки первого коммита — снимаются кодом D1
-RED = pytest.mark.xfail(strict=True, reason="FB-33 D1: до кода")
 
 ROOT = Path(__file__).resolve().parents[3]
 LOGGER = "apps.core.form_answers"
@@ -94,7 +92,6 @@ def _post(data):
 # --- лог: какие ответы не легли в снимок как ответы ------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize("form", sorted(DEALS))
 def test_removed_question_answer_logged(form, caplog):
     """Вопрос удалён между GET и POST — сделка создана, в логе INFO его id."""
@@ -104,7 +101,6 @@ def test_removed_question_answer_logged(form, caplog):
     assert lines and "q2" in lines[-1], lines
 
 
-@RED
 def test_dropped_ids_exact():
     """`q1` задан, пришли `q1` и `q10` — лишний только `q10`; служебные поля и временные
     `n1` не считаются; пустые значения — не ответ."""
@@ -124,7 +120,6 @@ def test_dropped_ids_exact():
     assert form_answers.dropped(QUESTIONS[:1], post) == ["q10"]
 
 
-@RED
 def test_changed_choice_logged(caplog):
     """Вариант удалён — ответ не идёт обычным ответом, id в логе."""
     caplog.set_level(logging.INFO, logger=LOGGER)
@@ -135,7 +130,6 @@ def test_changed_choice_logged(caplog):
     assert "q3" in _records(caplog)[-1].getMessage()
 
 
-@RED
 def test_broken_number_logged_not_stored(caplog):
     """Битое число — ошибка ввода гостя, не правка владельца: не хранится, только лог."""
     caplog.set_level(logging.INFO, logger=LOGGER)
@@ -145,7 +139,6 @@ def test_broken_number_logged_not_stored(caplog):
     assert "q1" in _records(caplog)[-1].getMessage()
 
 
-@RED
 def test_log_has_no_answer_values(caplog):
     caplog.set_level(logging.DEBUG, logger=LOGGER)
     form_answers.answers_for_deal(
@@ -161,7 +154,6 @@ def test_log_has_no_answer_values(caplog):
         assert SECRET not in repr(record.args)
 
 
-@RED
 def test_orphan_log_id_is_ascii_fullmatch(caplog):
     """`q5\\n` и не-ASCII цифры — не id: не хранятся и в лог не попадают."""
     caplog.set_level(logging.INFO, logger=LOGGER)
@@ -174,7 +166,6 @@ def test_orphan_log_id_is_ascii_fullmatch(caplog):
 # --- решение A: хранится с пометкой ------------------------------------------------------------
 
 
-@RED
 @pytest.mark.parametrize("form", sorted(DEALS))
 def test_removed_question_answer_stored(form):
     snap = DEALS[form]({"q1": "Nüsse", "q2": "Bitte ohne Zwiebeln"}, _ff(form))
@@ -188,7 +179,6 @@ def test_removed_question_answer_stored(form):
         assert ("Entfernte Frage", "Bitte ohne Zwiebeln") in form_answers.rows(snap)
 
 
-@RED
 def test_changed_choice_stored():
     snap = form_answers.answers_for_deal(
         QUESTIONS, _post({"q3": "Vielleicht"}), kind="order", next_id=NEXT_ID
@@ -200,7 +190,6 @@ def test_changed_choice_stored():
         assert form_answers.rows(snap) == [("Besteck", "Vielleicht (nicht mehr in der Liste)")]
 
 
-@RED
 def test_stale_capped_and_trimmed():
     post = _post({f"q{n}": "x" * 1000 for n in range(10, 40)})
     snap = form_answers.answers_for_deal([], post, kind="order", next_id=100)
@@ -208,13 +197,11 @@ def test_stale_capped_and_trimmed():
     assert all(len(item["value"]) == form_answers.LABEL_MAX * 2 for item in snap.values())
 
 
-@RED
 def test_orphan_not_stored_when_tenant_never_had_questions():
     snap = form_answers.answers_for_deal([], _post({"q1": "x"}), kind="order", next_id=0)
     assert snap == {}
 
 
-@RED
 def test_orphan_not_stored_above_next_id():
     snap = form_answers.answers_for_deal(
         QUESTIONS, _post({"q2": "a", "q4": "b"}), kind="order", next_id=NEXT_ID
@@ -222,7 +209,6 @@ def test_orphan_not_stored_above_next_id():
     assert set(snap) == {"q2"}
 
 
-@RED
 def test_stale_removed_row_rendered_by_rows():
     """Пустая подпись у строки `removed` — не мусор: ветка `stale` раньше проверки подписи."""
     snap = {"q2": {"label": "", "value": "Text", "type": "text", "stale": "removed"}}
@@ -251,7 +237,6 @@ STALE = {
 }
 
 
-@RED
 def test_stale_shown_everywhere(monkeypatch):
     """Карточка, письмо владельцу, KDS, ЛК и PDF заявки — через `rows`, второго пути нет."""
     from apps.account import account_data
@@ -302,7 +287,6 @@ def test_stale_shown_everywhere(monkeypatch):
     assert deal_card._custom_answers(order) == form_answers.rows(STALE)
 
 
-@RED
 def test_deal_answers_one_path(monkeypatch):
     """Корзина и заявка строят снимок одной функцией: подмена видна в обоих."""
     marker = {"q9": {"label": "M", "value": "m", "type": "text"}}
@@ -326,7 +310,6 @@ def test_deal_answers_one_path(monkeypatch):
 MSGIDS = [("form answer", "Entfernte Frage"), ("form answer", "(nicht mehr in der Liste)")]
 
 
-@RED
 def test_d1_msgids_in_all_po():
     for lang in ("de", "en", "tr", "ru", "uk"):
         po = polib.pofile(str(ROOT / f"locale/{lang}/LC_MESSAGES/django.po"))

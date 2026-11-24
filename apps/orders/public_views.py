@@ -1348,9 +1348,13 @@ def checkout(request):
             # AIS W4-5d: гейт готовности — только для продажи (корзина-смета — запрос).
             channel="" if quote_mode else "storefront",
             # FB-33 M2i-34: ответы на свои вопросы — снимок с подписью на момент заказа
-            # (основной язык); суммы ответы не трогают
-            custom_answers=form_answers.snapshot(
-                form_questions, form_answers.collect(form_questions, request.POST)
+            # (основной язык); суммы ответы не трогают. D1: ответ на удалённый вопрос и
+            # выбор вне вариантов — с пометкой `stale`, номер — от писателя `form_spec`
+            custom_answers=form_answers.answers_for_deal(
+                form_questions,
+                request.POST,
+                kind="order",
+                next_id=form_spec.edit_state(form_site, "checkout")["next_id"] if form_on else 0,
             ),
         )
     except readiness.SellBlocked:

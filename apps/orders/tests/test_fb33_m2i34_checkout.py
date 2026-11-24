@@ -202,6 +202,9 @@ def test_answers_are_a_snapshot_and_switched_off_fields_are_dropped():
     assert order.custom_answers == {
         "q1": {"label": "Allergien", "value": "Nüsse", "type": "text"},
         "q4": {"label": "Geschenkpapier", "value": True, "type": "bool"},
+        # FB-33 D1 (решение владельца A): выбор вне вариантов — с пометкой, не молча прочь;
+        # q99 номер бизнес не выдавал (next_id 4) — не хранится
+        "q3": {"label": "Besteck", "value": "Vielleicht", "type": "text", "stale": "changed"},
     }
 
 

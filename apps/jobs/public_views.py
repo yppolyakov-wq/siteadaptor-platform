@@ -146,9 +146,13 @@ def anfrage(request):
             **_public_event_fields(request.POST, shown, site),
             # SH-24: «привезти» или «заберу сам» — только у бизнеса с доставкой.
             fulfillment=_parse_fulfillment(request.POST, request.tenant),
-            # FB-33 M2i-2: ответы на свои вопросы — снимок с подписью на момент ответа
-            custom_answers=form_answers.snapshot(
-                questions, form_answers.collect(questions, request.POST)
+            # FB-33 M2i-2: ответы на свои вопросы — снимок с подписью на момент ответа;
+            # D1: ответ на удалённый вопрос и выбор вне вариантов — с пометкой `stale`
+            custom_answers=form_answers.answers_for_deal(
+                questions,
+                request.POST,
+                kind="job",
+                next_id=form_spec.edit_state(site, "anfrage")["next_id"],
             ),
         )
         if shown["photos"].on:
