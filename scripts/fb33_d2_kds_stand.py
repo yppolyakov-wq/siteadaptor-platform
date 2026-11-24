@@ -5,12 +5,15 @@
 `restaurant-demo` получает в `--setup` не меньше `KDS_MAX_ORDERS + 2` активных заказов (ORM,
 только стенд-БД). Проверки на каждой странице доски:
 - на доске ровно `KDS_MAX_ORDERS` карточек (формы действий в `#kds-board`);
-- строка переполнения `[data-kds-more]` с `role="status"` — внутри `#kds-board`, видна, с числом
-  скрытых заказов и обычной ссылкой `<a href>` на список заказов (имя = видимый текст);
+- строка переполнения `[data-kds-more]` — обычный абзац (без `role="status"`/`aria-live`: доска
+  пересоздаётся поллингом, ревью §10.4) внутри `#kds-board`, видна, с числом скрытых заказов
+  текстом и обычной ссылкой `#kds-more-link` «Bestellliste öffnen» на «Verkäufe» (вкладка
+  заказов списком; имя = видимый текст, число — не в ссылке);
 - ссылка ≥ 44 px по высоте, нет горизонтальной прокрутки (390 — главное);
 - ru — без немецкой строки; без ошибок JS; `a11y_check` (кабинет — 44);
 - с JS: поллинг HTMX (каждые 8 с) заменяет доску целиком — после замены строка и ссылка на
-  месте (узел новый: метка старого узла пропала); переход по ссылке — список заказов, 200;
+  месте (узел новый: метка старого узла пропала); фокус на ссылке и на кнопке действия
+  (`kds-act-<pk>`) переживает замену (htmx возвращает его по `id`); переход по ссылке — список;
 - негативный контроль: на главной кабинета (200) строки нет, и проверка строки отвечает «нет».
 
 `a11y_check` с ✗ — по строке переполнения (`[data-kds-more]`, новое в D2); по всей доске —
@@ -18,7 +21,8 @@
 
 Запуск (стенд-БД — копия `platform_m39_stand`; вход `restaurant-demo@example.com`):
     DB_NAME=<стенд-БД> uv run python scripts/fb33_d2_kds_stand.py --setup
-    DB_NAME=<стенд-БД> DB_CONN_MAX_AGE=0 uv run python manage.py runserver 0.0.0.0:8063 \\
+    REDIS_CACHE_URL=redis://localhost:6379/13 DB_NAME=<стенд-БД> DB_CONN_MAX_AGE=0 \\
+        uv run python manage.py runserver 0.0.0.0:8063 \\
         --settings=config.settings.stand --noreload
     STAND_URL=http://ptx.siteadaptor.de:8063 \\
         uv run --with playwright==1.55.0 python scripts/fb33_d2_kds_stand.py <папка>
@@ -48,7 +52,9 @@ LIMIT = 48  # apps.orders.views.KDS_MAX_ORDERS
 WANT = LIMIT + 2
 #: поллинг доски — каждые 8 с (`templates/orders/kitchen.html`); ждём с запасом
 POLL_WAIT_MS = 10_000
-GERMAN_IN_RU = ("weitere offene", "in der Bestellliste")
+SALES_LIST = "/dashboard/verkaeufe/?tab=order&view=liste"
+LINK_NAME = {"de": "Bestellliste öffnen", "ru": "Открыть список заказов"}
+GERMAN_IN_RU = ("weitere offene", "Bestellliste", "nicht angezeigt", "davon")
 
 SETUP = f"""
 from django.utils import timezone
@@ -97,6 +103,9 @@ STATE_JS = """() => {
     cards: board ? board.querySelectorAll('form').length : 0,
     more: !!more,
     role: more ? more.getAttribute('role') : null,
+    live: board ? board.querySelectorAll('[aria-live], [role=status], [role=alert]').length : 0,
+    linkId: link ? link.id : '',
+    focused: document.activeElement ? document.activeElement.id : '',
     visible: !!(more && more.offsetParent !== null),
     text: more ? more.innerText.trim() : '',
     href: link ? link.getAttribute('href') : null,
@@ -113,8 +122,16 @@ def board_state(page) -> dict:
 
 
 def status_ok(state: dict) -> bool:
-    """Строка переполнения на месте: внутри доски, `role=status`, видна, со ссылкой."""
-    return bool(state["more"] and state["role"] == "status" and state["visible"] and state["href"])
+    """Строка переполнения на месте: внутри доски, обычный абзац (без live region), видна,
+    со ссылкой `#kds-more-link`."""
+    return bool(
+        state["more"]
+        and state["role"] is None
+        and not state["live"]
+        and state["visible"]
+        and state["href"]
+        and state["linkId"] == "kds-more-link"
+    )
 
 
 def check_board(rep, page, tag, lang) -> dict:
@@ -122,14 +139,20 @@ def check_board(rep, page, tag, lang) -> dict:
     rep.check(state["board"], f"{tag}: доска #kds-board есть", code="board")
     rep.check(state["cards"] == LIMIT, f"{tag}: карточек {state['cards']} = {LIMIT}", code="limit")
     rep.check(status_ok(state), f"{tag}: строка переполнения со ссылкой ({state})", code="more")
-    rep.check(state["href"] == "/dashboard/orders/", f"{tag}: ссылка на список ({state['href']})")
+    rep.check(state["href"] == SALES_LIST, f"{tag}: ссылка на Verkäufe ({state['href']})")
     rep.check(
         state["linkText"] and state["ariaLabel"] is None and state["linkText"] in state["text"],
         f"{tag}: имя ссылки = видимый текст ({state['linkText']!r})",
         code="name",
     )
     rep.check(
-        any(ch.isdigit() for ch in state["text"]), f"{tag}: число скрытых в тексте", code="count"
+        state["linkText"] == LINK_NAME[lang], f"{tag}: имя ссылки «{LINK_NAME[lang]}»", code="name"
+    )
+    before = state["text"].split(state["linkText"])[0] if state["linkText"] else state["text"]
+    rep.check(
+        any(ch.isdigit() for ch in before) and not any(ch.isdigit() for ch in state["linkText"]),
+        f"{tag}: число скрытых — текстом перед ссылкой ({state['text']!r})",
+        code="count",
     )
     rep.check(state["linkHeight"] >= 44, f"{tag}: ссылка {state['linkHeight']}px ≥ 44", code="tgt")
     over = sl.overflow(page)
@@ -178,11 +201,27 @@ def walk(out_dir) -> None:
                         code="poll-keep",
                     )
                     rep.check(not page.js_errors, f"{tag}: без ошибок JS после поллинга")
+                    for target in ("#kds-more-link", "[id^=kds-act-]"):
+                        page.focus(target)
+                        want = page.evaluate("() => document.activeElement.id")
+                        page.evaluate(
+                            "() => { document.querySelector('#kds-board').__d2mark = 1; }"
+                        )
+                        page.wait_for_timeout(POLL_WAIT_MS)
+                        after = board_state(page)
+                        replaced = page.evaluate(
+                            "() => !document.querySelector('#kds-board').__d2mark"
+                        )
+                        rep.check(
+                            replaced and want and after["focused"] == want,
+                            f"{tag}: фокус на {want} пережил поллинг ({after['focused']!r})",
+                            code="focus",
+                        )
                     if w == sl.SIZES[0][0] and lang == "de":
                         page.click("[data-kds-more] a[href]")
                         page.wait_for_load_state("load")
                         rep.check(
-                            "/dashboard/verkaeufe" in page.url or "/dashboard/orders" in page.url,
+                            "/dashboard/verkaeufe" in page.url,
                             f"{tag}: ссылка ведёт в список ({page.url})",
                             code="nav",
                         )
