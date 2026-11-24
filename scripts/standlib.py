@@ -3,7 +3,9 @@
 Каждый стенд раньше заново писал запуск Chromium, вход, счётчик ✓/✗ и размеры экранов — и
 заново наступал на те же грабли (кабинет по-английски, вечное ожидание бесконечной анимации,
 `playwright install`). Здесь это одно место: `Report`, `SIZES`/`LANGS`/`JS_MODES`, `launch`,
-`open_page`, `login`, `settle`, `overflow`, `shot`, `matrix`.
+`open_page`, `login`, `settle`, `overflow`, `shot`, `matrix`. Доступность (T-14.5) —
+`a11y_check` на каждой открытой странице: цели касания, фокус внутри `aria-hidden`, имена
+элементов управления, контраст текста; возврат фокуса после закрытия окна — `focus_returns`.
 
 Правило: **новые стенды — только через каркас; старые переносим при следующей правке**
 (замок — `apps/core/tests/test_standlib.py`, список `LEGACY_STANDS` можно только сокращать).
@@ -36,6 +38,7 @@
                 over = sl.overflow(page)
                 rep.check(over <= 0, f"{tag}: без гор. скролла ({over}px)", code="overflow")
                 rep.check(not page.js_errors, f"{tag}: без ошибок JS ({page.js_errors[:2]})")
+                sl.a11y_check(rep, page, tag, minimum=44)  # кабинет; витрина — 24
                 sl.shot(page, sys.argv[1], f"aufbau_{w}_{lang}_{'js' if js else 'nojs'}")
             page.context.close()
     rep.finish()
@@ -49,6 +52,7 @@ from __future__ import annotations
 import contextlib
 import io
 import os
+import re
 import sys
 import tempfile
 from itertools import product
@@ -226,6 +230,364 @@ def shot(page, out_dir, name, *, full=False) -> str:
     return path
 
 
+# --- доступность (T-14.5): механически проверяемая часть, на любой открытой странице ------
+
+#: цели касания: витрина — WCAG 2.5.8 (обе стороны, с исключениями «Inline» и «Spacing»);
+#: кабинет и окно блока — контракт M3-2 (только высота, без исключений)
+TARGET_MIN = 24
+WINDOW_TARGET_MIN = 44
+#: контраст текста (WCAG 1.4.3): обычный и крупный (≥ 24 px или ≥ 18.66 px жирный)
+CONTRAST_MIN = 4.5
+CONTRAST_LARGE = 3.0
+#: коды проверок `a11y_check` (замки сверяют коды, не текст)
+A11Y_CODES = ("a11y-target", "a11y-hidden-focus", "a11y-name", "a11y-contrast")
+
+#: одна функция на все проверки: `[вид, область, параметры]` → список (или `null` — области нет).
+#: Считаются только видимые элементы. Работает и на странице с выключенным JS.
+_A11Y_JS = r"""([kind, scope, opt]) => {
+  const root = document.querySelector(scope || 'body');
+  if (!root) return null;
+  const all = sel => [...root.querySelectorAll(sel)];
+  const style = e => getComputedStyle(e);
+  const shown = e => e.getClientRects().length > 0 && style(e).visibility !== 'hidden';
+  const srOnly = e => {
+    if (e.closest('.sr-only')) return true;
+    const r = e.getBoundingClientRect();
+    return r.width <= 1 && r.height <= 1;
+  };
+  const squash = s => (s || '').trim().replace(/\s+/g, ' ');
+  const desc = e => {
+    const cls = squash(e.getAttribute('class')).split(' ').filter(Boolean).slice(0, 2);
+    const text = squash(e.textContent) || squash(e.getAttribute('aria-label')) ||
+      e.getAttribute('name') || e.getAttribute('type') || '';
+    return e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + cls.map(c => '.' + c).join('') +
+      ' «' + text.slice(0, 24) + '»';
+  };
+
+  if (kind === 'targets') {
+    const min = opt.min, spacing = opt.spacing;
+    const sel = 'a[href],button,summary,select,input:not([type=hidden]),textarea,' +
+      '[role=button],[role=tab],[role=switch],[role=checkbox]';
+    const seen = new Set(), list = [];
+    for (let e of all(sel)) {
+      if (!shown(e) || e.disabled) continue;
+      const cs = style(e);
+      if (cs.display === 'contents') continue;
+      if (e.closest('[hidden],[aria-hidden="true"],[inert]') || srOnly(e)) continue;
+      // ссылка внутри строки текста — исключение 2.5.8 «Inline»: у родителя есть свой текст
+      if (e.tagName === 'A' && cs.display === 'inline' && e.parentElement &&
+          e.parentElement.textContent.trim().length > e.textContent.trim().length) continue;
+      if (e.type === 'radio' || e.type === 'checkbox') e = e.closest('label') || e;
+      if (seen.has(e)) continue;
+      seen.add(e);
+      const r = e.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      // окно (44) — только высота; экран и витрина (24, 2.5.8) — обе стороны
+      list.push({e, r, small: r.height < min || (spacing && r.width < min),
+        cx: r.left + r.width / 2, cy: r.top + r.height / 2});
+    }
+    // 2.5.8 «Spacing»: мелкая цель допустима, если круг Ø24 вокруг её центра не задевает
+    // другие цели и круги других мелких целей (только для порога 24)
+    const dist = (x, y, r) => Math.hypot(Math.max(r.left - x, 0, x - r.right),
+                                         Math.max(r.top - y, 0, y - r.bottom));
+    const bad = [];
+    for (const t of list) {
+      if (!t.small) continue;
+      if (spacing && !list.some(o => o !== t && !o.e.contains(t.e) && !t.e.contains(o.e) &&
+          (dist(t.cx, t.cy, o.r) < 12 || (o.small && Math.hypot(o.cx - t.cx, o.cy - t.cy) < 24))))
+        continue;
+      bad.push(desc(t.e) + ': цель ' + t.r.width.toFixed(0) + '×' + t.r.height.toFixed(0) +
+        ' < ' + min);
+    }
+    return bad;
+  }
+
+  if (kind === 'hidden') {
+    const sel = 'a[href],button,input:not([type=hidden]),select,textarea,summary,[tabindex],' +
+      '[contenteditable=""],[contenteditable=true]';
+    const bad = [];
+    for (const e of all(sel)) {
+      const host = e.closest('[aria-hidden="true"]');
+      if (!host || !shown(e) || e.disabled) continue;
+      if (e.closest('[inert],fieldset[disabled]')) continue;
+      if (parseInt(e.getAttribute('tabindex'), 10) < 0) continue;
+      bad.push(desc(e) + ': в порядке фокуса, но aria-hidden' +
+        (host === e ? '' : ' у предка ' + host.tagName.toLowerCase() +
+          (host.id ? '#' + host.id : '')));
+    }
+    return bad;
+  }
+
+  if (kind === 'names') {
+    const gone = e => { const cs = style(e); return cs.display === 'none' ||
+      cs.visibility === 'hidden'; };
+    const text = n => {
+      if (n.nodeType === 3) return n.nodeValue;
+      if (n.nodeType !== 1) return '';
+      if (/^(SELECT|TEXTAREA|OPTION|SCRIPT|STYLE)$/.test(n.tagName)) return '';
+      if (n.getAttribute('aria-hidden') === 'true' || gone(n)) return '';
+      if (squash(n.getAttribute('aria-label'))) return n.getAttribute('aria-label');
+      if (n.tagName === 'IMG') return n.getAttribute('alt') || '';
+      if (n.tagName.toLowerCase() === 'svg') {
+        const t = n.querySelector('title');
+        return t ? t.textContent : '';
+      }
+      let s = '';
+      for (const c of n.childNodes) s += ' ' + text(c);
+      return s;
+    };
+    const byIds = ids => squash(ids).split(' ').filter(Boolean)
+      .map(id => document.getElementById(id)).map(n => (n ? n.textContent : '')).join(' ');
+    const why = e => {
+      if (squash(byIds(e.getAttribute('aria-labelledby')))) return '';
+      if (squash(e.getAttribute('aria-label')) || squash(e.getAttribute('title'))) return '';
+      const tag = e.tagName;
+      if (tag === 'IFRAME') return 'iframe без title';
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+        if ([...(e.labels || [])].some(l => squash(text(l)))) return '';
+        const t = (e.getAttribute('type') || 'text').toLowerCase();
+        if (t === 'submit' || t === 'reset') return '';
+        if (t === 'button' && squash(e.value)) return '';
+        if (t === 'image' && squash(e.getAttribute('alt'))) return '';
+        return 'поле без подписи' + (e.getAttribute('placeholder') ? ' (только placeholder)' : '');
+      }
+      return squash(text(e)) ? '' : 'нет доступного имени';
+    };
+    const sel = 'button,a[href],input:not([type=hidden]),select,textarea,iframe,' +
+      '[role=button],[role=tab],[role=switch],[role=checkbox]';
+    const bad = [];
+    for (const e of all(sel)) {
+      if (!shown(e) || e.closest('[aria-hidden="true"],[inert]')) continue;
+      const w = why(e);
+      if (w) bad.push(desc(e) + ': ' + w);
+    }
+    return bad;
+  }
+
+  if (kind === 'contrast') {
+    const parse = c => {
+      const m = c.match(/^(rgba?|color)\(([^)]+)\)$/);
+      if (!m) return null;
+      const srgb = m[1] === 'color';
+      if (srgb && !/^srgb\s/.test(m[2])) return null;
+      const p = m[2].replace(/^srgb\s+/, '').split(/[\s,\/]+/).filter(Boolean).map(parseFloat);
+      if (p.length < 3 || p.some(isNaN)) return null;
+      const k = srgb ? 255 : 1;
+      return [p[0] * k, p[1] * k, p[2] * k, p.length > 3 ? p[3] : 1];
+    };
+    const inView = r => r.left + r.width / 2 >= 0 && r.left + r.width / 2 < innerWidth &&
+      r.top + r.height / 2 >= 0 && r.top + r.height / 2 < innerHeight;
+    const items = [], skipped = [], seen = new Set();
+    const range = document.createRange();
+    const rectOf = n => {
+      range.selectNodeContents(n);
+      return [...range.getClientRects()].find(x => x.width > 1 && x.height > 1);
+    };
+    const sx = scrollX, sy = scrollY;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      if (!/[\p{L}\p{N}]/u.test(n.nodeValue)) continue;
+      const e = n.parentElement;
+      if (!e || seen.has(e)) continue;
+      if (/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|OPTION|TITLE)$/.test(e.tagName)) continue;
+      if (e.closest('svg')) continue;
+      let r = rectOf(n);
+      if (!r) continue;
+      seen.add(e);
+      if (!shown(e) || srOnly(e)) continue;
+      if (e.closest(':disabled,[aria-disabled="true"],[inert]')) continue;
+      const cs = style(e);
+      let fg = parse(cs.color), why = '', bg = null, bgEl = null, op = 1;
+      if (!fg) why = 'цвет текста не разобран';
+      else if (fg[3] === 0 || cs.webkitTextFillColor !== cs.color)
+        why = 'текст залит не цветом (прозрачный или градиент)';
+      for (let a = e; a && a.nodeType === 1; a = a.parentElement) {
+        const s = style(a);
+        op *= parseFloat(s.opacity);
+        if (bg || why) continue;
+        if (s.backgroundImage !== 'none') { why = 'над картинкой или градиентом'; continue; }
+        const c = parse(s.backgroundColor);
+        if (!c) { why = 'цвет фона не разобран'; continue; }
+        if (c[3] >= 1) { bg = c; bgEl = a; continue; }
+        if (c[3] > 0) { why = 'полупрозрачный фон'; continue; }
+        if (s.position === 'absolute' || s.position === 'fixed')
+          why = 'слой поверх страницы без своего фона';
+      }
+      if (op === 0) continue;
+      if (!why && op < 1) why = 'полупрозрачный элемент (opacity)';
+      if (!why) {
+        // что на самом деле лежит под текстом: соседний слой (фото под подписью) предки не знают
+        if (!inView(r)) {
+          scrollTo({left: sx, top: sy + r.top - innerHeight / 2, behavior: 'instant'});
+          r = rectOf(n) || r;
+        }
+        if (!inView(r)) why = 'за краем экрана — слой под текстом не проверить';
+        else {
+          const stack = document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          const i = stack.indexOf(e);
+          if (i < 0) { scrollTo({left: sx, top: sy, behavior: 'instant'}); continue; }
+          for (const o of stack.slice(i + 1)) {
+            if (o === bgEl) break;
+            if (o.contains(e)) continue;
+            const os = style(o), oc = parse(os.backgroundColor);
+            if (/^(IMG|VIDEO|CANVAS|PICTURE|IFRAME)$/.test(o.tagName) || o.closest('svg') ||
+                os.backgroundImage !== 'none' || !oc || oc[3] > 0) {
+              why = 'под текстом другой слой (картинка или подложка)';
+              break;
+            }
+          }
+        }
+        scrollTo({left: sx, top: sy, behavior: 'instant'});
+      }
+      if (why) { skipped.push(desc(e) + ': ' + why); continue; }
+      bg = bg || [255, 255, 255, 1];  // до корня фона нет — холст браузера белый
+      const px = parseFloat(cs.fontSize), bold = (parseInt(cs.fontWeight, 10) || 400) >= 700;
+      items.push({d: desc(e), fg: fg.slice(0, 3).map((v, k) => v * fg[3] + bg[k] * (1 - fg[3])),
+        bg: bg.slice(0, 3), large: px >= 24 || (px >= 18.66 && bold)});
+    }
+    return {items, skipped};
+  }
+  throw new Error('standlib: неизвестная проверка ' + kind);
+}"""
+
+_ID = re.compile(r"[0-9a-f]{8}-[0-9a-f-]{27}|[0-9a-f]{32}")
+
+
+def _a11y(page, kind: str, scope: str, opt: dict | None = None):
+    found = page.evaluate(_A11Y_JS, [kind, scope, opt or {}])
+    if found is None:
+        raise LookupError(f"область «{scope}» не найдена на странице — проверка ничего не видит")
+    return found
+
+
+def _unique(items) -> list[str]:
+    return list(dict.fromkeys(items))
+
+
+def _rgb(color) -> tuple[float, float, float]:
+    """Тройка 0–255 или строка `#rgb` / `#rrggbb`."""
+    if isinstance(color, str):
+        h = color.lstrip("#")
+        if len(h) == 3:
+            h = "".join(c * 2 for c in h)
+        if len(h) != 6:
+            raise ValueError(f"не цвет: {color!r}")
+        return tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
+    r, g, b = list(color)[:3]
+    return (r, g, b)
+
+
+def _hex(color) -> str:
+    return "#" + "".join(f"{round(v):02x}" for v in _rgb(color))
+
+
+def _luminance(color) -> float:
+    def channel(v: float) -> float:
+        c = v / 255
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (channel(v) for v in _rgb(color))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast_ratio(rgb1, rgb2) -> float:
+    """Контраст двух цветов по WCAG (1…21): `(L1 + 0.05) / (L2 + 0.05)`, L — относительная
+    яркость. Цвет — тройка 0–255 или `#rrggbb`; порядок аргументов не важен."""
+    hi, lo = sorted((_luminance(rgb1), _luminance(rgb2)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def small_targets(page, scope: str = "body", minimum: int = TARGET_MIN) -> list[str]:
+    """Цели касания (ссылки, кнопки, поля) меньше `minimum`. Порог 24 — обе стороны, с
+    исключениями WCAG 2.5.8: ссылка внутри строки текста и одинокая мелкая цель (круг Ø24 вокруг
+    центра никого не задевает). Порог от 44 (окно, кабинет) — только высота, без исключений."""
+    opt = {"min": minimum, "spacing": minimum < WINDOW_TARGET_MIN}
+    return _unique(_a11y(page, "targets", scope, opt))
+
+
+def hidden_focusable(page, scope: str = "body") -> list[str]:
+    """Элемент в порядке фокуса с `aria-hidden="true"` (своим или предка): клавиатура на него
+    приходит, читалка молчит. Не нарушение — `inert`, `disabled`, `tabindex="-1"`. Невидимая
+    sr-only кнопка БЕЗ aria-hidden — правильно (решение M3-5c), сюда не попадает."""
+    return _unique(_a11y(page, "hidden", scope))
+
+
+def unnamed_controls(page, scope: str = "body") -> list[str]:
+    """Кнопка, ссылка, поле, `[role=button|tab|switch|checkbox]` без доступного имени (текст,
+    `aria-label`, `aria-labelledby`, `<label>`, `alt` картинки внутри, `title`); `iframe` без
+    `title`. Поле с одним `placeholder` — нарушение (подпись исчезает при вводе)."""
+    return _unique(_a11y(page, "names", scope))
+
+
+def low_contrast(
+    page, scope: str = "body", minimum: float = CONTRAST_MIN
+) -> tuple[list[str], list[str]]:
+    """`(нарушители, не измерено)`. Контраст текста против ближайшего непрозрачного фона
+    предков; крупный текст — порог 3.0. Текст над картинкой, градиентом, полупрозрачным фоном
+    или чужим слоем не судим — он во втором списке (ложный ✗ хуже пропуска)."""
+    found = _a11y(page, "contrast", scope)
+    low = []
+    for item in found["items"]:
+        limit = min(minimum, CONTRAST_LARGE) if item["large"] else minimum
+        ratio = contrast_ratio(item["fg"], item["bg"])
+        if ratio < limit:
+            fg, bg = (_hex(item[k]) for k in ("fg", "bg"))
+            low.append(f"{item['d']}: контраст {ratio:.2f} < {limit:g} ({fg} на {bg})")
+    return _unique(low), _unique(found["skipped"])
+
+
+def focus_returns(page, opener_selector: str, close, *, opened=None, timeout: int = 2000) -> bool:
+    """Кликнуть открывающий элемент, выполнить `close(page)` (например
+    `lambda p: p.keyboard.press("Escape")`) и ответить, вернулся ли фокус на открывающий.
+    `opened` — селектор открытого окна: дождаться его до закрытия. Фокус проверяется не сразу
+    (браузер и скрипт двигают его после закрытия), а через 300 мс и затем до `timeout`."""
+    page.click(opener_selector)
+    if opened:
+        page.wait_for_selector(opened, timeout=timeout)
+    close(page)
+    back = "s => document.activeElement === document.querySelector(s)"
+    waited = 300
+    page.wait_for_timeout(waited)
+    while not page.evaluate(back, opener_selector):
+        if waited >= timeout:
+            return False
+        page.wait_for_timeout(100)
+        waited += 100
+    return True
+
+
+def a11y_check(
+    rep: Report, page, tag: str, *, scope: str = "body", minimum: int = TARGET_MIN, contrast=True
+) -> bool:
+    """Все проверки доступности на открытой странице: по одному `check` на класс (коды
+    `A11Y_CODES`), подпись дефекта — элемент без адреса страницы (повтор на сотне страниц
+    печатается один раз). «Не измерено» по контрасту — наблюдение, не ✗. Звать на КАЖДОЙ
+    странице стенда; витрина — `minimum=24`, кабинет и окно блока — 44."""
+    try:
+        runs = [
+            ("a11y-target", f"цели ≥ {minimum}px", small_targets(page, scope, minimum)),
+            ("a11y-hidden-focus", "нет фокуса внутри aria-hidden", hidden_focusable(page, scope)),
+            ("a11y-name", "у элементов управления есть имя", unnamed_controls(page, scope)),
+        ]
+        unmeasured: list[str] = []
+        if contrast:
+            low, unmeasured = low_contrast(page, scope)
+            runs.append(("a11y-contrast", f"контраст текста ≥ {CONTRAST_MIN:g}", low))
+    except LookupError as exc:
+        return rep.check(False, f"{tag}: {exc}", sigs=f"a11y: нет области {scope}", code="a11y")
+    good = True
+    for code, title, bad in runs:
+        good &= rep.check(
+            not bad,
+            f"{tag}: {title} ({len(bad)}: {bad[:3]})" if bad else f"{tag}: {title}",
+            sigs=[f"{code}: {_ID.sub('<id>', x)}" for x in bad],
+            code=code,
+        )
+    for item in unmeasured:
+        rep.note(f"a11y-contrast не измерено — {_ID.sub('<id>', item)}")
+    return good
+
+
 # --- замок каркаса: страницы через set_content, без сервера и БД --------------------------
 
 _HEAD = '<!doctype html><html><meta name=viewport content="width=device-width">'
@@ -289,6 +651,233 @@ def _selftest_report(lock: Report) -> None:
         f"Report: сводка с числом повторов и итоговая строка ({line!r})",
     )
     lock.check(Report().exit_code == 0, "Report: без ✗ код выхода 0")
+
+
+_SR_ONLY = (
+    ".sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;"
+    "clip:rect(0,0,0,0);white-space:nowrap;border:0}"
+)
+_A11Y_HEAD = (
+    _HEAD + "<style>body{margin:0;font:16px sans-serif;color:#111;background:#fff}"
+    "button,input,select{min-height:32px;min-width:32px}"
+    ".tiny{width:16px;height:16px;min-width:0;min-height:0;padding:0;border:0}"
+    ".photo{position:absolute;inset:0;width:100%;height:100%}" + _SR_ONLY + "</style><body>"
+)
+_GIF = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+#: без нарушений: ссылка в строке текста, sr-only кнопка без aria-hidden, имя из aria-label,
+#: alt, <label>, title; скрытое от читалки — вне порядка фокуса; подпись над градиентом
+_A11Y_CLEAN = (
+    _A11Y_HEAD + '<main><p>Text mit <a href="#x">Link in der Zeile</a> und mehr Text.</p>'
+    '<a href="#y" style="display:inline-block;padding:8px">Weiter</a> '
+    '<button type="button">Speichern</button>'
+    '<button type="button" class="sr-only">Übernehmen</button>'
+    '<label for="n">Name</label> <input id="n"> '
+    '<button type="button" aria-label="Schließen"><svg aria-hidden="true" width="16" '
+    'height="16"></svg></button> '
+    f'<a href="#i" style="display:inline-block"><img alt="Start" width="32" height="32" '
+    f'src="{_GIF}"></a>'
+    '<div aria-hidden="true"><a href="#h" tabindex="-1">dekorativ</a></div>'
+    '<div aria-hidden="true" inert><a href="#k">inert</a></div>'
+    '<iframe title="Karte" srcdoc="" width="100" height="40"></iframe>'
+    '<p style="font-size:24px;color:#888">Große Zeile</p><p style="color:#767676">Grau</p>'
+    '<div style="background-image:linear-gradient(#000,#333);color:#fff;padding:8px">'
+    "Text über Verlauf</div></main></body></html>"
+)
+#: две мелкие цели вплотную (✗ при 24) и одинокая (при 24 — исключение «Spacing», при 44 — ✗)
+_A11Y_TARGETS = (
+    _A11Y_HEAD + '<button class="tiny" aria-label="A"></button>'
+    '<button class="tiny" aria-label="B"></button>'
+    '<button class="tiny" aria-label="C" style="position:absolute;left:300px;top:300px">'
+    "</button></body></html>"
+)
+#: три нарушения (ссылка в скрытом предке, скрытая кнопка, sr-only кнопка С aria-hidden) и
+#: три исключения (inert, disabled, tabindex=-1)
+_A11Y_HIDDEN = (
+    _A11Y_HEAD + '<div aria-hidden="true"><a href="#a">Versteckt</a></div>'
+    '<button aria-hidden="true">Zu</button>'
+    '<button class="sr-only" aria-hidden="true">Übernehmen</button>'
+    '<div aria-hidden="true" inert><a href="#b">inert</a></div>'
+    '<button aria-hidden="true" disabled>aus</button>'
+    '<div aria-hidden="true"><a href="#c" tabindex="-1">raus</a></div></body></html>'
+)
+#: пять нарушений (кнопка-иконка, поле с placeholder, ссылка-картинка без alt, iframe, select)
+#: и четыре имени не из текста (title, aria-labelledby, обёртка label, sr-only текст)
+_A11Y_NAMES = (
+    _A11Y_HEAD + '<button type="button"><svg aria-hidden="true" width="16" height="16"></svg>'
+    '</button> <input placeholder="Suche"> '
+    f'<a href="#z" style="display:inline-block"><img width="32" height="32" src="{_GIF}"></a>'
+    '<iframe srcdoc="" width="100" height="40"></iframe> <select><option>A</option></select>'
+    '<input title="Menge"> <span id="lb">Farbe</span><input aria-labelledby="lb"> '
+    "<label>Ort <select><option>B</option></select></label> "
+    '<button type="button"><span class="sr-only">Menü</span></button></body></html>'
+)
+#: ✗: серый #999 на белом (2.85), обычный и крупный. Не измерено: градиент, полупрозрачный
+#: фон, фото под подписью — на экране и далеко за ним
+_PHOTO = (
+    f'<div style="position:relative;padding:8px"><img class="photo" src="{_GIF}" alt="">'
+    '<span style="position:relative;color:#fff">%s</span></div>'
+)
+_A11Y_CONTRAST = (
+    _A11Y_HEAD + '<p id="grey" style="color:#999">grauer Text</p>'
+    '<p id="big" style="color:#999;font-size:24px">grau und groß</p>'
+    '<p style="color:#888;font-size:24px">groß reicht</p>'
+    '<div id="grad" style="background-image:linear-gradient(#000,#333);color:#fff">Verlauf</div>'
+    '<div id="half" style="background-color:rgba(0,0,0,.5);color:#fff">halb</div>'
+    + _PHOTO % "Foto oben"
+    + '<div style="height:3000px"></div>'
+    + _PHOTO % "Foto unten"
+    + "</body></html>"
+)
+_DIALOG = (
+    _A11Y_HEAD + '<button id="open" onclick="document.getElementById(\'dlg\').showModal()">'
+    'Öffnen</button> <button id="other">Anderes</button>'
+    '<dialog id="dlg"><button>Schließen</button></dialog><!--script--></body></html>'
+)
+_DIALOG_GOOD = _DIALOG
+_DIALOG_BAD = _DIALOG.replace(
+    "<!--script-->",
+    "<script>document.getElementById('dlg').addEventListener('close', () => "
+    "document.getElementById('other').focus())</script>",
+)
+
+
+def _selftest_a11y(lock: Report, browser) -> None:
+    """Проверки доступности: страница без нарушений — 0 находок, с нарушением — находка."""
+
+    def page_with(html, *, js=True):
+        page = open_page(browser, 390, 844, js=js, url=_SELF_URL)
+        page.set_content(html)
+        return page
+
+    print("— доступность: страница без нарушений")
+    page = page_with(_A11Y_CLEAN)
+    for name, got in (
+        ("small_targets 24", small_targets(page)),
+        ("hidden_focusable", hidden_focusable(page)),
+        ("unnamed_controls", unnamed_controls(page)),
+    ):
+        lock.check(not got, f"{name}: чистая страница — 0 находок ({got})")
+    low, unmeasured = low_contrast(page)
+    lock.check(not low, f"low_contrast: чистая страница — 0 находок ({low})")
+    lock.check(
+        len(unmeasured) == 1 and "над картинкой или градиентом" in unmeasured[0],
+        f"low_contrast: текст над background-image — «не измерено», не ✗ ({unmeasured})",
+    )
+    clean = Report(quiet=True)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        ok = a11y_check(clean, page, "чистая")
+    lock.check(
+        ok and clean.ok == 4 and not clean.fail and len(clean.notes) == 1,
+        f"a11y_check: чистая страница — 4 ✓, 0 ✗, одно наблюдение ({clean.fail}, {clean.notes})",
+    )
+    try:
+        small_targets(page, "#no-such-scope")
+        missing = False
+    except LookupError:
+        missing = True
+    with contextlib.redirect_stdout(buf):
+        a11y_check(clean, page, "чистая", scope="#no-such-scope")
+    lock.check(
+        missing and clean.codes == ["a11y"],
+        "нет области scope — ошибка и ✗, а не молчаливые «0 находок»",
+    )
+    page.context.close()
+
+    print("— доступность: цели касания")
+    page = page_with(_A11Y_TARGETS)
+    got = small_targets(page)
+    lock.check(
+        len(got) == 2 and all("16×16 < 24" in x for x in got) and "«C»" not in str(got),
+        f"small_targets: две цели 16×16 вплотную ловятся, одинокая — исключение 2.5.8 ({got})",
+    )
+    got = small_targets(page, "body", WINDOW_TARGET_MIN)
+    lock.check(len(got) == 3, f"small_targets: при пороге 44 — все три, без исключений ({got})")
+    page.context.close()
+
+    print("— доступность: фокус внутри aria-hidden")
+    page = page_with(_A11Y_HIDDEN)
+    got = hidden_focusable(page)
+    lock.check(
+        len(got) == 3 and "у предка div" in got[0] and "sr-only" in got[2],
+        f"hidden_focusable: ссылка в aria-hidden, кнопка и sr-only кнопка с aria-hidden ({got})",
+    )
+    lock.check(
+        not any(word in str(got) for word in ("inert", "«aus»", "«raus»")),
+        "hidden_focusable: inert, disabled и tabindex=-1 — не нарушение",
+    )
+    page.context.close()
+
+    print("— доступность: имена")
+    page = page_with(_A11Y_NAMES, js=False)  # проверки работают и без JS на странице
+    got = unnamed_controls(page)
+    lock.check(
+        len(got) == 5
+        and [x.split(" ")[0] for x in got] == ["button", "input", "a", "iframe", "select"],
+        f"unnamed_controls: кнопка, поле, ссылка-картинка, iframe и select без имени ({got})",
+    )
+    lock.check(
+        len(got) == 5 and "только placeholder" in got[1] and "iframe без title" in got[3],
+        "unnamed_controls: причина названа (placeholder, title у iframe)",
+    )
+    page.context.close()
+
+    print("— доступность: контраст")
+    page = page_with(_A11Y_CONTRAST)
+    low, unmeasured = low_contrast(page)
+    lock.check(
+        len(low) == 2 and "p#grey" in low[0] and "2.85 < 4.5 (#999999 на #ffffff)" in low[0],
+        f"low_contrast: серый #999 на белом — 2.85 < 4.5 ({low})",
+    )
+    lock.check(
+        len(low) == 2 and "p#big" in low[1] and "< 3" in low[1],
+        "low_contrast: крупный текст судится по порогу 3.0 (#999 — ✗, #888 — нет)",
+    )
+    reasons = " | ".join(unmeasured)
+    lock.check(
+        len(unmeasured) == 4
+        and "div#grad" in reasons
+        and "полупрозрачный фон" in reasons
+        and reasons.count("под текстом другой слой") == 2,
+        f"low_contrast: градиент, полупрозрачный фон и фото под подписью — не измерено ({reasons})",
+    )
+    lock.check(page.evaluate("scrollY") == 0, "low_contrast: прокрутка страницы возвращена")
+    bad = Report(quiet=True)
+    with contextlib.redirect_stdout(buf):
+        a11y_check(bad, page, "страница А")
+        a11y_check(bad, page, "страница Б")
+    lock.check(
+        bad.codes == ["a11y-contrast"] * 2 and all(n == 2 for n, _ in bad.sigs.values()),
+        f"a11y_check: ✗ с кодом a11y-contrast, подпись дефекта не зависит от страницы ({bad.codes})",
+    )
+    page.context.close()
+
+    print("— доступность: a11y_check на странице с нарушениями всех классов")
+    page = page_with(_A11Y_TARGETS.replace("</body>", _A11Y_HIDDEN.split("<body>")[1]))
+    page.evaluate(
+        "document.body.insertAdjacentHTML('beforeend', "
+        '\'<input placeholder="Suche"><p style="color:#999">grau</p>\')'
+    )
+    bad = Report(quiet=True)
+    with contextlib.redirect_stdout(buf):
+        ok = a11y_check(bad, page, "плохая")
+    lock.check(
+        not ok and tuple(bad.codes) == A11Y_CODES,
+        f"a11y_check: по одному ✗ на класс, коды {A11Y_CODES} ({bad.codes})",
+    )
+    page.context.close()
+
+    print("— доступность: возврат фокуса")
+    for html, want in ((_DIALOG_GOOD, True), (_DIALOG_BAD, False)):
+        page = page_with(html)
+        got = focus_returns(
+            page, "#open", lambda p: p.keyboard.press("Escape"), opened="#dlg[open]", timeout=600
+        )
+        lock.check(
+            got is want and not page.evaluate("document.getElementById('dlg').open"),
+            f"focus_returns: диалог {'возвращает' if want else 'НЕ возвращает'} фокус → {got}",
+        )
+        page.context.close()
 
 
 def selftest() -> None:
@@ -374,6 +963,7 @@ def selftest() -> None:
                 f"login: вход {'принят' if want else 'отклонён'} → {got} ({page.url})",
             )
             page.context.close()
+        _selftest_a11y(lock, browser)
     lock.finish("standlib selftest")
 
 

@@ -37,6 +37,10 @@ metadata:
   `/opt/pw-browsers/chromium`; размер, `java_script_enabled`, язык — `locale` и кука
   `django_language`; ошибки страницы — в `page.js_errors`);
 - шаги — `scripts/standlib.py::login, settle, overflow, shot`;
+- доступность (T-14.5) — `scripts/standlib.py::a11y_check, small_targets, hidden_focusable,
+  unnamed_controls, low_contrast, focus_returns, contrast_ratio`: `a11y_check(rep, page, tag,
+  scope=…, minimum=24 | 44)` пишет коды `a11y-target`, `a11y-hidden-focus`, `a11y-name`,
+  `a11y-contrast`; витрина — 24, кабинет и окно — 44; «не измерено» — наблюдение, не ✗;
 - адрес и учётка — `scripts/standlib.py::BASE_URL, EMAIL, PASSWORD` (адрес — из `STAND_URL`).
 
 Рядом:
@@ -101,6 +105,9 @@ metadata:
 - `sr-only` в ленте без `relative` у карточки растягивает страницу (390 → 455 px) — мерить
   `documentElement.scrollWidth` (`overflow`) · посл. 2026-11-08.
 - `data-reveal` прячет секции на скриншоте всей страницы · посл. 2026-09-01.
+- `a11y_check` — только механика. Контраст над фото, градиентом, подложкой идёт в «не измерено»
+  (смотреть глазами); поле с одним `placeholder` — ✗; sr-only «Übernehmen» без `aria-hidden` —
+  верно, `aria-hidden` на ней — ✗ `a11y-hidden-focus` (решение M3-5c) · посл. 2026-11-24.
 - `innerText` не видит пункт в свёрнутом «Mehr»; `radio.check()` ждёт `checked=true`, которого
   сбрасываемый пикер не держит · посл. 2026-09-10.
 - Студия: панель после входа схлопнута, строки зависят от типа открытой страницы
@@ -114,6 +121,9 @@ metadata:
 - `uv run pytest apps/core/tests/test_standlib.py -q` — каркас и правило (без браузера и БД).
 - `scripts/standlib.py --selftest` в Chromium — после любой правки каркаса; сломанная функция
   обязана дать ✗ и ненулевой код.
+- Новый стенд зовёт `a11y_check` на КАЖДОЙ открытой странице (и в окне — со `scope` окна), окно
+  закрывает через `focus_returns`. Машина НЕ видит осмысленность имени, порядок фокуса, объявления
+  живых областей, связи вкладок и `lang` — это остаётся ревьюеру `a11y-architect`.
 - Свой стенд: до правки и после, полный обход `matrix()` — оба размера, оба языка, оба режима;
   итог «N ✓, 0 ✗» и скриншоты 1440/390 в отчёт. Не доиграл — написать, какие сочетания.
 - Правка шаблонов рядом: `apps/core/tests/test_template_comments.py` и
