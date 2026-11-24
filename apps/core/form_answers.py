@@ -231,7 +231,8 @@ def answers_for_deal(questions: list[dict], post, *, kind: str, next_id, prefix:
     Сверх `snapshot` (решение владельца, вариант A) хранит «осиротевшие» ответы, не больше
     `STALE_MAX`, значение — текст ≤ `LABEL_MAX * 2`:
     * ответ на вопрос, которого нет в текущем списке, — только если номер бизнес выдавал
-      (`n <= next_id` писателя `form_spec`; `next_id == 0` — вопросов не было, не хранить):
+      (`n <= next_id` писателя `form_spec`; `next_id == 0` или вопросов в форме сейчас нет —
+      не хранить):
       `{"label": "", "type": "text", "stale": "removed"}` — подпись из POST не берём;
     * выбор вне текущих вариантов — подпись вопроса и `"stale": "changed"`.
     Битые число и дата — ошибка ввода гостя, не правка владельца: не хранятся. Всё, что не
@@ -244,6 +245,10 @@ def answers_for_deal(questions: list[dict], post, *, kind: str, next_id, prefix:
     try:
         issued = min(max(int(next_id or 0), 0), ID_MAX)
     except (TypeError, ValueError, OverflowError):
+        issued = 0
+    if not questions:
+        # ревью §10.4: вопросов в форме нет (все удалены или форма без своих вопросов) —
+        # осиротевший ответ не хранится (корзина и заявка одинаково), только лог
         issued = 0
     by_id = {q["id"]: q for q in questions}
     stored = []

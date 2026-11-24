@@ -370,7 +370,6 @@ def test_views_read_next_id_through_form_spec(monkeypatch):
     assert seen == ["checkout", "anfrage"]
 
 
-@REVIEW
 @pytest.mark.parametrize("form", sorted(DEALS))
 def test_orphan_not_stored_when_form_has_no_questions(form):
     """Вопросов в форме нет (все удалены) — осиротевший ответ не хранится, как бы ни был
