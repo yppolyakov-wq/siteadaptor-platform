@@ -40984,3 +40984,7 @@ msgstr[0] "Виправте %(n)s поле."
 msgstr[1] "Виправте %(n)s поля."
 msgstr[2] "Виправте %(n)s полів."
 msgstr[3] "Виправте %(n)s поля."
+
+#: apps/events/views.py
+msgid "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."
+msgstr "Сторінку цієї пропозиції тим часом змінили в іншому місці — нічого не збережено. Ваші дані нижче, фото виберіть знову. Перевірте й збережіть ще раз."

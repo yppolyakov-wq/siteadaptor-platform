@@ -40787,3 +40787,7 @@ msgid "Bitte %(n)s Angabe korrigieren."
 msgid_plural "Bitte %(n)s Angaben korrigieren."
 msgstr[0] "Lütfen %(n)s bilgiyi düzeltin."
 msgstr[1] "Lütfen %(n)s bilgiyi düzeltin."
+
+#: apps/events/views.py
+msgid "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."
+msgstr "Bu teklifin sayfası bu arada başka bir yerde değiştirildi – hiçbir şey kaydedilmedi. Girişleriniz aşağıda, lütfen fotoğrafları yeniden seçin. Lütfen kontrol edip tekrar kaydedin."

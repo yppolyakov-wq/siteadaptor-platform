@@ -40997,3 +40997,7 @@ msgstr[0] "Исправьте %(n)s поле."
 msgstr[1] "Исправьте %(n)s поля."
 msgstr[2] "Исправьте %(n)s полей."
 msgstr[3] "Исправьте %(n)s поля."
+
+#: apps/events/views.py
+msgid "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."
+msgstr "Страницу этого предложения тем временем изменили в другом месте — ничего не сохранено. Ваши данные ниже, фото выберите заново. Проверьте и сохраните ещё раз."
