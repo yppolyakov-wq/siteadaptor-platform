@@ -42,6 +42,8 @@ CONFLICT = (
     "gespeichert."
 )
 LOCALES = ("de", "en", "ru", "tr", "uk")
+#: замки правок ревью диффа E5 — красные до правки (снимаются в коммите правки)
+RED = pytest.mark.xfail(strict=True, reason="FB-33 E5: ревью диффа, до правки")
 
 
 def _saved(b):
@@ -224,18 +226,94 @@ def test_title_field_only_shared(scope, monkeypatch, settings):
     assert 'name="faq_title"' in Browser(shared).get(f"?seite={scode}&block=faqsh01&tab=texte")
 
 
+def _req_of(b):
+    """Запрос с сессией браузера-заглушки — для прямого `aufbau_draft.commit`."""
+    req = b._request("post")
+    req.session = b.session
+    return req
+
+
+@RED
 def test_title_conflict_before_write():
-    """№9/№10, a11y M4: заголовок успели сменить в другом месте — не перезаписан, отвергнутый
-    текст — в сообщении; остальное записано."""
+    """№9/№10, ревью E5 №3: заголовок успели сменить в другом месте — без `force` конфликт ДО
+    записи (ничего не опубликовано, черновик с набранным заголовком цел), экран конфликта."""
     b = Browser(_tenant())
     _faq_post(b, faq_title="Meine Fassung", faq_move="0:down")
     _set_saved_title(b.tenant, "Andere Fassung")
+    saved = _saved(b)
+    assert aufbau_draft.info(SimpleNamespace(session=b.session), saved, "home")["conflict"]
     _resp, msgs = b.post(seite="home", op="save")
     cfg = _saved(b)
     assert _title(cfg) == "Andere Fassung"
-    assert [f["q"] for f in cfg["faq"]][:2] == ["B?", "A?"]
-    said = [m for m in msgs if CONFLICT in m]
-    assert said and "Meine Fassung" in said[0]
+    assert [f["q"] for f in cfg["faq"]][:2] == ["A?", "B?"]  # вопросы тоже не записаны
+    assert _drafts(b)["home"]["faq_title"] == "Meine Fassung"
+    assert "Gespeichert." not in msgs
+    with pytest.raises(aufbau_draft.DraftConflict):
+        aufbau_draft.commit(_req_of(b), Tenant.objects.get(pk=b.tenant.pk), "home")
+
+
+@RED
+def test_title_conflict_force_writes_over():
+    """Ревью E5 №3: «Trotzdem speichern» (`force`) — заголовок поверх, как вопросы при `force`."""
+    b = Browser(_tenant())
+    _faq_post(b, faq_title="Meine Fassung")
+    _set_saved_title(b.tenant, "Andere Fassung")
+    _resp, msgs = b.post(seite="home", op="save", force="1")
+    assert "Gespeichert." in msgs and _title(_saved(b)) == "Meine Fassung"
+    assert "home" not in _drafts(b)
+
+
+@RED
+def test_title_and_question_translations_both_written():
+    """Ревью E5 №1 (а): правка переводов вопросов + заголовок (без `faq`) — оба на сайте."""
+    from apps.core.tests.test_fb33_m35c_faq import _ml
+
+    b = Browser(_ml(_tenant()))
+    _faq_post(b, faq_1_q_ru="Б-новый?", faq_title="Neu")
+    assert "faq" not in _drafts(b)["home"]
+    _resp, msgs = b.post(seite="home", op="save")
+    cfg = _saved(b)
+    assert cfg["i18n"]["ru"]["faq"][1]["q"] == "Б-новый?" and _title(cfg) == "Neu"
+
+
+@RED
+def test_questions_and_translations_no_false_skip_note():
+    """Ревью E5 №1 (б): ↑↓ + перевод — ветка переводов один раз, ложной заметки нет."""
+    from apps.core import block_i18n
+    from apps.core.tests.test_fb33_m35c_faq import _ml
+
+    b = Browser(_ml(_tenant()))
+    _faq_post(b, faq_1_q_ru="Б-новый?")
+    _faq_post(b, faq_move="1:up")
+    _resp, msgs = b.post(seite="home", op="save")
+    assert block_i18n.window_skipped_note() not in msgs
+    assert _saved(b)["i18n"]["ru"]["faq"][0]["q"] == "Б-новый?"
+
+
+@RED
+def test_title_counts_as_one_change():
+    """Ревью E5 №2 (silent-failure M-1): только заголовок — одна правка; с вопросами — две
+    (каждая часть FAQ — одна правка, как `faq` и `ofaq`)."""
+    b = Browser(_tenant())
+    _faq_post(b, faq_title="Neu")
+    req = SimpleNamespace(session=b.session)
+    assert aufbau_draft.info(req, _saved(b), "home")["count"] == 1
+    _faq_post(b, faq_move="0:down", faq_title="Neu")
+    assert aufbau_draft.info(req, _saved(b), "home")["count"] == 2
+
+
+def test_put_title_drops_translation_only_on_change():
+    """Ревью E5 №5: перевод заголовка снимается при смене немецкого текста, тот же текст — цел;
+    `normalize` перевод заголовка хранит."""
+    cfg = siteconfig.normalize(
+        {"section_titles": {"faq": "Alt"}, "i18n": {"ru": {"section_titles": {"faq": "Старый"}}}}
+    )
+    assert cfg["i18n"]["ru"]["section_titles"] == {"faq": "Старый"}
+    same = copy.deepcopy(cfg)
+    faq_content.put_title(same, " Alt ")
+    assert same["i18n"]["ru"]["section_titles"] == {"faq": "Старый"}
+    faq_content.put_title(cfg, "Neu")
+    assert "section_titles" not in cfg["i18n"]["ru"] and _title(cfg) == "Neu"
 
 
 def test_german_title_change_drops_translation():
