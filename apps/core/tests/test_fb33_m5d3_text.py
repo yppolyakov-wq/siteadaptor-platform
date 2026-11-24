@@ -167,7 +167,8 @@ def test_text_window_of_the_versand_page():
     a = re.search(r"<a\b([^>]*)>(.*?)</a>", part, re.S)
     assert a and "data-inhalt-link" in a.group(1)
     assert _text(a.group(2)) == "Inhalt bearbeiten: Seiten › Versand"
-    assert '<span lang="de">Versand</span>' in a.group(2)
+    # правки ревью P0 (a11y M2): `lang` у имени — только когда язык окна другой
+    assert "lang=" not in a.group(2)
     assert f'href="{reverse("content-page-edit", args=[page.pk])}"' in a.group(0)
     assert selected["content"]["link"]["only_here"] is False
     assert "data-inhalt-only-here" not in part and "data-inhalt-reason" not in part
@@ -214,7 +215,7 @@ def test_page_link_by_code():
         ct = selected["content"]
         assert ct["link"]["url"] == url, code
         assert ct["summary"] == f"den Text der Seite „{name}“", code
-        assert f'<span lang="de">{name}</span>' in str(ct["link"]["label"]), code
+        assert str(ct["link"]["label"]) == f"Seiten › {name}", code  # de-окно: без `lang`
     about = _page("ueber-uns", "Über uns")
     _html, _view, selected = _capture(b, "?seite=text&block=pagetext")
     assert selected["content"]["link"]["url"] == reverse("content-page-edit", args=[about.pk])
@@ -251,6 +252,8 @@ def test_window_in_russian(query):
     text = _text(re.sub(r'<span lang="de">.*?</span>', "", part))
     assert not [g for g in GERMAN if g in text], text
     assert "data-inhalt-link" in part
+    if query.endswith("pagetext"):  # имя системной страницы на ru переведено — без `lang` (a11y M2)
+        assert "«Доставка»" in part and 'lang="de"' not in part
 
 
 def test_new_msgids_in_all_po():
