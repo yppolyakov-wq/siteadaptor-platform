@@ -76,6 +76,17 @@ ALL_INFO = {
 }
 
 
+@pytest.fixture(autouse=True)
+def _restore_connection_tenant():
+    """Помощники `_shop`/`_hotel`/`_event_tenant` из соседних модулей ставят
+    `connection.tenant` — а их `_env`, который его возвращает, здесь не действует. Иначе
+    тенант тест-фабрики остаётся на соединении, следующий `schema_context` «возвращает»
+    в его схему, и `TenantFactory` дальше на воркере падает каскадом (FB-33 стопка 14)."""
+    before = getattr(connection, "tenant", None)
+    yield
+    connection.tenant = before
+
+
 def _wl(selected) -> dict:
     return selected["content"].get("woher_list") or {}
 
