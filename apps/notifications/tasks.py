@@ -5,6 +5,8 @@
 Чистая логика — deliver() в текущей схеме, её и тестируем.
 """
 
+import logging
+
 from django.utils import timezone
 from django_tenants.utils import schema_context
 
@@ -12,6 +14,12 @@ from apps.core.jobs import idempotent_task
 
 from . import adapters
 from .state_machine import FAILED, PENDING, SENT, NotificationSM
+
+logger = logging.getLogger(__name__)
+
+
+#: FB-33 D5: содержимое стёрто (ретеншн или Art. 17) до доставки — пустым не отправляем.
+ERASED = "erased"
 
 
 def deliver(notification_id) -> str:
@@ -25,6 +33,14 @@ def deliver(notification_id) -> str:
         return "skip"
 
     sm = NotificationSM()
+    if not notification.payload:
+        # FB-33 D5: `notify` всегда пишет тело — пустое значит «стёрто»; письмо без
+        # содержимого клиенту или владельцу хуже, чем не отправленное.
+        logger.info("notification %s: content erased before delivery", notification.id)
+        notification.last_error = ERASED
+        notification.save(update_fields=["last_error", "updated_at"])
+        sm.apply(notification, FAILED)
+        return ERASED
     notification.attempts += 1
     try:
         adapters.send(notification)
@@ -55,7 +71,7 @@ MAX_ATTEMPTS = 3
 #: Повторяем только сбои последних суток.
 RETRY_WINDOW = __import__("datetime").timedelta(hours=24)
 #: Ошибки, которые повтором не лечатся (чат заблокировал бота, адрес не существует).
-_PERMANENT_MARKERS = ("(403)", "(400)", "blocked", "Invalid email")
+_PERMANENT_MARKERS = ("(403)", "(400)", "blocked", "Invalid email", ERASED)
 
 
 def retry_failed(*, now=None, limit=200) -> int:
@@ -141,15 +157,16 @@ def purge_payloads(*, now=None) -> int:
     окончательно упавших уведомлений старше срока — строка остаётся для статистики и
     дедупа (dedupe_key), персональные данные письма — нет.
 
-    FB-33 D5: и `pending` старше срока — доставка ставится сразу при записи (`on_commit`),
+    FB-33 D5: и тема (имя клиента), и текст ошибки (адрес) — как обещает карта DSGVO; и
+    `pending` старше срока — доставка ставится сразу при записи (`on_commit`),
     повтор берёт только FAILED за сутки (`RETRY_WINDOW`): такую строку уже никто не отправит."""
     from .models import Notification
 
     cutoff = (now or timezone.now()) - PAYLOAD_RETENTION
     return (
         Notification.objects.filter(status__in=[SENT, FAILED, PENDING], updated_at__lt=cutoff)
-        .exclude(payload={})
-        .update(payload={})
+        .exclude(payload={}, subject="", last_error="")
+        .update(payload={}, subject="", last_error="")
     )
 
 

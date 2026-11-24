@@ -382,7 +382,6 @@ def test_erase_keeps_money_rows_untouched():
 # ── правки ревью §10.6 ───────────────────────────────────────────────────────────────────────
 
 
-@RED
 def test_retention_clears_subject_and_error():
     """HIGH: тема несёт имя клиента, ошибка — адрес; карта DSGVO обещает стирание всего."""
     old = PAYLOAD_RETENTION.days + 1
@@ -404,7 +403,6 @@ def sent(monkeypatch):
     return calls
 
 
-@RED
 def test_erased_pending_is_not_delivered(sent):
     """HIGH: стёртый ретеншном PENDING при поздней доставке не уходит пустым."""
     from apps.notifications.tasks import deliver
@@ -416,7 +414,6 @@ def test_erased_pending_is_not_delivered(sent):
     assert sent == [] and n.status == "failed" and n.last_error == "erased"
 
 
-@RED
 def test_erased_owner_mail_is_not_delivered(sent):
     """HIGH: письмо владельцу, стёртое по Art. 17 до доставки, не уходит пустым."""
     from apps.notifications.tasks import deliver
@@ -429,7 +426,6 @@ def test_erased_owner_mail_is_not_delivered(sent):
     assert sent == []
 
 
-@RED
 def test_erased_failed_is_not_requeued():
     """«erased» — постоянная ошибка: повтор её не возвращает в очередь."""
     from apps.notifications.tasks import retry_failed
