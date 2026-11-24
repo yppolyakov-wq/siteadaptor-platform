@@ -40787,3 +40787,76 @@ msgid "Bitte %(n)s Angabe korrigieren."
 msgid_plural "Bitte %(n)s Angaben korrigieren."
 msgstr[0] "Lütfen %(n)s bilgiyi düzeltin."
 msgstr[1] "Lütfen %(n)s bilgiyi düzeltin."
+
+#: templates/tenant/_bw_faq.html
+msgid "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
+msgstr "Web sitesindeki tüm SSS bloklarında geçerlidir. Standart başlık için boş bırakın."
+
+#: apps/core/aufbau_draft.py
+msgid "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
+msgstr "Başlık bu arada başka bir yerde değiştirildi – sizin sürümünüz kaydedilmedi."
+
+#: apps/core/detail_sections.py
+msgid "Die ersten Fotos der Galerie Ihrer Website."
+msgstr "Web sitenizin galerisindeki ilk fotoğraflar."
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Diese Felder %(every)s:"
+msgstr "Şu alanlar %(every)s:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Formular, Reiter „%(tab)s“:"
+msgstr "Form, “%(tab)s” sekmesi:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Formular, Reiter „%(tab)s“, Abschnitt „%(section)s“:"
+msgstr "Form, “%(tab)s” sekmesi, “%(section)s” bölümü:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“"
+msgstr "“%(field)s”"
+
+#: apps/core/detail_sections.py
+msgid "Erscheint nur, wenn mindestens eines davon ausgefüllt ist."
+msgstr "Yalnızca en az biri doldurulmuşsa gösterilir."
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Felder %(this)s — %(n)s von %(m)s ausgefüllt:"
+msgstr "%(this)s alanları — %(m)s alandan %(n)s tanesi dolu:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“ — ausgefüllt"
+msgstr "“%(field)s” — dolu"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“ — leer"
+msgstr "“%(field)s” — boş"
+
+#: apps/core/detail_sections.py
+#, python-format
+msgid "%(label)s — ab dem zweiten Foto"
+msgstr "%(label)s — ikinci fotoğraftan itibaren"
+
+#: apps/core/detail_sections.py
+#, python-format
+msgid "Punkt auf der Karte — „%(lat)s“ und „%(lng)s“ (sonst Ihre Adresse; nicht bei Online)"
+msgstr "Haritadaki nokta — “%(lat)s” ve “%(lng)s” (aksi halde adresiniz; çevrimiçi için değil)"
+
+#: apps/core/detail_sections.py
+msgid "(nur bei Veranstaltungen)"
+msgstr "(yalnızca etkinliklerde)"
+
+#: templates/tenant/site_schema.html
+msgid "Nicht übernommen:"
+msgstr "Uygulanmadı:"
+
+#: apps/events/views.py
+msgid "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."
+msgstr "Bu teklifin sayfası bu arada başka bir yerde değiştirildi – hiçbir şey kaydedilmedi. Girişleriniz aşağıda, lütfen fotoğrafları yeniden seçin. Lütfen kontrol edip tekrar kaydedin."

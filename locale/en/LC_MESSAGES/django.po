@@ -40640,3 +40640,76 @@ msgid "Bitte %(n)s Angabe korrigieren."
 msgid_plural "Bitte %(n)s Angaben korrigieren."
 msgstr[0] "Please correct %(n)s entry."
 msgstr[1] "Please correct %(n)s entries."
+
+#: templates/tenant/_bw_faq.html
+msgid "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
+msgstr "Applies to all FAQ blocks of the website. Leave empty for the default heading."
+
+#: apps/core/aufbau_draft.py
+msgid "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
+msgstr "The heading was changed elsewhere in the meantime – your version was not saved."
+
+#: apps/core/detail_sections.py
+msgid "Die ersten Fotos der Galerie Ihrer Website."
+msgstr "The first photos of your website's gallery."
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Diese Felder %(every)s:"
+msgstr "These fields %(every)s:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Formular, Reiter „%(tab)s“:"
+msgstr "Form, tab “%(tab)s”:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Formular, Reiter „%(tab)s“, Abschnitt „%(section)s“:"
+msgstr "Form, tab “%(tab)s”, section “%(section)s”:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“"
+msgstr "“%(field)s”"
+
+#: apps/core/detail_sections.py
+msgid "Erscheint nur, wenn mindestens eines davon ausgefüllt ist."
+msgstr "Shown only if at least one of them is filled in."
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Felder %(this)s — %(n)s von %(m)s ausgefüllt:"
+msgstr "Fields %(this)s — %(n)s of %(m)s filled in:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“ — ausgefüllt"
+msgstr "“%(field)s” — filled in"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“ — leer"
+msgstr "“%(field)s” — empty"
+
+#: apps/core/detail_sections.py
+#, python-format
+msgid "%(label)s — ab dem zweiten Foto"
+msgstr "%(label)s — from the second photo on"
+
+#: apps/core/detail_sections.py
+#, python-format
+msgid "Punkt auf der Karte — „%(lat)s“ und „%(lng)s“ (sonst Ihre Adresse; nicht bei Online)"
+msgstr "Point on the map — “%(lat)s” and “%(lng)s” (otherwise your address; not for online)"
+
+#: apps/core/detail_sections.py
+msgid "(nur bei Veranstaltungen)"
+msgstr "(events only)"
+
+#: templates/tenant/site_schema.html
+msgid "Nicht übernommen:"
+msgstr "Not applied:"
+
+#: apps/events/views.py
+msgid "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."
+msgstr "This offer's page was changed elsewhere in the meantime – nothing was saved. Your entries are below; please select the photos again. Please check and save again."

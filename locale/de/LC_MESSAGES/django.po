@@ -40727,3 +40727,76 @@ msgid "Bitte %(n)s Angabe korrigieren."
 msgid_plural "Bitte %(n)s Angaben korrigieren."
 msgstr[0] "Bitte %(n)s Angabe korrigieren."
 msgstr[1] "Bitte %(n)s Angaben korrigieren."
+
+#: templates/tenant/_bw_faq.html
+msgid "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
+msgstr "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
+
+#: apps/core/aufbau_draft.py
+msgid "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
+msgstr "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
+
+#: apps/core/detail_sections.py
+msgid "Die ersten Fotos der Galerie Ihrer Website."
+msgstr "Die ersten Fotos der Galerie Ihrer Website."
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Diese Felder %(every)s:"
+msgstr "Diese Felder %(every)s:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Formular, Reiter „%(tab)s“:"
+msgstr "Formular, Reiter „%(tab)s“:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Formular, Reiter „%(tab)s“, Abschnitt „%(section)s“:"
+msgstr "Formular, Reiter „%(tab)s“, Abschnitt „%(section)s“:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“"
+msgstr "„%(field)s“"
+
+#: apps/core/detail_sections.py
+msgid "Erscheint nur, wenn mindestens eines davon ausgefüllt ist."
+msgstr "Erscheint nur, wenn mindestens eines davon ausgefüllt ist."
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Felder %(this)s — %(n)s von %(m)s ausgefüllt:"
+msgstr "Felder %(this)s — %(n)s von %(m)s ausgefüllt:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“ — ausgefüllt"
+msgstr "„%(field)s“ — ausgefüllt"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“ — leer"
+msgstr "„%(field)s“ — leer"
+
+#: apps/core/detail_sections.py
+#, python-format
+msgid "%(label)s — ab dem zweiten Foto"
+msgstr "%(label)s — ab dem zweiten Foto"
+
+#: apps/core/detail_sections.py
+#, python-format
+msgid "Punkt auf der Karte — „%(lat)s“ und „%(lng)s“ (sonst Ihre Adresse; nicht bei Online)"
+msgstr "Punkt auf der Karte — „%(lat)s“ und „%(lng)s“ (sonst Ihre Adresse; nicht bei Online)"
+
+#: apps/core/detail_sections.py
+msgid "(nur bei Veranstaltungen)"
+msgstr "(nur bei Veranstaltungen)"
+
+#: templates/tenant/site_schema.html
+msgid "Nicht übernommen:"
+msgstr "Nicht übernommen:"
+
+#: apps/events/views.py
+msgid "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."
+msgstr "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."

@@ -40997,3 +40997,76 @@ msgstr[0] "Исправьте %(n)s поле."
 msgstr[1] "Исправьте %(n)s поля."
 msgstr[2] "Исправьте %(n)s полей."
 msgstr[3] "Исправьте %(n)s поля."
+
+#: templates/tenant/_bw_faq.html
+msgid "Gilt für alle FAQ-Blöcke der Website. Leer lassen für die Standard-Überschrift."
+msgstr "Действует для всех блоков FAQ сайта. Оставьте пустым — будет стандартный заголовок."
+
+#: apps/core/aufbau_draft.py
+msgid "Die Überschrift wurde inzwischen an anderer Stelle geändert – Ihre Fassung wurde nicht gespeichert."
+msgstr "Заголовок тем временем изменили в другом месте — ваш вариант не сохранён."
+
+#: apps/core/detail_sections.py
+msgid "Die ersten Fotos der Galerie Ihrer Website."
+msgstr "Первые фото галереи вашего сайта."
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Diese Felder %(every)s:"
+msgstr "Эти поля %(every)s:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Formular, Reiter „%(tab)s“:"
+msgstr "Форма, вкладка «%(tab)s»:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Formular, Reiter „%(tab)s“, Abschnitt „%(section)s“:"
+msgstr "Форма, вкладка «%(tab)s», раздел «%(section)s»:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“"
+msgstr "«%(field)s»"
+
+#: apps/core/detail_sections.py
+msgid "Erscheint nur, wenn mindestens eines davon ausgefüllt ist."
+msgstr "Показывается, только если заполнено хотя бы одно из них."
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "Felder %(this)s — %(n)s von %(m)s ausgefüllt:"
+msgstr "Поля %(this)s — заполнено %(n)s из %(m)s:"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“ — ausgefüllt"
+msgstr "«%(field)s» — заполнено"
+
+#: apps/core/window_parts.py
+#, python-format
+msgid "„%(field)s“ — leer"
+msgstr "«%(field)s» — пусто"
+
+#: apps/core/detail_sections.py
+#, python-format
+msgid "%(label)s — ab dem zweiten Foto"
+msgstr "%(label)s — со второго фото"
+
+#: apps/core/detail_sections.py
+#, python-format
+msgid "Punkt auf der Karte — „%(lat)s“ und „%(lng)s“ (sonst Ihre Adresse; nicht bei Online)"
+msgstr "Точка на карте — «%(lat)s» и «%(lng)s» (иначе ваш адрес; не для онлайн)"
+
+#: apps/core/detail_sections.py
+msgid "(nur bei Veranstaltungen)"
+msgstr "(только у событий)"
+
+#: templates/tenant/site_schema.html
+msgid "Nicht übernommen:"
+msgstr "Не применено:"
+
+#: apps/events/views.py
+msgid "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."
+msgstr "Страницу этого предложения тем временем изменили в другом месте — ничего не сохранено. Ваши данные ниже, фото выберите заново. Проверьте и сохраните ещё раз."
