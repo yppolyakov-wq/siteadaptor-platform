@@ -203,6 +203,64 @@ def _a11y(rep, page, tag, scope):
             rep.note(f"прежнее (вся страница, {title}): {item}")
 
 
+def _one_message(rep, page, tag, lang):
+    """Одна ошибка — одно объявление: одно сводное сообщение, подпись поля — только у поля."""
+    msgs = page.locator("main [role=status], main [role=alert]").all_inner_texts()
+    rep.check(len(msgs) == 1, f"{tag}: одно сообщение над формой ({len(msgs)}: {msgs[:2]})")
+    rep.check(
+        not any(LABEL[lang] in m for m in msgs), f"{tag}: подробность — у поля, не в сообщении"
+    )
+
+
+def _clear_of_bars(rep, page, tag, name):
+    """Поле с ошибкой целиком в окне и не под нижней панелью покупки (`[data-buybar]`).
+    Плавная прокрутка (без reduced-motion) идёт до ~1 с — ждём, пока `scrollY` не замрёт."""
+    page.evaluate(
+        """() => new Promise(done => { let last = -1, still = 0, n = 0;
+          const tick = () => { n += 1; still = scrollY === last ? still + 1 : 0; last = scrollY;
+            if (still >= 3 || n > 60) done(); else setTimeout(tick, 50); }; tick(); })"""
+    )
+    got = page.evaluate(
+        """(name) => {
+          const el = document.querySelector(`[name="${name}"]`);
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          const bars = [...document.querySelectorAll('[data-buybar]')].filter(
+            b => b.offsetWidth && getComputedStyle(b).display !== 'none');
+          const hit = bars.some(b => { const q = b.getBoundingClientRect();
+            return r.bottom > q.top && r.top < q.bottom && r.right > q.left && r.left < q.right; });
+          return {inView: r.top >= 0 && r.bottom <= innerHeight, hit};
+        }""",
+        name,
+    )
+    got = got or {}
+    rep.check(got.get("inView"), f"{tag}: поле с ошибкой в окне", code="scroll")
+    rep.check(got.get("hit") is False, f"{tag}: поле не под нижней панелью", code="scroll")
+
+
+def motion(browser, rep, event_pk):
+    """prefers-reduced-motion: «Weiter» и открытие шага 2 при ошибке — без плавной прокрутки."""
+    url = f"{sl.BASE_URL}/veranstaltung/{event_pk}/"
+    probe = "() => new Promise(r => { const a = scrollY; setTimeout(() => r([a, scrollY]), 400); })"
+    for w, h in ((390, 844), (844, 390)):
+        tag = f"{w}×{h} de js reduce"
+        page = _page(browser, w, h, True, "de")
+        page.emulate_media(reduced_motion="reduce")
+        page.goto(url)
+        sl.settle(page, True, rep)
+        page.click("[data-rv1-next]")
+        a, b = page.evaluate(probe)
+        rep.check(a == b, f"{tag}: «Weiter» — прокрутка мгновенная ({a} → {b})", code="motion")
+        page.goto(url)
+        with page.expect_navigation():
+            _forge_and_submit(page, "reg_diet", {"name": "Reduce Stand"})
+        a, b = page.evaluate(probe)
+        rep.check(a == b, f"{tag}: ошибка — прокрутка мгновенная ({a} → {b})", code="motion")
+        _wait_focus(page, "reg_diet")
+        _clear_of_bars(rep, page, tag, "reg_diet")
+        page.context.close()
+
+
 def booking(browser, rep, w, h, lang, js, event_pk, control):
     tag = f"{w}×{h} {lang} {'js' if js else 'nojs'} бронь"
     page = _page(browser, w, h, js, lang)
@@ -226,9 +284,9 @@ def booking(browser, rep, w, h, lang, js, event_pk, control):
     rep.check(f"/veranstaltung/{event_pk}/" in page.url, f"{tag}: билета нет — та же страница")
     body = page.content()
     rep.check("HYPERLINK" not in body and "evil.example" not in body, f"{tag}: подделка не эхом")
-    msg = page.locator("main [role=status]").all_inner_texts()
-    rep.check(any(LABEL[lang] in m for m in msg), f"{tag}: сообщение с подписью поля ({msg[:1]})")
+    _one_message(rep, page, tag, lang)
     _wait_focus(page, "reg_diet")
+    _clear_of_bars(rep, page, tag, "reg_diet")
     st = _field_state(page, "reg_diet") or {}
     rep.check(st.get("invalid") == "true", f"{tag}: aria-invalid у select", code="a11y")
     rep.check(LABEL[lang] in st.get("described", ""), f"{tag}: aria-describedby → текст ошибки")
@@ -293,7 +351,9 @@ def guest(browser, rep, w, h, lang, js, token):
         page.unroute(url)
     body = page.content()
     rep.check("HYPERLINK" not in body, f"{tag}: подделка не эхом")
+    _one_message(rep, page, tag, lang)
     _wait_focus(page, "p2_reg_diet")
+    _clear_of_bars(rep, page, tag, "p2_reg_diet")
     st = _field_state(page, "p2_reg_diet") or {}
     rep.check(st.get("invalid") == "true", f"{tag}: aria-invalid у select", code="a11y")
     rep.check(LABEL[lang] in st.get("described", ""), f"{tag}: aria-describedby → текст ошибки")
@@ -327,6 +387,7 @@ def main():
             done_control.add(js)
             booking(browser, rep, w, h, lang, js, cfg["event"], control)
             guest(browser, rep, w, h, lang, js, cfg["token"])
+        motion(browser, rep, cfg["event"])
     rep.finish("fb33 d6 select")
 
 
