@@ -140,3 +140,40 @@ def test_template_is_a_valid_plan_table():
     slices = _mod().parse(text)
     assert len(slices) >= 3
     assert [p for p in _mod().check(slices, lambda path: True) if "прогноз" not in p] == []
+
+
+# --- ревью silent-failure-hunter (2026-11-24): где скрипт молча говорил «в порядке» ---------------
+
+
+def test_row_with_wrong_number_of_cells_is_an_error_not_a_skipped_slice():
+    text = HEAD + "| A | — | `x.py` | — | 0 | |\n| B | — | `y.py` | a | b | 0 | |\n"
+    errors = _mod().table_errors(text)
+    assert any("B" in e and "6" in e for e in errors), errors
+    assert _mod().table_errors(HEAD + "| A | — | `x.py` | — | 0 | |\n") == []
+
+
+def test_rows_after_a_blank_line_are_reported_not_lost():
+    text = HEAD + "| A | — | `x.py` | — | 0 | |\n\n| B | — | `y.py` | — | 0 | |\n"
+    assert [s.name for s in _mod().parse(text)] == ["A"]
+    assert any("разрыв" in e and "B" in e for e in _mod().table_errors(text))
+
+
+def test_slice_without_files_or_with_files_outside_backticks_is_reported():
+    bare = _plan("| A | — | a.py | — | 0 | |", "| B | — | a.py | — | 0 | |")
+    found = _mod().check(bare, _exists("a.py"))
+    assert any("A" in p and "бэктик" in p for p in found), found
+    empty = _plan("| A | — | — | — | 0 | |")
+    assert any("A" in p and "файл" in p for p in _mod().check(empty, _exists()))
+
+
+def test_directory_and_file_inside_it_overlap():
+    slices = _plan("| A | — | `apps/core/` | — | 0 | |", "| B | — | `apps/core/x.py` | — | 0 | |")
+    found = _mod().check(slices, _exists("apps/core/", "apps/core/x.py"))
+    assert any("A" in p and "B" in p for p in found), found
+
+
+def test_verify_does_not_pass_a_slice_it_could_not_compare():
+    slices = _plan("| A | — | `x.py` | — | 0 | |", "| B | — | `y.py` | — | ? | |")
+    found = _mod().verify(slices, {"A": [], "B": ["y.py"]})
+    assert any("A" in p and "не отличается" in p for p in found), found
+    assert any("B" in p and "прогноз" in p for p in found), found

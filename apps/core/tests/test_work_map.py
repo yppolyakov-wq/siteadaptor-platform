@@ -107,3 +107,33 @@ def test_order_lives_only_in_the_map():
     for name in ("fb33-handoff-2026-11-24.md", "fb33-remaining-plan-2026-11-24.md"):
         text = (ROOT / "docs" / name).read_text(encoding="utf-8")
         assert "fb33-map.md" in text, f"{name}: порядок стопок — ссылкой на карту"
+
+
+# --- ревью silent-failure-hunter (2026-11-24): где скрипт молча говорил «в порядке» ---------------
+
+
+def test_row_with_wrong_number_of_cells_is_an_error_not_a_lost_stack():
+    text = HEAD + "| 12 | в main | — | A | a | — |\n| 13 | дальше | 12 | B | b | лишняя | — |\n"
+    assert [r.stack for r in _mod().parse(text)] == ["12"]
+    assert any("13" in e and "6" in e for e in _mod().table_errors(text))
+    assert _mod().table_errors(HEAD + "| 12 | в main | — | A | a | — |\n") == []
+
+
+def test_empty_map_is_a_problem():
+    assert any("пуст" in p for p in _mod().problems([], catalog=""))
+
+
+def test_catalog_id_must_match_whole_not_a_sub_id():
+    rows = _rows("| 13 | в работе | — | D1 | учёт | — |")
+    assert any("D1" in p for p in _mod().problems(rows, catalog="есть только D1.1 и D10 и MD1"))
+    assert _mod().problems(rows, catalog="| **D1** | ответы на вопросы |") == []
+
+
+def test_set_status_touches_only_the_map_table():
+    text = (
+        HEAD
+        + "| 13 | дальше | — | B | b | — |\n\nДругая таблица:\n\n"
+        + "| 13 | дальше | x | y | z | w |\n"
+    )
+    out = _mod().set_status(text, "13", "в работе")
+    assert out.count("| 13 | в работе |") == 1 and "| 13 | дальше | x |" in out

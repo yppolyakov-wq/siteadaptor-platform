@@ -83,3 +83,23 @@ def test_stack_12_closed_by_hand_passes_the_real_check():
     state = mod.read_state("FB-33 стопка 12", "12", merged=True, plan="")
     failed = [name for ok, name, _ in mod.checks("FB-33 стопка 12", "12", state) if ok is False]
     assert failed == [], failed
+
+
+# --- ревью silent-failure-hunter (2026-11-24) ---------------------------------------------------
+
+
+def test_label_does_not_match_a_sub_stack():
+    for other in ("FB-33 стопка 13a", "FB-33 стопка 13б", "FB-33 стопка 13.1"):
+        row = f"| 2026-11-24 | {other} | 1 | 0 | 0 % |\n"
+        assert _failed(history=row) == ["снимок статистики"], other
+    assert _failed(history="| 2026-11-24 | FB-33 стопка 13 | 1 |\n") == []
+    assert _failed(build_log="## 2026-11-25 — FB-33 стопка 13.\n") == [], (
+        "точка в конце фразы — та же стопка"
+    )
+
+
+def test_git_failure_is_not_reported_as_not_merged():
+    # Обрезанный клон или недоступный origin: «не знаю» — не то же, что «не сведено».
+    results = _mod().checks("FB-33 стопка 13", "13", _state(merged=None))
+    hit = [(ok, todo) for ok, name, todo in results if name == "ветка в main"]
+    assert hit[0][0] is None and "git" in hit[0][1]
