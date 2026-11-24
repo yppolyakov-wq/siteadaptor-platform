@@ -22,7 +22,7 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 ACCOUNT = "acct_d4b"
-_RED = pytest.mark.xfail(strict=True, reason="FB-33 D4b: до правки")
+
 KINDS = ("booking", "stay", "ticket")
 TABLE = {"booking": "booking_booking", "stay": "stays_staybooking", "ticket": "events_ticket"}
 
@@ -97,7 +97,6 @@ def _dup_mails(kind, obj):
     )
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_duplicate_deposit_on_active_deal(kind, stripe_refunds):
     obj = _pay(kind, _make(kind), "pi_main")
@@ -109,7 +108,6 @@ def test_duplicate_deposit_on_active_deal(kind, stripe_refunds):
     assert obj.stripe_payment_intent == "pi_main" and obj.payment_state == paid_state
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_late_second_payment_on_refunded_cancelled_refunded_once(kind, stripe_refunds):
     obj = _pay(kind, _make(kind), "pi_main")
@@ -123,7 +121,6 @@ def test_late_second_payment_on_refunded_cancelled_refunded_once(kind, stripe_re
     assert obj.stripe_payment_intent == "pi_main"
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_extra_row_amount_is_stripe_amount(kind, stripe_refunds):
     """10.1 M5: сумма строки — `amount_total` вебхука, а не расчёт сделки."""
@@ -132,7 +129,6 @@ def test_extra_row_amount_is_stripe_amount(kind, stripe_refunds):
     assert _rows(kind, obj)["pi_second"].amount_cents == 777
 
 
-@_RED
 def test_stay_kept_payment_untouched(stripe_refunds):
     """Номер отменён с «nicht erstatten» (главный у бизнеса), поздний второй → назад
     только второй, главный оплачен."""
@@ -146,7 +142,6 @@ def test_stay_kept_payment_untouched(stripe_refunds):
     assert obj.payment_state == state
 
 
-@_RED
 def test_ticket_repeat_webhook_not_resurrected(stripe_refunds, monkeypatch):
     obj = _pay("ticket", _make("ticket"), "pi_main")
     _cancel("ticket", obj)
@@ -195,7 +190,6 @@ def test_replay_of_main_intent_legacy_without_rows_not_refunded(kind, stripe_ref
     assert stripe_refunds == []
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_mark_paid_locks_row(kind, stripe_refunds):
     """№9 / 10.1 H3: строка сделки под FOR UPDATE OF самой сделки (без ресурса/события)."""
@@ -208,7 +202,6 @@ def test_mark_paid_locks_row(kind, stripe_refunds):
     assert " OF " in first
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_extra_refund_timeout_notifies_owner(kind, monkeypatch):
     """10.2 H4: у записи/номера/билета повтора нет — «Stripe не ответил» = письмо."""
@@ -223,7 +216,6 @@ def test_extra_refund_timeout_notifies_owner(kind, monkeypatch):
     assert _dup_mails(kind, obj).count() == 1
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_duplicate_deposit_refund_failure_mails_owner_once(kind, monkeypatch):
     obj = _pay(kind, _make(kind), "pi_main")

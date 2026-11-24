@@ -292,6 +292,60 @@ def is_new_payment(kind: str, obj, intent: str) -> bool:
     return not folio.has_payment(kind, obj, intent)
 
 
+def is_extra_payment(kind: str, obj, intent: str, *, newly_paid: bool) -> bool:
+    """FB-33 D4b: второй платёж Stripe к сделке, у которой главный платёж уже записан
+    (оплачена, возвращена, отменена с «nicht erstatten»): этот вебхук оплату не ставит,
+    главный intent есть и другой, платежа нет в книге. Решать по строке под блокировкой."""
+    main = getattr(obj, "stripe_payment_intent", "") or ""
+    return (
+        bool(intent)
+        and not newly_paid
+        and bool(main)
+        and intent != main
+        and is_new_payment(kind, obj, intent)
+    )
+
+
+def record_extra_payment(kind: str, obj, *, intent: str, amount_cents: int | None = None):
+    """FB-33 D4b: строка книги второго платежа — на сумму, которую списал Stripe
+    (`amount_total`); без неё — как онлайн-платёж сделки. Пишется и у возвращённой сделки
+    (иначе деньги выпали бы из книги). Звать под блокировкой сделки."""
+    from apps.core import folio
+
+    if amount_cents:
+        return folio.record(
+            kind,
+            obj,
+            amount_cents=int(amount_cents),
+            purpose="full",
+            method="stripe",
+            source="webhook",
+            intent=intent,
+        )
+    return folio.record_online(kind, obj, intent=intent)
+
+
+def settle_extra_safely(kind: str, obj, *, intent: str) -> None:
+    """Вебхук: вернуть второй платёж после блокировки; сбой не роняет вебхук (строка в
+    книге, владельцу — письмо `duplicate` внутри `settle_extra_payment`)."""
+    try:
+        settle_extra_payment(kind, obj, intent=intent)
+    except Exception:  # noqa: BLE001 — оплата записана; Stripe не должен получить 500
+        logger.exception("%s %s: refund of a second payment crashed", kind, obj.pk)
+
+
+def locked_deal(model, pk):
+    """Строка сделки под `FOR UPDATE OF` самой сделки (ревью H3: связанные ресурс, юнит,
+    событие не запираются — порядок замков `lock_scope` и «сделка → документ» цел).
+    Битый id — None."""
+    from django.core.exceptions import ValidationError
+
+    try:
+        return model.objects.select_for_update(of=("self",)).filter(pk=pk).first()
+    except (ValidationError, ValueError):
+        return None
+
+
 #: Виды, у которых сбой возврата второго платежа повторяет задача по расписанию
 #: (`retry_extra_refunds` из beat `orders.tasks.retry_late_refunds`); у прочих «Stripe не
 #: ответил» — сразу письмо.

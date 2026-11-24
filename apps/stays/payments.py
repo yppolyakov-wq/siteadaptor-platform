@@ -7,7 +7,7 @@ application_fee=0). Подтверждение оплаты ставит веб�
 """
 
 from apps.billing import connect
-from apps.core.payment_holds import settle_late_payment, start_online_hold
+from apps.core.payment_holds import start_online_hold
 
 
 def stay_deposit_checkout_url(booking, tenant, *, success_url: str, cancel_url: str) -> str:
@@ -30,11 +30,25 @@ def stay_deposit_checkout_url(booking, tenant, *, success_url: str, cancel_url: 
     )
 
 
-def mark_stay_paid(*, tenant_schema: str, booking_id: str, payment_intent: str = "") -> bool:
+def mark_stay_paid(
+    *,
+    tenant_schema: str,
+    booking_id: str,
+    payment_intent: str = "",
+    amount_cents: int | None = None,
+) -> bool:
     """Вебхук: депозит оплачен → payment_state=paid + авто-confirm (если юнит не
-    требует ручного подтверждения). Кросс-схемно, идемпотентно."""
+    требует ручного подтверждения). Кросс-схемно, идемпотентно.
+
+    FB-33 D4b: строка — под блокировкой (`payment_holds.locked_deal`, как у заказа), вызовы
+    Stripe — после неё. Второй платёж Stripe к сделке с уже записанным главным (решение
+    владельца 2026-11-24: и у неотменённой) — строкой книги на `amount_cents` и назад
+    только он (`settle_extra_payment`); главный intent не перезаписывается, у номера с
+    «nicht erstatten» главный остаётся у бизнеса."""
+    from django.db import transaction
     from django_tenants.utils import schema_context
 
+    from apps.core import payment_holds
     from apps.core.fsm import IllegalTransition
 
     from .models import StayBooking
@@ -43,44 +57,62 @@ def mark_stay_paid(*, tenant_schema: str, booking_id: str, payment_intent: str =
     if not tenant_schema or not booking_id:
         return False
     with schema_context(tenant_schema):
-        booking = StayBooking.objects.filter(id=booking_id).select_related("unit").first()
-        if booking is None:
-            return False
-        fields = []
-        # KA-H6: Anzahlung меньше итога → «deposit» (остаток открыт), иначе «paid».
-        # Уже полностью оплаченную (стойка) бронь вебхук не понижает.
-        target = (
-            StayBooking.PAYMENT_DEPOSIT
-            if 0 < booking.deposit_cents < booking.total_cents
-            else StayBooking.PAYMENT_PAID
-        )
-        # refunded не воскрешаем повтором вебхука (иначе возврат стал бы возможен снова).
-        if booking.payment_state not in (
-            target,
-            StayBooking.PAYMENT_PAID,
-            StayBooking.PAYMENT_REFUNDED,
-        ):
-            booking.payment_state = target
-            fields.append("payment_state")
-        if payment_intent and booking.stripe_payment_intent != payment_intent:
-            booking.stripe_payment_intent = payment_intent
-            fields.append("stripe_payment_intent")
-        if booking.payment_due_at is not None:  # KA-P6: оплачено — удержание снято
-            booking.payment_due_at = None
-            fields.append("payment_due_at")
-        if fields:
-            fields.append("updated_at")
+        with transaction.atomic():
+            booking = payment_holds.locked_deal(StayBooking, booking_id)
+            if booking is None:
+                return False
+            fields = []
+            # KA-H6: Anzahlung меньше итога → «deposit» (остаток открыт), иначе «paid».
+            # Уже полностью оплаченную (стойка) бронь вебхук не понижает.
+            target = (
+                StayBooking.PAYMENT_DEPOSIT
+                if 0 < booking.deposit_cents < booking.total_cents
+                else StayBooking.PAYMENT_PAID
+            )
+            # refunded не воскрешаем повтором вебхука (иначе возврат стал бы возможен снова).
+            newly = booking.payment_state not in (
+                target,
+                StayBooking.PAYMENT_PAID,
+                StayBooking.PAYMENT_REFUNDED,
+            )
+            extra = payment_holds.is_extra_payment(
+                "stay", booking, payment_intent, newly_paid=newly
+            )
+            if newly:
+                booking.payment_state = target
+                fields.append("payment_state")
+            # Главный платёж вторым не перезаписываем; главного нет (касса, потом онлайн) —
+            # этот становится главным, как раньше.
             if (
+                payment_intent
+                and booking.stripe_payment_intent != payment_intent
+                and (newly or not booking.stripe_payment_intent)
+            ):
+                booking.stripe_payment_intent = payment_intent
+                fields.append("stripe_payment_intent")
+            if booking.payment_due_at is not None:  # KA-P6: оплачено — удержание снято
+                booking.payment_due_at = None
+                fields.append("payment_due_at")
+            from apps.core import folio
+
+            if extra:
+                payment_holds.record_extra_payment(
+                    "stay", booking, intent=payment_intent, amount_cents=amount_cents
+                )
+            elif (
                 "payment_state" in fields or "stripe_payment_intent" in fields
             ) and booking.payment_state != "refunded":
                 # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси);
                 # новый intent пишется и у уже «оплаченной» сделки (поздний вебхук
                 # после кассы) — иначе онлайн-деньги выпали бы из книги.
-                from apps.core import folio
-
                 folio.record_online("stay", booking, intent=payment_intent)
-            booking.save(update_fields=fields)
-        settle_late_payment("stay", booking, newly_paid="payment_state" in fields)
+            if fields:
+                fields.append("updated_at")
+                booking.save(update_fields=fields)
+        # ревью H3: возвраты, FSM и синк предоплаты — после блокировки строки
+        payment_holds.settle_late_payment("stay", booking, newly_paid="payment_state" in fields)
+        if extra:
+            payment_holds.settle_extra_safely("stay", booking, intent=payment_intent)
         # Авто-подтверждение, если юнит не требует ручной проверки (анти-фрод).
         if not booking.unit.require_manual_confirm and booking.status == StayBooking.STATUS_PENDING:
             try:

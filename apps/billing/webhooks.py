@@ -246,6 +246,7 @@ def handle_event(event_type: str, obj: dict, account: str = "", event_id: str = 
             tenant_schema=meta.get("tenant_schema", ""),
             booking_id=meta.get("booking_id", ""),
             payment_intent=obj.get("payment_intent", ""),
+            amount_cents=int(obj.get("amount_total") or 0),
         )
         if not ok:
             _money_not_booked("booking_deposit", meta, obj, id_key="booking_id", event_id=event_id)
@@ -278,6 +279,7 @@ def handle_event(event_type: str, obj: dict, account: str = "", event_id: str = 
             tenant_schema=meta.get("tenant_schema", ""),
             booking_id=meta.get("booking_id", ""),
             payment_intent=obj.get("payment_intent", ""),
+            amount_cents=int(obj.get("amount_total") or 0),
         )
         if not ok:
             _money_not_booked("stay_deposit", meta, obj, id_key="booking_id", event_id=event_id)
@@ -354,6 +356,7 @@ def handle_event(event_type: str, obj: dict, account: str = "", event_id: str = 
             tenant_schema=meta.get("tenant_schema", ""),
             ticket_id=meta.get("ticket_id", ""),
             payment_intent=obj.get("payment_intent", ""),
+            amount_cents=int(obj.get("amount_total") or 0),
         )
         if not ok:
             _money_not_booked("event_ticket", meta, obj, id_key="ticket_id", event_id=event_id)

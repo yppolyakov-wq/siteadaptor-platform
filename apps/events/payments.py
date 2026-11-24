@@ -191,11 +191,25 @@ def _charge_one(charge_pk, connect_id: str, max_attempts: int) -> str:
             return "failed"
 
 
-def mark_ticket_paid(*, tenant_schema: str, ticket_id: str, payment_intent: str = "") -> bool:
+def mark_ticket_paid(
+    *,
+    tenant_schema: str,
+    ticket_id: str,
+    payment_intent: str = "",
+    amount_cents: int | None = None,
+) -> bool:
     """Вебхук: билет оплачен → payment_state=paid + авто-confirm (если событие не
-    требует ручного подтверждения). Кросс-схемно, идемпотентно."""
+    требует ручного подтверждения). Кросс-схемно, идемпотентно.
+
+    FB-33 D4b: строка — под блокировкой (`payment_holds.locked_deal`, как у заказа), вызовы
+    Stripe — после неё. Второй платёж Stripe к сделке с уже записанным главным (решение
+    владельца 2026-11-24: и у неотменённой) — строкой книги на `amount_cents` и назад
+    только он (`settle_extra_payment`); главный intent не перезаписывается, у номера с
+    «nicht erstatten» главный остаётся у бизнеса."""
+    from django.db import transaction
     from django_tenants.utils import schema_context
 
+    from apps.core import payment_holds
     from apps.core.fsm import IllegalTransition
 
     from .models import Ticket
@@ -204,34 +218,57 @@ def mark_ticket_paid(*, tenant_schema: str, ticket_id: str, payment_intent: str 
     if not tenant_schema or not ticket_id:
         return False
     with schema_context(tenant_schema):
-        ticket = Ticket.objects.filter(id=ticket_id).select_related("event").first()
-        if ticket is None:
-            return False
-        # R4: при депозите помечаем deposit (остаток на месте), иначе paid.
-        target_state = Ticket.PAYMENT_DEPOSIT if ticket.deposit_cents else Ticket.PAYMENT_PAID
-        fields = []
-        if ticket.payment_state != target_state:
-            ticket.payment_state = target_state
-            fields.append("payment_state")
-        if payment_intent and ticket.stripe_payment_intent != payment_intent:
-            ticket.stripe_payment_intent = payment_intent
-            fields.append("stripe_payment_intent")
-        if ticket.payment_due_at is not None:  # KA-P6: оплачено — удержание снято
-            ticket.payment_due_at = None
-            fields.append("payment_due_at")
-        if fields:
-            fields.append("updated_at")
+        with transaction.atomic():
+            ticket = payment_holds.locked_deal(Ticket, ticket_id)
+            if ticket is None:
+                return False
+            fields = []
+            # R4: при депозите помечаем deposit (остаток на месте), иначе paid.
+            target = Ticket.PAYMENT_DEPOSIT if ticket.deposit_cents else Ticket.PAYMENT_PAID
+            # refunded не воскрешаем повтором вебхука (иначе возврат стал бы возможен снова).
+            newly = ticket.payment_state not in (
+                target,
+                Ticket.PAYMENT_PAID,
+                Ticket.PAYMENT_REFUNDED,
+            )
+            extra = payment_holds.is_extra_payment(
+                "ticket", ticket, payment_intent, newly_paid=newly
+            )
+            if newly:
+                ticket.payment_state = target
+                fields.append("payment_state")
+            # Главный платёж вторым не перезаписываем; главного нет (касса, потом онлайн) —
+            # этот становится главным, как раньше.
             if (
+                payment_intent
+                and ticket.stripe_payment_intent != payment_intent
+                and (newly or not ticket.stripe_payment_intent)
+            ):
+                ticket.stripe_payment_intent = payment_intent
+                fields.append("stripe_payment_intent")
+            if ticket.payment_due_at is not None:  # KA-P6: оплачено — удержание снято
+                ticket.payment_due_at = None
+                fields.append("payment_due_at")
+            from apps.core import folio
+
+            if extra:
+                payment_holds.record_extra_payment(
+                    "ticket", ticket, intent=payment_intent, amount_cents=amount_cents
+                )
+            elif (
                 "payment_state" in fields or "stripe_payment_intent" in fields
             ) and ticket.payment_state != "refunded":
                 # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси);
                 # новый intent пишется и у уже «оплаченной» сделки (поздний вебхук
                 # после кассы) — иначе онлайн-деньги выпали бы из книги.
-                from apps.core import folio
-
                 folio.record_online("ticket", ticket, intent=payment_intent)
-            ticket.save(update_fields=fields)
-        settle_late_payment("ticket", ticket, newly_paid="payment_state" in fields)
+            if fields:
+                fields.append("updated_at")
+                ticket.save(update_fields=fields)
+        # ревью H3: возвраты, FSM и синк предоплаты — после блокировки строки
+        payment_holds.settle_late_payment("ticket", ticket, newly_paid="payment_state" in fields)
+        if extra:
+            payment_holds.settle_extra_safely("ticket", ticket, intent=payment_intent)
         if not ticket.event.require_manual_confirm and ticket.status == Ticket.STATUS_PENDING:
             try:
                 TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
