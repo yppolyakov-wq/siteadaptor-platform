@@ -275,7 +275,6 @@ def test_auf_der_seite_link_plain():
 
 # ───────────── ревью диффа E1 ─────────────
 
-RED = pytest.mark.xfail(strict=True, reason="E1 ревью: до правки")
 OWN_BLOCK = {"key": "text", "id": "b1", "enabled": True, "data": {"title": "Eigen"}}
 
 
@@ -290,7 +289,6 @@ def _content_tenant(settings, blocks: dict):
     return tenant
 
 
-@RED
 def test_own_text_page_with_blocks_not_on_info(settings):
     """Ревью M (django): своя страница со СВОИМИ блоками (`seite:foo`) — не страница общего
     хоста `info`: окно «Über uns» её путь не принимает (кадр и Студия — по образцу)."""
@@ -309,7 +307,6 @@ def test_own_text_page_without_blocks_on_info(settings):
     assert _studio_page(ctx) == "/foo/" and "von=" in ctx["keep_q"]
 
 
-@RED
 def test_old_title_link_keeps_von():
     """Ревью L (django): старая ссылка `?block=__title` — `von` переживает переадресацию."""
     from apps.core.site_schema_views import site_schema_view
@@ -371,19 +368,12 @@ def test_von_control_chars_rejected(raw):
     assert "von" not in _q(resp["Location"].split("#", 1)[0])
 
 
-#: проходят чистку `== raw` до правки ревью — красные; `/%2F%2Fevil` — внутренний путь
-#: (кодированный слэш — не схема): его отсекает только сверка кода (`test_von_control_chars`)
-PASSED_CLEANING = ("/\x0b", "/ ")
-UNIT = [
-    pytest.param(c, marks=RED, id=repr(c)[:20])
-    if c in PASSED_CLEANING
-    else pytest.param(c, id=repr(c)[:20])
-    for c in CONTROL
-    if c != "/%2F%2Fevil"
-]
+#: `/%2F%2Fevil` — внутренний путь (кодированный слэш — не схема): его отсекает только
+#: сверка кода (`test_von_control_chars_rejected`); `/\x0b` и `/ ` до правки ревью проходили
+UNIT = [c for c in CONTROL if c != "/%2F%2Fevil"]
 
 
-@pytest.mark.parametrize("raw", UNIT)
+@pytest.mark.parametrize("raw", UNIT, ids=[repr(c)[:20] for c in UNIT])
 def test_page_path_rejects_control_even_if_code_matches(monkeypatch, raw):
     """Ревью L (security): и при совпавшем коде (подставлен) — управляющие символы, пробел,
     чужая схема, длина — "" до разбора пути."""
