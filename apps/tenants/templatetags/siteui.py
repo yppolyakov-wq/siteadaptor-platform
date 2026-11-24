@@ -411,14 +411,16 @@ def page_blocks(context, page_key, part="after"):
     is_preview = bool(context.get("is_preview"))
     if not is_preview:
         blocks = _drop_empty_faq(blocks, page_key, context.get("site") or site, context, raw)
+    # FB-33 M2h / M5a / стопка 14 E8: запреты блоков хоста — один вопрос с normalize и «+ Block»
+    # (`banned_blocks`), для ВСЕХ хостов: «Suche» вне 404, блоки с формами на подтверждении
+    banned = siteconfig.banned_blocks(page_key)
+    blocks = [b for b in blocks if b.get("key") not in banned]
     if not blocks and (before or not is_preview):
         return ""
     if page_key in siteconfig.FORMLESS_HOSTS:
         # FB-33 M2h (ПДн): на подтверждении блоки с полями ввода не рисуются, а остальные — с
         # ЧИСТЫМ контекстом: сделка и данные клиента вьюхи в блоки не попадают. FB-33 M5a: то
         # же на странице 404 (её отдают анониму на любом адресе — без форм и без cookie)
-        banned = siteconfig.banned_blocks(page_key)
-        blocks = [b for b in blocks if b.get("key") not in banned]
         if not blocks and not is_preview:
             return ""
         clean = {"pb_rows": siteconfig.group_block_rows(blocks), "pb_page_key": page_key}

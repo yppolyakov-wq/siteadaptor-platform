@@ -60,7 +60,7 @@ default_op, field_meta`; части-формы — `APPLY_FORM_PARTS`. Поря�
 `apps/core/site_schema.py::page_row_ref` (звать С тенантом: без него ответ `__page` всегда);
 псевдоним старого `__title` — `site_schema.py::page_ref, is_title_alias`; окно ★ —
 `apps/core/page_window.py::pseudo_row, list_links`; метка заголовка — `site_schema.py::title_hint_at`
-(вне строк схемы); имя главного списка — `site_schema.py::main_list_name, name_main_rows`
+(вне строк схемы); имя главного списка — `site_schema.py::main_list_name` (тенант обязателен, `blocks_for` зовёт его сам)
 (через `list_blocks.source_label`); хост → код страницы — `site_schema.py::page_code_of_host`.
 
 ## Нельзя
