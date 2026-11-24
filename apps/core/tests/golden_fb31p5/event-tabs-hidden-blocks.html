@@ -267,7 +267,7 @@
           function show(n) {
             step1.hidden = n !== 1;
             step2.hidden = n !== 2;
-            if (n === 2) { buildSummary(); window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }); }
+            if (n === 2) { buildSummary(); window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 80, behavior: (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth' }); }
           }
           next.addEventListener('click', function () {
             // Минимальная валидация шага 1: тариф выбран (если тарифы есть).
