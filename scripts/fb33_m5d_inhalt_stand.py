@@ -18,7 +18,14 @@
 - крайние размеры (`run_extremes`, ревью M5d-2 a11y Y7; с JS, de, по первому случаю каждого
   среза): 320×568 — без горизонтальной прокрутки документа и окна; `html{font-size:200%}` на
   1440 и 390 — «Fertig» и × достижимы; 844×390 — окно в пределах экрана, прокручивается,
-  ссылка при фокусе видна.
+  ссылка при фокусе видна;
+- доводка ядра (M5d-2b, `CASES_M5D2B`): общий тип событий и туров — вторая ссылка «Reisen»
+  (`more`: тем же видом, ≥ 44 px, имя = видимый текст; экран туров закрыт — заметкой);
+  «Zeitplan» у строки одного тура — без «Woher» и без ссылки (`no_woher`); строка одного
+  объекта (`@event`, `@tour` — первый объект кита из списка кабинета; нет объекта — заметкой);
+  «Abbrechen» у скрытой строки (`cancel_hidden`) — «Ausgeblendet» раскрыт, с JS фокус на
+  ссылке строки; строка объекта на 320×568 с JS и БЕЗ JS (`EXTREMES_M5D2B`) — клик по строке
+  открывает часть, горизонтальной прокрутки нет (длинное имя объекта без пробелов).
 
 Следующие срезы дописывают свои случаи ПОСЛЕ своего комментария-якоря `# --- cases: … ---`
 (кортежи в `CASES_*`), общий обход — `run_case`; чужие куски не трогать.
@@ -28,12 +35,14 @@ platform_m39_stand`; вход `<kit>@example.com` / `demo-12345678`):
     DB_NAME=<стенд-БД> python manage.py runserver 0.0.0.0:8050 --settings=config.settings.stand --noreload
     STAND_URL=http://ptx.siteadaptor.de:8050 \\
         uv run --no-project --with playwright python scripts/fb33_m5d_inhalt_stand.py <папка>
-Стенд только читает и закрывает окна — в схему и в черновик ничего не пишет. Итог: «N ✓, M ✗».
+Стенд только читает и закрывает окна — в схему ничего не пишет; случай `cancel_hidden`
+скрывает строку в ЧЕРНОВИКЕ сессии и в конце отбрасывает его («Verwerfen»). Итог: «N ✓, M ✗».
 Не входит в CI (там нет браузера).
 """
 
 from __future__ import annotations
 
+import re
 import sys
 from urllib.parse import urlparse
 
@@ -65,7 +74,11 @@ MIN_WINDOWS = 4
 #   dl     — есть `<dl>` «Woher / Auf der Seite» (источник `ContentSource`);
 #   link   — True: ссылка обязательна; False: её нет (auto); None: ссылка или причина;
 #   only_here — плашка «nur hier» после ссылки (строка одного объекта);
-#   hidden — строка скрыта (лежит в «Ausgeblendet»): после закрытия окна список раскрыт.
+#   hidden — строка скрыта (лежит в «Ausgeblendet»): после закрытия окна список раскрыт;
+#   more — сколько ещё ссылок «Inhalt bearbeiten» после первой (общий тип двух видов);
+#   no_woher — в `<dl>` только «Auf der Seite» (раздел не рисуется у этого вида объекта);
+#   cancel_hidden — стенд сам скрывает строку в черновике и проверяет «Abbrechen» её окна.
+# Код страницы `@event` / `@tour` — первый объект кита (адрес берём из списка кабинета).
 
 # --- cases: m5d2 ---
 CASES_M5D2 = (
@@ -79,6 +92,30 @@ CASES_M5D2 = (
     ("shop", "contact", "form", {"pinned": True, "dl": False, "link": None}),
     ("shop", "finder", "wizard", {"pinned": True, "dl": False, "link": None}),
 )
+# M5d-2b (доводка ядра): общий тип событий и туров, строка одного объекта, «Abbrechen»
+_CORE_TYPE = {"pinned": False, "dl": True, "link": True}
+_CORE_OBJECT = {"pinned": False, "dl": True, "link": True, "only_here": True, "more": 0}
+CASES_M5D2B = (
+    ("retreat", "event", "idea", {**_CORE_TYPE, "more": 1}),
+    ("retreat", "event", "program", {**_CORE_TYPE, "more": 0}),
+    ("retreat", "event", "hosts", {**_CORE_TYPE, "more": 0}),
+    ("retreat", "event", "venue", {**_CORE_TYPE, "more": 1, "cancel_hidden": True}),
+    ("retreat", "@event", "idea", _CORE_OBJECT),
+    ("retreat", "@event", "program", _CORE_OBJECT),
+    ("retreat", "@tour", "idea", _CORE_OBJECT),
+    ("retreat", "@tour", "program", {"pinned": False, "dl": True, "link": False, "no_woher": True}),
+)
+CASES_M5D2 += CASES_M5D2B
+#: строка одного объекта на 320×568 — с JS и без (клик по строке открывает часть)
+EXTREMES_M5D2B = (
+    ("retreat", "@event", "idea", _CORE_OBJECT),
+    ("retreat", "@tour", "program", {}),
+)
+#: список кабинета, где стенд берёт первый объект вида: (адрес, образец ссылки на объект)
+OBJECT_LISTS = {
+    "event": ("/dashboard/events/", r"/dashboard/events/([0-9a-f-]{36})/"),
+    "tour": ("/dashboard/events/touren/", r"/dashboard/events/touren/([0-9a-f-]{36})/"),
+}
 
 # --- cases: m5d3 ---
 # G3: закреплённый текст страницы («Über uns», «Versand») и «Versandkosten» — без `<dl>`
@@ -229,8 +266,13 @@ PART_JS = """() => {
   out.fixed = part.querySelectorAll('[data-inhalt-fixed]').length;
   out.fixedHidden = [...part.querySelectorAll('[data-inhalt-fixed]')]
     .every(b => b.getAttribute('aria-hidden') === 'true');
-  const a = part.querySelector('a[data-inhalt-link]');
+  const a = part.querySelector('a[data-inhalt-link]:not([data-inhalt-more])');
   out.link = !!a;
+  out.more = [...part.querySelectorAll('a[data-inhalt-more]')].map(m => ({
+    h: Math.round(m.getBoundingClientRect().height), text: txt(m),
+    aria: m.hasAttribute('aria-hidden') || m.hasAttribute('aria-label'),
+    after: !!a && !!(a.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING),
+    look: !!a && m.className === a.className}));
   if (a) {
     out.linkH = Math.round(a.getBoundingClientRect().height);
     out.linkAria = a.hasAttribute('aria-hidden') || a.hasAttribute('aria-label');
@@ -293,7 +335,8 @@ WINDOW_BOX_JS = """() => { const win = document.querySelector('dialog.ui-bwin[op
 FOCUS_JS = """() => { const a = document.activeElement; if (!a) return {};
   const win = document.querySelector('dialog.ui-bwin[open]');
   return {id: a.id || '', tag: a.tagName, block: a.getAttribute('data-schema-block') || '',
-    link: a.hasAttribute('data-inhalt-link'), inside: !!win && win.contains(a)}; }"""
+    link: a.hasAttribute('data-inhalt-link') && !a.hasAttribute('data-inhalt-more'),
+    more: a.hasAttribute('data-inhalt-more'), inside: !!win && win.contains(a)}; }"""
 
 
 def base_of(slug):
@@ -306,6 +349,24 @@ def creds(slug):
 
 def aufbau(slug, seite, extra=""):
     return f"{base_of(slug)}/dashboard/site/aufbau/?seite={seite}{extra}"
+
+
+_OBJECT_CODES: dict = {}
+
+
+def resolve(pg, slug, seite):
+    """Код страницы случая: `@вид` — первый объект кита (из списка кабинета); None — нет."""
+    if not seite.startswith("@"):
+        return seite
+    kind = seite[1:]
+    if (slug, kind) not in _OBJECT_CODES:
+        path, pattern = OBJECT_LISTS[kind]
+        resp = pg.goto(base_of(slug) + path)
+        found = re.search(pattern, pg.content()) if resp is not None and resp.status < 400 else None
+        _OBJECT_CODES[(slug, kind)] = (
+            f"{kind}@{kind}:{found.group(1).replace('-', '')}" if found else None
+        )
+    return _OBJECT_CODES[(slug, kind)]
 
 
 def row_selector(ref):
@@ -383,7 +444,13 @@ def expect(rep, m, t, lang, want):
         f"{t}: «🔒 fest» — {fixed} раз ({m['fixed']})",
         code="fixed",
     )
-    if want["dl"]:
+    if want["dl"] and want.get("no_woher"):
+        rep.check(
+            m["dl"] == 1 and not m["woher"] and m["visibility"],
+            f"{t}: один dl — только «Auf der Seite»",
+            code="dl-no-woher",
+        )
+    elif want["dl"]:
         rep.check(m["dl"] == 1 and m["woher"], f"{t}: один dl с «Woher»", code="dl")
         if not want["pinned"]:
             rep.check(m["visibility"], f"{t}: «Auf der Seite» есть", code="dl-visibility")
@@ -410,6 +477,18 @@ def expect(rep, m, t, lang, want):
                 f"{t}: «nur hier» — после ссылки, не aria-hidden",
                 code="only-here-after",
             )
+    more = m.get("more") or []
+    if want.get("more") and not more:
+        # экран второго списка закрыт этому пользователю (модуль, пакет) — ссылки нет по праву
+        rep.note(f"{t}: второй ссылки нет — экран закрыт у кита? (ожидалось {want['more']})")
+    elif "more" in want:
+        rep.check(len(more) == want["more"], f"{t}: ещё ссылок — {want['more']}", code="more")
+    for x in more:
+        rep.check(
+            x["h"] >= MIN_TARGET and not x["aria"] and x["after"] and x["look"],
+            f"{t}: вторая ссылка — ≥ 44 px, имя = текст, после первой, тем же видом ({x})",
+            code="more-link",
+        )
     if m["reason"]:
         rep.check(not m["reasonLink"], f"{t}: в причине нет ссылки", code="reason-link")
     rep.check(m["overflow"] <= 0, f"{t}: без гор. скролла ({m['overflow']}px)", code="overflow")
@@ -471,6 +550,84 @@ def run_hidden_nojs(rep, pg, t, ref):
     pg.click('[data-schema-panel] [data-window-actions] button[value="window_done"]')
     pg.wait_for_load_state()
     hidden_state(rep, pg, t, ref, "«Fertig»", False)
+
+
+def post_row(pg, slug, seite, **data) -> bool:
+    """Форма экрана без окна (как «⋯» строки или полоса черновика): собрана и отправлена на
+    самой странице — `evaluate` работает и при выключенных скриптах страницы. Правка — только
+    в черновике сессии."""
+    token = pg.query_selector("input[name=csrfmiddlewaretoken]")
+    if token is None:
+        return False
+    form = {"csrfmiddlewaretoken": token.get_attribute("value"), "seite": seite, **data}
+    with pg.expect_navigation():
+        pg.evaluate(
+            """(fields) => { const f = document.createElement('form'); f.method = 'post';
+              for (const [k, v] of Object.entries(fields)) { const i = document.createElement('input');
+                i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i); }
+              document.body.appendChild(f); f.submit(); }""",
+            form,
+        )
+    pg.wait_for_load_state()
+    return "/dashboard/site/aufbau/" in pg.url
+
+
+def run_cancel_hidden(rep, pg, t, slug, seite, ref, js) -> None:
+    """M5d-2b: строка скрыта (в черновике), окно открыто из «Ausgeblendet» и закрыто
+    «Abbrechen» — список раскрыт, строка в нём; с JS фокус — на её ссылке. Якоря в адресе нет
+    (сообщение об отмене — вверху страницы), поэтому без JS — только раскрытый список."""
+    pg.goto(aufbau(slug, seite))
+    sl.settle(pg, js, rep)
+    if not rep.check(
+        post_row(pg, slug, seite, ref=ref, op="toggle", zeile="1"),
+        f"{t}: строка скрыта в черновике",
+        code="cancel-hide",
+    ):
+        return
+    try:
+        pg.goto(aufbau(slug, seite))
+        sl.settle(pg, js, rep)
+        st = pg.evaluate(HIDDEN_JS, ref)
+        if not rep.check(
+            st["rowIn"], f"{t}: строка лежит в «Ausgeblendet» ({st})", code="cancel-in"
+        ):
+            return
+        if not rep.check(open_row(pg, ref, js), f"{t}: окно скрытой строки открылось", code="open"):
+            return
+        root = f"{DLG}[open]" if js else "[data-schema-panel]"
+        pg.click(f'{root} [data-window-actions] button[value="revert"]')
+        pg.wait_for_url(lambda u: "block=" not in u, timeout=20000)
+        pg.wait_for_load_state()
+        sl.settle(pg, js, rep)
+        if js:
+            try:
+                pg.wait_for_function(
+                    "(r) => document.activeElement && document.activeElement.id === 'schema-row-' + r",
+                    arg=ref,
+                    timeout=3000,
+                )
+            except Exception:  # noqa: BLE001 — стенд сообщает ✗ ниже, а не падает
+                pass
+        st = pg.evaluate(HIDDEN_JS, ref)
+        rep.check(
+            st["open"] and st["rowIn"],
+            f"{t}: «Abbrechen» → «Ausgeblendet» раскрыт, строка в нём ({st})",
+            code="cancel-open",
+        )
+        if js:
+            at = pg.evaluate("() => document.activeElement && document.activeElement.id")
+            rep.check(
+                at == f"schema-row-{ref}",
+                f"{t}: «Abbrechen» → фокус на ссылке строки ({at})",
+                code="cancel-focus",
+            )
+    finally:
+        pg.goto(aufbau(slug, seite))
+        rep.check(
+            post_row(pg, slug, seite, op="discard"),
+            f"{t}: черновик отброшен",
+            code="cancel-discard",
+        )
 
 
 def reach(rep, pg, t, selector, what, code):
@@ -541,18 +698,74 @@ def run_extreme(rep, browser, extreme, case) -> None:
         pg.context.close()
 
 
+def run_object_320(rep, browser, case, js) -> None:
+    """M5d-2b: строка одного объекта на 320×568 (de), с JS и без: клик по строке открывает
+    часть «Inhalt», горизонтальной прокрутки нет ни у страницы, ни у окна (имя объекта в
+    ссылке переносится), ссылка целиком в пределах окна."""
+    slug, seite, ref, want = case
+    t = f"x320 {'js' if js else 'nojs'} {slug}/{seite}/{ref}"
+    pg = sl.open_page(browser, 320, 568, js=js, lang="de")
+    try:
+        email, password = creds(slug)
+        if not rep.check(sl.login(pg, base_of(slug), email, password), f"{t}: вход", code="login"):
+            return
+        code = resolve(pg, slug, seite)
+        if not code:
+            rep.note(f"{t}: объекта нет у кита — пропущено")
+            return
+        pg.goto(aufbau(slug, code))
+        sl.settle(pg, js, rep)
+        if not pg.query_selector(row_selector(ref)):
+            rep.note(f"{t}: строки нет у кита — пропущено")
+            return
+        if not rep.check(open_row(pg, ref, js), f"{t}: клик по строке открыл окно", code="open"):
+            return
+        m = pg.evaluate(PART_JS)
+        if not rep.check(bool(m and m["part"]), f"{t}: часть «Inhalt» есть", code="part"):
+            return
+        sl.shot(pg, OUT, f"{slug}_{seite.strip('@')}_{ref}_x320_{'js' if js else 'nojs'}")
+        rep.check(m["dialog"] == js, f"{t}: {'dialog' if js else 'колонка без JS'}", code="mode")
+        rep.check(m["overflow"] <= 0, f"{t}: без гор. скролла ({m['overflow']}px)", code="overflow")
+        rep.check(
+            m["inner"] <= 0, f"{t}: окно без гор. скролла ({m['inner']}px)", code="overflow-in"
+        )
+        if m["link"]:
+            box = pg.evaluate(
+                """() => { const root = document.querySelector('dialog.ui-bwin[open]') ||
+                  document.querySelector('[data-schema-panel]');
+                  const a = root.querySelector('a[data-inhalt-link]');
+                  const r = a.getBoundingClientRect(), o = root.getBoundingClientRect();
+                  return {in: r.left >= o.left - 0.5 && r.right <= o.right + 0.5,
+                    a: [r.left, r.right].map(Math.round), root: [o.left, o.right].map(Math.round),
+                    lines: Math.round(r.height)}; }"""
+            )
+            rep.check(box["in"], f"{t}: ссылка в пределах окна ({box})", code="link-fits")
+        if want.get("only_here"):
+            rep.check(m.get("onlyHere"), f"{t}: «nur hier» есть", code="only-here")
+        rep.check(not pg.js_errors, f"{t}: без ошибок JS ({pg.js_errors[:2]})", code="js-errors")
+    finally:
+        pg.context.close()
+
+
 def run_extremes(rep, browser) -> None:
     """Крайние размеры — по первому случаю каждого среза (своего якоря `# --- cases: … ---`)."""
     for group in CASE_GROUPS:
         for case in group[:1]:
             for extreme in EXTREMES:
                 run_extreme(rep, browser, extreme, case)
+    for case in EXTREMES_M5D2B:
+        for js in (True, False):
+            run_object_320(rep, browser, case, js)
 
 
 def run_case(rep, pg, tag, lang, js, case) -> bool:
     """Один случай; False — страницы или строки у кита нет (заметкой, не ✗)."""
     slug, seite, ref, want = case
     t = f"{tag} {slug}/{seite}/{ref}"
+    seite = resolve(pg, slug, seite)
+    if not seite:
+        rep.note(f"{t}: объекта нет у кита — пропущено")
+        return False
     resp = pg.goto(aufbau(slug, seite))
     sl.settle(pg, js, rep)
     if not rep.check(resp is not None and resp.status < 400, f"{t}: экран отвечает", code="status"):
@@ -572,6 +785,8 @@ def run_case(rep, pg, tag, lang, js, case) -> bool:
         run_focus(rep, pg, t, ref, m, want)
     elif m["part"] and want.get("hidden"):
         run_hidden_nojs(rep, pg, t, ref)
+    if m["part"] and want.get("cancel_hidden"):
+        run_cancel_hidden(rep, pg, t, slug, seite, ref, js)
     rep.check(not pg.js_errors, f"{t}: без ошибок JS ({pg.js_errors[:2]})", code="js-errors")
     return True
 

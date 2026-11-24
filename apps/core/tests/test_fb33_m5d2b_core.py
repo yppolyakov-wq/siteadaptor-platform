@@ -316,3 +316,20 @@ def test_cancel_on_a_hidden_row_leaves_the_hidden_list_open(monkeypatch, hide_fi
     assert (" open" in details.group(1)) is hide_first
     assert ('id="schema-row-description"' in details.group(2)) is hide_first
     assert html.count('id="schema-row-description"') == 1
+
+
+# --- 5. длинное имя объекта в ссылке переносится --------------------------------------------------
+
+
+@pytest.mark.parametrize("path", ["static/src/app.css", "static/css/app.css"])
+def test_long_object_name_wraps_inside_the_link(path):
+    """Ссылка «Inhalt bearbeiten» — `inline-flex`: её подпись (один `<span>`) — flex-элемент,
+    и без `min-width: 0` длинное имя объекта без пробелов не переносится (стенд
+    `fb33_m5d_inhalt_stand`, 320×568: ссылка шире окна). Правило — в исходнике и в сборке."""
+    css = re.sub(r"\s+", "", (ROOT / path).read_text(encoding="utf-8"))
+    for root in ("[data-schema-panel]", ".ui-bwin"):
+        link = re.search(re.escape(f"{root}a[data-inhalt-link]") + r"[^{]*\{([^}]*)\}", css)
+        assert link and "max-width:100%" in link.group(1), (path, root)
+        span = re.search(re.escape(f"{root}a[data-inhalt-link]>span") + r"[^{]*\{([^}]*)\}", css)
+        assert span, (path, root)
+        assert "min-width:0" in span.group(1) and "overflow-wrap:anywhere" in span.group(1)
