@@ -3,7 +3,7 @@
 План — `docs/fb33-stack13-plan-2026-11-24.md` §2 D2, §4 и правка ревью §10.1 M6. Выборка
 режется на `KDS_MAX_ORDERS + 1` (лишний — признак «есть ещё»); ответы на свои вопросы
 расшифровываются только у показанных; порядок прежний — старые сверху. При переполнении
-внутри `#kds-board` (поллинг заменяет его целиком) — заметная строка `role="status"` с числом
+внутри `#kds-board` (поллинг заменяет его целиком) — заметная строка (обычный абзац, §10.4) с числом
 скрытых заказов (лёгкий `count` только при переполнении) и обычной ссылкой на список заказов,
 если он открыт этому пользователю здесь (одна проверка — `nav_registry.screen_closed`).
 """
@@ -79,7 +79,7 @@ def _board(request=None):
 
 
 def _status(html):
-    match = re.search(r'<p[^>]*role="status"[^>]*data-kds-more[^>]*>(.*?)</p>', html, re.S)
+    match = re.search(r"<p[^>]*data-kds-more[^>]*>(.*?)</p>", html, re.S)
     return match
 
 
@@ -138,7 +138,9 @@ def test_more_link_is_plain_link_named_by_text():
     html = _board()
     status = _status(html)
     assert status
-    link = re.search(r'<a href="([^"]+)"([^>]*)>(.*?)</a>', status.group(1), re.S)
+    link = re.search(
+        r'<a id="kds-more-link" href="([^"]+)"([^>]*)>(.*?)</a>', status.group(1), re.S
+    )
     assert link and link.group(1) == reverse("orders:order-list")
     assert "aria-label" not in link.group(2) and "hx-" not in link.group(2)
     text = " ".join(link.group(3).split())
@@ -227,7 +229,6 @@ def _sales_url():
     return reverse("verkaeufe") + "?tab=order&view=liste"
 
 
-@REVIEW
 def test_overflow_line_is_not_a_live_region():
     """a11y HIGH: доска пересоздаётся поллингом каждые 8 с — live region внутри неё
     пересоздавался бы и объявлялся заново; строка — обычный абзац."""
@@ -238,7 +239,6 @@ def test_overflow_line_is_not_a_live_region():
     assert _more(html) is not None and 'role="status"' not in html
 
 
-@REVIEW
 def test_focus_targets_have_stable_ids():
     """a11y HIGH: htmx возвращает фокус после замены `outerHTML` по `id` — у кнопок действия
     и у ссылки он постоянный."""

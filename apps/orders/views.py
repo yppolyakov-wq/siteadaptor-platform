@@ -162,7 +162,8 @@ def _kitchen_context(request) -> dict:
 
     FB-33 D2: не больше `KDS_MAX_ORDERS` (лишний +1 — только признак «есть ещё»), ответы
     расшифровываются только у показанных; при переполнении — число скрытых (`count` только
-    тогда) и ссылка на список (`kds_more`, `kds_list_url`)."""
+    тогда) и ссылка на список (`kds_more`, `kds_list_url`). Строка — обычный абзац без live
+    region (ревью §10.4: доска пересоздаётся поллингом); фокус htmx возвращает по `id`."""
     from apps.core import form_answers
 
     orders = list(_active_kitchen_orders()[: KDS_MAX_ORDERS + 1])
