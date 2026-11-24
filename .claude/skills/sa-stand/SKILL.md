@@ -116,6 +116,9 @@ metadata:
 - Параллельные стенды: сервер стенда — с `DB_CONN_MAX_AGE=0` (иначе `max_connections` Postgres
   кончается: «too many clients», ложные ✗ входа); инвентарь и стенд не гонять одновременно
   (общий Redis — ложные «ответ 302») · посл. 2026-11-24.
+- Сессии стенда — в кэше Redis, а тесты зовут `cache.clear()` (FLUSHDB): стенд по умолчанию на
+  своей базе `/2` (`config/settings/stand.py`), параллельным серверам — `REDIS_CACHE_URL=…/<N>`
+  каждому свою; замок `test_stand_redis_isolated.py` · посл. 2026-11-24.
 
 ## Что гейтить
 - `uv run pytest apps/core/tests/test_standlib.py -q` — каркас и правило (без браузера и БД).

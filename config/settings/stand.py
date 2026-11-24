@@ -34,3 +34,9 @@ if _os.environ.get("STAND_DEBUG") == "0":
         **STORAGES,  # noqa: F405
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
+
+# FB-33 стопка 13: тесты зовут `cache.clear()` (FLUSHDB базы кэша /1), а сессии стенда лежат в
+# кэше — параллельный pytest стирал вход обхода (782 ложных ✗). Без явного `REDIS_CACHE_URL`
+# стенд берёт свою базу Redis (/2); параллельным стендам — каждому свою через переменную.
+if not _os.environ.get("REDIS_CACHE_URL"):
+    CACHES = {**CACHES, "default": {**CACHES["default"], "LOCATION": "redis://localhost:6379/2"}}  # noqa: F405
