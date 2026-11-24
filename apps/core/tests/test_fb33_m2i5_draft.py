@@ -12,6 +12,7 @@ import pytest
 
 from apps.core import aufbau_draft, block_window, form_spec, site_schema
 from apps.core.tests.test_fb27_r2_draft import Browser
+from apps.core.tests.test_fb33_e9_cancel_anchor import said  # E9: итог «Abbrechen» в адресе
 from apps.core.tests.test_fb33_m2i5_before import CUSTOM
 from apps.tenants import siteconfig
 from apps.tenants.models import Tenant
@@ -75,7 +76,7 @@ def test_open_edit_cancel_leaves_no_draft():
     b.get("?seite=anfrage&block=form&tab=felder")
     _edit(b, mode_description="req", do="add", new_label="Neu")
     assert _drafts(b)["anfrage"]["window"]
-    resp, msgs = b.post(seite="anfrage", ref="form", op="revert", wopen=WOPEN)
+    resp, msgs = said(*b.post(seite="anfrage", ref="form", op="revert", wopen=WOPEN))
     assert resp.status_code == 302 and msgs
     assert _drafts(b) == {}
 
