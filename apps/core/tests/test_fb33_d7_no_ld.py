@@ -23,8 +23,6 @@ pytestmark = pytest.mark.django_db
 
 rf = RequestFactory()
 LD = '<script type="application/ld+json">'
-#: замки первого коммита — красные на базе P0, снимаются реализацией D7
-RED = pytest.mark.xfail(strict=True, reason="FB-33 D7: до реализации")
 
 
 @pytest.fixture(autouse=True)
@@ -71,7 +69,6 @@ def _path(route):
 
 
 @pytest.mark.parametrize("route", sorted(SEARCH_NOINDEX_ROUTES))
-@RED
 def test_no_ld_on_search(route):
     """№5: выдача `?q=` (вне индекса) не несёт LocalBusiness и BreadcrumbList."""
     html = _get(_tenant(), _path(route), {"q": "brot"})
@@ -94,7 +91,6 @@ def test_category_breadcrumb_ld_kept_without_q():
     assert '"BreadcrumbList"' in html
 
 
-@RED
 def test_category_breadcrumb_ld_dropped_on_search():
     html = _get(_tenant(), _path("storefront-category"), {"q": "brot"})
     assert "BreadcrumbList" not in html
@@ -110,7 +106,6 @@ def _member(tenant):
     return user
 
 
-@RED
 def test_confirmation_preview_has_no_ld():
     """Превью подтверждения (только команде, `noindex,nofollow`) — без LocalBusiness."""
     tenant = _tenant()

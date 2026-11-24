@@ -13,7 +13,7 @@
 пустое значение атрибута не даёт вовсе → прежняя разметка байт-в-байт.{% endcomment %}
 {% block listing_root_attrs %}{% if category_page_style %} data-cat-layout="{{ category_page_style }}"{% endif %}{% endblock %}
 
-{% block structured_data %}{{ block.super }}{% if catalog_breadcrumb_ld %}<script type="application/ld+json">{{ catalog_breadcrumb_ld|safe }}</script>{% endif %}{% endblock %}
+{% block structured_data %}{{ block.super }}{% if catalog_breadcrumb_ld and not storefront_search_noindex %}<script type="application/ld+json">{{ catalog_breadcrumb_ld|safe }}</script>{% endif %}{% endblock %}
 
 {% block listing_header %}
 <div class="mb-6"{% if category_side_nav %} data-cat-head{% endif %}>
