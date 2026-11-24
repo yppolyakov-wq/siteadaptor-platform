@@ -1103,6 +1103,19 @@ ENTRIES: tuple[NavEntry, ...] = (
         "eigene domain hinzufügen theme",
     ),
     _e("site", "media-library", _("Medien"), "media", None, True, "bilder fotos bibliothek"),
+    # FB-33 стопка 14 E6 (решение владельца 2026-11-24): «Galerie» — Студия на ГЛАВНОЙ у блока
+    # галереи (фото загружаются при любом состоянии; `/galerie/` при пустой галерее — 404).
+    # Только палитра: якоря сайдбара заморожены. Единственная запись `site-home` в ENTRIES.
+    _e(
+        "site",
+        "site-home",
+        _("Galerie"),
+        "site",
+        None,
+        search="galerie fotos bilder beispiele",
+        palette_only=True,
+        query="?page=%2F&block=gallery",
+    ),
 )
 
 HUBS: tuple[str, ...] = ("board", "marketing", "sellables", "finance", "settings", "site")
@@ -1227,6 +1240,7 @@ UNIVERSAL: dict[str, str] = {
     "site-banners": "библиотека баннеров — у каждого",
     "domains": "домены — у каждого",
     "media-library": "медиатека — у каждого",
+    "site-home": "галерея сайта в Студии (FB-33 E6) — у каждого",
     "sellable-manage": "обзор ассортимента — у каждого",
     "ablaeufe": "статусы и переходы — у каждого",
     "portal-stats": "статистика каталога города — у каждого",
@@ -1391,7 +1405,9 @@ def entry_for(hub: str, url_name: str) -> NavEntry | None:
 
 def entry_by_url(url_name: str) -> NavEntry | None:
     """Запись экрана по имени URL (FB-33 M5d-1): при нескольких — та, что без `query`
-    (у одной страницы подпункты с «?from=…» — входы, а не сам экран), иначе первая."""
+    (у одной страницы подпункты с «?from=…» — входы, а не сам экран), иначе первая.
+    У `site-home` записи без query нет (FB-33 E6): ответ — вход «Galerie»
+    («?page=%2F&block=gallery», Студия на главной у блока галереи)."""
     found = [e for e in ENTRIES if e.url_name == url_name]
     return next((e for e in found if not e.query), found[0] if found else None)
 

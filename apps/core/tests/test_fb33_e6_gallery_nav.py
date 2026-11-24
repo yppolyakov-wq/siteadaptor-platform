@@ -35,7 +35,6 @@ pytestmark = pytest.mark.django_db
 ROOT = Path(__file__).resolve().parents[3]
 QUERY = "?page=%2F&block=gallery"
 WOHER = "Die ersten Fotos der Galerie Ihrer Website."
-RED = pytest.mark.xfail(strict=True, reason="E6: ссылка и запись палитры «Galerie» ещё не заведены")
 
 
 @pytest.fixture(autouse=True)
@@ -90,7 +89,6 @@ def _galerie_entries():
 # --- красные: решение владельца и правки ревью ------------------------------------------------
 
 
-@RED
 def test_gallery_link_from_registry():
     """№2: ссылка — из записи реестра (подпись и адрес), путь `setting`; «Woher» — новой фразой
     без «automatisch»; presence-гейт витрины прежний (`only_if`)."""
@@ -111,7 +109,6 @@ def test_gallery_link_from_registry():
     assert "target=" not in link.group(0) and "aria-label" not in link.group(0)
 
 
-@RED
 def test_gallery_link_target_200_when_empty():
     """Решение владельца: у бизнеса без фото цель ссылки отвечает 200 и открывает блок
     `gallery` — форма загрузки фото на месте (не `/galerie/`, там 404)."""
@@ -126,7 +123,6 @@ def test_gallery_link_target_200_when_empty():
     assert 'name="action" value="upload_gallery"' in html
 
 
-@RED
 def test_gallery_palette_card_target_exists():
     """Карточка палитры «Galerie»: адрес разбирается в Студию, страница — главная, блок есть в
     секциях главной."""
@@ -145,7 +141,6 @@ def test_gallery_palette_card_target_exists():
     assert "gallery" in keys
 
 
-@RED
 def test_site_home_single_entry():
     """№5 и ревью L3: запись `site-home` в `ENTRIES` одна (с query), `entry_by_url` отдаёт её;
     докстрока `entry_by_url` говорит, что у `site-home` записи без query нет."""
@@ -155,7 +150,6 @@ def test_site_home_single_entry():
     assert "site-home" in (nav_registry.entry_by_url.__doc__ or "")
 
 
-@RED
 def test_gallery_entry_palette_only():
     """Мораторий: запись только в палитре, хаб и подсветка — «Website»; в сайдбаре её нет."""
     (entry,) = _galerie_entries()
@@ -165,7 +159,6 @@ def test_gallery_entry_palette_only():
     assert entry not in nav_registry.sidebar_children(site)
 
 
-@RED
 @pytest.mark.parametrize("closed", ["perm", "package", "rule"])
 def test_gallery_link_closed(monkeypatch, closed):
     """№28: закрытая цель — причина абзацем, без `<a>` и без `aria-hidden` (a11y L1). Доступ —
@@ -205,7 +198,6 @@ def test_gallery_link_closed(monkeypatch, closed):
     assert _text(para.group(0)) == f"Inhalt bearbeiten: Galerie — {reason}"
 
 
-@RED
 def test_e6_msgids_in_all_po():
     """№16: «Woher» блока — дословно строка P0b; она есть во всех пяти каталогах и переведена
     (кроме de)."""
