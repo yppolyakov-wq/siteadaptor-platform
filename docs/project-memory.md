@@ -780,6 +780,9 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 
 ### scripts
 
+- `scripts/work_map.py` + `docs/fb33-map.md` (T-14.1) — ЕДИНСТВЕННОЕ место порядка, статуса и зависимостей стопок; граф Mermaid строит скрипт; замок `test_work_map.py`. Передачи и планы на карту ссылаются, порядок не повторяют.
+- `scripts/plan_check.py` (T-14.2/3) — проверяемая таблица срезов плана стопки (`docs/stack-plan-template.md`): до кода — волны, зависимости, пересечения файлов, существование; после — факт против плана и эталоны против прогноза.
+- `scripts/stack_close.py` (T-14.4) — закрытие стопки списком ✓/✗ (снимок, тренд, build-log, `docs/wip/`, план, ветка в main, карта).
 - `scripts/standlib.py` (T-13.4) — ЕДИНСТВЕННЫЙ каркас новых Playwright-стендов (`Report`, `launch`, `open_page`, `login`, `settle`, `overflow`, `matrix`, `--selftest`); старые 38 стендов — список `LEGACY_STANDS` замка `test_standlib.py`, переносятся при следующей правке, список только сокращается.
 - `scripts/dev_stats.py` (T-13.8) — отчёт, наборы для страницы-панели (`--json`), снимок стопки (`--snapshot` → `docs/dev-stats-history.md`); чеклист ревью — `docs/review-checklist.md` (T-13.3).
 - `scripts/preflight.py` (T-13.1) — ЕДИНСТВЕННЫЙ финальный гейт перед пушем: `plan(files)` — таблица «путь → проверки» (замок `test_preflight_plan.py`). Новое правило гейта — строка туда и в замок, не абзац в `CLAUDE.md`.
