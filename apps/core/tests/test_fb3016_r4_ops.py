@@ -169,7 +169,7 @@ def test_r5b_head_and_sets_rows_change_their_axis_only():
 @pytest.mark.django_db
 def test_r5b_sets_row_only_when_sets_exist():
     cfg = siteconfig.normalize({})
-    keys = [b["key"] for b in site_schema.blocks_for(cfg, "catalog")]
+    keys = [b["key"] for b in site_schema.blocks_for(cfg, "catalog", tenant=None)]
     assert "page_head" in keys and "combos" not in keys
 
 

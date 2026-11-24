@@ -63,7 +63,7 @@ def test_type_is_offered_only_with_a_deal_module(monkeypatch):
 
 
 def test_schema_rows_summary_next_recommend_and_recommend_off_by_default():
-    blocks = site_schema.blocks_for(siteconfig.normalize({}), CODE)
+    blocks = site_schema.blocks_for(siteconfig.normalize({}), CODE, tenant=None)
     keys = [b["key"] for b in blocks if not b["cblock"]]
     assert keys == ["summary", "next", "recommend"]
     by_key = {b["key"]: b for b in blocks}

@@ -91,7 +91,7 @@ def test_page_row_ref_follows_v4(bt):
     rows = [r for _l, items in site_schema.type_groups(tenant, saved) for r in items]
     browser = Browser(tenant)
     for row in rows:
-        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None)
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host or None, tenant=None)
         want = _oracle_v4(tenant, row.code, blocks)
         assert site_schema.page_row_ref(tenant, row.code, blocks) == want, (bt, row.code)
         assert want != siteconfig.MAIN_LIST_KEY, "★ основной список больше не носитель"
@@ -186,7 +186,7 @@ def test_no_hint_without_block_above():
     """Макет: «Ohne „Fotos der Seite“ steht die Überschrift ganz oben — dann gibt es keinen
     Hinweis.» Скрытая фото-шапка — тоже без метки; форма без блока сверху — без метки."""
     saved = siteconfig.normalize(_tenant().site_config)
-    blocks = copy.deepcopy(site_schema.blocks_for(saved, "services"))
+    blocks = copy.deepcopy(site_schema.blocks_for(saved, "services", tenant=None))
     assert site_schema.title_hint_at("services", blocks) is not None
     for b in blocks:
         if b["key"] == "page_head":
@@ -259,14 +259,20 @@ def test_hint_not_in_blocks():
     считается функцией `title_hint_at` и вставляется только в разметку экрана."""
     saved = siteconfig.normalize(_tenant().site_config)
     for code in ("services", "contact", "promos", "gallery"):
-        blocks = site_schema.blocks_for(saved, code)
+        blocks = site_schema.blocks_for(saved, code, tenant=None)
         assert TITLE not in [b["ref"] for b in blocks], code
         assert all(b["key"] != "page_title" for b in blocks), code
-    blocks = site_schema.blocks_for(saved, "services")
+    blocks = site_schema.blocks_for(saved, "services", tenant=None)
     at = site_schema.title_hint_at("services", blocks)
     assert at == [b["key"] for b in blocks].index("page_head") + 1
-    assert site_schema.title_hint_at("contact", site_schema.blocks_for(saved, "contact")) is None
-    assert site_schema.title_hint_at("catalog", site_schema.blocks_for(saved, "catalog")) is None
+    assert (
+        site_schema.title_hint_at("contact", site_schema.blocks_for(saved, "contact", tenant=None))
+        is None
+    )
+    assert (
+        site_schema.title_hint_at("catalog", site_schema.blocks_for(saved, "catalog", tenant=None))
+        is None
+    )
 
 
 def test_hint_not_movable():
@@ -285,7 +291,7 @@ def test_move_neighbors_skip_star():
     нет."""
     tenant = _tenant()
     saved = siteconfig.normalize(tenant.site_config)
-    blocks = site_schema.blocks_for(saved, "services")
+    blocks = site_schema.blocks_for(saved, "services", tenant=None)
     first = next(b for b in blocks if b["enabled"] and not b["fixed"])
     assert first["can_up"] is False
     b = Browser(tenant)

@@ -277,7 +277,7 @@ def test_hint_before_first_row_in_markup(monkeypatch):
     monkeypatch.setattr(site_schema, "blocks_for", narrow)
     tenant = _tenant()
     saved = siteconfig.normalize(tenant.site_config)
-    blocks = site_schema.blocks_for(saved, "services")
+    blocks = site_schema.blocks_for(saved, "services", tenant=None)
     layout = site_schema.schema_layout(blocks)
     row = [b["ref"] for b in layout["lines"][0]["blocks"]]
     assert row == ["page_head", "groups"], row
@@ -294,7 +294,9 @@ def test_hint_before_first_row_in_markup(monkeypatch):
 def test_list_view_link_not_built_without_row(monkeypatch):
     tenant = _shop()
     saved = siteconfig.normalize(tenant.site_config)
-    selected = next(b for b in site_schema.blocks_for(saved, "home") if b["ref"] == "l1")
+    selected = next(
+        b for b in site_schema.blocks_for(saved, "home", tenant=None) if b["ref"] == "l1"
+    )
     view = block_views.list_view(saved, selected)
     assert view["inherits"] and "block=__page" in view["link"], view
     monkeypatch.setattr(site_schema, "page_row_ref", lambda tenant, code, blocks=None: "")
@@ -341,7 +343,7 @@ def test_list_link_on_page_row_for_every_own_view(bt):
     rows = [r for _l, items in site_schema.type_groups(tenant, saved) for r in items]
     seen = []
     for row in rows:
-        blocks = site_schema.blocks_for(saved, row.code, host=row.host)
+        blocks = site_schema.blocks_for(saved, row.code, host=row.host, tenant=None)
         main = next((b for b in blocks if b.get("main") and not b.get("cblock")), None)
         if not page_window.main_has_view(main):
             continue

@@ -95,10 +95,16 @@ def test_versand_is_not_offered_without_orders():
 @pytest.mark.parametrize("summaries", [True, False])
 def test_sets_row_only_with_combos(summaries):
     config = siteconfig.normalize(_tenant().site_config)
-    keys = [b["key"] for b in site_schema.blocks_for(config, "catalog", summaries=summaries)]
+    keys = [
+        b["key"]
+        for b in site_schema.blocks_for(config, "catalog", summaries=summaries, tenant=None)
+    ]
     assert siteconfig.CATALOG_SETS_KEY not in keys
     Combo.objects.create(name="Menü A", price="15.00", is_active=True)
-    keys = [b["key"] for b in site_schema.blocks_for(config, "catalog", summaries=summaries)]
+    keys = [
+        b["key"]
+        for b in site_schema.blocks_for(config, "catalog", summaries=summaries, tenant=None)
+    ]
     assert siteconfig.CATALOG_SETS_KEY in keys
 
 

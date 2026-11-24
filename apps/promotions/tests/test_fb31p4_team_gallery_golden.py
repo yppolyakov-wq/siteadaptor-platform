@@ -100,7 +100,7 @@ def test_panel_offers_the_section_views_and_saves_them():
     from apps.tenants import siteconfig
 
     tenant = TenantFactory(site_config={"team": TEAM})
-    rows = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), "team")
+    rows = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), "team", tenant=None)
     main = next(r for r in rows if r["main"])
     assert [c[0] for c in main["mainview"]["choices"]] == [
         "raster",

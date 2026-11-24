@@ -54,7 +54,9 @@ def _saved(tenant, host="promos"):
 def test_overview_rows_are_pinned_in_storefront_order():
     cfg = siteconfig.normalize({"promo_page_style": "tabs"})
     # FB-33 M2d: строка «Seitentitel» — сразу под фото-шапкой (заголовок страницы)
-    rows = [r for r in site_schema.blocks_for(cfg, "promos") if r["key"] != "page_title"]
+    rows = [
+        r for r in site_schema.blocks_for(cfg, "promos", tenant=None) if r["key"] != "page_title"
+    ]
     keys = [r["key"] for r in rows]
     assert keys[:3] == ["page_head", "groups", "main"], "шапка первой, группы над ★"
     head, groups, main = rows[:3]
@@ -103,7 +105,7 @@ def test_pinned_rows_cannot_move_or_hide():
 
 def test_detail_has_the_pinned_offer_row_first():
     tenant = _shop(site_defaults={"promo_detail_style": "kompakt"})
-    rows = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), "promo")
+    rows = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), "promo", tenant=None)
     assert rows[0]["key"] == "offer" and rows[0]["catview"]["value"] == "kompakt"
     b = Browser(tenant)
     b.post(seite="promo", op="catview", ref="offer", value="plakat")
@@ -130,7 +132,7 @@ def test_review_object_panel_shows_what_the_storefront_draws():
     )
     host = f"promo:{promo.pk.hex}"
     cfg = siteconfig.normalize({"page_blocks": {host: [{"key": "text", "id": "t1", "data": {}}]}})
-    rows = site_schema.blocks_for(cfg, f"promo@{host}")
+    rows = site_schema.blocks_for(cfg, f"promo@{host}", tenant=None)
     offer = next(r for r in rows if r["key"] == "offer")
     assert offer["catview"]["value"] == "plakat", "свой шаблон акции, как на витрине"
 
@@ -189,7 +191,7 @@ def test_own_group_row_reads_the_group_view():
     _groups()
     host = siteconfig.promo_group_host("Wochenangebote")
     cfg = siteconfig.normalize({"promo_groups": {"Wochenangebote": {"style": "prospekt"}}})
-    rows = site_schema.blocks_for(cfg, f"promo_group@{host}", host=host)
+    rows = site_schema.blocks_for(cfg, f"promo_group@{host}", host=host, tenant=None)
     head = next(r for r in rows if r["key"] == "page_head")
     assert head["catview"]["value"] == "prospekt"
 

@@ -326,7 +326,9 @@ def test_8_window_matrix_for_cart_form():
 def test_8b_anfrage_form_row_is_unchanged():
     """Строка формы заявки — прежняя модель (форма `anfrage`, без подсказок корзины)."""
     tenant = _tenant(ANFRAGE)
-    rows = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), "anfrage", "anfrage")
+    rows = site_schema.blocks_for(
+        siteconfig.normalize(tenant.site_config), "anfrage", "anfrage", tenant=None
+    )
     panel = next(r for r in rows if r["ref"] == "form")[form_spec.PANEL_KEY]
     assert panel["form"] == "anfrage" and "hints" not in panel
 
@@ -387,7 +389,9 @@ def test_9_preview_shows_draft_checkout_fields():
     assert not view["email"].on
     assert [q["label"] for q in view["custom"]] == ["Allergien"]
     assert form_spec.EDIT_KEY not in shown and "anfrage" not in (shown.get("form_fields") or {})
-    rows = site_schema.blocks_for(aufbau_draft.overlay(tenant.site_config, draft), "cart", "cart")
+    rows = site_schema.blocks_for(
+        aufbau_draft.overlay(tenant.site_config, draft), "cart", "cart", tenant=None
+    )
     panel = next(r for r in rows if r["ref"] == "form")[form_spec.PANEL_KEY]
     assert panel["form"] == "checkout" and panel["custom"][-1]["new"]
 

@@ -155,7 +155,7 @@ def test_old_draft_without_settings_still_works(_urlconf):
     assert "settings" not in draft and "kbase" not in draft
     assert aufbau_draft.info(req, _saved(b.tenant), "text")["conflict"] is False
     b.post(seite="text", op="save")
-    assert ss.blocks_for(_saved(b.tenant), "text")
+    assert ss.blocks_for(_saved(b.tenant), "text", tenant=None)
 
 
 # ───────────── R4c: панель настроек типа в «Seitenaufbau» ─────────────
@@ -191,7 +191,7 @@ def test_main_list_panel_carries_the_page_settings(_urlconf):
     основного списка (его окно — вид товаров)."""
     b = Browser(_tenant())
     cfg = siteconfig.normalize(b.tenant.site_config)
-    main = next(x for x in site_schema.blocks_for(cfg, "catalog") if x["main"])
+    main = next(x for x in site_schema.blocks_for(cfg, "catalog", tenant=None) if x["main"])
     assert "data-schema-settings" not in b.get(f"?seite=catalog&block={main['ref']}")
     ref = site_schema.page_row_ref(b.tenant, "catalog")
     assert ref == site_schema.PAGE_REF

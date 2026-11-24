@@ -38,7 +38,7 @@ def test_order_and_block_between_sections_render():
 def test_panel_moves_service_sections_and_saves_the_order():
     tenant = TenantFactory(business_type="friseur", site_config={})
     b = Browser(tenant)
-    rows = site_schema.blocks_for(siteconfig.normalize({}), "service")
+    rows = site_schema.blocks_for(siteconfig.normalize({}), "service", tenant=None)
     assert [r["key"] for r in rows][:3] == ["kauf", "description", "video"], "покупка — первой"
     b.post(seite="service", op="down", ref="description")
     b.post(seite="service", op="save")

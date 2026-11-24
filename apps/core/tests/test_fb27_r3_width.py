@@ -48,7 +48,7 @@ def test_every_width_down_to_a_sixth_is_offered_for_a_simple_block():
     tenant = _tenant()
     ref = site_schema.apply(tenant, "text", "add", block_type="text")
     cfg = siteconfig.normalize(tenant.site_config)
-    block = next(x for x in site_schema.blocks_for(cfg, "text") if x["ref"] == ref)
+    block = next(x for x in site_schema.blocks_for(cfg, "text", tenant=None) if x["ref"] == ref)
     assert [w[0] for w in block["widths"]] == [
         "contained", "w23", "w12", "w13", "w14", "w15", "w16",
     ]  # fmt: skip
@@ -59,7 +59,7 @@ def test_list_blocks_do_not_go_narrower_than_a_half():
     tenant = _tenant()
     ref = site_schema.apply(tenant, "text", "add", block_type="list")
     cfg = siteconfig.normalize(tenant.site_config)
-    block = next(x for x in site_schema.blocks_for(cfg, "text") if x["ref"] == ref)
+    block = next(x for x in site_schema.blocks_for(cfg, "text", tenant=None) if x["ref"] == ref)
     assert [w[0] for w in block["widths"]] == ["contained", "w23", "w12"]
     with pytest.raises(site_schema.SchemaError):
         site_schema.apply(tenant, "text", "width", ref=ref, value="w16")
@@ -74,7 +74,7 @@ def test_existing_narrow_list_keeps_its_width():
     next(x for x in cfg["page_blocks"]["info"] if x.get("id") == ref)["width"] = "w13"
     Tenant.objects.filter(pk=tenant.pk).update(site_config=cfg)
     cfg = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
-    block = next(x for x in site_schema.blocks_for(cfg, "text") if x["ref"] == ref)
+    block = next(x for x in site_schema.blocks_for(cfg, "text", tenant=None) if x["ref"] == ref)
     assert "w13" in [w[0] for w in block["widths"]]
 
 

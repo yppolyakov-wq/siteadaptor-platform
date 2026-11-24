@@ -35,7 +35,7 @@ def _saved(tenant, host):
 
 def test_listing_rows_are_pinned_and_read_the_template():
     cfg = siteconfig.normalize({"page_styles": {"services": "tabs"}})
-    rows = site_schema.blocks_for(cfg, "services")
+    rows = site_schema.blocks_for(cfg, "services", tenant=None)
     # FB-33 M2d: «Seitentitel» — под фото-шапкой, над группами
     # FB-33 M5b-2 W1: строки «Seitentitel» больше нет (поля — в окне ★-строки страницы)
     assert [r["key"] for r in rows[:3]] == ["page_head", "groups", "main"]
@@ -44,7 +44,7 @@ def test_listing_rows_are_pinned_and_read_the_template():
 
 
 def test_listing_without_subsections_has_only_the_banner_row():
-    rows = site_schema.blocks_for(siteconfig.normalize({}), "blog")
+    rows = site_schema.blocks_for(siteconfig.normalize({}), "blog", tenant=None)
     assert [r["key"] for r in rows[:2]] == ["page_head", "main"]  # FB-33 M5b-2: без «Seitentitel»
 
 
@@ -52,7 +52,7 @@ def test_stays_rows_live_on_stay_rooms():
     cfg = siteconfig.normalize(
         {"page_blocks": {"stay_rooms": [{"key": "groups", "style": "side"}]}}
     )
-    rows = site_schema.blocks_for(cfg, "stays")
+    rows = site_schema.blocks_for(cfg, "stays", tenant=None)
     assert next(r for r in rows if r["key"] == "groups")["catview"]["value"] == "side"
 
 
@@ -98,5 +98,5 @@ def test_review_pinned_rows_do_not_count_as_blocks_and_labels_translate():
     rows = {r.code: r for _l, items in site_schema.type_groups(tenant, cfg) for r in items}
     assert rows["services"].count == 0, "пустая страница — ноль своих блоков"
     with translation.override("ru"):
-        got = site_schema.blocks_for(siteconfig.normalize({}), "services")
+        got = site_schema.blocks_for(siteconfig.normalize({}), "services", tenant=None)
         assert str(next(r for r in got if r["key"] == "groups")["label"]) != "Kollektionen"

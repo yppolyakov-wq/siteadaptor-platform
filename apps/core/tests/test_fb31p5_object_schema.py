@@ -278,7 +278,9 @@ def test_shared_blocks_are_read_only_rows_in_the_object_schema():
     )
     html = Browser(tenant).get(f"?seite={_code('event', ev)}")
     assert 'data-schema-shared="shared:t-sh"' in html
-    rows = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), _code("event", ev))
+    rows = site_schema.blocks_for(
+        siteconfig.normalize(tenant.site_config), _code("event", ev), tenant=None
+    )
     refs = [r["ref"] for r in rows]
     assert refs.index("idea") + 1 == refs.index("shared:t-sh")
     with pytest.raises(site_schema.SchemaError):
