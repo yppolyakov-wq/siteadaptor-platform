@@ -51,8 +51,8 @@ HISTORY_HEAD = """# История снимков статистики разр�
 чем `дифф`, `после мержа` не растёт. «Ревью» — замки и правки по находкам после кода; план и
 его ревью — отдельной колонкой, журнал и документы не считаются.
 
-| Дата | Стопка | Коммитов | Ревью | Доля | Коммитов плана | Находки: план | дифф | после мержа | Красных CI |
-|---|---|---|---|---|---|---|---|---|---|
+| Дата | Стопка | Коммитов | Ревью | Доля | Коммитов плана | Находки: план | дифф | после мержа | Красных CI | Расход, $ | Исполнители и агенты |
+|---|---|---|---|---|---|---|---|---|---|---|---|
 """
 
 
@@ -124,7 +124,9 @@ def journal(text: str) -> dict:
     }
 
 
-def snapshot_row(label: str, commits, found: dict, red_ci: str, today: str) -> str:
+def snapshot_row(
+    label: str, commits, found: dict, red_ci: str, today: str, cost: str = "—", agents: str = "—"
+) -> str:
     """Строка истории: коммиты диапазона + находки журнала, у которых «Шаг» входит в `label`
     или наоборот (стопка «FB-33 стопка 7» собирает находки шагов, названных в журнале так же)."""
     total = len(commits)
@@ -135,7 +137,8 @@ def snapshot_row(label: str, commits, found: dict, red_ci: str, today: str) -> s
     share = f"{round(100 * review / total)} %" if total else "—"
     plan = sum(kind(s) == "plan" for _, s in commits)
     cells = [today, label.replace("|", "/"), total, review, share, plan]
-    cells += [when[w] for w in WHEN] + [red_ci]
+    # Расход сессии по её записи (T-16): сумма и доля исполнителей — см. docs/skill-feedback.md.
+    cells += [when[w] for w in WHEN] + [red_ci, cost, agents]
     return "| " + " | ".join(str(c) for c in cells) + " |"
 
 
@@ -149,9 +152,21 @@ def history_rows(text: str) -> list[dict]:
     rows = []
     for line in text.splitlines():
         c = [x.strip() for x in line.strip().strip("|").split("|")]
-        if len(c) != 10 or not re.match(r"\d{4}-\d\d-\d\d$", c[0]):
+        if len(c) not in (10, 12) or not re.match(r"\d{4}-\d\d-\d\d$", c[0]):
             continue
-        keys = ("commits", "review", "share", "plan_commits", "plan", "diff", "after", "red_ci")
+        c += ["—"] * (12 - len(c))  # строки до T-16 — без расхода
+        keys = (
+            "commits",
+            "review",
+            "share",
+            "plan_commits",
+            "plan",
+            "diff",
+            "after",
+            "red_ci",
+            "cost",
+            "agents",
+        )
         rows.append({"stack": c[1], "date": c[0], **dict(zip(keys, map(num, c[2:]), strict=True))})
     return rows
 
@@ -320,6 +335,12 @@ def main() -> None:
     ap.add_argument("--snapshot", metavar="ИМЯ", help="дописать строку в docs/dev-stats-history.md")
     ap.add_argument("--range", default="", help="диапазон git для снимка, напр. origin/main..HEAD")
     ap.add_argument("--red-ci", default="—", help="число красных прогонов CI за стопку")
+    ap.add_argument(
+        "--cost", default="—", help="расход сессии, $ (total_cost_usd её последней записи)"
+    )
+    ap.add_argument(
+        "--agents", default="—", help="доля исполнителей и агентов в расходе, напр. «80 %%»"
+    )
     args = ap.parse_args()
     if args.json:
         out = pathlib.Path(args.json)
@@ -336,6 +357,8 @@ def main() -> None:
             found,
             args.red_ci,
             datetime.date.today().isoformat(),
+            args.cost,
+            args.agents,
         )
         text = HISTORY.read_text(encoding="utf-8") if HISTORY.exists() else HISTORY_HEAD
         HISTORY.write_text(text.rstrip("\n") + "\n" + row + "\n", encoding="utf-8")
