@@ -129,6 +129,19 @@ def _field_state(page, name):
     )
 
 
+def _wait_focus(page, name):
+    """`autofocus` браузер ставит после разбора страницы, не сразу — ждём до 2 с (не дождались —
+    проверка ниже даст ✗)."""
+    try:
+        page.wait_for_function(
+            "n => document.activeElement && document.activeElement.name === n",
+            arg=name,
+            timeout=2000,
+        )
+    except Exception:  # noqa: BLE001 — таймаут Playwright; пакет импортируется лениво
+        pass
+
+
 def _forge_and_submit(page, select_name, fill):
     """С JS: дописать подделанный `<option>`, выбрать его и отправить форму (как подделка)."""
     page.evaluate(
@@ -215,6 +228,7 @@ def booking(browser, rep, w, h, lang, js, event_pk, control):
     rep.check("HYPERLINK" not in body and "evil.example" not in body, f"{tag}: подделка не эхом")
     msg = page.locator("main [role=status]").all_inner_texts()
     rep.check(any(LABEL[lang] in m for m in msg), f"{tag}: сообщение с подписью поля ({msg[:1]})")
+    _wait_focus(page, "reg_diet")
     st = _field_state(page, "reg_diet") or {}
     rep.check(st.get("invalid") == "true", f"{tag}: aria-invalid у select", code="a11y")
     rep.check(LABEL[lang] in st.get("described", ""), f"{tag}: aria-describedby → текст ошибки")
@@ -279,6 +293,7 @@ def guest(browser, rep, w, h, lang, js, token):
         page.unroute(url)
     body = page.content()
     rep.check("HYPERLINK" not in body, f"{tag}: подделка не эхом")
+    _wait_focus(page, "p2_reg_diet")
     st = _field_state(page, "p2_reg_diet") or {}
     rep.check(st.get("invalid") == "true", f"{tag}: aria-invalid у select", code="a11y")
     rep.check(LABEL[lang] in st.get("described", ""), f"{tag}: aria-describedby → текст ошибки")
