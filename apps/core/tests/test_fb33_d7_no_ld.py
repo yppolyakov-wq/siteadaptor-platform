@@ -125,3 +125,48 @@ def test_detail_ld_untouched():
     searched = _get(tenant, path, {"q": "brot"})
     assert plain.count(LD) >= 2  # LocalBusiness + сущность
     assert searched.count(LD) == plain.count(LD)
+
+
+# ── правки ревью §10.6 (решение владельца 2026-11-24) ─────────────────────────────────────────
+
+RED = pytest.mark.xfail(strict=True, reason="FB-33 D7 §10.6: до правки")
+FAQ = [{"q": "Habt ihr Parkplätze?", "a": "Ja, hinter dem Haus."}]
+
+
+def _faq_html(route_path, data):
+    from django.template.loader import render_to_string
+
+    req = _req(_tenant(), route_path, data=data)
+    req.resolver_match = resolve(route_path)
+    return render_to_string(
+        "storefront/sections/_faq.html",
+        {"site": {"faq": FAQ}, "section_row": {}, "sample_wrapped": []},
+        request=req,
+    )
+
+
+@RED
+def test_faqpage_not_on_search():
+    """FAQPage на выдаче `?q=` не выводится; видимый блок FAQ — прежний."""
+    path = reverse("storefront-products")
+    searched = _faq_html(path, {"q": "brot"})
+    plain = _faq_html(path, {})
+    assert '"FAQPage"' in plain and "FAQPage" not in searched
+    assert "Habt ihr Parkplätze?" in searched
+    assert searched.strip() == plain[plain.index("</script>") + len("</script>") :].strip()
+
+
+@RED
+def test_breadcrumb_ld_not_built_on_search(monkeypatch):
+    """`catalog_breadcrumb_ld` на `?q=` не считается (не только не выводится)."""
+    from apps.core import seo
+
+    calls = []
+    real = seo.breadcrumb_ld
+    monkeypatch.setattr(seo, "breadcrumb_ld", lambda *a, **k: calls.append(1) or real(*a, **k))
+    tenant = _tenant()
+    path = _path("storefront-category")
+    _get(tenant, path, {"q": "brot"})
+    assert calls == []
+    _get(tenant, path)
+    assert calls == [1]
