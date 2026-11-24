@@ -90,7 +90,8 @@ def test_real_report_builds_and_names_the_indicator():
 
 def test_datasets_rows_carry_share_and_match_the_report():
     data = _mod().datasets("2026-11-19")
-    assert {"steps", "weeks", "context", "journal", "history"} == set(data)
+    assert {"steps", "weeks", "context", "journal", "history", "map"} == set(data)
+    assert len(data["map"]) >= 10 and {"stack", "status", "depends", "what"} <= set(data["map"][0])
     assert data["history"], "история снимков пуста — страница-панель потеряет сравнение по стопкам"
     assert {"stack", "share", "plan_commits", "plan", "diff", "after", "red_ci"} <= set(
         data["history"][0]

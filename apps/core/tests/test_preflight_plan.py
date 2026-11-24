@@ -35,7 +35,11 @@ def test_ruff_runs_always_and_on_whole_tree():
 
 def test_docs_only_change_runs_doc_locks_not_app_tests():
     p = _plan("docs/pitfalls.md")
-    assert p.pytest_targets == ["apps/core/tests/test_claude_md_budget.py"]
+    # T-14.1: правка документа проверяет и карту работ — порядок и статус стопок живут в docs/.
+    assert p.pytest_targets == [
+        "apps/core/tests/test_claude_md_budget.py",
+        "apps/core/tests/test_work_map.py",
+    ]
     assert "css" not in p.steps and "i18n" not in p.steps
 
 

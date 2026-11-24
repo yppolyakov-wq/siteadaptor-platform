@@ -154,6 +154,26 @@ def history_rows(text: str) -> list[dict]:
     return rows
 
 
+def map_rows() -> list[dict]:
+    """Карта работ (`docs/fb33-map.md`) строками — что в main, что в работе, что можно брать."""
+    path = ROOT / "docs" / "fb33-map.md"
+    if not path.exists():
+        return []
+    rows, order = [], 0
+    for line in path.read_text(encoding="utf-8").splitlines():
+        c = [x.strip() for x in line.strip().strip("|").split("|")]
+        if not line.lstrip().startswith("|") or len(c) != 6 or c[0] in ("Стопка", ""):
+            continue
+        if set(c[0]) <= {"-", ":"}:
+            continue
+        order += 1
+        keys = ("stack", "status", "depends", "slices", "what", "needs")
+        rows.append(
+            {"order": order, **dict(zip(keys, (x.replace("`", "") for x in c), strict=True))}
+        )
+    return rows
+
+
 def sizes() -> list[tuple[str, int]]:
     rules = sum(p.stat().st_size for p in (ROOT / ".claude" / "rules").rglob("*") if p.is_file())
     skills = sorted((ROOT / ".claude" / "skills").glob("sa-*/SKILL.md"))
@@ -283,6 +303,7 @@ def datasets(since: str) -> dict[str, list[dict]]:
         "context": [{"what": name, "kb": round(size / 1000, 1)} for name, size in sizes()],
         "journal": found if j["total"] else [],
         "history": history_rows(HISTORY.read_text(encoding="utf-8")) if HISTORY.exists() else [],
+        "map": map_rows(),
     }
 
 

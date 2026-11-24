@@ -32,6 +32,7 @@ HANGING = "apps/billing/tests/test_tasks.py"
 
 LOCKS = {
     "claude_md": "apps/core/tests/test_claude_md_budget.py",
+    "work_map": "apps/core/tests/test_work_map.py",
     "rules": "apps/core/tests/test_claude_rules_budget.py",
     "skills": "apps/core/tests/test_project_skills.py",
     "template_comments": "apps/core/tests/test_template_comments.py",
@@ -159,7 +160,7 @@ def plan(
         elif parts[0] == "locale":
             notes.append("locale/: msgfmt --check-format и i18n_gap.py проверит только CI")
         elif f == "CLAUDE.md" or parts[0] == "docs":
-            targets.add(LOCKS["claude_md"])
+            targets.update({LOCKS["claude_md"], LOCKS["work_map"]})
         elif f.startswith(".claude/rules/"):
             targets.add(LOCKS["rules"])
         elif f.startswith(".claude/skills/"):
