@@ -194,7 +194,10 @@ def test_broken_file_is_reported_in_every_mode(tmp_path):
     mod = _mod()
     index = mod.build_index(root)
     assert mod.broken_note(index) and "apps/core/bad.py" in mod.broken_note(index)
-    assert "apps/core/bad.py" in mod.core_index(root, index)
+    text = mod.core_index(root, index)
+    assert "`bad.py`" in text and "не разобран" in text, (
+        "битый модуль виден в оглавлении, а не потерян"
+    )
 
 
 def test_generic_module_name_does_not_drag_every_test_in():
