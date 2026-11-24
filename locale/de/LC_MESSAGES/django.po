@@ -40232,6 +40232,19 @@ msgstr "bei jedem Beitrag"
 msgid "bei allen Beiträgen"
 msgstr "bei allen Beiträgen"
 
+#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
+msgid "bei jeder Veranstaltung und Reise"
+msgstr "bei jeder Veranstaltung und Reise"
+
+#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
+msgid "bei allen Veranstaltungen und Reisen"
+msgstr "bei allen Veranstaltungen und Reisen"
+
+#. FB-33 M5d-2b: часть окна «Inhalt» (доводка ядра)
+#, python-format
+msgid "%(all)s wird dieser Block nicht gezeigt."
+msgstr "%(all)s wird dieser Block nicht gezeigt."
+
 # fb33-stack-anchor-m5d3
 msgid "fb33-stack-anchor-m5d3"
 msgstr "fb33-stack-anchor-m5d3"

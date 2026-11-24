@@ -146,6 +146,9 @@ _FILLED = gettext_lazy("— ausgefüllt.")
 _EMPTY = gettext_lazy("— leer.")
 _FIELD_EVERY = gettext_lazy("Feld „%(field)s“ %(every)s.")
 _FIELD_THIS = gettext_lazy("Feld „%(field)s“ %(this)s")
+#: FB-33 M5d-2b: раздел рисуется не у этого вида объекта (`ContentSource.kinds`) — вместо
+#: видимости; «all» — слова вида строки («bei allen Reisen»)
+_NOT_FOR_KIND = gettext_lazy("%(all)s wird dieser Block nicht gezeigt.")
 
 
 def content_part(
@@ -161,7 +164,7 @@ def content_part(
     """Часть окна «Inhalt» у строки раздела: что блок показывает, откуда содержимое и где оно
     правится. Описание — в реестре (`DetailSection.content_nav` и `.source`, своих списков
     здесь нет): `selected["content"] = {summary, note, woher, filled, visibility, actions,
-    fixed, link, reason, screen, sourced}`.
+    fixed, link, more_links, reason, screen, sourced}`.
 
     Без `source` — неподвижная строка G2 (M5d-1): сводка — `summary` строки (пусто — подпись),
     ссылка `{"label", "url", "only_here"}` — запись `nav_registry`. С `source` (M5d-2,
@@ -173,6 +176,10 @@ def content_part(
     - `page` — редактор страницы (`content_pages.edit_url_for_code(code)`), подпись
       «Seiten › <имя>»;
     - `auto` — без ссылки.
+    M5d-2b: у строки ТИПА общего хоста двух видов (события и туры) раздел обоих видов даёт ещё
+    ссылки `more_links` (`[{"label", "url"}]`, записи `source.more_nav`) — только открытые этому
+    пользователю, закрытая — без причины. Раздел рисуется не у вида этой строки объекта
+    (`source.kinds`) — одна фраза в `visibility`, без «Woher», ссылки и действий.
     Имя объекта и страницы в подписи — в `<span lang>`, когда язык содержимого не язык
     интерфейса. Видимость и действия — из флагов строки (`enabled`, `can_hide`, `can_up`,
     `can_down`, `pinned`) и её `summary` у объекта — без запросов; «bei allen …» — только у
@@ -213,6 +220,7 @@ def content_part(
         "actions": "",
         "fixed": bool(selected.get("pinned")),
         "link": None,
+        "more_links": [],
         "reason": "",
         "screen": "",
         "sourced": False,
@@ -259,7 +267,7 @@ def _source_content(
             back = site_schema.object_back(f"{kind}@{host}", obj)
         if obj is None:
             logger.error("window_parts: no object for the content of %s/%s - no link", host, key)
-    words = site_schema.OBJECT_WORDS.get(site_schema.word_kind(host, section.only), {})
+    words = site_schema.object_words(host, section.only, source.kinds)
     # ревью M5d-2: сводка строки (`selected["summary"]`) здесь не годится — у строки объекта
     # это её статус («Standard: sichtbar», «nur hier ausgeblendet»)
     shows = str(source.shows or "")
@@ -268,16 +276,25 @@ def _source_content(
     else:
         content["summary"] = str(section.label)
     content["note"] = str(source.note or "")
+    content["sourced"] = True
+    if kind and source.kinds and kind not in source.kinds:
+        # M5d-2b: у этого вида объекта раздел не рисуется — править и скрывать здесь нечего
+        if "all" not in words:
+            logger.error("window_parts: no object words for %s/%s - no visibility", host, key)
+            return
+        content["visibility"] = _NOT_FOR_KIND % {"all": words["all"]}
+        return
     content["woher"], content["filled"] = _content_woher(source, host, key, kind, obj, words)
     content["visibility"], content["actions"] = _content_visibility(
         selected, source, module, key, bool(kind), words, getattr(request, "tenant", None)
     )
     if source.kind == "field" and obj is not None and back is None:
         logger.error("window_parts: object of %s/%s has no form link - no link", host, key)
-    content["sourced"] = True
     content["link"], content["reason"], content["screen"] = _content_link(
         section, source, host, request, code, kind, back if obj is not None else None, page_label
     )
+    if not kind and not section.only and not source.kinds:
+        content["more_links"] = _more_links(source, host, key, request)
 
 
 def _content_woher(source, host: str, key: str, kind: str, obj, words: dict) -> tuple[str, str]:
@@ -388,6 +405,39 @@ def _content_visibility(
     if source.kind == "field" and "all" in words and not is_object:
         return _VISIBLE_ALL % {"all": words["all"]}, actions  # «bei allen …» — про тип
     return str(_VISIBLE), actions
+
+
+def _more_links(source, host: str, key: str, request) -> list[dict]:
+    """M5d-2b: ещё ссылки строки ТИПА общего хоста двух видов (`ContentSource.more_nav`) —
+    `[{"label", "url"}]` по записям `nav_registry`. Экран закрыт этому пользователю — ссылки
+    нет и причины нет (первая ссылка говорит сама за себя); записи нет или адрес не строится —
+    ошибка в журнал."""
+    from django.urls import NoReverseMatch, reverse
+
+    from apps.core import nav_registry
+
+    links = []
+    for url_name in source.more_nav:
+        entry = nav_registry.entry_by_url(url_name)
+        if entry is None:
+            logger.error(
+                "window_parts: no nav entry %r for the content of %s/%s - no link",
+                url_name,
+                host,
+                key,
+            )
+            continue
+        try:
+            if nav_registry.screen_closed(request, url_name):
+                continue
+            links.append({"label": str(entry.label), "url": reverse(entry.url_name) + entry.query})
+        except NoReverseMatch:
+            logger.error("window_parts: nav entry %r does not reverse - no content link", url_name)
+        except Exception:  # noqa: BLE001 — окно без второй ссылки лучше упавшего экрана
+            logger.exception(
+                "window_parts: content link for %r failed (%s/%s) - no link", url_name, host, key
+            )
+    return links
 
 
 def _closed_reason(closed: str, host: str, key: str) -> str:

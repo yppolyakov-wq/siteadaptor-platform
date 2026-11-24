@@ -427,8 +427,11 @@ def site_schema_view(request):
         )
         if moved:
             keep["tab"] = goto
-        if op in aufbau_draft.WINDOW_OPS and ref:
-            # FB-33 M5c-3 (a11y B4): после «Fertig» «＋ Block» остаётся под этой строкой
+        if (op in aufbau_draft.WINDOW_OPS or op == "revert") and ref:
+            # FB-33 M5c-3 (a11y B4): после «Fertig» «＋ Block» остаётся под этой строкой.
+            # M5d-2b: и после «Abbrechen» — по `zuletzt` список «Ausgeblendet» остаётся раскрытым
+            # у скрытой строки (фокус на её ссылку ставит `aufbau.js`); якоря нет — сообщение
+            # об отмене стоит вверху страницы
             keep["zuletzt"] = ref
         target = _url(code, "" if closed else ref, keep)
         if op in aufbau_draft.WINDOW_OPS and ref:

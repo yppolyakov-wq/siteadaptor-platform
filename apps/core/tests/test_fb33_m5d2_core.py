@@ -945,7 +945,8 @@ def test_field_label_comes_from_the_form_code(monkeypatch):
     _with_source(monkeypatch, "events", "idea", _source(kind="field", field="idea"), "events:list")
     row = _row(ref="idea", key="idea")
     window_parts.content_part(row, "event_detail", _req(tenant), code="event")
-    assert row["content"]["woher"] == f"Feld „{label}“ bei jeder Veranstaltung."
+    # M5d-2b: раздел обоих видов на общем типе событий и туров называет оба
+    assert row["content"]["woher"] == f"Feld „{label}“ bei jeder Veranstaltung und Reise."
 
 
 def test_word_kind_by_host():

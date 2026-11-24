@@ -158,7 +158,10 @@ def _kinds_of(module: str, section) -> list:
         for kind, host in detail_parts.OBJECT_SHARED.items()
         if detail_parts.module_of(host) == module
     ]
-    return [k for k in kinds if not section.only or k == section.only]
+    kinds = [k for k in kinds if not section.only or k == section.only]
+    # M5d-2b: источник одного вида (`ContentSource.kinds`) — поля сверяем только у него
+    only = section.source.kinds if section.source is not None else ()
+    return [k for k in kinds if not only or k in only]
 
 
 def _field_errors() -> list:
