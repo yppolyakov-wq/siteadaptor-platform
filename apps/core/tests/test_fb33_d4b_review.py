@@ -19,7 +19,6 @@ from apps.notifications.models import Notification
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-_RED = pytest.mark.xfail(strict=True, reason="FB-33 D4b ревью: до правки")
 
 
 @pytest.fixture(autouse=True)
@@ -52,7 +51,6 @@ def _mails(kind, obj, reason="duplicate"):
     )
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_extra_settle_crash_mails_owner(kind, monkeypatch):
     obj = _pay(kind, _make(kind), "pi_main")
@@ -65,7 +63,6 @@ def test_extra_settle_crash_mails_owner(kind, monkeypatch):
     assert _mails(kind, obj).count() == 1
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_extra_refund_none_mails_owner(kind, monkeypatch):
     obj = _pay(kind, _make(kind), "pi_main")
@@ -74,7 +71,6 @@ def test_extra_refund_none_mails_owner(kind, monkeypatch):
     assert _mails(kind, obj).count() == 1
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_extra_row_is_marked_extra(kind, stripe_refunds):
     obj = _pay(kind, _make(kind), "pi_main")
@@ -82,7 +78,6 @@ def test_extra_row_is_marked_extra(kind, stripe_refunds):
     assert _rows(kind, obj)["pi_second"].source == payment_holds.EXTRA_SOURCE
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_extra_refund_retried_by_the_beat(kind, monkeypatch):
     """Повтор возврата второго платежа — общий beat (`orders.tasks.retry_late_refunds`)."""
@@ -107,7 +102,6 @@ def test_extra_refund_retried_by_the_beat(kind, monkeypatch):
     assert row.refunded_cents == row.amount_cents and calls == ["pi_second", "pi_second"]
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_late_payment_crash_does_not_fail_webhook_and_mails(kind, monkeypatch):
     obj = _make(kind)
@@ -120,7 +114,6 @@ def test_late_payment_crash_does_not_fail_webhook_and_mails(kind, monkeypatch):
     assert _mails(kind, obj, reason="cancel").count() == 1
 
 
-@_RED
 @pytest.mark.parametrize("kind", KINDS)
 def test_extra_without_amount_warns(kind, stripe_refunds, caplog):
     obj = _pay(kind, _make(kind), "pi_main")

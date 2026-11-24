@@ -110,7 +110,7 @@ def mark_stay_paid(
                 fields.append("updated_at")
                 booking.save(update_fields=fields)
         # ревью H3: возвраты, FSM и синк предоплаты — после блокировки строки
-        payment_holds.settle_late_payment("stay", booking, newly_paid="payment_state" in fields)
+        payment_holds.settle_late_safely("stay", booking, newly_paid="payment_state" in fields)
         if extra:
             payment_holds.settle_extra_safely("stay", booking, intent=payment_intent)
         # Авто-подтверждение, если юнит не требует ручной проверки (анти-фрод).

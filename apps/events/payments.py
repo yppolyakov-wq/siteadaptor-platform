@@ -266,7 +266,7 @@ def mark_ticket_paid(
                 fields.append("updated_at")
                 ticket.save(update_fields=fields)
         # ревью H3: возвраты, FSM и синк предоплаты — после блокировки строки
-        payment_holds.settle_late_payment("ticket", ticket, newly_paid="payment_state" in fields)
+        payment_holds.settle_late_safely("ticket", ticket, newly_paid="payment_state" in fields)
         if extra:
             payment_holds.settle_extra_safely("ticket", ticket, intent=payment_intent)
         if not ticket.event.require_manual_confirm and ticket.status == Ticket.STATUS_PENDING:

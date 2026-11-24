@@ -310,28 +310,71 @@ def record_extra_payment(kind: str, obj, *, intent: str, amount_cents: int | Non
     """FB-33 D4b: строка книги второго платежа — на сумму, которую списал Stripe
     (`amount_total`); без неё — как онлайн-платёж сделки. Пишется и у возвращённой сделки
     (иначе деньги выпали бы из книги). Звать под блокировкой сделки."""
-    from apps.core import folio
+    from apps.core import folio, money_contract
 
-    if amount_cents:
-        return folio.record(
+    if not amount_cents:
+        logger.warning(
+            "%s %s: second payment without amount_total — booked as the online share",
             kind,
-            obj,
-            amount_cents=int(amount_cents),
-            purpose="full",
-            method="stripe",
-            source="webhook",
-            intent=intent,
+            obj.pk,
         )
-    return folio.record_online(kind, obj, intent=intent)
+        total = money_contract._total(kind, obj)
+        online = min(money_contract._online_paid(kind, obj, total), total)
+        amount_cents = int((online * 100).to_integral_value())
+    # ревью (§10.7): строка нового пути — `EXTRA_SOURCE`, её одну трогает автоповтор
+    return folio.record(
+        kind,
+        obj,
+        amount_cents=int(amount_cents),
+        purpose="full",
+        method="stripe",
+        source=EXTRA_SOURCE,
+        intent=intent,
+    )
 
 
 def settle_extra_safely(kind: str, obj, *, intent: str) -> None:
-    """Вебхук: вернуть второй платёж после блокировки; сбой не роняет вебхук (строка в
-    книге, владельцу — письмо `duplicate` внутри `settle_extra_payment`)."""
+    """Вебхук: вернуть второй платёж после блокировки; сбой не роняет вебхук. Пометки
+    «Rückerstattung offen» у записи, номера, билета нет (roadmap) — поэтому упавший код тоже
+    письмо `duplicate` (одно на платёж); повтор — `retry_extra_refunds`."""
     try:
         settle_extra_payment(kind, obj, intent=intent)
     except Exception:  # noqa: BLE001 — оплата записана; Stripe не должен получить 500
         logger.exception("%s %s: refund of a second payment crashed", kind, obj.pk)
+        _mail_duplicate(kind, obj, intent)
+
+
+def settle_late_safely(kind: str, obj, *, newly_paid: bool) -> None:
+    """Вебхук записи, номера, билета: возврат поздней оплаты (как у заказа) — сбой не роняет
+    вебхук (Stripe не должен получить 500 за принятую оплату), владельцу — письмо."""
+    try:
+        settle_late_payment(kind, obj, newly_paid=newly_paid)
+    except Exception:  # noqa: BLE001 — оплата записана
+        logger.exception("%s %s: refund of a late payment crashed", kind, obj.pk)
+        from django_tenants.utils import get_tenant_model
+
+        from apps.core import refunds
+
+        try:
+            tenant = get_tenant_model().objects.filter(schema_name=connection.schema_name).first()
+            intent = getattr(obj, "stripe_payment_intent", "") or ""
+            refunds._notify_owner_failed(
+                kind, obj, tenant, once="late-" + refunds.duplicate_key(kind, obj.pk, intent)
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("%s %s: late-refund failure mail not sent", kind, obj.pk)
+
+
+def _mail_duplicate(kind: str, obj, intent: str) -> None:
+    from django_tenants.utils import get_tenant_model
+
+    from apps.core import refunds
+
+    try:
+        tenant = get_tenant_model().objects.filter(schema_name=connection.schema_name).first()
+        refunds.notify_duplicate_failed(kind, obj, tenant, intent=intent)
+    except Exception:  # noqa: BLE001
+        logger.exception("%s %s: duplicate-refund mail not sent", kind, obj.pk)
 
 
 def locked_deal(model, pk):
@@ -346,10 +389,12 @@ def locked_deal(model, pk):
         return None
 
 
-#: Виды, у которых сбой возврата второго платежа повторяет задача по расписанию
-#: (`retry_extra_refunds` из beat `orders.tasks.retry_late_refunds`); у прочих «Stripe не
-#: ответил» — сразу письмо.
-EXTRA_RETRY_KINDS = ("order",)
+#: Виды, чей второй платёж повторяет beat (`retry_extra_refunds` из
+#: `orders.tasks.retry_late_refunds`) — все виды с книгой.
+EXTRA_RETRY_KINDS = ("order", "booking", "stay", "ticket")
+#: Виды с пометкой «Rückerstattung offen» в карточке: «Stripe не ответил» — без письма
+#: сразу (письмо после исчерпания повторов); у прочих — письмо сразу (ревью H4, §10.7).
+EXTRA_FLAGGED_KINDS = ("order",)
 
 #: FB-33 D4a: `DealPayment.source` строки второго платежа, записанной новым путём. Повтор
 #: возврата трогает только их: прежние двойные оплаты задним числом не возвращаем.
@@ -486,8 +531,9 @@ def settle_extra_payment(kind: str, obj, *, intent: str):
     tenant = get_tenant_model().objects.filter(schema_name=connection.schema_name).first()
     result = refunds.refund_intent(kind, obj, intent, tenant)
     logger.warning("second payment on %s %s → %s", kind, obj.pk, result)
-    if result == refunds.RefundResult.FAILED or (
-        result == refunds.RefundResult.UNCERTAIN and kind not in EXTRA_RETRY_KINDS
+    # NONE — нет Connect у бизнеса или строки: деньги остались, владелец должен знать
+    if result in (refunds.RefundResult.FAILED, refunds.RefundResult.NONE) or (
+        result == refunds.RefundResult.UNCERTAIN and kind not in EXTRA_FLAGGED_KINDS
     ):
         refunds.notify_duplicate_failed(kind, obj, tenant, intent=intent)
     return result

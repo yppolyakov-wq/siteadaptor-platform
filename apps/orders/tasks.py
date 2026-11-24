@@ -276,8 +276,6 @@ def _expire_sessions(schema: str, pks, run=None) -> None:
 REFUND_RETRY_MAX = 4
 REFUND_RETRY_DAYS = 3
 _REFUND_RETRY_STEP = timezone.timedelta(minutes=15)
-#: FB-33 D4a: виды, чей второй платёж повторяет этот beat (`payment_holds.retry_extra_refunds`).
-EXTRA_RETRY_KINDS = ("order",)
 
 
 def _refund_retry_due(schema: str, pk, now) -> bool:
@@ -341,7 +339,7 @@ def retry_late_refunds(now=None) -> int:
         .order_by("created_at")[:ABANDONED_BATCH]
     )
     # FB-33 D4a: повтор возврата второго платежа — общий для видов сделок, в ядре
-    done = payment_holds.retry_extra_refunds(now, kinds=EXTRA_RETRY_KINDS)
+    done = payment_holds.retry_extra_refunds(now)  # все виды с книгой (EXTRA_RETRY_KINDS)
     if not due:
         return done
     tenant = get_tenant_model().objects.filter(schema_name=schema).first()
