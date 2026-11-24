@@ -278,17 +278,22 @@ REFUND_RETRY_DAYS = 3
 _REFUND_RETRY_STEP = timezone.timedelta(minutes=15)
 
 
-def _refund_retry_due(schema: str, pk, now) -> bool:
+def _refund_retry_state(schema: str, pk, now) -> str:
     """Пора ли повторить возврат: не больше `REFUND_RETRY_MAX` раз, с растущей паузой
-    (15 мин · 2ⁿ). Счётчик — в кэше; кэш недоступен — не повторяем (иначе повторы и
-    письма владельцу о сбое шли бы без предела)."""
+    (15 мин · 2ⁿ). Исходы — как у второго платежа (`payment_holds.RETRY_*`): due · wait ·
+    exhausted · blind (кэш недоступен — повторять вслепую нельзя, а молчать — потеря денег:
+    письмо владельцу, FB-33 §10.8)."""
     from django.core.cache import cache
+
+    from apps.core import payment_holds as ph
 
     key = f"order-refund-retry:{schema}:{pk}"
     try:
         state = cache.get(key) or {"n": 0, "next": 0}
-        if state["n"] >= REFUND_RETRY_MAX or now.timestamp() < state["next"]:
-            return False
+        if state["n"] >= REFUND_RETRY_MAX:
+            return ph.RETRY_EXHAUSTED
+        if now.timestamp() < state["next"]:
+            return ph.RETRY_WAIT
         pause = _REFUND_RETRY_STEP * (2 ** state["n"])
         cache.set(
             key,
@@ -296,9 +301,33 @@ def _refund_retry_due(schema: str, pk, now) -> bool:
             (REFUND_RETRY_DAYS + 1) * 86400,
         )
     except Exception:  # noqa: BLE001
-        logger.warning("refund-retry %s: счётчик недоступен — заказ %s пропущен", schema, pk)
-        return False
-    return True
+        logger.warning("refund-retry %s: счётчик недоступен — заказ %s", schema, pk)
+        return ph.RETRY_BLIND
+    return ph.RETRY_DUE
+
+
+def _refund_given_up(schema: str, order, tenant, state: str) -> None:
+    """Повторы возврата поздней оплаты исчерпаны (или счётчик недоступен) — одно письмо
+    владельцу на заказ; флаг — только после постановки письма."""
+    from django.core.cache import cache
+
+    from apps.core import payment_holds as ph
+    from apps.core import refunds
+
+    flag = f"order-refund-retry:{schema}:{order.pk}:mailed"
+    if state == ph.RETRY_EXHAUSTED:
+        try:
+            if cache.get(flag):
+                return
+        except Exception:  # noqa: BLE001
+            pass
+    once = "late-main-" + refunds.duplicate_key("order", order.pk, order.stripe_payment_intent)
+    sent = refunds._notify_owner_failed("order", order, tenant, once=once, uncertain=True)
+    if sent and state == ph.RETRY_EXHAUSTED:
+        try:
+            cache.set(flag, 1, (REFUND_RETRY_DAYS + 1) * 86400)
+        except Exception:  # noqa: BLE001
+            logger.warning("refund-retry %s: флаг письма не записан — заказ %s", schema, order.pk)
 
 
 def retry_late_refunds(now=None) -> int:
@@ -336,15 +365,24 @@ def retry_late_refunds(now=None) -> int:
             payment_method=Order.METHOD_STRIPE,
         )
         .exclude(stripe_payment_intent="")
-        .order_by("created_at")[:ABANDONED_BATCH]
+        .order_by("-created_at")[:ABANDONED_BATCH]  # свежие первыми: исчерпанные не держат окно
     )
-    # FB-33 D4a: повтор возврата второго платежа — общий для видов сделок, в ядре
-    done = payment_holds.retry_extra_refunds(now)  # все виды с книгой (EXTRA_RETRY_KINDS)
+    # FB-33 D4a: повтор возврата второго платежа — общий для видов сделок, в ядре; его сбой
+    # не отменяет повтор главного ниже (§10.8)
+    done = 0
+    try:
+        done = payment_holds.retry_extra_refunds(now)  # все виды с книгой
+    except Exception:  # noqa: BLE001
+        logger.exception("refund-retry %s: повтор вторых платежей упал", schema)
     if not due:
         return done
     tenant = get_tenant_model().objects.filter(schema_name=schema).first()
     for order in due:
-        if not _refund_retry_due(schema, order.pk, now):
+        state = _refund_retry_state(schema, order.pk, now)
+        if state in (payment_holds.RETRY_EXHAUSTED, payment_holds.RETRY_BLIND):
+            _refund_given_up(schema, order, tenant, state)
+            continue
+        if state != payment_holds.RETRY_DUE:
             continue
         try:
             result = refunds.refund_payment("order", order, tenant)
@@ -372,4 +410,8 @@ def expire_abandoned_online_orders():
             total += expire_abandoned_online(now, expire_run=expire_run)
         with tenant_iter.isolated(schema, "retry_late_order_refunds"):
             refunded += retry_late_refunds(now)
+    if expire_run.skipped:
+        logger.warning(
+            "abandoned-online: %d checkout sessions not expired (pass stopped)", expire_run.skipped
+        )
     return {"expired": total, "refunds_retried": refunded}

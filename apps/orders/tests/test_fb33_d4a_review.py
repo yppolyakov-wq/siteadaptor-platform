@@ -136,7 +136,7 @@ def test_retry_extra_not_starved_by_exhausted(biz, stripe_refunds, monkeypatch):
         _row(order, f"pi_old{i}", age=timedelta(days=2))
         stale.append(order)
     fresh = _live_paid("pi_mf")
-    _row(fresh, "pi_fresh", age=timedelta(minutes=5))
+    _row(fresh, "pi_fresh", age=timedelta(minutes=10))  # старше EXTRA_RETRY_MIN_AGE
     monkeypatch.setattr(
         payment_holds,
         "_extra_retry_state",
@@ -155,7 +155,9 @@ def test_retry_exhausted_notifies_once_per_row(biz, monkeypatch):
     order = _live_paid()
     _pay(order, "pi_second", amount=1000)
     monkeypatch.setattr(
-        refunds, "notify_duplicate_failed", lambda *a, **kw: sent.append(kw.get("intent"))
+        refunds,
+        "notify_duplicate_failed",
+        lambda *a, **kw: sent.append(kw.get("intent")) or True,  # письмо поставлено
     )
     now = timezone.now()
     for step in range(1, 40):

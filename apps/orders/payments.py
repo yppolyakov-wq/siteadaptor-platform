@@ -284,30 +284,53 @@ def remembered_sessions(order_pk, *, schema: str = "") -> list[dict]:
 
 
 class ExpirePass:
-    """FB-33 D4a: счёт одного прохода автоотмены по всем схемам — вызовы, время, `unknown`
-    подряд. Общий на проход: зависший Stripe останавливает весь проход, а не схему."""
+    """FB-33 D4a: счёт одного прохода автоотмены по всем схемам. Ревью §10.8:
+    - бюджет времени — с ПЕРВОГО вызова Stripe (долгая выборка до него бюджет не съедает);
+    - `unknown` (отказ иного рода) подряд — по аккаунту Connect: после `EXPIRE_UNKNOWN_STOP`
+      этот аккаунт пропускается до конца прохода, остальные — нет;
+    - общий стоп прохода — только `offline` (нет связи) `EXPIRE_UNKNOWN_STOP` раз подряд;
+    - сколько сессий не обработано из-за стопа — `skipped` (в лог в конце прохода)."""
 
     def __init__(self):
-        self.started = _monotonic()
+        self.started = None
         self.calls = 0
-        self.unknown_streak = 0
+        self.offline_streak = 0
+        self.unknown_by_account: dict[str, int] = {}
+        self.skipped = 0
 
-    def exhausted(self) -> bool:
+    def stopped(self) -> bool:
         return (
             self.calls >= EXPIRE_CALLS_MAX
-            or self.unknown_streak >= EXPIRE_UNKNOWN_STOP
-            or _monotonic() - self.started > EXPIRE_BUDGET_SECONDS
+            or self.offline_streak >= EXPIRE_UNKNOWN_STOP
+            or (self.started is not None and _monotonic() - self.started > EXPIRE_BUDGET_SECONDS)
         )
+
+    def account_blocked(self, connect_id: str) -> bool:
+        return self.unknown_by_account.get(connect_id, 0) >= EXPIRE_UNKNOWN_STOP
+
+    def before_call(self) -> None:
+        if self.started is None:
+            self.started = _monotonic()
+        self.calls += 1
+
+    def after_call(self, connect_id: str, outcome: str) -> None:
+        if outcome == connect.OFFLINE:
+            self.offline_streak += 1
+            return
+        self.offline_streak = 0
+        if outcome == connect.UNKNOWN:
+            self.unknown_by_account[connect_id] = self.unknown_by_account.get(connect_id, 0) + 1
+        else:
+            self.unknown_by_account[connect_id] = 0
 
 
 def expire_open_sessions(order_pks, *, connect_id: str, run: ExpirePass | None = None) -> int:
     """FB-33 D4a: после автоотмены закрыть открытые сессии Checkout отменённых заказов на
     connected account бизнеса (аккаунт — из `Tenant`, не из кэша). Звать ВНЕ транзакции.
 
-    «Не ответил ≠ отказал»: `unknown` ничего не помечает — id остаются, этот заказ
-    пропускается (сессия закроется сроком, поздняя оплата вернётся прежним путём); после
-    `EXPIRE_UNKNOWN_STOP` таких подряд проход (`run`, общий по схемам) останавливается.
-    Закрытые (`expired`/`closed`) id убираются. Потолок вызовов и бюджет — на проход.
+    «Не ответил ≠ отказал»: `unknown`/`offline` ничего не помечают — id остаются, этот заказ
+    пропускается (сессия закроется сроком, поздняя оплата вернётся прежним путём). Стопы —
+    `ExpirePass` (общий на проход по схемам). Закрытые (`expired`/`closed`) id убираются.
     → сколько сессий закрыто."""
     from django.core.cache import cache
 
@@ -315,25 +338,33 @@ def expire_open_sessions(order_pks, *, connect_id: str, run: ExpirePass | None =
         return 0
     run = run or ExpirePass()
     closed = 0
-    for pk in order_pks:
+    pks = list(order_pks)
+    for index, pk in enumerate(pks):
+        if run.stopped() or run.account_blocked(connect_id):
+            left = sum(len(remembered_sessions(rest)) for rest in pks[index:])
+            run.skipped += left
+            logger.warning(
+                "expire sessions: %d left (calls=%d, offline in a row=%d, account blocked=%s)",
+                left,
+                run.calls,
+                run.offline_streak,
+                run.account_blocked(connect_id),
+            )
+            return closed
         for item in remembered_sessions(pk):
-            if run.exhausted():
-                logger.warning(
-                    "expire sessions: pass stopped (calls=%d, unknown in a row=%d)",
-                    run.calls,
-                    run.unknown_streak,
-                )
-                return closed
+            if run.stopped() or run.account_blocked(connect_id):
+                run.skipped += 1
+                logger.warning("expire sessions: order %s — session left (pass stopped)", pk)
+                continue
             if item.get("acct") != connect_id:
                 logger.warning("order %s: checkout session of another account skipped", pk)
                 continue
-            run.calls += 1
+            run.before_call()
             outcome = connect.expire_session(connect_id=connect_id, session_id=item["id"])
-            if outcome == connect.UNKNOWN:
-                run.unknown_streak += 1
-                logger.warning("order %s: Stripe did not answer — sessions skipped", pk)
+            run.after_call(connect_id, outcome)
+            if outcome in (connect.UNKNOWN, connect.OFFLINE):
+                logger.warning("order %s: session not expired (%s) — order skipped", pk, outcome)
                 break
-            run.unknown_streak = 0
             closed += 1
             try:
                 cache.delete(item["key"])
@@ -617,17 +648,12 @@ def mark_order_paid(
         # возвращает (`newly_paid`). Книга сделки и состояние «refunded» — в карточке.
         # Сбой возврата не роняет вебхук (Stripe не должен получить 500 за принятую
         # оплату): пометка «Rückerstattung offen» в карточке, повтор — `retry_late_refunds`.
-        try:
-            payment_holds.settle_late_payment("order", order, newly_paid=newly_paid)
-        except Exception:  # noqa: BLE001 — оплата уже записана; возврат повторит задача
-            logger.exception("order %s: refund of a late payment crashed", order.pk)
+        # сбой не роняет вебхук (письмо владельцу), повтор — beat `retry_late_refunds`
+        payment_holds.settle_late_safely("order", order, newly_paid=newly_paid)
         if extra:
             # FB-33 D4a: второй платёж — назад сразу; сбой не роняет вебхук (пометка в
-            # карточке, повтор — `retry_late_refunds`).
-            try:
-                payment_holds.settle_extra_payment("order", order, intent=payment_intent)
-            except Exception:  # noqa: BLE001 — строка в книге; возврат повторит задача
-                logger.exception("order %s: refund of a second payment crashed", order.pk)
+            # карточке и письмо, повтор — `retry_late_refunds`).
+            payment_holds.settle_extra_safely("order", order, intent=payment_intent)
         order.refresh_from_db(fields=["payment_state"])
         if newly_paid and _late_refund_open(order):
             logger.error("order %s: late payment on a cancelled order is not refunded", order.pk)

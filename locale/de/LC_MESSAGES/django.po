@@ -40700,6 +40700,10 @@ msgid "fb33-stack-anchor-d4a"
 msgstr "fb33-stack-anchor-d4a"
 
 #: apps/core/refunds.py
+msgid "Möglicherweise wurde die Zahlung bereits erstattet — bitte in Stripe prüfen."
+msgstr "Möglicherweise wurde die Zahlung bereits erstattet — bitte in Stripe prüfen."
+
+#: apps/core/refunds.py
 #, python-format
 msgid "Doppelte Zahlung nicht erstattet: %(code)s"
 msgstr "Doppelte Zahlung nicht erstattet: %(code)s"

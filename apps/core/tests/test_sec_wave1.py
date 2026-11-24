@@ -203,8 +203,11 @@ def test_installment_on_cancelled_ticket_goes_to_late_refund(monkeypatch):
 
     ticket = _ticket("pending")
     seen = []
+    from apps.core import payment_holds
+
+    # FB-33 §10.8: рассрочка зовёт обёртку `settle_late_safely` → `settle_late_payment` ядра
     monkeypatch.setattr(
-        payments, "settle_late_payment", lambda kind, obj, newly_paid: seen.append(newly_paid)
+        payment_holds, "settle_late_payment", lambda kind, obj, newly_paid: seen.append(newly_paid)
     )
     schema = connection.schema_name
     assert payments.create_installment_plan(tenant_schema=schema, ticket_id=str(ticket.id))

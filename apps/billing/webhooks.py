@@ -110,11 +110,11 @@ def _money_not_booked(
     logger.error(
         "stripe webhook %s: payment NOT booked (schema=%s, %s=%s, payment_intent=%s, event=%s)",
         kind,
-        schema,
+        _log_id(schema),
         id_key,
         _log_id(meta.get(id_key)),
-        intent or "-",
-        event_id or "-",
+        _log_id(intent),
+        _log_id(event_id),
     )
     ref = intent or str(obj.get("id") or "")
     if not notify or not schema or not ref:
@@ -142,9 +142,9 @@ def handle_event(event_type: str, obj: dict, account: str = "", event_id: str = 
             logger.error(
                 "stripe webhook %s/%s: account mismatch (schema=%s, account=%s) — dropped",
                 event_type,
-                kind,
-                meta.get("tenant_schema"),
-                account or "-",
+                _log_id(kind),
+                _log_id(meta.get("tenant_schema")),
+                _log_id(account),
             )
             return
     elif event_type == "account.updated":
@@ -155,10 +155,10 @@ def handle_event(event_type: str, obj: dict, account: str = "", event_id: str = 
         # Платформенные события (подписка, featured, без kind) с connected-аккаунта —
         # подделка metadata: `client_reference_id`/`tenant_id` там выбирает отправитель.
         logger.warning(
-            "stripe webhook %s from connected account %s — dropped (platform-only kind %r)",
+            "stripe webhook %s from connected account %s — dropped (platform-only kind %s)",
             event_type,
-            account,
-            kind,
+            _log_id(account),
+            _log_id(kind),
         )
         return
 
@@ -177,8 +177,8 @@ def handle_event(event_type: str, obj: dict, account: str = "", event_id: str = 
             logger.warning(
                 "stripe webhook %s: async payment failed (schema=%s, event=%s)",
                 kind,
-                meta.get("tenant_schema"),
-                event_id or "-",
+                _log_id(meta.get("tenant_schema")),
+                _log_id(event_id),
             )
             payment_holds.release_after_failed(meta)
             if kind == "order_payment":

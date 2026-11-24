@@ -30,7 +30,6 @@ from apps.orders.tests.test_fb33_m2i71_abandoned import _order
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-_RED = pytest.mark.xfail(strict=True, reason="FB-33 §10.8: до правки")
 ACCOUNT = "acct_s13r2"
 
 
@@ -87,7 +86,6 @@ def _late_paid_cancelled_order():
 # ───────────── 1. главный платёж заказа ─────────────
 
 
-@_RED
 def test_order_main_refund_cache_down_mails_once(monkeypatch):
     from django.core.cache import cache
 
@@ -104,7 +102,6 @@ def test_order_main_refund_cache_down_mails_once(monkeypatch):
     assert _mails("order", order.pk).count() == 1
 
 
-@_RED
 def test_order_main_refund_crash_mails_after_exhaustion(monkeypatch):
     order = _late_paid_cancelled_order()
 
@@ -121,7 +118,6 @@ def test_order_main_refund_crash_mails_after_exhaustion(monkeypatch):
 # ───────────── 2. рассрочка билета ─────────────
 
 
-@_RED
 def test_installment_late_refund_crash_does_not_raise_and_mails(monkeypatch):
     from apps.events import payments as event_payments
     from apps.events.tests.test_b2_6_balance_reminder import _ticket
@@ -166,7 +162,6 @@ def _live_order():
     return order
 
 
-@_RED
 def test_retry_skips_rows_younger_than_min_age(monkeypatch):
     from django.core.cache import cache
 
@@ -229,7 +224,6 @@ def _remembered(n, acct):
     return pks
 
 
-@_RED
 def test_expire_clock_starts_at_first_stripe_call(svc, monkeypatch):
     clock = iter([0.0])
     monkeypatch.setattr(payments, "_monotonic", lambda: next(clock, 10_000.0))
@@ -239,7 +233,6 @@ def test_expire_clock_starts_at_first_stripe_call(svc, monkeypatch):
     assert len(svc.calls) == 1
 
 
-@_RED
 def test_unknown_streak_per_account_other_account_closed(svc):
     run = payments.ExpirePass()
     bad = _remembered(payments.EXPIRE_UNKNOWN_STOP + 2, "acct_bad")
@@ -264,7 +257,6 @@ def test_offline_streak_stops_the_whole_pass(svc):
 # ───────────── 5. флаг «письмо ушло» ─────────────
 
 
-@_RED
 def test_exhausted_mail_flag_set_only_after_mail(monkeypatch):
     order = _live_order()
     _extra_row(order, "pi_dup", timedelta(hours=1))
@@ -292,7 +284,6 @@ def test_exhausted_mail_flag_set_only_after_mail(monkeypatch):
 # ───────────── 6. LOW ─────────────
 
 
-@_RED
 def test_expire_empty_account_is_unknown_without_client(monkeypatch):
     def no_client(connect_id):
         raise AssertionError("client must not be built")
@@ -301,7 +292,6 @@ def test_expire_empty_account_is_unknown_without_client(monkeypatch):
     assert connect.expire_session(connect_id="", session_id="cs_x") == connect.UNKNOWN
 
 
-@_RED
 def test_retry_extra_crash_does_not_skip_order_block(monkeypatch):
     order = _late_paid_cancelled_order()
     calls = []
@@ -316,7 +306,6 @@ def test_retry_extra_crash_does_not_skip_order_block(monkeypatch):
     assert calls and order.payment_state == Order.PAYMENT_REFUNDED
 
 
-@_RED
 def test_order_late_payment_crash_mails(monkeypatch):
     order = _order(hours_ago=1)
     Order.objects.filter(pk=order.pk).update(status=Order.STATUS_CANCELLED)
@@ -331,7 +320,6 @@ def test_order_late_payment_crash_mails(monkeypatch):
     assert _mails("order", order.pk).count() == 1
 
 
-@_RED
 def test_scan_cap_warns(monkeypatch, caplog):
     monkeypatch.setattr(payment_holds, "EXTRA_SCAN_MAX", 1)
     for i in range(2):
@@ -344,7 +332,6 @@ def test_scan_cap_warns(monkeypatch, caplog):
     )
 
 
-@_RED
 def test_webhook_logs_account_and_schema_without_control_chars(caplog):
     caplog.set_level(logging.INFO)
     obj = {
@@ -361,7 +348,6 @@ def test_webhook_logs_account_and_schema_without_control_chars(caplog):
     assert all("\n" not in r.getMessage() for r in caplog.records)
 
 
-@_RED
 def test_uncertain_mail_says_possibly_refunded(monkeypatch):
     from django.utils import translation
 

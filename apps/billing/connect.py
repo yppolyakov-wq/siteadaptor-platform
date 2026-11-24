@@ -136,7 +136,8 @@ def connected_checkout(**kwargs) -> tuple[str, str]:
 #: FB-33 D4a: исходы `expire_session`.
 EXPIRED = "expired"  # сессию закрыли сейчас
 CLOSED = "closed"  # её уже нет или она уже завершена/истекла
-UNKNOWN = "unknown"  # Stripe не ответил или отказал иначе — ничего не помечаем
+UNKNOWN = "unknown"  # Stripe отказал иначе (права, ключ) — ничего не помечаем
+OFFLINE = "offline"  # нет связи / таймаут — ничего не помечаем, считается в стоп прохода
 
 
 #: FB-33 D4a (ревью): таймаут вызова `expire`/`retrieve`, секунд. Автоотмена идёт по всем
@@ -164,8 +165,10 @@ def expire_session(*, connect_id: str, session_id: str) -> str:
     import logging
 
     log = logging.getLogger("billing")
-    client = _session_client(connect_id)
+    if not connect_id or not session_id:
+        return UNKNOWN  # без аккаунта бизнеса не закрываем (и клиента не строим)
     try:
+        client = _session_client(connect_id)
         client.v1.checkout.sessions.expire(session_id)
     except stripe.error.InvalidRequestError as exc:
         if getattr(exc, "code", "") == "resource_missing":
@@ -186,7 +189,10 @@ def expire_session(*, connect_id: str, session_id: str) -> str:
             return CLOSED
         log.warning("checkout session %s not expired (%s, %s)", session_id, exc.code or "-", status)
         return UNKNOWN
-    except Exception as exc:  # noqa: BLE001 — нет ответа: сессия, возможно, открыта
+    except stripe.error.APIConnectionError as exc:  # таймаут, обрыв: сессия, возможно, открыта
+        log.warning("checkout session %s not expired (%s, offline)", session_id, type(exc).__name__)
+        return OFFLINE
+    except Exception as exc:  # noqa: BLE001 — отказ иного рода: исход неизвестен
         log.warning(
             "checkout session %s not expired (%s, %s)",
             session_id,

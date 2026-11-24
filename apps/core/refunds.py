@@ -215,7 +215,9 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
         # «возвращено» был бы ложью; строка остаётся открытой, владельцу — «проверьте».
         logger.warning("refund of extra payment uncertain: %s %s", kind, obj.pk)
         # письмо — одно на платёж, а не по минуте (повтор отмены не множит письма)
-        _notify_owner_failed(kind, obj, tenant, once=duplicate_key(kind, obj.pk, failed))
+        _notify_owner_failed(
+            kind, obj, tenant, once=duplicate_key(kind, obj.pk, failed), uncertain=True
+        )
         return RefundResult.UNCERTAIN
     if rest > 0:
         _OFFLINE_REST.set(rest)
@@ -229,7 +231,13 @@ def _finish_other_rows(kind: str, obj, connect_id: str, main_intent: str, tenant
         kind, obj, connect_id, main_intent, untouched_only=True
     )
     if outcome is not None:
-        _notify_owner_failed(kind, obj, tenant, once=duplicate_key(kind, obj.pk, failed))
+        _notify_owner_failed(
+            kind,
+            obj,
+            tenant,
+            once=duplicate_key(kind, obj.pk, failed),
+            uncertain=outcome == ROW_UNCERTAIN,
+        )
     if outcome == ROW_REFUSED:
         return RefundResult.FAILED
     if outcome == ROW_UNCERTAIN:
@@ -374,10 +382,16 @@ def duplicate_key(kind: str, pk, intent: str) -> str:
     return _idempotency_key(kind, pk, intent).removeprefix("refund:")
 
 
-def notify_duplicate_failed(kind: str, obj, tenant, *, intent: str) -> None:
-    """Возврат второго платежа не состоялся — одно письмо владельцу на (сделка, платёж)."""
-    _notify_owner_failed(
-        kind, obj, tenant, reason="duplicate", once=duplicate_key(kind, obj.pk, intent)
+def notify_duplicate_failed(kind: str, obj, tenant, *, intent: str, uncertain=False) -> bool:
+    """Возврат второго платежа не состоялся — одно письмо владельцу на (сделка, платёж).
+    `uncertain` — Stripe не ответил: «возможно, уже возвращено». → письмо поставлено."""
+    return _notify_owner_failed(
+        kind,
+        obj,
+        tenant,
+        reason="duplicate",
+        once=duplicate_key(kind, obj.pk, intent),
+        uncertain=uncertain,
     )
 
 
@@ -883,12 +897,21 @@ def _rollback(kind: str, obj, previous: str, tenant) -> RefundResult:
 
 
 def _notify_owner_failed(
-    kind: str, obj, tenant, *, reason: str = "cancel", cents: int = 0, once: str = ""
-) -> None:
+    kind: str,
+    obj,
+    tenant,
+    *,
+    reason: str = "cancel",
+    cents: int = 0,
+    once: str = "",
+    uncertain: bool = False,
+) -> bool:
     """Письмо владельцу о сбое возврата. `reason`: cancel (отмена) · partial (частичный
     возврат) · price (деньги вернули, цену не снизили) · duplicate (второй платёж не
     вернули, FB-33 D4a). Ключ — на причину и сумму: второй сбой по той же сделке тоже
-    доходит (ревью silent-failure). `once` — ключ без минуты: письмо одно на платёж."""
+    доходит (ревью silent-failure). `once` — ключ без минуты: письмо одно на платёж.
+    `uncertain` — Stripe не ответил (FB-33 §10.8): фраза «возможно, уже возвращено».
+    → письмо поставлено (или уже было); False — постановка упала (повторить позже)."""
     from django.db import connection
     from django.utils import timezone, translation
     from django.utils.translation import gettext as _
@@ -901,7 +924,7 @@ def _notify_owner_failed(
     code = getattr(obj, "reference_code", "") or str(obj.pk)
     if not recipient:
         logger.error("refund problem (%s) for %s %s, owner has no email", reason, kind, code)
-        return
+        return True  # писать некуда — повтор ничего не изменит
     amount = f"{Decimal(int(cents or 0)) / 100:.2f}".replace(".", ",")
     with translation.override(email_locale()):
         subject = _("Erstattung nicht bestätigt: %(code)s") % {"code": code}
@@ -927,6 +950,12 @@ def _notify_owner_failed(
                 "von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im "
                 "Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
             ) % {"code": code}
+        if uncertain:
+            body = (
+                body
+                + " "
+                + _("Möglicherweise wurde die Zahlung bereits erstattet — bitte in Stripe prüfen.")
+            )
     try:
         notify(
             dedupe_key=(
@@ -942,6 +971,8 @@ def _notify_owner_failed(
         )
     except Exception:  # noqa: BLE001 — письмо не должно ронять смену статуса
         logger.warning("refund failed notification not sent", exc_info=True)
+        return False
+    return True
 
 
 def refund_on_cancel(

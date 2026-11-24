@@ -404,6 +404,8 @@ EXTRA_RETRY_MAX = 4
 EXTRA_RETRY_DAYS = 3
 EXTRA_RETRY_BATCH = 50
 EXTRA_SCAN_MAX = 500
+#: Строки моложе не повторяем: возврат того же платежа вебхуком ещё может идти.
+EXTRA_RETRY_MIN_AGE = timedelta(minutes=5)
 _EXTRA_RETRY_STEP = timedelta(minutes=15)
 #: Исход `_extra_retry_state`.
 RETRY_DUE, RETRY_WAIT, RETRY_EXHAUSTED, RETRY_BLIND = "due", "wait", "exhausted", "blind"
@@ -438,21 +440,30 @@ def _extra_retry_state(schema: str, kind: str, pk, intent: str, now) -> str:
     return RETRY_DUE
 
 
-def _first_exhausted_mail(schema: str, kind: str, pk, intent: str) -> bool:
-    """Флаг «исчерпано, письмо ушло» — письмо один раз (кэш недоступен — шлём: дубль гасит
-    ключ письма)."""
+def _mailed_key(schema: str, kind: str, pk, intent: str) -> str:
+    return _extra_retry_key(schema, kind, pk, intent) + ":mailed"
+
+
+def _exhausted_mailed(schema: str, kind: str, pk, intent: str) -> bool:
+    """Флаг «исчерпано, письмо ушло» (кэш недоступен — False: пробуем снова, дубль гасит
+    ключ письма `once`)."""
     from django.core.cache import cache
 
     try:
-        return bool(
-            cache.add(
-                _extra_retry_key(schema, kind, pk, intent) + ":mailed",
-                1,
-                (EXTRA_RETRY_DAYS + 1) * 86400,
-            )
-        )
+        return bool(cache.get(_mailed_key(schema, kind, pk, intent)))
     except Exception:  # noqa: BLE001
-        return True
+        return False
+
+
+def _mark_mailed(schema: str, kind: str, pk, intent: str) -> None:
+    """Флаг ставится только ПОСЛЕ постановки письма (ревью §10.8): упавшая постановка —
+    попытка на следующем проходе."""
+    from django.core.cache import cache
+
+    try:
+        cache.set(_mailed_key(schema, kind, pk, intent), 1, (EXTRA_RETRY_DAYS + 1) * 86400)
+    except Exception:  # noqa: BLE001
+        logger.warning("extra-refund-retry %s: флаг письма не записан — %s %s", schema, kind, pk)
 
 
 def retry_extra_refunds(now=None, *, kinds=EXTRA_RETRY_KINDS) -> int:
@@ -460,7 +471,8 @@ def retry_extra_refunds(now=None, *, kinds=EXTRA_RETRY_KINDS) -> int:
     отказал). Только строки нового пути (`EXTRA_SOURCE`), свежие (`EXTRA_RETRY_DAYS`), без
     частичного возврата, не главный платёж сделки; свежие первыми — исчерпанные не держат
     окно; `EXTRA_RETRY_BATCH` попыток за проход. Исчерпано или счётчик недоступен — письмо
-    `duplicate` (одно на платёж). → сколько вернули."""
+    `duplicate` (одно на платёж). Строки моложе `EXTRA_RETRY_MIN_AGE` не трогаем: возврат
+    вебхука ещё «в полёте» (тот же ключ → IdempotencyError, ложное письмо). → сколько вернули."""
     from django.db.models import Exists, OuterRef
     from django_tenants.utils import get_tenant_model
 
@@ -484,19 +496,26 @@ def retry_extra_refunds(now=None, *, kinds=EXTRA_RETRY_KINDS) -> int:
                 source=EXTRA_SOURCE,
                 refunded_cents=0,
                 created_at__gte=now - timedelta(days=EXTRA_RETRY_DAYS),
+                created_at__lte=now - EXTRA_RETRY_MIN_AGE,
             )
             .order_by("-created_at")
             .values_list("deal_id", "stripe_payment_intent")[:EXTRA_SCAN_MAX]
         )
+        rows = list(rows)
+        if len(rows) >= EXTRA_SCAN_MAX:
+            logger.warning(
+                "extra-refund-retry %s: %s — selection hit EXTRA_SCAN_MAX=%d, rest next pass",
+                schema,
+                kind,
+                EXTRA_SCAN_MAX,
+            )
         for deal_id, intent in rows:
             if tried >= EXTRA_RETRY_BATCH:
                 return done
             state = _extra_retry_state(schema, kind, deal_id, intent, now)
             if state == RETRY_WAIT:
                 continue
-            if state == RETRY_EXHAUSTED and not _first_exhausted_mail(
-                schema, kind, deal_id, intent
-            ):
+            if state == RETRY_EXHAUSTED and _exhausted_mailed(schema, kind, deal_id, intent):
                 continue
             obj = model.objects.filter(pk=deal_id).first()
             if obj is None:
@@ -504,7 +523,11 @@ def retry_extra_refunds(now=None, *, kinds=EXTRA_RETRY_KINDS) -> int:
             if tenant is None:  # лениво: обычно повторять нечего
                 tenant = get_tenant_model().objects.filter(schema_name=schema).first()
             if state != RETRY_DUE:
-                refunds.notify_duplicate_failed(kind, obj, tenant, intent=intent)
+                sent = refunds.notify_duplicate_failed(
+                    kind, obj, tenant, intent=intent, uncertain=True
+                )
+                if sent and state == RETRY_EXHAUSTED:
+                    _mark_mailed(schema, kind, deal_id, intent)
                 continue
             tried += 1
             try:
@@ -535,7 +558,9 @@ def settle_extra_payment(kind: str, obj, *, intent: str):
     if result in (refunds.RefundResult.FAILED, refunds.RefundResult.NONE) or (
         result == refunds.RefundResult.UNCERTAIN and kind not in EXTRA_FLAGGED_KINDS
     ):
-        refunds.notify_duplicate_failed(kind, obj, tenant, intent=intent)
+        refunds.notify_duplicate_failed(
+            kind, obj, tenant, intent=intent, uncertain=result == refunds.RefundResult.UNCERTAIN
+        )
     return result
 
 

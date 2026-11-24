@@ -173,7 +173,7 @@ def test_expire_session_outcomes(fake):
     fake.errors["cs_net"] = stripe.error.APIConnectionError("timeout")
     assert connect.expire_session(connect_id=ACCOUNT, session_id="cs_ok") == "expired"
     assert connect.expire_session(connect_id=ACCOUNT, session_id="cs_gone") == "closed"
-    assert connect.expire_session(connect_id=ACCOUNT, session_id="cs_net") == "unknown"
+    assert connect.expire_session(connect_id=ACCOUNT, session_id="cs_net") == connect.OFFLINE
 
 
 def test_expire_invalid_request_other_code_is_unknown(fake):
@@ -237,7 +237,8 @@ def test_expire_calls_capped(biz, fake, monkeypatch):
 
 
 def test_expire_pass_bounded_by_budget(biz, fake, monkeypatch):
-    clock = iter([0.0, 0.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
+    # §10.8: часы бюджета — с первого вызова Stripe (0), следующая проверка — 1000 с
+    clock = iter([0.0, 1000.0])
     monkeypatch.setattr(payments, "_monotonic", lambda: next(clock, 1000.0))
     order = _order()
     _checkout(order, biz, n=3)

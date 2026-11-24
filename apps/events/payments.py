@@ -8,7 +8,7 @@ Checkout на connected account бизнеса (деньги ему; вариа�
 import stripe
 
 from apps.billing import connect
-from apps.core.payment_holds import settle_late_payment, start_online_hold
+from apps.core.payment_holds import start_online_hold
 
 
 def ticket_checkout_url(ticket, tenant, *, success_url: str, cancel_url: str) -> str:
@@ -94,7 +94,9 @@ def create_installment_plan(
         )
         # SEC (ревью волны 1): первая доля пришла на уже отменённый билет (отменили, пока
         # была открыта вкладка оплаты) — возвращаем, как у депозитов броней.
-        settle_late_payment("ticket", ticket, newly_paid=not existed)
+        from apps.core import payment_holds
+
+        payment_holds.settle_late_safely("ticket", ticket, newly_paid=not existed)
     return True
 
 
