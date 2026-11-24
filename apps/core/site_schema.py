@@ -586,6 +586,28 @@ def word_kind(host: str, only: str = "") -> str:
     return kind
 
 
+#: FB-33 M5d-2b: общий хост ДВУХ видов (события и туры) — слова строки ТИПА у раздела, который
+#: есть у обоих («Feld „…“ bei jeder Veranstaltung und Reise»). Не вид объекта: в `OBJECT_WORDS`
+#: не входит, формы «this» нет (у строки одного объекта — слова его вида).
+_SHARED_TYPE_WORDS = {
+    "event_detail": {
+        "every": gettext_lazy("bei jeder Veranstaltung und Reise"),
+        "all": gettext_lazy("bei allen Veranstaltungen und Reisen"),
+    },
+}
+
+
+def object_words(host: str, only: str = "", kinds: tuple = ()) -> dict:
+    """FB-33 M5d-2b: слова вида объекта для строки раздела (`OBJECT_WORDS`). `only` — чей раздел
+    на общем хосте (`DetailSection.only`), `kinds` — у каких видов он рисуется
+    (`ContentSource.kinds`). Раздел обоих видов на общем типе событий и туров — слова обоих
+    видов; раздел одного вида и строка одного объекта — слова своего вида. {} — слов нет."""
+    one = only or (kinds[0] if len(kinds) == 1 else "")
+    if not one and host in _SHARED_TYPE_WORDS:
+        return _SHARED_TYPE_WORDS[host]
+    return OBJECT_WORDS.get(word_kind(host, one), {})
+
+
 #: Адрес витрины объекта, у которого он не строится по pk маршрутом типа: (маршрут, поле).
 #: FB-33 M3-9a: и образец типа «Kategorie» — по pk его адрес ловил маршрут товара (404).
 _OBJECT_PREVIEW_ROUTES = {

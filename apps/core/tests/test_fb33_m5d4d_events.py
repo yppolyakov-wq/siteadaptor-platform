@@ -6,8 +6,13 @@
 порядок и флаги разделов — прежние (`test_registry_flags_as_on_the_base`), витрина не меняется.
 
 Хост события и тура общий (`event_detail`), раздел реестра у них один: у типа «Veranstaltungen»
-ссылка одна — на список событий; вид строки (`only`) задаёт слова («bei jeder Reise») только у
+ссылка — на список событий; вид строки (`only`) задаёт слова («bei jeder Reise») только у
 разделов одного вида. У строки объекта ссылка ведёт на его форму (событие или тур).
+
+M5d-2b (доводка ядра, замки — `test_fb33_m5d2b_core.py`) осознанно меняет здесь три вещи: у
+типа раздел обоих видов называет оба («bei jeder Veranstaltung und Reise») и даёт вторую ссылку
+«Reisen»; «Zeitplan» — раздел только события (`kinds`, «ausgefüllt» по `Event.program`), у
+строки одного тура окно говорит, что блока там нет.
 """
 
 import dataclasses
@@ -67,7 +72,8 @@ FIELDS = {
     "certifications": ("certifications_text", ("details.certifications",)),
 }
 #: «Ablauf» — поле самой формы события (`EventForm.program_text`), в `landing` его нет; у тура
-#: программы нет вовсе, поэтому «ausgefüllt» не утверждаем (атрибута `program` у тура нет)
+#: программы нет вовсе — M5d-2b: источник только события (`kinds`), «ausgefüllt» — по
+#: `Event.program`
 PROGRAM_LABEL = "Ablauf / Programm (ein Punkt pro Zeile)"
 AUTO = {"groups": "event", "more_dates": "event", "private_tour": "tour"}
 #: окно у этих строк уже есть (FAQ, «Stimmen») — срез их не трогает
@@ -169,7 +175,8 @@ def test_sources_follow_the_map():
         assert field in landing.form_fields(), key
     program = sources["program"]
     assert (program.kind, _section("program").content_nav) == ("field", TYPE_LIST)
-    assert not program.field and program.fields == ()
+    assert not program.field and program.fields == ("program",)  # M5d-2b
+    assert program.kinds == ("event",)
     with translation.override(None):
         assert str(program.field_label) == PROGRAM_LABEL
     assert (sources["hosts"].kind, _section("hosts").content_nav) == ("setting", HOSTS_SCREEN)
@@ -282,22 +289,22 @@ def test_no_g1_row_without_window(page):
 
 
 def test_type_row_field():
-    """Строка типа: поле и слово вида («bei jeder Veranstaltung»), видимость и действия — из
+    """Строка типа: поле и слова обоих видов общего хоста (M5d-2b), видимость и действия — из
     флагов строки, ссылка — список событий («Veranstaltungen»), без «nur hier»."""
     tenant = _tenant()
     label = str(landing.form_fields()["idea"].label)
     part, ct = _inhalt(tenant, "?seite=event&block=idea")
-    assert ct["woher"] == f"Feld „{label}“ bei jeder Veranstaltung. {ONLY_IF_FILLED}"
+    assert ct["woher"] == f"Feld „{label}“ bei jeder Veranstaltung und Reise. {ONLY_IF_FILLED}"
     assert ct["filled"] == ""
-    assert ct["visibility"] == "sichtbar — bei allen Veranstaltungen."
+    assert ct["visibility"] == "sichtbar — bei allen Veranstaltungen und Reisen."
     assert ct["actions"] == ACT_HIDE_MOVE and ct["fixed"] is False
     assert ct["link"] == {"label": "Veranstaltungen", "url": reverse(TYPE_LIST), "only_here": False}
     text = _text(part)
     assert "Dieser Block zeigt: die Idee und die Atmosphäre." in text
     assert "Inhalt bearbeiten: Veranstaltungen" in text
-    assert "data-inhalt-only-here" not in part and part.count("<a ") == 1
-    # ссылка одна: второй («Reisen») у общего типа нет — ядро держит один `content_nav`
-    assert reverse("events:tour-list") not in part
+    # M5d-2b: вторая ссылка — список туров (`ContentSource.more_nav`)
+    assert "data-inhalt-only-here" not in part and part.count("<a ") == 2
+    assert "Inhalt bearbeiten: Reisen" in text and reverse("events:tour-list") in part
 
 
 def test_type_rows_of_special_sources():
@@ -315,7 +322,8 @@ def test_type_rows_of_special_sources():
     for key in ("venue", "price"):
         _part_html, ct = _inhalt(tenant, f"?seite=event&block={key}")
         label = str(landing.form_fields()[FIELDS[key][0]].label)
-        assert ct["woher"].startswith(f"Feld „{label}“ bei jeder Veranstaltung. Erscheint"), key
+        both = "bei jeder Veranstaltung und Reise"
+        assert ct["woher"].startswith(f"Feld „{label}“ {both}. Erscheint"), key
         assert ONLY_IF_FILLED not in ct["woher"], key
     _part_html, ct = _inhalt(tenant, "?seite=event&block=program")
     assert ct["woher"] == f"Feld „{PROGRAM_LABEL}“ bei jeder Veranstaltung. {ONLY_IF_FILLED}"
@@ -369,8 +377,8 @@ def test_object_filled_by_any_of_the_price_fields():
 
 
 def test_tour_object_row(caplog):
-    """Строка одного тура: слова тура («dieser Reise»), ссылка — форма тура; «Ablauf» — без
-    «ausgefüllt» и без ошибки в журнале (у тура программы нет)."""
+    """Строка одного тура: слова тура («dieser Reise»), ссылка — форма тура; «Ablauf» — у тура
+    блока нет (M5d-2b: одна фраза, без «Feld …», без ссылки и без ошибки в журнале)."""
     import logging
 
     tenant = _tenant()
@@ -383,7 +391,8 @@ def test_tour_object_row(caplog):
     assert ct["link"]["only_here"] is True and "Inhalt bearbeiten: Rheinsteig" in _text(part)
     with caplog.at_level(logging.ERROR, logger="apps.core.window_parts"):
         _part_html, ct = _inhalt(tenant, f"?seite={code}&block=program")
-    assert ct["filled"] == "" and ct["woher"] == f"Feld „{PROGRAM_LABEL}“ dieser Reise."
+    assert (ct["filled"], ct["woher"], ct["link"]) == ("", "", None)
+    assert ct["visibility"] == "bei allen Reisen wird dieser Block nicht gezeigt."
     assert not caplog.records
     _part_html, ct = _inhalt(tenant, f"?seite={code}&block=hosts")
     assert ct["link"]["url"] == reverse(HOSTS_SCREEN) and ct["link"]["only_here"] is False

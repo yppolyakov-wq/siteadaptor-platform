@@ -58,10 +58,19 @@ class ContentSource:
     only_if: object = ""
     #: источник только у строки ОБЪЕКТА: у типа у этой строки своё окно («Ähnliche Produkte»)
     object_only: bool = False
+    #: FB-33 M5d-2b: ещё экраны-списки для строки ТИПА общего хоста двух видов (события и
+    #: туры: «Inhalt bearbeiten: Reisen») — имена URL записей `nav_registry`; только у раздела
+    #: обоих видов (`DetailSection.only == ""`, без `kinds`), у строки одного объекта не действует
+    more_nav: tuple[str, ...] = ()
+    #: FB-33 M5d-2b: виды объекта, у которых раздел вообще рисуется (пусто — у всех видов хоста);
+    #: у строки объекта другого вида окно говорит, что блока там нет
+    kinds: tuple[str, ...] = ()
 
 
 #: FB-33 M5d-2: обычное «когда появляется» раздела-поля
 ONLY_IF_FILLED = _("Erscheint nur, wenn das Feld ausgefüllt ist.")
+#: FB-33 M5d-2b: второй список общего типа «Veranstaltungen» (`ContentSource.more_nav`)
+_TOURS = ("events:tour-list",)
 
 
 @dataclass(frozen=True)
@@ -118,8 +127,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     ),
     # --- events ---
     # FB-33 M5d-4d: откуда содержимое разделов (окно «Inhalt»). Хост события и тура общий —
-    # ссылка у типа одна, на список событий; у строки объекта — на его форму. Поля — блоки
-    # `details` общего редактора (`apps/events/landing.py`, подпись — по имени поля формы).
+    # у типа ссылка на список событий и (M5d-2b, `more_nav`) вторая — на список туров; у строки
+    # объекта — на его форму. Поля — блоки `details` общего редактора
+    # (`apps/events/landing.py`, подпись — по имени поля формы).
     "events": (
         DetailSection(
             "for_whom",
@@ -132,6 +142,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="for_whom_text",
                 fields=("details.for_whom",),
                 only_if=ONLY_IF_FILLED,
+                more_nav=_TOURS,
             ),
         ),
         DetailSection(
@@ -145,6 +156,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="idea",
                 fields=("details.idea",),
                 only_if=ONLY_IF_FILLED,
+                more_nav=_TOURS,
             ),
         ),
         DetailSection(
@@ -158,10 +170,12 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="includes_text",
                 fields=("details.includes",),
                 only_if=ONLY_IF_FILLED,
+                more_nav=_TOURS,
             ),
         ),
-        # «Ablauf» — поле формы СОБЫТИЯ (`EventForm.program_text`), в общем редакторе его нет;
-        # у тура программы нет (атрибута `program` тоже) — «ausgefüllt» не утверждаем
+        # «Ablauf» — поле формы СОБЫТИЯ (`EventForm.program_text` → `Event.program`), в общем
+        # редакторе его нет. M5d-2b: у тура программы нет вовсе (ни поля, ни вывода — `agenda`
+        # собирает только страница события) — `kinds`: строка одного тура говорит, что блока нет
         DetailSection(
             "program",
             _("Schedule"),
@@ -171,7 +185,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 "field",
                 shows=_("den Ablauf als Zeitleiste"),
                 field_label=_("Ablauf / Programm (ein Punkt pro Zeile)"),
+                fields=("program",),
                 only_if=ONLY_IF_FILLED,
+                kinds=("event",),
             ),
         ),
         DetailSection(
@@ -188,6 +204,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                     "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der "
                     "Ort auf der Karte liegt."
                 ),
+                more_nav=_TOURS,
             ),
         ),
         DetailSection(
@@ -201,6 +218,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="accommodation_text",
                 fields=("details.accommodation",),
                 only_if=ONLY_IF_FILLED,
+                more_nav=_TOURS,
             ),
         ),
         DetailSection(
@@ -214,6 +232,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="food",
                 fields=("details.food",),
                 only_if=ONLY_IF_FILLED,
+                more_nav=_TOURS,
             ),
         ),
         # сначала — назначенные в форме ведущие (экран «Gastgeber»), иначе блок «Leitung»
@@ -240,6 +259,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="price_includes_text",
                 fields=("details.price_includes", "details.price_excludes", "details.price_note"),
                 only_if=_("Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."),
+                more_nav=_TOURS,
             ),
         ),
         DetailSection(
@@ -253,6 +273,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="bring_text",
                 fields=("details.bring",),
                 only_if=ONLY_IF_FILLED,
+                more_nav=_TOURS,
             ),
         ),
         DetailSection("faq", _("FAQ"), orderable=True),
@@ -268,6 +289,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="before_after_text",
                 fields=("details.before_after",),
                 only_if=ONLY_IF_FILLED,
+                more_nav=_TOURS,
             ),
         ),
         DetailSection(
@@ -281,6 +303,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 field="certifications_text",
                 fields=("details.certifications",),
                 only_if=ONLY_IF_FILLED,
+                more_nav=_TOURS,
             ),
         ),
         # FB-33 M2g: после «Buchung», скрываются на месте (у тура — свой раздел приватного выезда)
