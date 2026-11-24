@@ -406,20 +406,30 @@ def mark_order_paid(
         # вебхука (ревью п.1: сбой постановки после записи иначе терял их навсегда).
         # «created» — до авто-confirm (порядок писем); затем письмо текущего статуса
         # (ревью п.2). Дубли гасит dedupe_key `order:{id}:{event}:customer`.
+        # FB-33 D3: адрес «same» (гость ввёл тот же адрес, или повтор вебхука) — догоняем
+        # только недостающие письма: один запрос до авто-confirm, без рендера ушедших;
+        # письмо «confirmed» после авто-confirm шлёт сама машина.
+        from .notifications import enqueue_order_email, missing_customer_mails
+
         adopt = _adopt_payer_email(order, payer_email)
         catch_up = adopt in ("adopted", "same") and order.status not in _CLOSED
-        if catch_up:
-            from .notifications import enqueue_order_email
-
+        before = order.status
+        todo = None  # None — догонять всё (адрес записан сейчас)
+        if catch_up and adopt == "same":
+            wanted = ["created"] if before == Order.STATUS_NEW else ["created", before]
+            todo = missing_customer_mails(order, wanted)
+        if catch_up and (todo is None or "created" in todo):
             enqueue_order_email(order, "created")
         if order.status == Order.STATUS_NEW:
             try:
                 OrderSM().apply(order, Order.STATUS_CONFIRMED)
             except IllegalTransition:
                 pass
-        if catch_up and order.status != Order.STATUS_NEW:
-            from .notifications import enqueue_order_email
-
+        if (
+            catch_up
+            and order.status != Order.STATUS_NEW
+            and (todo is None or (order.status == before and before in todo))
+        ):
             enqueue_order_email(order, order.status)
         if order.payment_state == Order.PAYMENT_PAID and not getattr(order.customer, "email", ""):
             # ревью п.3: деньги есть, писать некуда — владелец видит пометку в карточке

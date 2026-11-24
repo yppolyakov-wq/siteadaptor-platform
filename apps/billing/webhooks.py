@@ -85,7 +85,42 @@ def _connect_account_ok(meta: dict, account: str) -> bool:
     return bool(connect_id) and connect_id == account
 
 
-def handle_event(event_type: str, obj: dict, account: str = "") -> None:
+#: Потолок длины id из metadata в логе (значение пишет отправитель).
+_LOG_ID_MAX = 64
+
+
+def _money_not_booked(
+    kind: str, meta: dict, obj: dict, *, id_key: str, event_id: str = "", notify: bool = True
+) -> None:
+    """FB-33 D3: деньги пришли на аккаунт бизнеса, а сделки нет — ERROR и письмо владельцу.
+
+    В лог — только вид, схема, id сделки из metadata, intent и event.id: `meta` целиком несёт
+    имя и e-mail покупателя (`pass_purchase`). Ответ вебхука остаётся 200: повтор Stripe того
+    же события ничего не найдёт. Письмо — `balance_pay._notify_unbooked` (ключ на платёж,
+    без ПДн); без intent ключ — по id сессии, без обоих — только лог."""
+    schema = str(meta.get("tenant_schema") or "")
+    intent = str(obj.get("payment_intent") or "")
+    logger.error(
+        "stripe webhook %s: payment NOT booked (schema=%s, %s=%s, payment_intent=%s, event=%s)",
+        kind,
+        schema,
+        id_key,
+        str(meta.get(id_key) or "")[:_LOG_ID_MAX] or "-",
+        intent or "-",
+        event_id or "-",
+    )
+    ref = intent or str(obj.get("id") or "")
+    if not notify or not schema or not ref:
+        return
+    from apps.core.balance_pay import _notify_unbooked
+
+    tenant = Tenant.objects.filter(schema_name=schema).first()
+    if tenant is None:
+        return
+    _notify_unbooked(tenant, schema, kind, meta.get(id_key), ref, int(obj.get("amount_total") or 0))
+
+
+def handle_event(event_type: str, obj: dict, account: str = "", event_id: str = "") -> None:
     """Применить эффект события к арендатору (идемпотентно через SM).
 
     SEC-D1: источник события — часть авторизации. Connect-виды принимаются только от
@@ -132,7 +167,12 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
         elif event_type == "checkout.session.async_payment_failed":
             # Деньги не пришли: место держим ещё час (оплата картой), дальше сделку снимет
             # удержание (expire_overdue). Оплату не ставим.
-            logger.warning("stripe webhook %s: async payment failed %s", kind, meta)
+            logger.warning(
+                "stripe webhook %s: async payment failed (schema=%s, event=%s)",
+                kind,
+                meta.get("tenant_schema"),
+                event_id or "-",
+            )
             payment_holds.release_after_failed(meta)
             if kind == "order_payment":
                 # FB-33 M2i-7.1: платёж отвязан — заказ снова можно оплатить, а брошенный
@@ -184,7 +224,10 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_ref=obj.get("payment_intent") or obj.get("id", ""),
         )
         if not ok:
-            logger.warning("stripe webhook featured: listing not found %s", meta)
+            # платёж платформе (не бизнесу) — без письма владельцу
+            _money_not_booked(
+                "featured", meta, obj, id_key="promo_uuid", event_id=event_id, notify=False
+            )
         return
 
     # Депозит за бронь (P2.5b): Checkout на connected account → бронь оплачена.
@@ -198,7 +241,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_intent=obj.get("payment_intent", ""),
         )
         if not ok:
-            logger.warning("stripe webhook booking_deposit: booking not found %s", meta)
+            _money_not_booked("booking_deposit", meta, obj, id_key="booking_id", event_id=event_id)
         return
 
     # Предоплата заказа Click&Collect (P2.5c): Checkout на connected account.
@@ -215,7 +258,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payer_email=details.get("email") if isinstance(details, dict) else None,
         )
         if not ok:
-            logger.warning("stripe webhook order_payment: order not found %s", meta)
+            _money_not_booked("order_payment", meta, obj, id_key="order_id", event_id=event_id)
         return
 
     # Депозит за date-range-бронь / Übernachtung (Track E / E4): Checkout на
@@ -229,7 +272,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_intent=obj.get("payment_intent", ""),
         )
         if not ok:
-            logger.warning("stripe webhook stay_deposit: booking not found %s", meta)
+            _money_not_booked("stay_deposit", meta, obj, id_key="booking_id", event_id=event_id)
         return
 
     # KA-12 B2-5 (E1.11): доплата остатка после Anzahlung (номер/запись/билет).
@@ -251,7 +294,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_status=obj.get("payment_status") or "",
         )
         if not ok:
-            logger.error("stripe webhook deal_balance: payment NOT booked %s", meta)
+            _money_not_booked("deal_balance", meta, obj, id_key="deal_id", event_id=event_id)
         return
 
     # Подарочный сертификат (G1) — Checkout на connected account → выпуск Voucher.
@@ -264,7 +307,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_intent=obj.get("payment_intent", ""),
         )
         if not ok:
-            logger.warning("stripe webhook gift_voucher: record not found %s", meta)
+            _money_not_booked("gift_voucher", meta, obj, id_key="gift_id", event_id=event_id)
         return
 
     # Anzahlung за смету Handwerker (A7c) — TENANT-схема, статус подписки не трогаем.
@@ -277,7 +320,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_intent=obj.get("payment_intent", ""),
         )
         if not ok:
-            logger.warning("stripe webhook job_deposit: job not found %s", meta)
+            _money_not_booked("job_deposit", meta, obj, id_key="job_id", event_id=event_id)
         return
 
     # Покупка Mehrfachkarte онлайн (A3) — TENANT-схема, статус подписки не трогаем.
@@ -292,7 +335,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_intent=obj.get("payment_intent", ""),
         )
         if not ok:
-            logger.warning("stripe webhook pass_purchase: plan not found %s", meta)
+            _money_not_booked("pass_purchase", meta, obj, id_key="plan_id", event_id=event_id)
         return
 
     # Билет на событие (A6c) — TENANT-схема, статус подписки не трогаем.
@@ -305,7 +348,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_intent=obj.get("payment_intent", ""),
         )
         if not ok:
-            logger.warning("stripe webhook event_ticket: ticket not found %s", meta)
+            _money_not_booked("event_ticket", meta, obj, id_key="ticket_id", event_id=event_id)
         return
 
     # Рассрочка билета (R10b): первая доля оплачена → создать план + график.
@@ -318,7 +361,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_intent=obj.get("payment_intent", ""),
         )
         if not ok:
-            logger.warning("stripe webhook event_installment: ticket not found %s", meta)
+            _money_not_booked("event_installment", meta, obj, id_key="ticket_id", event_id=event_id)
         return
 
     # Stripe Connect (P2.5): статус connected-аккаунта бизнеса. obj — это Account,
@@ -403,7 +446,12 @@ def stripe_webhook(request):
         return HttpResponse(status=200)
 
     try:
-        handle_event(event["type"], event["data"]["object"], account=event.get("account") or "")
+        handle_event(
+            event["type"],
+            event["data"]["object"],
+            account=event.get("account") or "",
+            event_id=str(event.get("id") or ""),
+        )
     except Exception:
         # Ревью silent-failure: ключ дедупа снят — повтор Stripe обработается заново,
         # иначе упавшая оплата никогда не попала бы в книгу.

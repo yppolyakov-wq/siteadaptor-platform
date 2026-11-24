@@ -43,10 +43,6 @@ KINDS = {
 }
 
 
-_RED = pytest.mark.xfail(strict=True, reason="FB-33 D3: до правки вебхука")
-_RED_KINDS = [k if k == "deal_balance" else pytest.param(k, marks=_RED) for k in sorted(KINDS)]
-
-
 @pytest.fixture
 def biz(monkeypatch):
     # рассрочка спрашивает мандат у Stripe — без сети
@@ -75,7 +71,7 @@ def _unbooked():
     return Notification.objects.filter(dedupe_key__startswith="unbooked:")
 
 
-@pytest.mark.parametrize("kind", _RED_KINDS)
+@pytest.mark.parametrize("kind", sorted(KINDS))
 def test_money_not_booked_logged_error(biz, caplog, kind):
     caplog.set_level(logging.INFO)
     webhooks.handle_event("checkout.session.completed", _obj(kind), account=ACCOUNT)
@@ -88,7 +84,7 @@ def test_money_not_booked_logged_error(biz, caplog, kind):
     ]
 
 
-@pytest.mark.parametrize("kind", _RED_KINDS)
+@pytest.mark.parametrize("kind", sorted(KINDS))
 def test_not_booked_log_has_no_pii(biz, caplog, kind):
     caplog.set_level(logging.DEBUG)
     webhooks.handle_event("checkout.session.completed", _obj(kind), account=ACCOUNT)
@@ -97,7 +93,6 @@ def test_not_booked_log_has_no_pii(biz, caplog, kind):
     assert any(r.levelno == logging.ERROR for r in caplog.records)
 
 
-@_RED
 def test_not_booked_log_has_no_email():
     """`pass_purchase` писал `meta` целиком — с `email` и `name` покупателя."""
     TenantFactory(schema_name=connection.schema_name, stripe_connect_id=ACCOUNT)
@@ -119,7 +114,7 @@ def test_not_booked_log_has_no_email():
     assert any(r.levelno == _logging.ERROR for r in records)
 
 
-@pytest.mark.parametrize("kind", _RED_KINDS)
+@pytest.mark.parametrize("kind", sorted(KINDS))
 def test_not_booked_notifies_owner_once(biz, kind):
     webhooks.handle_event("checkout.session.completed", _obj(kind), account=ACCOUNT)
     webhooks.handle_event("checkout.session.completed", _obj(kind), account=ACCOUNT)
@@ -128,7 +123,6 @@ def test_not_booked_notifies_owner_once(biz, kind):
     assert mails[0].recipient == OWNER and "pi_d3_missing" in mails[0].dedupe_key
 
 
-@_RED
 def test_not_booked_without_intent_uses_session_id(biz):
     """Ветка без `payment_intent` — ключ по id сессии, а не общий `unbooked:{schema}:`."""
     webhooks.handle_event(
@@ -145,7 +139,6 @@ def test_foreign_account_does_not_notify(biz, caplog):
     assert not any("NOT booked" in r.getMessage() for r in caplog.records)
 
 
-@_RED
 def test_not_booked_log_carries_event_id(biz, caplog):
     caplog.set_level(logging.INFO)
     webhooks.handle_event(
@@ -211,7 +204,6 @@ def _paid(order, email, intent="pi_same"):
     order.refresh_from_db()
 
 
-@_RED
 def test_repeat_same_email_no_render(biz, _tenant_urlconf, monkeypatch):
     from apps.orders import notifications
 
@@ -229,7 +221,6 @@ def test_repeat_same_email_no_render(biz, _tenant_urlconf, monkeypatch):
     assert len(note_q) <= 1
 
 
-@_RED
 def test_same_retry_sends_only_missing(biz, _tenant_urlconf, monkeypatch):
     from apps.orders import notifications
     from apps.orders.models import Order
@@ -252,7 +243,6 @@ def test_same_retry_sends_only_missing(biz, _tenant_urlconf, monkeypatch):
     assert Notification.objects.filter(dedupe_key=f"order:{order.id}:ready:customer").count() == 1
 
 
-@_RED
 @pytest.mark.parametrize("flag", ["anprobe", "quote"])
 def test_dedupe_key_one_builder(biz, _tenant_urlconf, flag):
     """Ключ проверки «уже ушло» = ключ `enqueue_order_email` (с подменой события)."""

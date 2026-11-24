@@ -46,20 +46,46 @@ def _owner_answers(order) -> list:
     return form_answers.rows(getattr(order, "custom_answers", None))
 
 
+def customer_event(order, event: str) -> str:
+    """Событие письма клиенту с подменой шаблона: у Anprobe-резерва created/cancelled — свои
+    (юр-риск: обычные письма говорят языком Kaufvertrag/Widerruf), у заказа-запроса (MEN-9)
+    — своё письмо о создании. Подмена идемпотентна: подменённое событие не меняется."""
+    if getattr(order, "is_anprobe", False) and event in ("created", "cancelled"):
+        return f"anprobe_{event}"
+    if getattr(order, "is_quote", False) and event == "created":
+        return "quote_created"
+    return event
+
+
+def customer_dedupe_key(order, event: str, suffix: str = "") -> str:
+    """FB-33 D3: ключ дедупа письма клиенту — один на постановку и на проверку «уже ушло»."""
+    return f"order:{order.id}:{customer_event(order, event)}:customer{suffix}"
+
+
+def missing_customer_mails(order, events) -> list[str]:
+    """FB-33 D3: из `events` — те, чьего письма клиенту ещё нет (один запрос к `Notification`).
+
+    Письма нет и тогда, когда его не может быть (канал выключен, отписка, адреса нет):
+    такое событие вернётся снова, и `enqueue_order_email` сама решит, что не слать."""
+    from apps.notifications.models import Notification
+
+    keys = {event: customer_dedupe_key(order, event) for event in events}
+    sent = set(
+        Notification.objects.filter(dedupe_key__in=list(keys.values())).values_list(
+            "dedupe_key", flat=True
+        )
+    )
+    return [event for event in events if keys[event] not in sent]
+
+
 def enqueue_order_email(order, event, dedupe_suffix=""):
     """Создать Notification(ы) события заказа (БД-дедуп) и поставить доставку.
 
     VF-3: `dedupe_suffix` — для РУЧНЫХ отправок (Zahlungslink с карточки):
     фиксированный ключ глотал бы повторную отправку навсегда (прецедент
     Mahnwesen — ключ с датой)."""
-    # M3: у Anprobe-резервов created/cancelled ремапятся на свои шаблоны (юр-риск:
-    # обычные письма говорят языком Kaufvertrag/Widerruf). Остальные события —
-    # штатные (confirmed/ready уместны и для резерва).
-    if getattr(order, "is_anprobe", False) and event in ("created", "cancelled"):
-        event = f"anprobe_{event}"
-    # MEN-9: у заказа-запроса своё письмо о создании (без Kaufvertrag/Widerruf).
-    elif getattr(order, "is_quote", False) and event == "created":
-        event = "quote_created"
+    # M3 / MEN-9: у Anprobe-резерва и заказа-запроса свои шаблоны (`customer_event`).
+    event = customer_event(order, event)
     schema = connection.schema_name
     customer = order.customer
     tenant = _tenant(schema)
@@ -145,7 +171,7 @@ def enqueue_order_email(order, event, dedupe_suffix=""):
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
             }
         notify(
-            dedupe_key=f"order:{order.id}:{event}:customer{dedupe_suffix}",
+            dedupe_key=customer_dedupe_key(order, event, dedupe_suffix),
             type=f"order_{event}",
             recipient=customer.email,
             subject=subject,
