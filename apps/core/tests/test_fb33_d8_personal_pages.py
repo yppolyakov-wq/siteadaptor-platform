@@ -32,7 +32,6 @@ ROBOTS = re.compile(r'<meta name="robots"')
 TOKEN_PATH = re.compile(r"<[^>]*(code|token|signed|secret)[^>]*>")
 #: все три urlconf: витрина бизнеса, платформа, городской портал (ревью §10.6 D8 №3)
 URLCONFS = ("config.urls_tenant", "config.urls_public", "config.urls_portal")
-RED = pytest.mark.xfail(strict=True, reason="FB-33 D8 ревью: до правки")
 
 
 @pytest.fixture(autouse=True)
@@ -89,7 +88,6 @@ def _middleware(request, response):
     return PersonalPageHeadersMiddleware(lambda r: response)(request)
 
 
-@RED
 def test_every_token_route_is_classified():
     """Замок покрытия: маршрут с `<code>`/`<token>` в пути — в реестре или в исключениях."""
     pp = _pp()
@@ -98,7 +96,7 @@ def test_every_token_route_is_classified():
     assert token_routes - pp.PERSONAL_ROUTES - set(pp.NOT_PERSONAL) == set()
     assert not pp.PERSONAL_ROUTES & set(pp.NOT_PERSONAL)
     assert all(reason.strip() for reason in pp.NOT_PERSONAL.values())
-    names = {name for name, _path in _routes()}
+    names = {name for name, _path in _all_routes()}
     assert pp.PERSONAL_ROUTES <= names, pp.PERSONAL_ROUTES - names  # без опечаток
 
 
@@ -214,7 +212,6 @@ def test_not_personal_routes_get_no_headers():
 # ── ревью D8 (security + django, 2026-11-24) ──────────────────────────────────────────────
 
 
-@RED
 def test_every_secret_route_in_all_urlconfs_is_classified():
     """№2–3: `<code>`, `<token>`, `<signed>`, `<secret>` — во всех трёх urlconf; исключения —
     настоящие имена маршрутов."""
@@ -228,7 +225,6 @@ def test_every_secret_route_in_all_urlconfs_is_classified():
     assert pp.PERSONAL_ROUTES <= names, pp.PERSONAL_ROUTES - names
 
 
-@RED
 def test_every_account_route_is_classified():
     """№1: ЛК клиента `/konto/…` (витрина и портал) — в реестре или в исключениях с причиной;
     вход по ссылке (`?t=` в query) — в реестре."""
@@ -239,7 +235,6 @@ def test_every_account_route_is_classified():
     assert {"account-verify", "portal-login-verify"} <= pp.PERSONAL_ROUTES
 
 
-@RED
 def test_trip_group_feed_is_personal():
     """№7: лента поездки (посты и имена участников) — личная."""
     pp = _pp()
@@ -247,7 +242,6 @@ def test_trip_group_feed_is_personal():
     assert community and community <= pp.PERSONAL_ROUTES
 
 
-@RED
 def test_middleware_imports_registry_at_module_level():
     """№7 LOW: импорт реестра — наверху модуля, не на каждый ответ."""
     import inspect
@@ -299,8 +293,8 @@ def _get(client, path):
     "path,status",
     [
         ("/bestellung/NOPE-D8/", 404),  # неизвестный код — 404 той же вьюхи
-        pytest.param("/konto/", 302, marks=RED),  # ЛК без входа — редирект на вход
-        pytest.param("/konto/verify/?t=x", 400, marks=RED),  # токен в query
+        pytest.param("/konto/", 302),  # ЛК без входа — редирект на вход
+        pytest.param("/konto/verify/?t=x", 400),  # токен в query
     ],
 )
 def test_full_stack_headers(client_for, path, status):

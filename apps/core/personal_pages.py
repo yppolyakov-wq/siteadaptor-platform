@@ -10,8 +10,10 @@ PDF и ICS) и процессор контекста витрины (`storefront
 и без LocalBusiness в `_base.html`). robots.txt не трогаем: `Disallow` спрятал бы `noindex`.
 
 Замок покрытия (`apps/core/tests/test_fb33_d8_personal_pages.py`): каждый маршрут
-`config/urls_tenant.py` с `<code>` или `<token>` в пути — здесь или в `NOT_PERSONAL` с
-причиной.
+`config/urls_tenant.py`, `urls_public.py` и `urls_portal.py` с `<code>`, `<token>`,
+`<signed>` или `<secret>` в пути и каждый маршрут ЛК `konto/…` — здесь или в `NOT_PERSONAL`
+с причиной. Имена маршрутов у трёх urlconf общие по смыслу (`aggregator-follow-*` — и на
+платформе, и на портале).
 """
 
 from __future__ import annotations
@@ -34,7 +36,6 @@ PERSONAL_ROUTES = frozenset(
         "storefront-termin-ok",
         "storefront-termin-pay",
         "storefront-termin-manage",
-        "account-cancel-booking",
         # номер (по датам)
         "storefront-stay-ok",
         "storefront-stay-pay",
@@ -65,12 +66,43 @@ PERSONAL_ROUTES = frozenset(
         "storefront-unsubscribe",
         "storefront-newsletter-preferences",
         "storefront-newsletter-confirm",
-        # приглашения и разовые входы по токену
+        # лента поездки: посты и имена участников группы
+        "community-space",
+        "community-space-post",
+        "community-space-poll",
+        "community-space-comment",
         "community-space-join",
+        # приглашения и разовые входы по токену или подписи
         "team-join",
         "tg-start",
         "owner-start",
+        "owner-confirm-email",
         "shared-preview",
+        # ЛК клиента витрины `/konto/` (вход по ссылке — токен в query `?t=`)
+        "account-home",
+        "account-verify",
+        "account-telegram-login",
+        "account-logout",
+        "account-profile",
+        "account-export",
+        "account-delete",
+        "account-cancel-booking",
+        "account-documents",
+        "account-document-download",
+        "account-document-delete",
+        # ЛК городского портала `/konto/` (`config/urls_portal.py`)
+        "portal-account",
+        "portal-login-verify",
+        "portal-logout",
+        "portal-favorite-toggle",
+        "portal-notifications-toggle",
+        "aggregator-follow-toggle",
+        # подписка на бизнесы портала (`urls_public.py` и `urls_portal.py`) и подтверждение
+        # регистрации бизнеса (`urls_public.py`) — middleware глобальный, действует и там
+        "aggregator-follow-confirm",
+        "aggregator-follow-manage",
+        "aggregator-follow-unsubscribe",
+        "business-signup-confirm",
     }
 )
 
@@ -81,6 +113,10 @@ NOT_PERSONAL = {
     "redeem-action": "кабинет под логином (погашение кода на кассе), не витрина",
     "storefront-merchant-feed": "машинный фид Merchant Center: вывод для Google прежний",
     "storefront-merchant-local-feed": "машинный фид Merchant Center: вывод для Google прежний",
+    "telegram-webhook": "машинный вызов Telegram (секрет в пути), не страница",
+    "portal-telegram-webhook": "машинный вызов Telegram портала (секрет в пути), не страница",
+    "account-login": "форма входа ЛК без данных клиента",
+    "portal-login": "форма входа ЛК портала без данных клиента",
 }
 
 

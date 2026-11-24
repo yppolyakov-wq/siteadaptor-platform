@@ -11,7 +11,7 @@ from django.http import Http404, HttpResponseForbidden
 from django.utils.cache import patch_vary_headers
 from django.utils.translation import gettext as _
 
-from . import modules
+from . import modules, personal_pages
 from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
 from .roles import (
     OWNER_FLOOR_PREFIXES,
@@ -633,8 +633,6 @@ class PersonalPageHeadersMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        from apps.core import personal_pages
-
         response = self.get_response(request)
         if personal_pages.is_personal(request):
             response["X-Robots-Tag"] = personal_pages.ROBOTS
