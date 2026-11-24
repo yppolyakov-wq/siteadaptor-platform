@@ -42,6 +42,18 @@ class WaiverRequired(Exception):
     """Событие требует подписанный отказ (R8), но подпись не предоставлена."""
 
 
+def map_point(event, tenant) -> dict | None:
+    """R6 / RT2: точка карты страницы события — координаты события, иначе адрес бизнеса; у
+    онлайн-события точки нет. {"lat", "lng"} (float) либо None. Только поля события и бизнеса —
+    без запросов. FB-33 M5d-8: вынос из `public_views.veranstaltung_detail` — её же зовёт окно
+    «Inhalt» (проба «Punkt auf der Karte», `apps/core/window_parts.py::_PROBES`)."""
+    lat = event.latitude if event.latitude is not None else getattr(tenant, "latitude", None)
+    lng = event.longitude if event.longitude is not None else getattr(tenant, "longitude", None)
+    if lat is None or lng is None or event.is_online:
+        return None
+    return {"lat": float(lat), "lng": float(lng)}
+
+
 def quote_voucher(code, base_cents) -> int:
     """Оценка скидки кода для суммы (read-only, без гашения); 0 — не применим."""
     code = (code or "").strip().upper()

@@ -171,6 +171,9 @@ def _field_errors() -> list:
         for kind in _kinds_of(module, s):
             meta = site_schema.object_model(kind)._meta
             for path in s.source.fields:
+                # FB-33 M5d-8 (E7): пункт одного вида (`SourceField.kinds`) — поле только его модели
+                if kind not in (getattr(path, "kinds", ()) or (kind,)):
+                    continue
                 head = str(path).split(".")[0]
                 try:
                     field = meta.get_field(head)

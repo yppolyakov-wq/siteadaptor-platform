@@ -343,9 +343,8 @@ def veranstaltung_detail(request, pk):
     from apps.core import extras as extras_engine
 
     tenant = getattr(request, "tenant", None)
-    # R6: координаты для карты — события, иначе фолбэк на гео тенанта.
-    lat = event.latitude if event.latitude is not None else getattr(tenant, "latitude", None)
-    lng = event.longitude if event.longitude is not None else getattr(tenant, "longitude", None)
+    # R6: координаты для карты — события, иначе фолбэк на гео тенанта (RT2: не для онлайн)
+    point = services.map_point(event, tenant)
     jobs_active = bool(tenant and tenant.is_module_active("jobs"))
 
     # SE-2b-2: при ?preview=1 берём черновик из сессии (on-canvas правка порядка/
@@ -410,11 +409,11 @@ def veranstaltung_detail(request, pk):
             for k in object_structure.effective_order(_raw, "events", event)
         ],
     }
-    if lat is not None and lng is not None and not event.is_online:  # R6 карта (RT2: не для онлайн)
-        lat, lng = float(lat), float(lng)
+    if point is not None:  # R6 карта
+        lat, lng = point["lat"], point["lng"]
         # В3: своя карта точки (векторная подложка) вместо iframe-встройки osm.org —
         # встройка тянула растровые тайлы OSM, которые для нагрузки запрещены.
-        ctx["map_point"] = {"lat": lat, "lng": lng}
+        ctx["map_point"] = point
         ctx["map_link"] = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lng}#map=15/{lat}/{lng}"
     # FB-33 D6: введённое до ошибки поля — один раз в форму брони (без него разметка прежняя)
     kept = _take_event_input(request, event)

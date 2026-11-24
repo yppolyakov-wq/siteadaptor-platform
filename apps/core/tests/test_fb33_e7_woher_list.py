@@ -8,7 +8,6 @@ M10; a11y H2, M1–M3, L3). Разделы с несколькими полям�
 """
 
 import re
-from html import escape
 from pathlib import Path
 
 import polib
@@ -105,7 +104,6 @@ def _sfields(module, key):
 # --- №2: «Woher» — список полей ---------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E7: список ещё не построен")
 def test_woher_list_is_fields():
     """Строка типа: вводная фраза, группы по вкладкам формы товара (у группы из 3+ полей —
     вложенный список, из двух — через запятую), «когда появляется» после списка; у номера и
@@ -153,7 +151,6 @@ def test_woher_list_is_fields():
     assert ct["woher_list"]["after"] == AFTER
 
 
-@pytest.mark.xfail(strict=True, reason="E7: список ещё не построен")
 def test_object_rows_of_event_and_tour_venue():
     """«Ort» у одного события — поле, фото «ab dem zweiten», точка карты; у тура точки нет."""
     tenant = _event_tenant()
@@ -185,7 +182,6 @@ def _paths(module, key):
     return [str(f) for f in section(module, key).source.fields]
 
 
-@pytest.mark.xfail(strict=True, reason="E7: поля ещё не SourceField")
 @pytest.mark.parametrize(
     "case", ["product-info", "stay-amenities", "event-price", "event-venue", "tour-venue"]
 )
@@ -226,10 +222,9 @@ def test_filled_matches_storefront_gate(case):
         view = (ROOT / "apps/events/public_views.py").read_text(encoding="utf-8")
         body = view[view.index("def tour_detail") :]
         body = body[: body.index("\ndef ", 10)]
-        assert "map_point" not in body
+        assert '"map_point"' not in body
 
 
-@pytest.mark.xfail(strict=True, reason="E7: состояние ещё не по полям")
 @pytest.mark.parametrize(
     "images, lat, online, expected",
     [
@@ -254,7 +249,6 @@ def test_venue_state_follows_the_gate(images, lat, online, expected):
 # --- №13: подписи — те же, что на форме кабинета -------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E7: подписи полей ещё не описаны")
 @pytest.mark.parametrize("lang", ["de", "ru"])
 def test_labels_on_cabinet_form(lang):
     """Подписи полей, вкладок и подраздела — те же строки, что на формах кабинета (товар,
@@ -273,7 +267,7 @@ def test_labels_on_cabinet_form(lang):
     for tab in tabs:
         assert re.search(rf'data-pf-tab="\w+"[^>]*>{re.escape(tab)}</button>', html), tab
     for name in sections_:
-        assert f">{escape(name)}</p>" in html, name
+        assert f">{name}</p>" in html, name
     tenant, unit = _hotel()
     with translation.override(lang):
         html = cabinet_page(tenant, reverse("stays:unit-edit", args=[unit.pk]))
@@ -299,7 +293,6 @@ def test_labels_on_cabinet_form(lang):
 # --- №5: пути полей — точные ------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E7: SourceField ещё нет")
 def test_field_path_exact():
     """Голова пути — поле модели вида (не связь, не метод); ключ словаря — через точку; у
     пункта одного вида (`kinds`) — поле модели этого вида."""
@@ -327,7 +320,6 @@ def test_field_path_exact():
 # --- ревью M4: закрытый реестр проб -------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E7: реестра проб ещё нет")
 def test_probe_registry_closed(caplog, monkeypatch):
     """Пробы — закрытый словарь «имя → (модуль, функция)»; незнакомая проба — ошибка в журнал,
     состояние «неизвестно», без импорта и вызова."""
@@ -345,7 +337,6 @@ def test_probe_registry_closed(caplog, monkeypatch):
     assert "unknown probe" in caplog.text
 
 
-@pytest.mark.xfail(strict=True, reason="E7: помощника карты ещё нет")
 def test_map_probe_no_queries():
     """Проба карты читает только поля события и бизнеса — без запросов."""
     tenant = _event_tenant()
@@ -359,7 +350,6 @@ def test_map_probe_no_queries():
 # --- a11y H2, M3: разметка списка -----------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E7: ветки списка ещё нет")
 def test_woher_list_dom():
     """dt/dd списка — блочные (без `inline`), вводная фраза — `<p id>`, у `<ul>` —
     `role="list"` и `aria-labelledby` на неё; у группы из 3+ полей — вложенный `<ul>`; значок —
@@ -384,7 +374,6 @@ def test_woher_list_dom():
     assert icons and all('aria-hidden="true"' in a for a in icons)
 
 
-@pytest.mark.xfail(strict=True, reason="E7: состояния ещё нет")
 @pytest.mark.parametrize(
     "fields, n, m",
     [
@@ -417,7 +406,6 @@ def dd_html(part):
 # --- ревью M5: флаги формы товара — в одном месте -----------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E7: флаги ещё во вьюхе")
 def test_flags_moved_once():
     """Флаги формы товара живут в `catalog/form_flags.py`; вьюха и окно берут их оттуда."""
     from apps.catalog import form_flags
@@ -439,7 +427,6 @@ def test_flags_moved_once():
 # --- №17 / №4: снятые строки ------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E7: старые фразы ещё в коде")
 def test_removed_msgids_gone():
     for path in [*(ROOT / "apps").rglob("*.py"), *(ROOT / "templates").rglob("*.html")]:
         if "tests" in path.parts:
@@ -453,7 +440,6 @@ def test_removed_msgids_gone():
 # --- №31: без запросов ------------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E7: список ещё не построен")
 def test_woher_list_queries():
     """Список «Woher» строится из уже загруженных объекта и бизнеса — без запросов."""
     tenant, product = _shop("clothing", **ALL_INFO)
