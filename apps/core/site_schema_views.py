@@ -75,6 +75,20 @@ def _cancel_text(kind: str) -> tuple[int, str]:
     return messages.WARNING, _("Nichts zurückzunehmen – der Block ist so wie beim Öffnen.")
 
 
+def _linked_refs(request, tenant, code: str) -> set[str]:
+    """E9 (ревью): ref строк схемы со своей ссылкой (не общие) — как их видит GET: черновик
+    поверх сохранённого, строки `blocks_for` хоста страницы."""
+    from apps.core import aufbau_draft
+    from apps.tenants import siteconfig
+
+    saved = siteconfig.normalize(tenant.site_config)
+    draft = aufbau_draft.get(request, code)
+    config = aufbau_draft.overlay(saved, draft, scope=False) if draft else saved
+    _pt, host, _home = site_schema.resolve(tenant, code)
+    blocks = site_schema.blocks_for(config, code, host=host or None, tenant=tenant)
+    return {b["ref"] for b in blocks if not b.get("shared")}
+
+
 def _url(code: str, block: str = "", keep: dict | None = None) -> str:
     query = {"seite": code}
     if block:
@@ -244,12 +258,9 @@ def site_schema_view(request):
             if op == "revert":
                 # FB-33 M3-1b: «Abbrechen» — блок как на момент открытия окна; итог честный.
                 # E9 (стопка 14): у строки блока итог — в адресе (`abbruch`), сообщение — у
-                # строки (`_cancel_note`); у ★-строки страницы — как прежде, вверху
+                # строки; нет строки с ссылкой (★-строка, блок удалён) — вверху, ниже
                 done = aufbau_draft.cancel(request, tenant, code, ref, token)
                 cancel_kind = _cancel_kind(done)
-                if site_schema.page_ref(ref) == site_schema.PAGE_REF:
-                    level, text = _cancel_text(cancel_kind)
-                    messages.add_message(request, level, text)
             elif op == "save":
                 force = request.POST.get("force") == "1"
                 said: list[str] = []  # FB-33 M2i-5: что запись поправила (способ связи)
@@ -451,11 +462,20 @@ def site_schema_view(request):
             # M5d-2b: и после «Abbrechen» — по `zuletzt` список «Ausgeblendet» остаётся раскрытым
             # у скрытой строки (фокус на её ссылку ставит `aufbau.js`)
             keep["zuletzt"] = ref
-        cancel_row = bool(cancel_kind and ref and site_schema.page_ref(ref) != site_schema.PAGE_REF)
+        cancel_row = bool(
+            cancel_kind
+            and ref
+            and site_schema.page_ref(ref) != site_schema.PAGE_REF
+            and ref in _linked_refs(request, tenant, code)
+        )
         if cancel_row:
             # E9 (решение владельца 2026-11-24): итог «Abbrechen» — белым списком, GET пишет
             # сообщение у строки и сверяет `zuletzt` со строками схемы
             keep["abbruch"] = cancel_kind
+        elif cancel_kind:
+            # ★-строка страницы, блок удалён в другой вкладке, общая строка, пустой ref —
+            # строки с ссылкой нет: итог не теряется, а стоит вверху (ревью E9)
+            messages.add_message(request, *_cancel_text(cancel_kind))
         target = _url(code, "" if closed else ref, keep)
         if (op in aufbau_draft.WINDOW_OPS or cancel_row) and ref:
             # FB-33 M5c-3 (a11y B3): «Fertig» без скриптов — к строке блока (её ⚙); E9: и
@@ -782,10 +802,13 @@ def site_schema_view(request):
     # список `abbruch`; `zuletzt` — точно ref строки схемы, у которой есть ссылка). Вверху его
     # нет; живая область пуста — текст туда кладёт `aufbau.js` (ветка `back`)
     cancel_ref, cancel_kind, cancel_msg = "", "", ""
-    if selected is None and request.GET.get("abbruch") in CANCEL_KINDS and anchor is not None:
-        if not anchor.get("shared"):
+    if selected is None and request.GET.get("abbruch") in CANCEL_KINDS:
+        if anchor is not None and not anchor.get("shared"):
             cancel_ref, cancel_kind = anchor["ref"], request.GET["abbruch"]
             cancel_msg = _cancel_text(cancel_kind)[1]
+        else:
+            # страховка (ревью E9): строки уже нет — итог вверху, а не молча
+            messages.add_message(request, *_cancel_text(request.GET["abbruch"]))
     # FB-33 M5b-2 (V4, a11y Y-H2): серая метка «Überschrift der Seite» — только в разметке,
     # после ряда с последним видимым блоком над заголовком (не строка: не в `blocks`/рядах)
     title_hint = None

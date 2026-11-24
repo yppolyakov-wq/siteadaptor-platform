@@ -45,10 +45,8 @@ TOKEN = "openE9a"
 def said(resp, msgs):
     """E9: прежние тесты «Abbrechen» читали итог из `messages`; у строки блока он теперь в адресе
     (`abbruch`) — тот же текст дописывается к сообщениям POST (тесты M3-1b и соседей)."""
-    from apps.core.site_schema_views import CANCEL_KINDS, _cancel_text
-
     kind = parse_qs(urlsplit(resp.get("Location", "")).query).get("abbruch", [""])[0]
-    return resp, list(msgs) + ([str(_cancel_text(kind)[1])] if kind in CANCEL_KINDS else [])
+    return resp, list(msgs) + ([TEXTS[kind]] if kind in TEXTS else [])
 
 
 def _browser(hidden=False):
@@ -193,16 +191,13 @@ def test_page_row_cancel_keeps_the_top_message():
     assert msgs and "abbruch=" not in resp["Location"]
 
 
-# --- ревью диффа E9 (django-reviewer M, a11y M1–M2, L3): красные до правки ----------------------
-
-review = pytest.mark.xfail(strict=True, reason="FB-33 E9: правки ревью диффа")
+# --- ревью диффа E9 (django-reviewer M, a11y M1–M2, L3; были strict xfail) ----------------------
 
 
 def _top(html):
     return re.search(r"<div data-schema-messages[^>]*>(.*?)</div>\n", html, re.S).group(1)
 
 
-@review
 @pytest.mark.parametrize("ref", ["gone9", ""], ids=["gone", "empty"])
 def test_cancel_without_a_row_says_it_on_top(monkeypatch, ref):
     """django-reviewer MEDIUM: блок удалён в другой вкладке (итог — конфликт) или `ref` пуст —
@@ -210,22 +205,21 @@ def test_cancel_without_a_row_says_it_on_top(monkeypatch, ref):
     `abbruch` в адресе нет."""
     b = _browser()
     monkeypatch.setattr(aufbau_draft, "cancel", lambda *a, **kw: aufbau_draft.CANCEL_CONFLICT)
-    resp, _msgs = b.post(seite="home", ref=ref, op="revert", wopen=TOKEN)
+    resp, msgs = b.post(seite="home", ref=ref, op="revert", wopen=TOKEN)
     target = urlsplit(resp["Location"])
     assert "abbruch" not in parse_qs(target.query) and not target.fragment.startswith("schema-row")
+    # `Browser` не переносит `messages` в следующий запрос: итог POST — его сообщения (вверху)
+    assert msgs == [CONFLICT]
     html = b.get(f"?{target.query}")
-    assert html.count(CONFLICT) == 1 and CONFLICT in _top(html)
-    assert 'id="schema-cancel-msg"' not in html
+    assert CONFLICT not in html and 'id="schema-cancel-msg"' not in html
 
 
-@review
 def test_get_abbruch_without_a_row_falls_back_to_top():
     """Страховка GET: валидный `abbruch`, а строки `zuletzt` уже нет — сообщение вверху."""
     html = _browser().get("?seite=home&zuletzt=gone9&abbruch=done")
     assert html.count(DONE) == 1 and DONE in _top(html)
 
 
-@review
 @pytest.mark.parametrize("hidden", [False, True], ids=["visible", "hidden"])
 def test_row_scroll_margins(monkeypatch, hidden):
     """a11y M1 (WCAG 2.4.11): цель якоря не уходит под липкую шапку и под полосу черновика —
@@ -235,7 +229,6 @@ def test_row_scroll_margins(monkeypatch, hidden):
     assert "scroll-mt-32" in link and "scroll-mb-28" in link
 
 
-@review
 def test_js_drops_description_and_hidden_glyph():
     """a11y M2: со скриптами описание ⚙ абзацем снимается (иначе текст звучит дважды: описание
     при фокусе и живая область); L3: в живую область — текст без `aria-hidden` («⚠»)."""

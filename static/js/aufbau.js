@@ -89,10 +89,24 @@ function aufbauSubmitCopy(form, submitter) {
         var rest = params.toString();
         history.replaceState(history.state, "", location.pathname + (rest ? "?" + rest : ""));
       }
+      var said = abbruch && document.getElementById("schema-cancel-msg");
+      if (said) {
+        // ревью E9 (a11y M2): со скриптами текст звучит живой областью — описание строки
+        // абзацем снять ДО фокуса, иначе он прозвучит дважды (без JS описание — единственный путь)
+        var ids = (row.getAttribute("aria-describedby") || "").split(/\s+/).filter(function (id) {
+          return id && id !== "schema-cancel-msg";
+        });
+        if (ids.length) row.setAttribute("aria-describedby", ids.join(" "));
+        else row.removeAttribute("aria-describedby");
+      }
       // фокус без плавной прокрутки (prefers-reduced-motion — ничего не анимируем)
       row.focus();
-      var said = abbruch && document.getElementById("schema-cancel-msg");
-      if (said) aufbauSay(said.textContent.replace(/\s+/g, " ").trim());
+      if (said) {
+        // L3: в живую область — без `aria-hidden` («⚠» не читается)
+        var copy = said.cloneNode(true);
+        Array.prototype.forEach.call(copy.querySelectorAll("[aria-hidden]"), function (n) { n.remove(); });
+        aufbauSay(copy.textContent.replace(/\s+/g, " ").trim());
+      }
       window.addEventListener("load", function () {
         var at = document.activeElement;
         if (at !== row && (!at || at === document.body || at.id === "schema-panel")) row.focus();
