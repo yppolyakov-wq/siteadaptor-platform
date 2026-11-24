@@ -271,3 +271,123 @@ def test_auf_der_seite_link_plain():
         html = Browser(tenant).get(f"?seite=product&block=related&von={second}")
     links = re.findall(r"<a [^>]*>Auf der Seite bearbeiten</a>", html)
     assert links and all("target=" not in a and "aria-label" not in a for a in links)
+
+
+# ───────────── ревью диффа E1 ─────────────
+
+RED = pytest.mark.xfail(strict=True, reason="E1 ревью: до правки")
+OWN_BLOCK = {"key": "text", "id": "b1", "enabled": True, "data": {"title": "Eigen"}}
+
+
+def _content_tenant(settings, blocks: dict):
+    from apps.core.models import ContentPage
+
+    settings.ROOT_URLCONF = "config.urls_tenant"  # короткий адрес своей страницы — витрины
+    tenant = _tenant()
+    tenant.site_config = {"page_blocks": blocks}
+    tenant.save()
+    ContentPage.objects.create(slug="foo", title="Foo", body="<p>x</p>", is_published=True)
+    return tenant
+
+
+@RED
+def test_own_text_page_with_blocks_not_on_info(settings):
+    """Ревью M (django): своя страница со СВОИМИ блоками (`seite:foo`) — не страница общего
+    хоста `info`: окно «Über uns» её путь не принимает (кадр и Студия — по образцу)."""
+    tenant = _content_tenant(settings, {"seite:foo": [OWN_BLOCK]})
+    b = Browser(tenant)
+    _h, base = _ctx(b, "?seite=text")
+    html, ctx = _ctx(b, "?seite=text&von=/foo/")
+    assert 'name="von"' not in html and "von=" not in ctx["keep_q"]
+    assert ctx["studio_url"] == base["studio_url"] and ctx["preview_url"] == base["preview_url"]
+
+
+def test_own_text_page_without_blocks_on_info(settings):
+    """Охранный: своя страница без своих блоков рисует блоки хоста `info` — как сейчас."""
+    tenant = _content_tenant(settings, {})
+    _html, ctx = _ctx(Browser(tenant), "?seite=text&von=/foo/")
+    assert _studio_page(ctx) == "/foo/" and "von=" in ctx["keep_q"]
+
+
+@RED
+def test_old_title_link_keeps_von():
+    """Ревью L (django): старая ссылка `?block=__title` — `von` переживает переадресацию."""
+    from apps.core.site_schema_views import site_schema_view
+
+    b = Browser(e3._shop(m33.CFG))
+    resp = site_schema_view(b._request("get", query="?seite=home&block=__title&von=/"))
+    assert resp.status_code == 302 and _q(resp["Location"]).get("von") == ["/"]
+
+
+def _row_post(b, **data):
+    resp, _msgs = b.post(seite="home", von="/", **data)
+    loc = resp["Location"]
+    return loc, _q(loc.split("#", 1)[0])
+
+
+@pytest.mark.parametrize("op", ["toggle", "down", "einblenden"])
+def test_von_survives_row_forms(op):
+    """Ревью L (django): формы строки (`zeile=1`, «⋯») — `von` в адресе до `#`, якорь строки."""
+    b = Browser(e3._shop(m33.CFG))
+    html = e3._get(b, "?seite=home&block=l1&von=/")
+    assert '<input type="hidden" name="zeile" value="1">' in b.get("?seite=home&von=/")
+    assert '<input type="hidden" name="von" value="/">' in html
+    if op == "einblenden":
+        b.post(seite="home", ref="l1", op="toggle", zeile="1")
+        op = "toggle"
+    loc, query = _row_post(b, ref="l1", op=op, zeile="1")
+    assert query.get("von") == ["/"] and loc.endswith("#schema-more-l1"), loc
+
+
+@pytest.mark.parametrize("op", ["add", "add_row"])
+def test_von_survives_insert(op):
+    """Ревью L (django): вставка блока в позицию — `von` в адресе нового окна до `#`."""
+    b = Browser(e3._shop(m33.CFG))
+    extra = {"type": "text"} if op == "add" else {"value": site_schema.row_options()[0][0]}
+    loc, query = _row_post(b, op=op, after="l1", **extra)
+    assert query.get("von") == ["/"] and loc.endswith("#schema-panel"), loc
+
+
+CONTROL = [
+    "/\x0b",
+    "/ ",
+    "/a\r\nSet-Cookie:x",
+    "/\t/evil",
+    "/%2F%2Fevil",
+    "/a#b",
+    "javascript:alert(1)",
+    "https://evil/",
+    "/" + "a" * 301,
+]
+
+
+@pytest.mark.parametrize("raw", CONTROL, ids=[repr(c)[:20] for c in CONTROL])
+def test_von_control_chars_rejected(raw):
+    """Ревью L (security): управляющие символы и пробелы — `von` не принят (GET и POST)."""
+    b = Browser(e3._shop(m33.CFG))
+    html, ctx = _ctx(b, "?seite=home&block=l1&" + _enc({"von": raw}))
+    assert 'name="von"' not in html and "von=" not in html and "von=" not in ctx["keep_q"]
+    resp, _msgs = b.post(seite="home", ref="l1", op="window_done", von=raw)
+    assert "von" not in _q(resp["Location"].split("#", 1)[0])
+
+
+#: проходят чистку `== raw` до правки ревью — красные; `/%2F%2Fevil` — внутренний путь
+#: (кодированный слэш — не схема): его отсекает только сверка кода (`test_von_control_chars`)
+PASSED_CLEANING = ("/\x0b", "/ ")
+UNIT = [
+    pytest.param(c, marks=RED, id=repr(c)[:20])
+    if c in PASSED_CLEANING
+    else pytest.param(c, id=repr(c)[:20])
+    for c in CONTROL
+    if c != "/%2F%2Fevil"
+]
+
+
+@pytest.mark.parametrize("raw", UNIT)
+def test_page_path_rejects_control_even_if_code_matches(monkeypatch, raw):
+    """Ревью L (security): и при совпавшем коде (подставлен) — управляющие символы, пробел,
+    чужая схема, длина — "" до разбора пути."""
+    from apps.core.site_schema_views import _page_path
+
+    monkeypatch.setattr(site_schema, "code_for_path", lambda t, p: "home")
+    assert _page_path(None, raw, "home") == ""
