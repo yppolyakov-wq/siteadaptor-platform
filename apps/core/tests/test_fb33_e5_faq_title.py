@@ -329,17 +329,21 @@ def test_title_maxlength():
     assert _drafts(b)["home"]["faq_title"] == "x" * siteconfig._SECTION_TITLE_MAX
 
 
-@override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
 def test_storefront_title_with_page_cache(settings):
-    """№13: «Speichern» сбрасывает кэш витрины; витрина показывает свой заголовок."""
+    """№13: «Speichern» сбрасывает кэш витрины; витрина показывает свой заголовок.
+    Кэш — `with override_settings` внутри теста: декоратор вместе с фикстурой `settings`
+    запрещён замком `test_settings_fixture_guard`."""
     from apps.core import pagecache
 
-    cache.clear()
-    b = Browser(_tenant())
-    _faq_post(b, faq_title="Fragen zu uns")
-    before = pagecache._sf_version(b.tenant.schema_name)
-    b.post(seite="home", op="save")
-    assert pagecache._sf_version(b.tenant.schema_name) > before
+    with override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+    ):
+        cache.clear()
+        b = Browser(_tenant())
+        _faq_post(b, faq_title="Fragen zu uns")
+        before = pagecache._sf_version(b.tenant.schema_name)
+        b.post(seite="home", op="save")
+        assert pagecache._sf_version(b.tenant.schema_name) > before
     settings.ROOT_URLCONF = "config.urls_tenant"
     html = ref_html("catalog", site_titles={"faq": "Fragen zu uns"})
     assert ">Fragen zu uns</h2>" in html and "Häufig gestellte Fragen" not in html
