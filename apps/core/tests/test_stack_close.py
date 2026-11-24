@@ -54,6 +54,12 @@ def test_each_forgotten_step_is_named():
     assert _failed(plan_problems=["G1: тронул x.py вне плана"]) == ["план сверен с фактом"]
 
 
+def test_plan_that_was_not_compared_is_not_reported_as_passed():
+    # Сверка без плана — «не проверено», а не ✓: молчаливое прохождение хуже отсутствия проверки.
+    results = _mod().checks("FB-33 стопка 13", "13", _state(plan_problems=None))
+    assert [ok for ok, name, _ in results if name == "план сверен с фактом"] == [None]
+
+
 def test_label_of_another_stack_does_not_count():
     # «стопка 13» не должна находиться в строке «стопка 130» или «стопки 13–14 (план)».
     assert _failed(history="| 2026-11-24 | FB-33 стопка 130 | 1 | 0 | 0 % |\n") == [
@@ -75,5 +81,5 @@ def test_stack_12_closed_by_hand_passes_the_real_check():
     # Стопка 12 закрыта вручную до появления команды — на ней скрипт проверяется вхолостую.
     mod = _mod()
     state = mod.read_state("FB-33 стопка 12", "12", merged=True, plan="")
-    failed = [name for ok, name, _ in mod.checks("FB-33 стопка 12", "12", state) if not ok]
+    failed = [name for ok, name, _ in mod.checks("FB-33 стопка 12", "12", state) if ok is False]
     assert failed == [], failed
