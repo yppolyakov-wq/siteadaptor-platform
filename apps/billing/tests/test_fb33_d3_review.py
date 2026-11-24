@@ -88,3 +88,30 @@ def test_metadata_id_in_log_has_no_control_chars(biz, spy, caplog):
     webhooks._money_not_booked("event_ticket", obj["metadata"], obj, id_key="ticket_id")
     errors = [r.getMessage() for r in caplog.records if r.levelno == logging.ERROR]
     assert errors and all("\n" not in m and "FAKE LINE" not in m for m in errors)
+
+
+@pytest.mark.xfail(strict=True, reason="FB-33 D3 ревью: до правки")
+def test_overpaid_mail_goes_to_tenant_schema(biz, spy, monkeypatch):
+    """Тот же класс: письмо «Überzahlung» `deal_balance` — тоже в схеме бизнеса."""
+    from types import SimpleNamespace
+
+    from apps.core import balance_pay
+    from apps.core.tests.test_b2_5_balance_pay import _stay
+    from apps.promotions import notifications
+    from apps.stays.models import StayBooking
+
+    monkeypatch.setattr(
+        notifications,
+        "_tenant",
+        lambda s: SimpleNamespace(stripe_connect_id=ACCOUNT, owner_email="o@t.de"),
+    )
+    stay = _stay(StayBooking.PAYMENT_REFUNDED)
+    balance_pay.mark_balance_paid(
+        tenant_schema=SCHEMA,
+        deal_kind="stay",
+        deal_id=str(stay.pk),
+        payment_intent="pi_over",
+        amount_cents=1000,
+        account=ACCOUNT,
+    )
+    assert spy == [SCHEMA]
