@@ -15,6 +15,15 @@
 
 ## 1. Открыто сейчас (сводка на 2026-11-13)
 
+### Решения владельца стопки 12 (2026-11-23…24, артборды M5d-0d на холсте M0 и окно вопросов; план `fb33-stack12-plan-2026-11-23.md` §11)
+- **Окно «Inhalt» для G3/G1/G4:** G3 — как G2, без своих частей; G1 — вариант A: «Inhalt» + строка «Woher», видимость ТЕКСТОМ, скрытие остаётся в «⋯» (галочки в окне нет); G4 — как G1. «Platz», вид и «Vorschau» у этих строк не нужны.
+- **Ссылка у строки типа** — на СПИСОК объектов; у товара — «Sortiment» (`sellable-manage`), новой записи навигации нет. У строки одного объекта — на форму объекта, плашка «nur hier». У общего типа «Veranstaltungen» — две ссылки, «Veranstaltungen» и «Reisen».
+- **Право ссылки** — как у G2: право открыть экран (просмотр), не право правки.
+- **Скрытая строка** — текст «Schließen Sie das Fenster; dann „Einblenden“ unter „Ausgeblendet“.», кнопки «Einblenden» в окне нет.
+- **«In der Anprobe zurücklegen»** — «automatisch» без ссылки; экран настройки — в roadmap.
+- **«Kindermenü»** — срезом в стопке 12: переводится подпись варианта на витрине и в кабинете; сохранённые ответы, CSV и письма — немецкие значения.
+- **Акция, Kombi, блог (G1e)** — в стопке 12; M2i-7b — не в стопке.
+
 ### Решения владельца стопки 11 (2026-11-23, «по рекомендации» плана `fb33-stack11-plan-2026-11-23.md` §7 и §8.5)
 - **Состав стопки 11:** M5c целиком (C0–C4, C3m) + M5d-1 только G2 (вариант A «Inhalt»). G3, G1 и G4 — стопка 12; M2i-7b — не в стопке 11, решение владельца о отдельной стопке — открыто.
 - **§7 плана №1–5 — по рекомендации:** миниатюры в строках схемы остаются (снос — отдельная уборка); «＋ Block» без JS — кнопки типов одной разметкой с JS; «⋯» не рисуется у строк без действий (★, G2); перестановка из «⋯» строки не открывает окно, фокус остаётся на «⋯»; плашка «neu» и «— noch leer» не берём (статус есть) — в roadmap.
@@ -569,6 +578,11 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 - Партиалы схемы (M5c-1…3): `templates/tenant/_schema_row.html` (строка: ⚙-ссылка, ⠿ вне `<a>`, номер), `_schema_more.html` («⋯» строки и шапки окна — один список действий; параметр «в шапке» — без `id` и `zeile=1`), `_schema_add.html(after_ref)` («＋ Block» под строкой и в конце; кнопки типов из `add_groups`/`row_options`).
 - `DetailSection.content_nav: str` (FB-33 M5d-1) — имя URL экрана содержимого у 8 разделов G2 (`detail_sections.py`); подпись и доступ — из `nav_registry`.
 - `window_parts.content_part(selected, host, request)` (M5d-1) — часть окна «Inhalt»: `selected["content"] = {"summary", "link"}`; вкладка «Was» (`PART_TAB["inhalt"]`), первой в `PART_ORDER`.
+- `detail_sections.ContentSource` у `DetailSection.source` (FB-33 стопка 12, M5d-2…5) — ОДИН реестр источника содержимого раздела для окна «Inhalt»: `kind` (field/setting/page/auto), `shows`, `woher`, `field`/`field_label`, `fields`, `query`/`sub`, `note`, `only_if`, `object_only`, `kinds`, `more_nav`; `content_nav` — экран или список объектов. G2 — `content_nav` без `source`. Замки реестра: `test_fb33_m5d2_review.py` (`shows` у каждого, `content_nav` находит `entry_by_url`, пути `fields` — поля модели), снимок `golden_fb33m5d2/registry.json`.
+- `window_parts.content_part(selected, host, request, *, code, obj, back, page_label)` (стопка 12) — модель части `{summary, note, woher, filled, visibility, actions, fixed, link{label,url,only_here}, more_links, reason, screen, sourced}`; без новых запросов (видимость — флаги строки и `summary` объекта); `lang` у имени — только когда язык имени ≠ язык окна и только у содержимого (объект, своя страница `seite:`).
+- `nav_registry.screen_closed(request, url_name, target_url="")` (стопка 12) — с `target_url`: модуль по записи, пакет и право — `packages.view_allowed` и `view_perms.url_allowed` по адресу цели; цель без правила `view_perms` — закрыто.
+- `site_schema.OBJECT_WORDS`, `word_kind`, `object_words(host, only, kinds)`, `object_field_label(kind, field)`, `object_back(code, obj=None)`, `is_object_of` (стопка 12) — слова вида объекта для «Woher»/«Auf der Seite», подпись поля из кода формы (кэш на процесс), один резолв объекта во вьюхе.
+- `apps/events/registration.py::FIELDS[*]["options"]` (стопка 12, «Kindermenü») — пары `(value, label)`: value — немецкая строка (ответы, CSV, ростер), label — `pgettext_lazy("registration option", …)`; `participants.slots` дорисовывает сохранённое значение вне списка.
 - `nav_registry.entry_by_url(url_name)` / `screen_closed(request, url_name)` / `screen_open(request, url_name)` (M5d-1) — единая проверка доступа к экрану (запись + видимость модуля + пакет + `can_open`); бывший `day_home._screen_open` переехал сюда, `day_home` зовёт её.
 - `block_window.has_preview(window)` (M5d-1) — строить ли «Vorschau»: нет, если частей нет кроме `inhalt` (исключение — `site_schema_views`).
 - `scripts/fb33_m5c_measure.py` (M5c, стопка 11) — замер «до/после» (`--code` для старого кода, `--compare`): витрина по хэшам, `site_config`, `items` вставки, SQL экрана и POST; остаётся для стопки 12.
