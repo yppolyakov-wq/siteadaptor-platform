@@ -36,7 +36,6 @@ CONFLICT = (
 MSGIDS = (CONFLICT,)
 # Строку во все пять `.po` пишет координатор на верхушке стопки — тогда снять отметку.
 OWN = [{"q": "Parken?", "a": "Ja."}]
-REVIEW = pytest.mark.xfail(strict=True, reason="FB-33 стопка 14 E4: правки ревью диффа")
 IMG = {"id": "img1", "url": "/media/x.jpg", "is_primary": True}
 GIF = (
     b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00"
@@ -253,7 +252,6 @@ def test_retry_after_conflict_overwrites(kind):
     assert _model(kind).objects.get(pk=obj.pk).details["idea"] == "Meins"
 
 
-@REVIEW
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_logged(kind, caplog):
     """№8: отказ в журнале — схема, вид, pk; без значений полей."""
@@ -291,7 +289,6 @@ def _invalid(kind, data):
     return bad
 
 
-@REVIEW
 @pytest.mark.parametrize("kind", KINDS)
 def test_invalid_form_keeps_posted_base(kind):
     """HIGH-1: невалидная форма перерисовывается с отпечатками ИЗ POST, а не свежими — иначе
@@ -314,7 +311,6 @@ def test_invalid_form_keeps_posted_base(kind):
     assert _model(kind).objects.get(pk=obj.pk).details["idea"] == "Fremd"
 
 
-@REVIEW
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_keeps_typed_route_and_layout(kind):
     """HIGH-2: при отказе маршрут тура и шаблон страницы — как набраны, база не меняется."""
@@ -330,7 +326,6 @@ def test_conflict_keeps_typed_route_and_layout(kind):
         assert fresh.itinerary == before.itinerary
 
 
-@REVIEW
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_rows_beyond_limit(kind):
     """MEDIUM а: сохранённые сверх лимита вопросы (данные до среза) при отказе не режутся."""
@@ -350,7 +345,6 @@ def test_conflict_rows_beyond_limit(kind):
         assert f'value="{item["q"]}"' in out or f">{item['q']}<" in out, item
 
 
-@REVIEW
 @pytest.mark.parametrize("kind", KINDS)
 def test_conflict_with_faq_changed_two_messages(kind):
     """MEDIUM б: вопросы тоже изменены в другом месте — в отказе второе (уже существующее)
@@ -365,7 +359,6 @@ def test_conflict_with_faq_changed_two_messages(kind):
     assert html.escape(object_faq.form_changed_note()) in page
 
 
-@REVIEW
 @pytest.mark.parametrize("kind", KINDS)
 def test_deleted_row_404(kind, monkeypatch):
     """LOW а: строку удалили параллельно (после чтения вьюхи) — 404 до записи, объект не

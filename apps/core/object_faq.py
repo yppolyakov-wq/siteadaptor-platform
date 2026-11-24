@@ -465,10 +465,13 @@ def from_form(
     return base, per_locale
 
 
-def post_rows(post, kind: str, locales) -> list[dict] | None:
+def post_rows(obj, post, kind: str, locales, notes: list | None = None) -> list[dict] | None:
     """Строки редактора своих вопросов — как набраны в POST (форма объекта возвращена
-    отказом, FB-33 стопка 14 E4). Без сентинела `faq_present` — None (показать сохранённые)."""
-    parsed = from_form(post, locales, kind)
+    отказом, FB-33 стопка 14 E4). Без сентинела `faq_present` — None (показать сохранённые).
+    Лимит — как у записи (`keep` = сохранено у `obj`, ревью диффа): сохранённые сверх лимита
+    не режутся; сообщения о лимите — в `notes`."""
+    keep = len(items(obj, kind)) if obj is not None else 0
+    parsed = from_form(post, locales, kind, notes, keep=keep)
     return None if parsed is None else form_rows(None, kind, locales, parsed=parsed)
 
 
