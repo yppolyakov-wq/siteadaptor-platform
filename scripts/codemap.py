@@ -241,6 +241,9 @@ def _by_app(files: list[str]) -> str:
 
 def _names(path: str) -> tuple[str, str, tuple[str, ...]]:
     """(слово для тестов, игла для скиллов, иглы для документов). У общих имён — с приложением."""
+    if not path.endswith(".py"):  # шаблон, JS, CSS — по полному имени файла, без отрезания «.py»
+        name = path.rsplit("/", 1)[-1]
+        return name, name, (name, path)
     stem = path.rsplit("/", 1)[-1][:-3]
     dotted = path[:-3].replace("/", ".")
     if stem == "__init__":
