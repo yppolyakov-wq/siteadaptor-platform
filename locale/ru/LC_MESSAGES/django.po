@@ -40514,6 +40514,10 @@ msgstr "Сюда ведёт «плюс доставка» у каждой цен
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"
 
+#. FB-33 M5d-4a: правка ревью срезов
+msgid "Marke und Zustand stehen im Formular unter „Marke & Zustand“."
+msgstr "Марка и состояние указываются в форме в разделе «Марка и состояние»."
+
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Beschreibung des Produkts"
 msgstr "описание товара"
@@ -40833,12 +40837,6 @@ msgstr "автоматически — из заказа или брони."
 
 msgid "bis zu 4 Produkte unter der Bestätigung — empfohlene zuerst, ohne die gerade gekauften"
 msgstr "до 4 товаров под подтверждением — сначала рекомендуемые, без только что купленных"
-
-msgid "Produkte mit Häkchen „Empfohlen“."
-msgstr "Товары с галочкой «Рекомендуется»."
-
-msgid "Erscheint nur, wenn es Produkte gibt."
-msgstr "Появляется, только если есть товары."
 
 # fb33-stack-anchor-kinder
 msgid "fb33-stack-anchor-kinder"

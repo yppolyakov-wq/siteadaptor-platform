@@ -132,6 +132,8 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                 ),
                 # подпись вкладки формы товара (тот же msgid, что в `product_form.html`)
                 field_label=_("Labeling"),
+                # ревью срезов (MEDIUM 2): Marke и Zustand — не на вкладке «Kennzeichnung»
+                note=_("Marke und Zustand stehen im Formular unter „Marke & Zustand“."),
                 fields=(
                     "brand",
                     "condition",
@@ -531,8 +533,8 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
                     "bis zu 4 Produkte unter der Bestätigung — empfohlene zuerst, ohne die "
                     "gerade gekauften"
                 ),
-                woher=_("Produkte mit Häkchen „Empfohlen“."),
-                only_if=_("Erscheint nur, wenn es Produkte gibt."),
+                woher=_("Ihre Produkte — die mit Häkchen „Empfohlen“ stehen vorn."),
+                only_if=_("Erscheint nur, wenn es aktive Produkte gibt."),
             ),
         ),
     ),

@@ -55,8 +55,8 @@ WOHER_SUMMARY = "automatisch — aus der Bestellung oder Buchung."
 SHOWS_RECOMMEND = (
     "bis zu 4 Produkte unter der Bestätigung — empfohlene zuerst, ohne die gerade gekauften"
 )
-WOHER_RECOMMEND = "Produkte mit Häkchen „Empfohlen“."
-ONLY_IF_RECOMMEND = "Erscheint nur, wenn es Produkte gibt."
+WOHER_RECOMMEND = "Ihre Produkte — die mit Häkchen „Empfohlen“ stehen vorn."
+ONLY_IF_RECOMMEND = "Erscheint nur, wenn es aktive Produkte gibt."
 MSGIDS = (
     SHOWS_ITEMS,
     WOHER_ITEMS,

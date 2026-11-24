@@ -40310,6 +40310,10 @@ msgstr "Her fiyatın yanındaki „kargo hariç“ buraya yönlendirir. Liste ya
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"
 
+#. FB-33 M5d-4a: правка ревью срезов
+msgid "Marke und Zustand stehen im Formular unter „Marke & Zustand“."
+msgstr "Marka ve durum, formda „Marka ve durum“ bölümünde girilir."
+
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Beschreibung des Produkts"
 msgstr "ürün açıklamasını"
@@ -40629,12 +40633,6 @@ msgstr "otomatik — siparişten veya rezervasyondan."
 
 msgid "bis zu 4 Produkte unter der Bestätigung — empfohlene zuerst, ohne die gerade gekauften"
 msgstr "onayın altında en fazla 4 ürünü — önce önerilenler, az önce satın alınanlar hariç"
-
-msgid "Produkte mit Häkchen „Empfohlen“."
-msgstr "„Önerilen“ onay kutusu işaretli ürünler."
-
-msgid "Erscheint nur, wenn es Produkte gibt."
-msgstr "Yalnızca ürün varsa görünür."
 
 # fb33-stack-anchor-kinder
 msgid "fb33-stack-anchor-kinder"
