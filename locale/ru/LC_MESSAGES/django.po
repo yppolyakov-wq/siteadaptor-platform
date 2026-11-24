@@ -40929,3 +40929,15 @@ msgstr "Прокатный мотоцикл"
 msgctxt "registration option"
 msgid "Eigenes Motorrad"
 msgstr "Свой мотоцикл"
+
+msgid "fb33-stack-anchor-d1"
+msgstr "fb33-stack-anchor-d1"
+
+msgid "fb33-stack-anchor-d2"
+msgstr "fb33-stack-anchor-d2"
+
+msgid "fb33-stack-anchor-d4a"
+msgstr "fb33-stack-anchor-d4a"
+
+msgid "fb33-stack-anchor-d6"
+msgstr "fb33-stack-anchor-d6"
