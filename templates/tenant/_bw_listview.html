@@ -1,6 +1,6 @@
 {% load i18n %}{% comment %}FB-33 M3-3c (макет M0-1): часть «Wie anordnen» — как выглядит список. Группа «Wie … aussehen» прежней панели своей формой: пишет только свои поля (запись — патч), вид — плитками; строка наследования говорит, откуда вид, и сбрасывает ровно его (вид, вывод, колонки, ряды).{% endcomment %}
 {% for g in selected.groups %}{% if g.key == "wie" and g.fields %}
-<form method="post" class="mt-4 space-y-4" data-schema-list data-schema-listview>
+<form method="post" id="bw-form-listview" class="mt-4 space-y-4" data-schema-list data-schema-listview>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
   <input type="hidden" name="ref" value="{{ selected.ref }}">
