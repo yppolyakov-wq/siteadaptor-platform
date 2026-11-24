@@ -90,7 +90,6 @@ def test_metadata_id_in_log_has_no_control_chars(biz, spy, caplog):
     assert errors and all("\n" not in m and "FAKE LINE" not in m for m in errors)
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D3 ревью: до правки")
 def test_overpaid_mail_goes_to_tenant_schema(biz, spy, monkeypatch):
     """Тот же класс: письмо «Überzahlung» `deal_balance` — тоже в схеме бизнеса."""
     from types import SimpleNamespace

@@ -270,13 +270,17 @@ def _notify_owner(
             )
         ) % {"code": obj.reference_code, "amount": amount}
     try:
-        notify(
-            dedupe_key=f"overpaid:{schema}:{kind}:{obj.pk}:{intent}",
-            type="deal_overpaid_owner",
-            recipient=email,
-            subject=subject,
-            body=body,
-        )
+        # FB-33 D3 (ревью): `Notification` — таблица схемы бизнеса, вебхук — в public
+        from django_tenants.utils import schema_context
+
+        with schema_context(schema):
+            notify(
+                dedupe_key=f"overpaid:{schema}:{kind}:{obj.pk}:{intent}",
+                type="deal_overpaid_owner",
+                recipient=email,
+                subject=subject,
+                body=body,
+            )
     except Exception:  # noqa: BLE001 — письмо не роняет вебхук
         logger.exception("balance_pay: owner notify failed %s %s", kind, obj.pk)
 
