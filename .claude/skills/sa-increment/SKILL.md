@@ -20,10 +20,13 @@ metadata:
    (`scripts/stack_close.py`). Взял стопку — `work_map.py --set <N> "в работе"`.
 1. **ID** — строка в `docs/task-catalog.md` §3 ДО план-дока (подзадача — через точку, новых
    семейств не заводить).
-2. **Разведка** — раздел своей темы в `docs/project-memory.md` §3 и тематический скилл `sa-*`.
+2. **Разведка** — `uv run python scripts/codemap.py <файл|модуль>` по каждому файлу среза: кто его
+   импортирует, тесты и эталоны, скилл, «единственный писатель», находки журнала. Готовый модуль ядра
+   искать в `docs/codemap-core.md`. Затем раздел своей темы в `docs/project-memory.md` §3 и скилл `sa-*`.
    Любое «X не используется / не читается» в плане — только с grep вызовов.
 3. **План-док** в `docs/` + раздел «ECC-прогоны» (таблица `docs/pitfalls.md` §0): какие скиллы
    до кода, какие агенты на каком шаге. Переработка UI — сначала варианты на утверждение.
+   Колонки плана заполнять по `scripts/codemap.py --plan <план>` (импортёры, тесты, эталоны на срез).
    В плане стопки — проверяемая таблица срезов (`docs/stack-plan-template.md`); до раздачи срезов —
    `uv run python scripts/plan_check.py <план>`: волны, зависимости, пересечения файлов, существование.
 4. **Ревью плана до кода** — пройти `docs/review-checklist.md` (32 вопроса по классам прежних
@@ -49,6 +52,8 @@ metadata:
 ## Единые точки
 - Порядок работ — `scripts/work_map.py::parse, problems, ready, mermaid` и `docs/fb33-map.md`;
   план стопки — `scripts/plan_check.py::check, waves, verify`; закрытие — `scripts/stack_close.py::checks`.
+- Связи кода — `scripts/codemap.py::build_index, importers, report, mutual_pairs`; оглавление ядра —
+  `docs/codemap-core.md` (пересборка `--core-index` при новом модуле ядра — замок `test_codemap.py`).
 - Финальный гейт — `scripts/preflight.py::plan, pytest_command` (таблица «путь → проверки»;
   замок `apps/core/tests/test_preflight_plan.py`). Новое правило гейта — туда, не в `CLAUDE.md`.
 - Коммит-хук — `.githooks/pre-commit` (ruff и i18n по индексу, свежесть CSS); ставит

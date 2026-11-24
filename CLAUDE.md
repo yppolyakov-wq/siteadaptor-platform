@@ -187,6 +187,9 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
   в `docs/skill-feedback.md` и правкой скилла или замком в том же коммите. Статистика —
   `uv run python scripts/dev_stats.py --write`, снимок стопки — `--snapshot` (история —
   `docs/dev-stats-history.md`). Новый стенд — только через `scripts/standlib.py`.
+- **Справка по коду (T-15)** — `uv run python scripts/codemap.py <файл|модуль>`: кто импортирует, тесты и
+  эталоны, скилл, «единственный писатель», находки. Готовый модуль ядра — `docs/codemap-core.md` (новый
+  модуль ядра → `--core-index`). Перед правкой файла — справка, а не серия поисков.
 - Локальные службы для фолбэка: `bash scripts/dev-services.sh` (Postgres + Redis +
   роль/БД). Автоматически — SessionStart-хук (`.claude/hooks/session-start.sh`).
 - **Память проекта (2026-11-13).** Что владелец уже решил, какой модуль за что отвечает,
