@@ -1102,6 +1102,8 @@ def checkout(request):
     form_site = _sc.normalize(getattr(tenant, "site_config", None) or {})
     form_on = "checkout" in (form_site.get("form_fields") or {})
     form_questions = form_spec.questions(form_site, "checkout") if form_on else []
+    # FB-33 D1: номер последнего выданного вопроса (писатель `form_spec`) — снимок ответов
+    form_next_id = form_spec.edit_state(form_site, "checkout")["next_id"] if form_on else 0
     if form_on:
         gaps = form_spec.missing(form_site, "checkout", request.POST, table=bool(table))
         if gaps:
@@ -1348,13 +1350,9 @@ def checkout(request):
             # AIS W4-5d: гейт готовности — только для продажи (корзина-смета — запрос).
             channel="" if quote_mode else "storefront",
             # FB-33 M2i-34: ответы на свои вопросы — снимок с подписью на момент заказа
-            # (основной язык); суммы ответы не трогают. D1: ответ на удалённый вопрос и
-            # выбор вне вариантов — с пометкой `stale`, номер — от писателя `form_spec`
+            # (основной язык); суммы ответы не трогают; D1 — с пометкой `stale`
             custom_answers=form_answers.answers_for_deal(
-                form_questions,
-                request.POST,
-                kind="order",
-                next_id=form_spec.edit_state(form_site, "checkout")["next_id"] if form_on else 0,
+                form_questions, request.POST, kind="order", next_id=form_next_id
             ),
         )
     except readiness.SellBlocked:
