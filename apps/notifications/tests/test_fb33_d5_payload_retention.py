@@ -406,9 +406,9 @@ def test_erased_pending_is_not_delivered(sent):
 
     n = _note("order:e1:created:owner", status="pending", age_days=PAYLOAD_RETENTION.days + 1)
     purge_payloads()
-    assert deliver(n.id) == "erased"
+    assert deliver(n.id) == "content-erased"
     n.refresh_from_db()
-    assert sent == [] and n.status == "failed" and n.last_error == "erased"
+    assert sent == [] and n.status == "failed" and n.last_error == "content-erased"
 
 
 def test_erased_owner_mail_is_not_delivered(sent):
@@ -419,7 +419,7 @@ def test_erased_owner_mail_is_not_delivered(sent):
     key = _keys_order(c)[0]
     n = _note(key, status="pending")
     dsgvo.erase_customer(c)
-    assert deliver(n.id) == "erased"
+    assert deliver(n.id) == "content-erased"
     assert sent == []
 
 
@@ -427,7 +427,7 @@ def test_erased_failed_is_not_requeued():
     """«erased» — постоянная ошибка: повтор её не возвращает в очередь."""
     from apps.notifications.tasks import retry_failed
 
-    n = _note("order:e2:created:owner", status="failed", payload={}, last_error="erased")
+    n = _note("order:e2:created:owner", status="failed", payload={}, last_error="content-erased")
     Notification.objects.filter(pk=n.pk).update(
         updated_at=timezone.now() - datetime.timedelta(minutes=30), attempts=1
     )
@@ -489,10 +489,7 @@ def test_owner_mails_erased_in_batches():
 
 # ── ревью правок D5 (security + django, 2026-11-24) ──────────────────────────────────────────
 
-RED_R = pytest.mark.xfail(strict=True, reason="FB-33 D5 ревью: до правки")
 
-
-@RED_R
 def test_erase_owner_mails_clears_last_error():
     """№6: ошибка доставки письма владельцу (адрес, фрагмент текста) — тоже стирается."""
     c = _customer()
@@ -502,7 +499,6 @@ def test_erase_owner_mails_clears_last_error():
     assert Notification.objects.get(dedupe_key=key).last_error == ""
 
 
-@RED_R
 def test_erased_marker_is_unique():
     """№6: маркер «стёрто» — не подстрока чужих ошибок (`retry_failed` ищет `__contains`)."""
     from apps.notifications import tasks
@@ -515,7 +511,6 @@ def test_erased_marker_is_unique():
     assert tasks.retry_failed() == 1  # чужая ошибка со словом «erased» — повторяется
 
 
-@RED_R
 def test_pilot_report_does_not_count_erased_as_failed():
     """№6: стёртое уведомление не считается сбоем доставки в отчёте пилота."""
     from apps.core.management.commands import pilot_report

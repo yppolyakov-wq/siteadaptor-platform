@@ -408,7 +408,8 @@ def _owner_mail_prefixes(customer) -> list[str]:
 
 def _erase_owner_mails(prefixes) -> int:
     """Стереть тему и содержимое писем владельцу по префиксам — пачками по
-    `OWNER_MAIL_BATCH`; адрес владельца остаётся (не данные клиента)."""
+    `OWNER_MAIL_BATCH`; ошибка доставки (адрес, фрагмент текста) — тоже; адрес владельца
+    остаётся (не данные клиента)."""
     from django.db.models import Q
 
     from apps.notifications.models import Notification
@@ -421,7 +422,9 @@ def _erase_owner_mails(prefixes) -> int:
         starts = Q()
         for prefix in prefixes[start : start + OWNER_MAIL_BATCH]:
             starts |= Q(dedupe_key__startswith=prefix)
-        count += Notification.objects.filter(starts & ends).update(subject="", payload={})
+        count += Notification.objects.filter(starts & ends).update(
+            subject="", payload={}, last_error=""
+        )
     return count
 
 

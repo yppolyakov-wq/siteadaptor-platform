@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 #: FB-33 D5: содержимое стёрто (ретеншн или Art. 17) до доставки — пустым не отправляем.
-ERASED = "erased"
+ERASED = "content-erased"
 
 
 def deliver(notification_id) -> str:

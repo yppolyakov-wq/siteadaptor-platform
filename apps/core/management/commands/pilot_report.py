@@ -81,12 +81,20 @@ def _in_city(tenant, city: str) -> bool:
     return (tenant.city or "").strip().lower() == city.strip().lower()
 
 
+def failed_notifications() -> int:
+    """Сбои доставки в текущей схеме. FB-33 D5: стёртое до доставки (ретеншн, Art. 17) —
+    не сбой канала, его не считаем."""
+    from apps.notifications.models import Notification
+    from apps.notifications.tasks import ERASED
+
+    return Notification.objects.filter(status="failed").exclude(last_error=ERASED).count()
+
+
 def tenant_row(tenant, support: dict) -> dict:
     """Строка отчёта одного бизнеса (вызывается внутри schema_context)."""
     from apps.audit.models import AuditEvent
     from apps.core import storefront_profile
     from apps.core.models import Membership
-    from apps.notifications.models import Notification
     from apps.promotions.models import Promotion, PromotionChannelView, Reservation
 
     registered = tenant.created_at
@@ -129,7 +137,7 @@ def tenant_row(tenant, support: dict) -> dict:
             booking_starts.append(value)
     row["min_to_first_booking"] = _minutes(registered, min(booking_starts, default=None))
 
-    row["failed_notifications"] = Notification.objects.filter(status="failed").count()
+    row["failed_notifications"] = failed_notifications()
 
     owner = (
         Membership.objects.filter(role=Membership.ROLE_OWNER, user__last_login__isnull=False)
