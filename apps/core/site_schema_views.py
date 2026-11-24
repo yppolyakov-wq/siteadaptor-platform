@@ -32,16 +32,34 @@ def _page_path(tenant, raw, code: str) -> str:
 
     if not isinstance(raw, str) or not raw or len(raw) > VON_MAX:
         return ""
+    if any(ord(c) <= 0x20 or ord(c) == 0x7F for c in raw):
+        return ""  # ревью E1 (security): управляющие символы и пробел — не путь канвы
     if _safe_preview_page(raw) != raw:
         return ""
     found = site_schema.code_for_path(tenant, raw)
     if found == code:
-        return raw
+        return "" if code == site_schema.TEXT and _own_text_host(tenant, raw) else raw
     if site_schema.is_object_code(found):
         kind = found.split("@", 1)[0]
         if site_schema.OBJECT_PAGE_TYPES.get(kind, kind) == code:
             return raw
     return ""
+
+
+def _own_text_host(tenant, path: str) -> bool:
+    """Ревью E1 (M): своя страница `path` со СВОИМИ блоками (хост `seite:<slug>`) — не
+    страница общего хоста `info`, хотя `code_for_path` даёт ей «text» (правильный разбор —
+    roadmap). Хост — `content_pages.schema_ref`, как у «Seiten»."""
+    from apps.core import content_pages
+
+    slug = site_schema._path_ref(path)
+    if not slug:
+        return False
+    host, row_code = content_pages.schema_ref(slug)
+    if row_code == site_schema.TEXT:
+        return False
+    blocks = (getattr(tenant, "site_config", None) or {}).get("page_blocks") or {}
+    return bool(blocks.get(host))
 
 
 def _keep(source, von: str = "") -> dict:
@@ -220,7 +238,12 @@ def _old_title_link(request, tenant, code: str) -> str:
     настройка — нет. У страницы без ★-строки — страница без блока. "" — ссылка не старая."""
     if request.method != "GET" or not site_schema.is_title_alias(request.GET.get("block")):
         return ""
-    keep = {k: v for k, v in _keep(request.GET).items() if k in ("ansicht", "wopen", "sprache")}
+    von = _page_path(tenant, request.GET.get("von"), code)  # ревью E1: та же сверка
+    keep = {
+        k: v
+        for k, v in _keep(request.GET, von).items()
+        if k in ("ansicht", "wopen", "sprache", "von")
+    }
     if site_schema.page_row_ref(tenant, code) != site_schema.PAGE_REF:
         return _url(code, "", keep)
     return _url(code, site_schema.PAGE_REF, {**keep, "tab": "seite"})
