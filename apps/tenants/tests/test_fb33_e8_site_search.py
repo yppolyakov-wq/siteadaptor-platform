@@ -165,7 +165,7 @@ def test_normalize_no_log_when_nothing_dropped(caplog):
     assert not any("dropped site_search" in m for m in caplog.messages)
 
 
-@pytest.mark.parametrize("host", ["category:x", "catalog", "seite:x"])
+@pytest.mark.parametrize("host", ["catalog:x", "catalog", "seite:x"])  # хост категории — `catalog:`
 def test_only_site_search_keeps_empty_page(host):
     """Находка silent-failure-hunter: страница, где «Suche» был единственным блоком, после
     снятия хранит пустой список (`[]`), а не уходит молча к блокам по умолчанию."""

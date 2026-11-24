@@ -412,7 +412,10 @@ def page_blocks(context, page_key, part="after"):
     if not is_preview:
         blocks = _drop_empty_faq(blocks, page_key, context.get("site") or site, context, raw)
     # FB-33 M2h / M5a / стопка 14 E8: запреты блоков хоста — один вопрос с normalize и «+ Block»
-    # (`banned_blocks`), для ВСЕХ хостов: «Suche» вне 404, блоки с формами на подтверждении
+    # (`banned_blocks`), для ВСЕХ хостов: «Suche» вне 404, блоки с формами на подтверждении.
+    # Фильтр ДО проверки пустоты (ревью L2): у `FORMLESS_HOSTS` части `before` нет — 404 зовёт
+    # тег без части, подтверждение кусками `ids:` (они идут как `after`), да и строк над
+    # списком у них нет; плейсхолдер превью «＋» рисует только часть `after`, как прежде
     banned = siteconfig.banned_blocks(page_key)
     blocks = [b for b in blocks if b.get("key") not in banned]
     if not blocks and (before or not is_preview):

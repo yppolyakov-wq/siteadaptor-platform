@@ -13,6 +13,7 @@ site_config = {
 }
 """
 
+import logging
 import re
 import uuid
 from functools import cache
@@ -1987,6 +1988,15 @@ FORMLESS_HOSTS = ("confirmation", "not_found")
 KEEP_EMPTY_HOSTS = ("category", "promo_group", "not_found")
 
 
+log = logging.getLogger(__name__)
+
+
+def _log_dropped(key: str, host: str) -> None:
+    """Стопка 14 E8 (ревью): снятие блока «только 404» оставляет след (хост, без ПДн)."""
+    if key in NOT_FOUND_ONLY_BLOCKS:
+        log.info("siteconfig: dropped %s from %s", key, host)
+
+
 #: FB-33 стопка 14 E8: блоки только для страницы 404 (поле поиска — на прочих страницах поиск
 #: стоит в шапке); на любом другом хосте, включая главную, их нет
 NOT_FOUND_ONLY_BLOCKS = frozenset({"site_search"})
@@ -2032,6 +2042,7 @@ def normalize_page_blocks(raw) -> dict:
         # (импорт шаблона, Студия, ассистент, старый конфиг) их здесь не сохранит
         # FB-33 M5a: то же на странице 404
         banned = banned_blocks(key)
+        dropped = False  # стопка 14 E8 (ревью): снят запрещённый блок — пустой список хранится
         # FB-32 S6f: голая строка оси хранится как место, если есть якоря разделов
         keep_bare = axis_keys and any(
             isinstance(i, dict) and i.get("key") in anchor_keys and not i.get("id") for i in items
@@ -2078,7 +2089,10 @@ def normalize_page_blocks(raw) -> dict:
             if isinstance(item, dict) and (
                 cblock_type(item.get("key")) or item.get("key") in PAGE_REF_BLOCKS
             ):
-                if (cblock_type(item.get("key")) or item.get("key")) in banned:
+                btype = cblock_type(item.get("key")) or item.get("key")
+                if btype in banned:
+                    dropped = True
+                    _log_dropped(btype, key)
                     continue
                 blocks.append(_clean_cblock(item))
         # маркер первым без полей = «все блоки под списком» = вид, как раньше: не храним
@@ -2090,7 +2104,9 @@ def normalize_page_blocks(raw) -> dict:
         # «сохранена», иначе «удалил все блоки» молча вернуло бы блоки каталога
         # (R6: так же «Alle Angebotsgruppen»)
         # FB-33 M5a: и страница 404 — пустой ключ ≠ блоки по умолчанию
-        if blocks or key in KEEP_EMPTY_HOSTS or is_promo_group_host(key):
+        # стопка 14 E8 (ревью): страница, где был лишь запрещённый блок («Suche» вне 404),
+        # хранит `[]` — иначе она молча получила бы блоки по умолчанию
+        if blocks or dropped or key in KEEP_EMPTY_HOSTS or is_promo_group_host(key):
             out[key] = blocks
     return out
 
@@ -4918,6 +4934,7 @@ def normalize_sections(raw_sections) -> list:
             sections.append(_section_entry(key, bool(item.get("enabled")), item))
             seen.add(key)
         elif cblock_type(key) in banned:
+            _log_dropped(cblock_type(key), "home")
             continue
         elif cblock_type(key) and cblocks < _MAX_CBLOCKS:
             # D.2: C-блоки множественные — порядок сохраняем, по key не дедупим.
