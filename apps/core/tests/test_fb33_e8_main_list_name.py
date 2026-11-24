@@ -25,7 +25,6 @@ pytestmark = pytest.mark.django_db
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 MAIN = siteconfig.MAIN_LIST_KEY
-RED = pytest.mark.xfail(strict=True, reason="FB-33 стопка 14 E8: до реализации")
 
 
 @pytest.fixture(autouse=True)
@@ -49,7 +48,6 @@ def _main_label(blocks):
     return next(b["label"] for b in blocks if b.get("main") and not b.get("cblock"))
 
 
-@RED
 def test_blocks_for_requires_tenant():
     """H6: без `tenant` — `TypeError`; параметр именованный и без умолчания."""
     param = inspect.signature(site_schema.blocks_for).parameters["tenant"]
@@ -79,7 +77,6 @@ def _sources():
             yield path
 
 
-@RED
 @pytest.mark.parametrize("name", ["blocks_for", "main_list_name"])
 def test_main_list_name_everywhere_calls(name):
     """№3 / №13: каждый вызов (код, стенды, тесты) передаёт тенанта — `blocks_for`
@@ -104,7 +101,6 @@ def test_main_list_name_everywhere_calls(name):
     assert "name_main_rows" not in views
 
 
-@RED
 @pytest.mark.parametrize(
     ("bt", "name"), [("restaurant", "Menü-Pakete"), ("online_shop", "Sets & Pakete")]
 )

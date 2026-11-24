@@ -72,7 +72,9 @@ def _refs(request, code: str, host: str) -> set[str]:
     saved = siteconfig.normalize(request.tenant.site_config)
     draft = aufbau_draft.get(request, code)
     config = aufbau_draft.overlay(saved, draft) if draft else saved
-    blocks = site_schema.blocks_for(config, code, host=host or None, summaries=False)
+    blocks = site_schema.blocks_for(
+        config, code, host=host or None, summaries=False, tenant=request.tenant
+    )
     refs = {b["ref"] for b in blocks}
     # FB-33 M5b-1: строка «Einstellungen der Seite» — там же, где её показывает экран
     if site_schema.page_row_ref(request.tenant, code, blocks) == site_schema.PAGE_REF:

@@ -22,12 +22,11 @@ pytestmark = pytest.mark.django_db
 SEARCH = {"key": "site_search", "id": "s1", "enabled": True, "data": {}}
 TEXT = {"key": "text", "id": "t1", "enabled": True, "data": {"title": "Infotext"}}
 #: (код строки «+ Block», хост страницы)
-RED = pytest.mark.xfail(strict=True, reason="FB-33 стопка 14 E8: до реализации")
 PAGES = (
-    pytest.param("catalog", "catalog", marks=RED),
-    pytest.param("services", "services", marks=RED),
-    pytest.param("cart", "cart", marks=RED),
-    pytest.param("confirmation", "confirmation", marks=RED),
+    ("catalog", "catalog"),
+    ("services", "services"),
+    ("cart", "cart"),
+    ("confirmation", "confirmation"),
     ("not_found", "not_found"),
 )
 
@@ -64,7 +63,9 @@ def _render(tenant, host):
 
 def _kept(host) -> bool:
     cfg = siteconfig.normalize({"page_blocks": {host: [SEARCH]}})
-    return any(b.get("key") == "site_search" for b in cfg["page_blocks"].get(host) or [])
+    return any(
+        b.get("key") == "site_search" for b in (cfg.get("page_blocks") or {}).get(host) or []
+    )
 
 
 @pytest.mark.parametrize(("code", "host"), PAGES)
@@ -79,7 +80,6 @@ def test_site_search_ban_one_source(code, host):
         assert "data-block-site-search" not in html
 
 
-@RED
 @pytest.mark.parametrize("host", ["home", "seite:x", "catalog"])
 def test_old_config_site_search_elsewhere(host):
     """№6: старый конфиг с «Suche» вне 404 — normalize его снимает, страница не рисует."""

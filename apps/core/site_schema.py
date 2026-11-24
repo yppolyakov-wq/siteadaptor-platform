@@ -474,7 +474,7 @@ def page_rows(config: dict) -> list[PageRow]:
     for pt in studio_pages.PAGE_TYPES:
         if pt.code != "home" and not _host(pt):
             continue
-        blocks = blocks_for(config, pt.code)
+        blocks = blocks_for(config, pt.code, tenant=None)  # только счёт строк
         rows.append(
             PageRow(
                 code=pt.code,
@@ -1340,11 +1340,15 @@ def blocks_for(
     host: str | None = None,
     summaries: bool = True,
     has_combos: bool | None = None,
+    *,
+    tenant,
 ) -> list[dict]:
     """Строки схемы: {ref, key, label, enabled, main, cblock, summary} по порядку страницы.
 
     «Sets & Menüs» — строка только при наборах, каким бы ни был `summaries` (M3-9a).
-    `has_combos` — уже известный ответ «наборы есть» (без запроса); None — спросить базу."""
+    `has_combos` — уже известный ответ «наборы есть» (без запроса); None — спросить базу.
+    `tenant` — обязателен (FB-33 стопка 14 E8, ревью H6): имя главного списка зависит от типа
+    бизнеса («Menü-Pakete» у гастро); `None` — явно, общее имя."""
     from apps.tenants import siteconfig
 
     pt = _page_type(code)
@@ -1377,7 +1381,7 @@ def blocks_for(
                 "ref": item.get("id") or key,
                 "key": key,
                 # FB-33 M5b-2: главный список — по содержимому (`main_list_name`)
-                "label": main_list_name(host)
+                "label": main_list_name(host, tenant)
                 if main
                 else _detail_label(host, item) or _sections_label(key),
                 "enabled": True if main else bool(item.get("enabled", True)),
@@ -1739,10 +1743,10 @@ def _main_list_host(host: str) -> str:
     return host
 
 
-def main_list_name(host, tenant=None) -> str:
+def main_list_name(host, tenant) -> str:
     """FB-33 M5b-2: имя главного списка страницы `host` — как у блока «Liste» той же сущности
     (`list_blocks.source_label`: «Leistungen», «Blog», «Produkte»…), у наборов — по типу
-    бизнеса `tenant` («Menü-Pakete» у гастро; без тенанта — общее имя). Своего списка имён
+    бизнеса `tenant` («Menü-Pakete» у гастро; `None` — общее имя; обязателен — стопка 14 E8). Своего списка имён
     нет; у Team, Galerie, Merkzettel, Lookbook источника «Liste» нет — своё имя. "" — у
     страницы основного списка нет."""
     from apps.core import list_blocks
@@ -1792,14 +1796,6 @@ def main_list_summary(row: dict) -> str:
     )
     head = _("Hauptliste")
     return f"{head} · {current}" if current else str(head)
-
-
-def name_main_rows(blocks: list[dict], host, tenant) -> None:
-    """Имя главного списка с учётом типа бизнеса (наборы у гастро): у `blocks_for` тенанта
-    нет — вьюха и Студия зовут это после неё."""
-    for b in blocks:
-        if b.get("main") and not b.get("cblock") and b.get("ref") != PAGE_REF:
-            b["label"] = main_list_name(host, tenant) or b.get("label", "")
 
 
 #: FB-33 M2h-5: «Was passiert jetzt» подтверждения — свой текст правится на строке раздела
@@ -2329,7 +2325,7 @@ def _row(
         host = host_for(code)
     # строке списка страниц нужен только счёт СВОИХ блоков: «Sets & Menüs» в него не входит,
     # поэтому базу о наборах не спрашиваем (has_combos=False — строки нет, запроса нет)
-    blocks = blocks_for(config, code, host=host, summaries=False, has_combos=False)
+    blocks = blocks_for(config, code, host=host, summaries=False, has_combos=False, tenant=None)
     return PageRow(
         code=code,
         label=label or str(pt.label),
@@ -2432,13 +2428,10 @@ def add_options(code: str) -> list[tuple[str, str]]:
     keys = list(siteconfig.REPEATABLE_BLOCKS)
     if code != "home":
         keys += list(siteconfig.PAGE_REF_BLOCKS)
-    if code in siteconfig.FORMLESS_HOSTS:
-        # FB-33 M2h-5: на подтверждении блоков с формами нет (данные сделки рядом);
-        # FB-33 M5a: на странице 404 — тоже
-        banned = siteconfig.banned_blocks(code)
-        keys = [k for k in keys if k not in banned]
-    # FB-33 M5a: блок, заведённый для своих страниц («Suche» — для 404), — только там
-    keys = [k for k in keys if block_catalog.offered_on(k, code)]
+    # FB-33 M2h-5 / M5a / стопка 14 E8: запреты хоста — тот же вопрос, что у normalize и показа
+    # (на подтверждении и 404 — блоков с формами нет, «Suche» — только на 404)
+    banned = siteconfig.banned_blocks(code)
+    keys = [k for k in keys if k not in banned]
     # FB-33 M2e: подпись с семьёй («Text · Foto + Text»)
     return [(k, block_catalog.menu_label(k)) for k in keys]
 
@@ -2755,7 +2748,8 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
 
 def check_view_available(config: dict, host: str, ref: str, value: str, op: str = "") -> None:
     """SchemaError, если вид блока каталога сейчас недоступен (нет подкатегорий/наборов)."""
-    row = next((b for b in blocks_for(config, _code_of_host(host), host) if b["ref"] == ref), None)
+    rows = blocks_for(config, _code_of_host(host), host, tenant=None)  # нужен вид, не имя
+    row = next((b for b in rows if b["ref"] == ref), None)
     if op == "maingroup":
         view = (row or {}).get("groupview")
     else:
@@ -4131,7 +4125,7 @@ def _default_rows(type_code: str) -> tuple[dict, ...]:
     config = siteconfig.normalize({})
     return tuple(
         {"ref": b["ref"], "main": bool(b.get("main"))}
-        for b in blocks_for(config, type_code, summaries=False, has_combos=False)
+        for b in blocks_for(config, type_code, summaries=False, has_combos=False, tenant=None)
     )
 
 

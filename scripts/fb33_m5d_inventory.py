@@ -136,7 +136,9 @@ def page_blocks(tenant, saved, row) -> list[dict]:
     объекта и строка «Einstellungen der Seite» (`page_row_ref`), как стенд владельца."""
     from apps.core import site_schema
 
-    blocks = site_schema.blocks_for(saved, row.code, host=row.host or None)  # как экран
+    blocks = site_schema.blocks_for(
+        saved, row.code, host=row.host or None, tenant=tenant
+    )  # как экран
     out = [
         {"ref": b["ref"], "key": b["key"], "label": str(b.get("label", ""))}
         for b in blocks

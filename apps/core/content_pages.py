@@ -637,7 +637,7 @@ def _attach_blocks(rows: list, tenant) -> None:
         row.host = host
         row.schema_url = f"{reverse('site-schema')}?seite={code}"
         try:
-            blocks = site_schema.blocks_for(config, code, host=host, summaries=False)
+            blocks = site_schema.blocks_for(config, code, host=host, summaries=False, tenant=tenant)
         except Exception:  # noqa: BLE001 — колонка пуста, но ошибку видно в журнале
             log.warning("pages list: blocks column failed for %s", code, exc_info=True)
             continue

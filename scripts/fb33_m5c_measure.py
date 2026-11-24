@@ -347,7 +347,7 @@ def measure_page(tenant, client, saved, row) -> dict:
         page["skipped"] = f"экран: ответ {resp.status_code}"
         return page
     blocks, page["blocks_for_sql"] = _sql(
-        lambda: site_schema.blocks_for(saved, code, host=row.host or None)
+        lambda: site_schema.blocks_for(saved, code, host=row.host or None, tenant=tenant)
     )
     own = [b for b in blocks if not b.get("shared")]
     sent: list[str] = []

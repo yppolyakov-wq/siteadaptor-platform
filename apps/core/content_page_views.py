@@ -119,7 +119,7 @@ def _blocks_tab(request, slug: str) -> dict:
         # кнопок не даёт: нажатие получило бы отказ).
         "schema_can_edit": view_perms.allowed(request.user, "site-schema", "POST"),
         "schema_code": code,
-        "schema_blocks": site_schema.blocks_for(config, code, host=host),
+        "schema_blocks": site_schema.blocks_for(config, code, host=host, tenant=tenant),
         "schema_draft": aufbau_draft.info(request, saved, code) if draft else None,
         "schema_url": f"{reverse('site-schema')}?{urlencode({'seite': code})}",
         "schema_preview_query": urlencode(query),

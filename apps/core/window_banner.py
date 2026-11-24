@@ -244,7 +244,8 @@ def _chosen(config: dict, draft: dict, code: str, host: str, ref: str = "") -> s
     from apps.tenants import siteconfig
 
     shown = aufbau_draft.overlay(config, draft)
-    rows = site_schema.blocks_for(shown, code, host=host or None, summaries=False)
+    # нужен выбор баннера, не имя главного списка
+    rows = site_schema.blocks_for(shown, code, host=host or None, summaries=False, tenant=None)
     if ref:
         row = next((b for b in rows if b["ref"] == ref), None)
         choice = (row or {}).get("banner_choice")

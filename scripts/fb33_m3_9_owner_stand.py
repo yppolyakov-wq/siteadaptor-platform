@@ -174,7 +174,7 @@ for slug in SLUGS:
             rows.append(row)
     pages = []
     for r in rows:
-        blocks = site_schema.blocks_for(saved, r.code, host=r.host or None)  # как экран
+        blocks = site_schema.blocks_for(saved, r.code, host=r.host or None, tenant=t)  # как экран
         # общий блок в схеме одного объекта (R8) — пунктиром, только чтение, окна нет
         refs = [b["ref"] for b in blocks if not b.get("shared")]
         keys = {b["ref"]: b["key"] for b in blocks}

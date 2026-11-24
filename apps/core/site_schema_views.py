@@ -521,9 +521,12 @@ def site_schema_view(request):
             _("Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."),
         )
     draft_info = aufbau_draft.info(request, saved, code)
-    blocks = site_schema.blocks_for(config, code, host=current.host if current else None)
+    # FB-33 M5b-2 / стопка 14 E8: имя главного списка («Menü-Pakete» у гастро) — в самой
+    # `blocks_for` по тенанту
+    blocks = site_schema.blocks_for(
+        config, code, host=current.host if current else None, tenant=tenant
+    )
     host = (current.host if current else "") or ""
-    site_schema.name_main_rows(blocks, host, tenant)  # FB-33 M5b-2: «Menü-Pakete» у гастро
     # FB-27 V3 / FB-33 M5b-1 / M5b-2 (V4): настройки типа живут в ★-строке страницы
     # («Seitentitel und Seite» / «Einstellungen der Seite»), на главной — в строке «Banner»:
     # одно правило, флаг носителя — до выбора строки

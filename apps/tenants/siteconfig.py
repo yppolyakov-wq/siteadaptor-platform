@@ -1987,9 +1987,15 @@ FORMLESS_HOSTS = ("confirmation", "not_found")
 KEEP_EMPTY_HOSTS = ("category", "promo_group", "not_found")
 
 
+#: FB-33 стопка 14 E8: блоки только для страницы 404 (поле поиска — на прочих страницах поиск
+#: стоит в шапке); на любом другом хосте, включая главную, их нет
+NOT_FOUND_ONLY_BLOCKS = frozenset({"site_search"})
+
+
 def banned_blocks(host: str) -> frozenset:
-    """Блоки, которых на хосте нет (пусто — запретов нет): у подтверждения — блоки с полями
-    ввода, у страницы 404 — они же и «Liste». Один вопрос для normalize, показа и «+ Block»."""
+    """Блоки, которых на хосте нет: у подтверждения — блоки с полями ввода, у страницы 404 —
+    они же и «Liste»; «Suche» (`NOT_FOUND_ONLY_BLOCKS`) — везде, кроме 404 (главная —
+    `"home"`). Один вопрос для normalize, показа и «+ Block»."""
     if host == "not_found":
         from apps.core import not_found_page
 
@@ -1997,8 +2003,8 @@ def banned_blocks(host: str) -> frozenset:
     if host in FORMLESS_HOSTS:
         from apps.core.confirmation_page import FORM_BLOCKS
 
-        return FORM_BLOCKS
-    return frozenset()
+        return FORM_BLOCKS | NOT_FOUND_ONLY_BLOCKS
+    return NOT_FOUND_ONLY_BLOCKS
 
 
 def normalize_page_blocks(raw) -> dict:
@@ -4905,11 +4911,14 @@ def normalize_sections(raw_sections) -> list:
     seen = set()
     sections = []
     cblocks = 0
+    banned = banned_blocks("home")  # FB-33 стопка 14 E8: «Suche» на главной не живёт
     for item in raw_sections if isinstance(raw_sections, list) else []:
         key = item.get("key") if isinstance(item, dict) else None
         if key in _KNOWN and key not in seen:
             sections.append(_section_entry(key, bool(item.get("enabled")), item))
             seen.add(key)
+        elif cblock_type(key) in banned:
+            continue
         elif cblock_type(key) and cblocks < _MAX_CBLOCKS:
             # D.2: C-блоки множественные — порядок сохраняем, по key не дедупим.
             sections.append(_clean_cblock(item))
