@@ -3250,6 +3250,8 @@ def home_builder_view(request):
         for h in (config.get("page_blocks") or {})
         if h not in siteconfig.PAGE_BLOCK_HOSTS and siteconfig.is_page_block_host(h)
     )
+    from apps.core import window_links  # E2: адрес окна блока страницы
+
     for host in _hosts:
         stored = (config.get("page_blocks") or {}).get(host) or []
         if not stored:
@@ -3282,6 +3284,14 @@ def home_builder_view(request):
                 start=1,
             )
         ]
+        # FB-33 стопка 14 E2: «Fenster öffnen» и «Seitenaufbau öffnen» блока страницы ведут в
+        # окно этого блока — адрес готов здесь (партиал хоста не разбирает); нет кода — нет ссылки.
+        # Вкладка — как у тех же ссылок главной: «Liste» — «Wie», баннер — без вкладки.
+        host_code = site_schema.page_code_of_host(host)
+        for row in host_rows if host_code else ():
+            tab = {"list": "wie", "banner": ""}.get(row.get("type"))
+            if tab is not None:
+                row["window_url"] = window_links.block_window_url(host_code, row["id"], tab)
         page_cblocks.append({"page_key": host, "blocks": host_rows})
     for index, s in enumerate(config["sections"], start=1):
         if s["key"] in siteconfig.REPEATABLE_BLOCKS:
