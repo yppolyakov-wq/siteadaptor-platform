@@ -189,3 +189,38 @@ def test_parallel_pytest_guard_looks_only_at_the_same_test_database():
     assert (
         mod.same_db_pytest([("7", "", "pytest x")], "platform") == "pytest x"
     )  # без DB_NAME — общая
+
+
+# --- T-16 (2026-11-24): исполнитель среза не ждёт долгих тестов — полный прогон идёт в CI --------
+
+
+def test_slice_mode_runs_only_fast_checks_and_own_tests():
+    # Запись расхода стопки 13: 47 % счёта — перезапись контекста агентов, ждавших тесты дольше
+    # пяти минут (кэш агента живёт 5 минут). Исполнитель гоняет быстрое, полное — GitHub.
+    mod = _mod()
+    p = mod.slice_plan(
+        [
+            "apps/core/form_spec.py",
+            "apps/core/tests/test_fb33_x.py",
+            "apps/orders/tests/test_new.py",
+            "templates/tenant/_bw_x.html",
+        ]
+    )
+    assert p.steps[:3] == ["ruff_check", "ruff_format", "i18n"] and "css" not in p.steps
+    assert "apps/core/tests/test_fb33_x.py" in p.pytest_targets
+    assert "apps/orders/tests/test_new.py" in p.pytest_targets
+    assert "apps/core/tests/test_template_comments.py" in p.pytest_targets
+    assert not [t for t in p.pytest_targets if t.count("/") == 1], "целые приложения — это CI"
+    assert not [t for t in p.pytest_targets if "golden" in t], "эталоны — это CI"
+    assert any("CI" in n for n in p.notes)
+
+
+def test_slice_mode_without_own_tests_says_so():
+    p = _mod().slice_plan(["apps/core/form_spec.py"])
+    assert "pytest" not in p.steps
+    assert any("своих тестов" in n for n in p.notes), "срез без тестов — это видно, а не «чисто»"
+
+
+def test_slice_mode_ignores_deleted_tests(tmp_path):
+    p = _mod().slice_plan(["apps/core/tests/test_gone_zz.py"])
+    assert "apps/core/tests/test_gone_zz.py" not in p.pytest_targets
