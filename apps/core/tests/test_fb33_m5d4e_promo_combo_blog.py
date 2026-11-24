@@ -69,8 +69,7 @@ LINK_LABELS = {
 }
 #: FB-33 стопка 14 E6: у этих экранов запись реестра одна и с query (вход, а не сам экран)
 QUERY_ONLY = {"site-home": "?page=%2F&block=gallery"}
-#: FB-33 стопка 14 E6: «Woher» у «Beispiele» сменился — прежняя строка остаётся под якорем
-#: среза в `.po` (каталоги правит координатор), источником её больше нет; снять вместе с ней из `.po`
+#: FB-33 стопка 14 E6: прежний «Woher» у «Beispiele» снят из кода и из пяти `.po` (координатор)
 RETIRED_MSGIDS = {"automatisch — die ersten Fotos der Galerie Ihrer Website."}
 
 
@@ -410,8 +409,9 @@ def test_new_msgids_in_all_po():
         start = text.index(f"# {ANCHOR}\n")
         block = text[start : text.index("# fb33-stack-anchor-", start + 1)]
         own = set(re.findall(r'^msgid "(.+)"$', block, re.M))
-        allowed = {m.replace('"', '\\"') for m in msgids} | {ANCHOR} | RETIRED_MSGIDS
+        allowed = {m.replace('"', '\\"') for m in msgids} | {ANCHOR}
         assert own and own <= allowed, (lang, own)
+        assert not RETIRED_MSGIDS & set(have), (lang, RETIRED_MSGIDS & set(have))
 
 
 def test_window_in_russian_has_no_german_source_text():

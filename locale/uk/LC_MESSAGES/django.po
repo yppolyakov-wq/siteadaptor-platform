@@ -40514,10 +40514,6 @@ msgstr "Сюди веде «плюс доставка» біля кожної ц
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"
 
-#. FB-33 M5d-4a: правка ревью срезов
-msgid "Marke und Zustand stehen im Formular unter „Marke & Zustand“."
-msgstr "Марка й стан вказуються у формі в розділі «Марка і стан»."
-
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Beschreibung des Produkts"
 msgstr "опис товару"
@@ -40525,10 +40521,6 @@ msgstr "опис товару"
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Kennzeichnung des Produkts: Marke, Zustand, Material, Pflege, Herkunft, Zutaten, Allergene und Zusatzstoffe"
 msgstr "маркування товару: марку, стан, матеріал, догляд, походження, склад, алергени та добавки"
-
-#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
-msgid "Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."
-msgstr "З’являється, лише якщо заповнено хоча б одне з цих відомостей."
 
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Größentabelle der Kategorie, zu der das Produkt gehört"
@@ -40690,9 +40682,6 @@ msgstr "програму у вигляді стрічки часу"
 msgid "den Ort — Text, Karte und weitere Fotos"
 msgstr "місце — текст, карту та інші фото"
 
-msgid "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der Karte liegt."
-msgstr "З’являється, якщо поле заповнене, є інші фото або місце позначене на карті."
-
 msgid "die Unterkunft — Punkt für Punkt"
 msgstr "проживання — за пунктами"
 
@@ -40710,9 +40699,6 @@ msgstr "З’являється, лише якщо є одне з двох."
 
 msgid "den Preis und was enthalten ist"
 msgstr "ціну і що до неї входить"
-
-msgid "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."
-msgstr "З’являється, лише якщо заповнене одне з полів про ціну."
 
 msgid "was mitzubringen ist — Punkt für Punkt"
 msgstr "що взяти із собою — за пунктами"
@@ -40784,9 +40770,6 @@ msgstr "Відповідна комбо-пропозиція з її група�
 
 msgid "bis zu 6 Fotos aus der Galerie Ihrer Website"
 msgstr "до 6 фото з галереї вашого сайту"
-
-msgid "automatisch — die ersten Fotos der Galerie Ihrer Website."
-msgstr "автоматично — перші фото галереї вашого сайту."
 
 msgid "Erscheint nur, wenn die Galerie Fotos hat."
 msgstr "З’являється, лише якщо в галереї є фото."

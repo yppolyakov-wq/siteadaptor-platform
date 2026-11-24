@@ -40323,10 +40323,6 @@ msgstr "Her fiyatın yanındaki „kargo hariç“ buraya yönlendirir. Liste ya
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"
 
-#. FB-33 M5d-4a: правка ревью срезов
-msgid "Marke und Zustand stehen im Formular unter „Marke & Zustand“."
-msgstr "Marka ve durum, formda „Marka ve durum“ bölümünde girilir."
-
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Beschreibung des Produkts"
 msgstr "ürün açıklamasını"
@@ -40334,10 +40330,6 @@ msgstr "ürün açıklamasını"
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Kennzeichnung des Produkts: Marke, Zustand, Material, Pflege, Herkunft, Zutaten, Allergene und Zusatzstoffe"
 msgstr "ürün etiketlemesini: marka, durum, malzeme, bakım, menşe, içindekiler, alerjenler ve katkı maddeleri"
-
-#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
-msgid "Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."
-msgstr "Yalnızca bu bilgilerden en az biri doldurulmuşsa görünür."
 
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Größentabelle der Kategorie, zu der das Produkt gehört"
@@ -40499,9 +40491,6 @@ msgstr "programı zaman çizelgesi olarak"
 msgid "den Ort — Text, Karte und weitere Fotos"
 msgstr "mekânı — metin, harita ve diğer fotoğraflar"
 
-msgid "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der Karte liegt."
-msgstr "Alan doluysa, başka fotoğraflar varsa veya mekân haritada işaretliyse görünür."
-
 msgid "die Unterkunft — Punkt für Punkt"
 msgstr "konaklamayı — madde madde"
 
@@ -40519,9 +40508,6 @@ msgstr "Yalnızca ikisinden biri varsa görünür."
 
 msgid "den Preis und was enthalten ist"
 msgstr "fiyatı ve nelerin dahil olduğunu"
-
-msgid "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."
-msgstr "Yalnızca fiyat alanlarından biri doluysa görünür."
 
 msgid "was mitzubringen ist — Punkt für Punkt"
 msgstr "yanınızda ne getireceğinizi — madde madde"
@@ -40593,9 +40579,6 @@ msgstr "İlgili kombo teklifi, grupları ve fiyatlarıyla."
 
 msgid "bis zu 6 Fotos aus der Galerie Ihrer Website"
 msgstr "web sitenizin galerisinden en fazla 6 fotoğrafı"
-
-msgid "automatisch — die ersten Fotos der Galerie Ihrer Website."
-msgstr "otomatik — web sitenizin galerisindeki ilk fotoğraflar."
 
 msgid "Erscheint nur, wenn die Galerie Fotos hat."
 msgstr "Yalnızca galeride fotoğraf varsa görünür."

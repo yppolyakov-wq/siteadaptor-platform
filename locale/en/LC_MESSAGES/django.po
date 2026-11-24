@@ -40176,10 +40176,6 @@ msgstr "“plus shipping” next to every price leads here. The list can only be
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"
 
-#. FB-33 M5d-4a: правка ревью срезов
-msgid "Marke und Zustand stehen im Formular unter „Marke & Zustand“."
-msgstr "Brand and condition are entered in the form under “Brand & condition”."
-
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Beschreibung des Produkts"
 msgstr "the product description"
@@ -40187,10 +40183,6 @@ msgstr "the product description"
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Kennzeichnung des Produkts: Marke, Zustand, Material, Pflege, Herkunft, Zutaten, Allergene und Zusatzstoffe"
 msgstr "the product labeling: brand, condition, material, care, origin, ingredients, allergens and additives"
-
-#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
-msgid "Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."
-msgstr "Appears only if at least one of these details is filled in."
 
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Größentabelle der Kategorie, zu der das Produkt gehört"
@@ -40352,9 +40344,6 @@ msgstr "the schedule as a timeline"
 msgid "den Ort — Text, Karte und weitere Fotos"
 msgstr "the venue — text, map and more photos"
 
-msgid "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der Karte liegt."
-msgstr "Appears when the field is filled in, there are more photos or the venue is on the map."
-
 msgid "die Unterkunft — Punkt für Punkt"
 msgstr "the accommodation — point by point"
 
@@ -40372,9 +40361,6 @@ msgstr "Appears only when one of the two exists."
 
 msgid "den Preis und was enthalten ist"
 msgstr "the price and what is included"
-
-msgid "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."
-msgstr "Appears only when one of the price fields is filled in."
 
 msgid "was mitzubringen ist — Punkt für Punkt"
 msgstr "what to bring — point by point"
@@ -40446,9 +40432,6 @@ msgstr "The respective combo offer with its groups and prices."
 
 msgid "bis zu 6 Fotos aus der Galerie Ihrer Website"
 msgstr "up to 6 photos from your website gallery"
-
-msgid "automatisch — die ersten Fotos der Galerie Ihrer Website."
-msgstr "automatic — the first photos of your website gallery."
 
 msgid "Erscheint nur, wenn die Galerie Fotos hat."
 msgstr "Appears only when the gallery has photos."

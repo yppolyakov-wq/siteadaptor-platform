@@ -72,7 +72,7 @@ FIELDS = {
     "before_after": ("before_after_text", ("details.before_after",)),
     "certifications": ("certifications_text", ("details.certifications",)),
 }
-#: FB-33 M5d-8 (E7): фразы, которые срез E7 снял из кода (из `.po` их снимает координатор)
+#: FB-33 M5d-8 (E7): фразы, снятые срезом E7 из кода и координатором из пяти `.po`
 E7_RETIRED = {
     "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist.",
     "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der "
@@ -519,8 +519,9 @@ def test_new_msgids_in_all_po():
         text = path.read_text(encoding="utf-8")
         start = text.index(f"# {ANCHOR}\n")
         block = text[start : text.index("# fb33-stack-anchor-", start + 1)]
-        own = set(re.findall(r'^msgid "(.+)"$', block, re.M)) - E7_RETIRED
+        own = set(re.findall(r'^msgid "(.+)"$', block, re.M))
         assert own and own <= {m.replace('"', '\\"') for m in msgids} | {ANCHOR}, (lang, own)
+        assert not E7_RETIRED & set(have), (lang, E7_RETIRED & set(have))
 
 
 def test_window_in_russian_has_no_german_source_text():

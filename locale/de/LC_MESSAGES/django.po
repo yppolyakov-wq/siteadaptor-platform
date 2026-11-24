@@ -40263,10 +40263,6 @@ msgstr "Hierhin führt „zzgl. Versandkosten“ bei jedem Preis. Die Liste läs
 msgid "fb33-stack-anchor-m5d4a"
 msgstr "fb33-stack-anchor-m5d4a"
 
-#. FB-33 M5d-4a: правка ревью срезов
-msgid "Marke und Zustand stehen im Formular unter „Marke & Zustand“."
-msgstr "Marke und Zustand stehen im Formular unter „Marke & Zustand“."
-
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Beschreibung des Produkts"
 msgstr "die Beschreibung des Produkts"
@@ -40274,10 +40270,6 @@ msgstr "die Beschreibung des Produkts"
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Kennzeichnung des Produkts: Marke, Zustand, Material, Pflege, Herkunft, Zutaten, Allergene und Zusatzstoffe"
 msgstr "die Kennzeichnung des Produkts: Marke, Zustand, Material, Pflege, Herkunft, Zutaten, Allergene und Zusatzstoffe"
-
-#. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
-msgid "Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."
-msgstr "Erscheint nur, wenn mindestens eine dieser Angaben ausgefüllt ist."
 
 #. FB-33 M5d-4a: окно «Inhalt» у разделов страницы товара
 msgid "die Größentabelle der Kategorie, zu der das Produkt gehört"
@@ -40439,9 +40431,6 @@ msgstr "den Ablauf als Zeitleiste"
 msgid "den Ort — Text, Karte und weitere Fotos"
 msgstr "den Ort — Text, Karte und weitere Fotos"
 
-msgid "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der Karte liegt."
-msgstr "Erscheint, wenn das Feld ausgefüllt ist, es weitere Fotos gibt oder der Ort auf der Karte liegt."
-
 msgid "die Unterkunft — Punkt für Punkt"
 msgstr "die Unterkunft — Punkt für Punkt"
 
@@ -40459,9 +40448,6 @@ msgstr "Erscheint nur, wenn es eines von beiden gibt."
 
 msgid "den Preis und was enthalten ist"
 msgstr "den Preis und was enthalten ist"
-
-msgid "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."
-msgstr "Erscheint nur, wenn eines der Preis-Felder ausgefüllt ist."
 
 msgid "was mitzubringen ist — Punkt für Punkt"
 msgstr "was mitzubringen ist — Punkt für Punkt"
@@ -40533,9 +40519,6 @@ msgstr "Das jeweilige Kombi-Angebot mit seinen Gruppen und Preisen."
 
 msgid "bis zu 6 Fotos aus der Galerie Ihrer Website"
 msgstr "bis zu 6 Fotos aus der Galerie Ihrer Website"
-
-msgid "automatisch — die ersten Fotos der Galerie Ihrer Website."
-msgstr "automatisch — die ersten Fotos der Galerie Ihrer Website."
 
 msgid "Erscheint nur, wenn die Galerie Fotos hat."
 msgstr "Erscheint nur, wenn die Galerie Fotos hat."
