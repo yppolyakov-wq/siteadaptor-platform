@@ -374,18 +374,23 @@ def test_lang_only_when_the_content_language_differs(monkeypatch):
     _description(monkeypatch)
     _with_source(
         monkeypatch,
-        "info",
+        "page",
         "pagetext",
         _source(kind="page", shows="den Text der Seite „%(page)s“"),
         "content-pages",
     )
     entry = nav_registry.entry_by_url("content-pages")
+    from apps.core.models import ContentPage
+
+    ContentPage.objects.create(slug="ab", title="A&B")  # своя страница: заголовок — содержимое
 
     def labels():
         row = _row()
         window_parts.content_part(row, host, _req(tenant), code=code)
         page = _row(ref="pagetext", key="pagetext", pinned=True, can_hide=False)
-        window_parts.content_part(page, "info", _req(tenant), code="text", page_label="A&B")
+        window_parts.content_part(
+            page, "seite:ab", _req(tenant), code="text@seite:ab", page_label="A&B"
+        )
         return str(row["content"]["link"]["label"]), str(page["content"]["link"]["label"])
 
     with translation.override("de"):

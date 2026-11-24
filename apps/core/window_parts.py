@@ -460,7 +460,9 @@ def _content_link(
                     "window_parts: no page editor for %r (%s/%s) - no link", code, host, key
                 )
                 return None, "", ""
-            if page_label and foreign:
+            # имя системной страницы («Über uns», «Versand») — строка интерфейса, переведена;
+            # заголовок своей страницы (`seite:<slug>`) — содержимое на языке сайта
+            if page_label and foreign and host.startswith("seite:"):
                 name = _content_name(page_label, lang, foreign)
                 label = format_html("{} › {}", entry.label, name)
             elif page_label:

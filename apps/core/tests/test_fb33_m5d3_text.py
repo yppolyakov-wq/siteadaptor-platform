@@ -256,6 +256,19 @@ def test_window_in_russian(query):
         assert "«Доставка»" in part and 'lang="de"' not in part
 
 
+def test_own_page_name_keeps_lang_system_page_name_does_not():
+    """a11y M2 (свод G3): в ru-окне заголовок своей страницы — немецкое содержимое с `lang="de"`,
+    имя системной страницы переведено и `lang` не получает."""
+    tenant, _product = _shop()
+    _page("versand", "Versand")
+    _page("x", "Erste")
+    with translation.override("ru"):
+        own, _p, _s, _v = _inhalt(tenant, "?seite=text@seite:x&block=pagetext")
+        system, _p, _s, _v = _inhalt(tenant, "?seite=text@versand&block=pagetext")
+    assert '<span lang="de">Erste</span>' in own
+    assert "lang=" not in system
+
+
 def test_new_msgids_in_all_po():
     """Строки G3 есть во всех пяти каталогах (без дублей пары msgctxt/msgid), переведены,
     плейсхолдеры совпадают."""
