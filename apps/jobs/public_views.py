@@ -152,7 +152,7 @@ def anfrage(request):
                 questions,
                 request.POST,
                 kind="job",
-                next_id=form_spec.edit_state(site, "anfrage")["next_id"],
+                next_id=form_spec.next_id(site, "anfrage"),
             ),
         )
         if shown["photos"].on:

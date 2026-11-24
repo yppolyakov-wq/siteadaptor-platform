@@ -217,6 +217,19 @@ def questions(site, form: str) -> list[dict]:
     return ((site.get("form_fields") or {}).get(form) or {}).get("custom") or []
 
 
+def next_id(site, form: str) -> int:
+    """FB-33 D1: номер последнего выданного вопроса формы (`next_id` писателя `put`) — тонкий
+    читатель для публичного POST (снимок ответов, `form_answers.answers_for_deal`). Зажим — как
+    в `normalize`: 0…`form_answers.ID_MAX`; мусор в настройке — 0 и WARNING."""
+    stored = ((site.get("form_fields") or {}).get(form) or {}) if isinstance(site, dict) else {}
+    raw = stored.get("next_id") if isinstance(stored, dict) else None
+    try:
+        return min(max(int(raw or 0), 0), form_answers.ID_MAX)
+    except (TypeError, ValueError, OverflowError):
+        logger.warning("form_spec: form %s has a broken next_id - treated as 0", form)
+        return 0
+
+
 #: свои вопросы, которые полоса заявки может нарисовать одной строкой (выбор и «да/нет» —
 #: только на полной форме)
 BAND_QUESTION_TYPES = frozenset({"text", "textarea", "number", "date"})

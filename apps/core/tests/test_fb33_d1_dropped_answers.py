@@ -328,7 +328,6 @@ def test_d1_msgids_in_all_po():
 REVIEW = pytest.mark.xfail(strict=True, reason="FB-33 D1 §10.4: до правки")
 
 
-@REVIEW
 @pytest.mark.parametrize(
     "raw, want",
     [
@@ -353,7 +352,6 @@ def test_next_id_reader(raw, want, caplog):
     assert form_spec.next_id({}, "anfrage") == 0
 
 
-@REVIEW
 def test_views_read_next_id_through_form_spec(monkeypatch):
     """Корзина и заявка берут номер у `form_spec.next_id`, не через `edit_state`."""
     from apps.core import form_spec

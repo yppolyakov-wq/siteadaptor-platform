@@ -1103,7 +1103,7 @@ def checkout(request):
     form_on = "checkout" in (form_site.get("form_fields") or {})
     form_questions = form_spec.questions(form_site, "checkout") if form_on else []
     # FB-33 D1: номер последнего выданного вопроса (писатель `form_spec`) — снимок ответов
-    form_next_id = form_spec.edit_state(form_site, "checkout")["next_id"] if form_on else 0
+    form_next_id = form_spec.next_id(form_site, "checkout") if form_on else 0
     if form_on:
         gaps = form_spec.missing(form_site, "checkout", request.POST, table=bool(table))
         if gaps:
