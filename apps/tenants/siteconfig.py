@@ -23,7 +23,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.catalog.category_styles import VALID_PAGE_STYLES as _CATEGORY_PAGE_STYLES
 from apps.catalog.category_styles import VALID_ROOT_STYLES as _ROOT_PAGE_STYLES
 from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
-from apps.core import card_forms, detail_sections, faq_views
+from apps.core import card_forms, detail_sections, faq_content, faq_views
 from apps.promotions.group_styles import VALID_GROUP_STYLES as _GROUP_PAGE_STYLES
 from apps.promotions.group_styles import VALID_PROMO_PAGE_STYLES as _PROMO_PAGE_STYLES
 from apps.promotions.group_styles import (
@@ -2689,6 +2689,10 @@ SECTION_TITLE_KEYS = {
     "blog",
 }
 _SECTION_TITLE_MAX = 80
+# FB-33 E5: заголовки, которые хранит `normalize`, но не правит канва и Студия: общий заголовок
+# FAQ (пишет только `faq_content.put_title`, окно блока FAQ). Писатель `section_titles`
+# целиком обязан переносить их (Студия пересобирает только `SECTION_TITLE_KEYS`).
+SECTION_TITLE_STORED_KEYS = SECTION_TITLE_KEYS | {faq_content.TITLE_KEY}
 
 # H1 (контент-настройка секции, Q4): опциональное описание под заголовком секции
 # главной — вводный текст над гридом. Те же ключи, что у заголовка. Хранится в
@@ -6045,7 +6049,7 @@ def _normalize_impl(config) -> dict:
     clean_titles = {}
     if isinstance(titles, dict):
         for key, value in titles.items():
-            if key in SECTION_TITLE_KEYS and isinstance(value, str) and _s(value):
+            if key in SECTION_TITLE_STORED_KEYS and isinstance(value, str) and _s(value):
                 clean_titles[key] = _s(value)[:_SECTION_TITLE_MAX]
     normalized["section_titles"] = clean_titles
     # H1: описания секций главной (контент-настройка Q4) — те же правила, что у заголовков.
