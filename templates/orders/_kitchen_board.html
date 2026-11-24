@@ -1,5 +1,8 @@
 {% load i18n cabinet %}{# Доска KDS (A4): активные заказы (new/confirmed). HTMX-партиал — перерисовывается поллингом и после действий. #}
 <div id="kds-board" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  {% if kds_more %}{% blocktrans count counter=kds_more trimmed asvar kds_more_text %}{{ counter }} weitere offene Bestellung — in der Bestellliste{% plural %}{{ counter }} weitere offene Bestellungen — in der Bestellliste{% endblocktrans %}
+    <p role="status" data-kds-more class="col-span-full rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-900 px-4 py-3 font-semibold"><span aria-hidden="true">⚠️</span> {% if kds_list_url %}<a href="{{ kds_list_url }}" class="inline-flex items-center min-h-[44px] underline">{{ kds_more_text }}</a>{% else %}{{ kds_more_text }}{% endif %}</p>
+  {% endif %}
   {% for o in orders %}
     <div class="bg-white rounded-2xl shadow-sm border-l-4 {% if o.status == 'new' %}border-amber-400{% else %}border-sky-500{% endif %} p-4 flex flex-col">
       <div class="flex items-center justify-between mb-2">

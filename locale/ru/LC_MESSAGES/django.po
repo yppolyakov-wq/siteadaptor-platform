@@ -40944,6 +40944,13 @@ msgstr "(больше нет в списке)"
 msgid "fb33-stack-anchor-d2"
 msgstr "fb33-stack-anchor-d2"
 
+msgid "%(counter)s weitere offene Bestellung — in der Bestellliste"
+msgid_plural "%(counter)s weitere offene Bestellungen — in der Bestellliste"
+msgstr[0] "Ещё %(counter)s открытый заказ — в списке заказов"
+msgstr[1] "Ещё %(counter)s открытых заказа — в списке заказов"
+msgstr[2] "Ещё %(counter)s открытых заказов — в списке заказов"
+msgstr[3] "Ещё %(counter)s открытого заказа — в списке заказов"
+
 msgid "fb33-stack-anchor-d4a"
 msgstr "fb33-stack-anchor-d4a"
 

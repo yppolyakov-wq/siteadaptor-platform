@@ -139,15 +139,41 @@ def _active_kitchen_orders():
     )
 
 
-def _kitchen_orders():
+#: FB-33 D2: потолок доски KDS — 12 рядов × 4 колонки на `xl`. Старые сверху (зависшие видны
+#: первыми), остальные — по ссылке в список заказов.
+KDS_MAX_ORDERS = 48
+
+
+def _kitchen_list_url(request) -> str:
+    """FB-33 D2: адрес списка заказов для строки переполнения — только если он открыт этому
+    пользователю здесь (запись KDS видна, пакет и право цели): одна проверка с меню
+    (`nav_registry.screen_closed`), своей нет. Иначе "" — строка остаётся без ссылки."""
+    from apps.core import nav_registry
+
+    if getattr(request, "tenant", None) is None:
+        return ""
+    url = reverse("orders:order-list")
+    return "" if nav_registry.screen_closed(request, "orders:kitchen", target_url=url) else url
+
+
+def _kitchen_context(request) -> dict:
     """FB-33 M2i-34: заказы доски со строками ответов на свои вопросы (`kds_answers`) — тот же
-    снимок и те же строки, что у карточки; ответы в строке заказа — без запросов на заказ."""
+    снимок и те же строки, что у карточки; ответы в строке заказа — без запросов на заказ.
+
+    FB-33 D2: не больше `KDS_MAX_ORDERS` (лишний +1 — только признак «есть ещё»), ответы
+    расшифровываются только у показанных; при переполнении — число скрытых (`count` только
+    тогда) и ссылка на список (`kds_more`, `kds_list_url`)."""
     from apps.core import form_answers
 
-    orders = list(_active_kitchen_orders())
-    for order in orders:
+    orders = list(_active_kitchen_orders()[: KDS_MAX_ORDERS + 1])
+    ctx = {"orders": orders[:KDS_MAX_ORDERS]}
+    if len(orders) > KDS_MAX_ORDERS:
+        # между выборкой и счётом заказ мог закрыться — скрытых всё равно не меньше одного
+        hidden = max(_active_kitchen_orders().count() - KDS_MAX_ORDERS, 1)
+        ctx.update(kds_more=hidden, kds_list_url=_kitchen_list_url(request))
+    for order in ctx["orders"]:
         order.kds_answers = form_answers.rows(order.custom_answers)
-    return orders
+    return ctx
 
 
 @login_required
@@ -160,7 +186,7 @@ def kitchen(request):
     return render(
         request,
         "orders/kitchen.html",
-        {"orders": _kitchen_orders(), "nav": "orders"},
+        {**_kitchen_context(request), "nav": "orders"},
     )
 
 
@@ -228,7 +254,7 @@ def table_qr(request):
 @login_required
 def kitchen_board(request):
     """HTMX-партиал доски KDS (поллинг каждые несколько секунд)."""
-    return render(request, "orders/_kitchen_board.html", {"orders": _kitchen_orders()})
+    return render(request, "orders/_kitchen_board.html", _kitchen_context(request))
 
 
 @login_required
@@ -245,7 +271,7 @@ def kitchen_action(request, pk):
             OrderSM().apply(order, action, actor=request.user)
         except IllegalTransition:
             pass  # статус уже сменился (другой экран) — просто перерисуем доску
-    return render(request, "orders/_kitchen_board.html", {"orders": _kitchen_orders()})
+    return render(request, "orders/_kitchen_board.html", _kitchen_context(request))
 
 
 @login_required

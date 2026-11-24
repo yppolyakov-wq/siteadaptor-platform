@@ -40680,6 +40680,11 @@ msgstr "(nicht mehr in der Liste)"
 msgid "fb33-stack-anchor-d2"
 msgstr "fb33-stack-anchor-d2"
 
+msgid "%(counter)s weitere offene Bestellung — in der Bestellliste"
+msgid_plural "%(counter)s weitere offene Bestellungen — in der Bestellliste"
+msgstr[0] "%(counter)s weitere offene Bestellung — in der Bestellliste"
+msgstr[1] "%(counter)s weitere offene Bestellungen — in der Bestellliste"
+
 msgid "fb33-stack-anchor-d4a"
 msgstr "fb33-stack-anchor-d4a"
 

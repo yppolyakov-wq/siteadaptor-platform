@@ -40740,6 +40740,11 @@ msgstr "(artık listede yok)"
 msgid "fb33-stack-anchor-d2"
 msgstr "fb33-stack-anchor-d2"
 
+msgid "%(counter)s weitere offene Bestellung — in der Bestellliste"
+msgid_plural "%(counter)s weitere offene Bestellungen — in der Bestellliste"
+msgstr[0] "%(counter)s açık sipariş daha — sipariş listesinde"
+msgstr[1] "%(counter)s açık sipariş daha — sipariş listesinde"
+
 msgid "fb33-stack-anchor-d4a"
 msgstr "fb33-stack-anchor-d4a"
 

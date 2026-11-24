@@ -28,8 +28,7 @@ from apps.orders.models import Order
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-#: замки первого коммита — снимаются кодом D2
-RED = pytest.mark.xfail(strict=True, reason="FB-33 D2: до кода")
+
 
 ROOT = Path(__file__).resolve().parents[3]
 LIMIT = 48
@@ -41,11 +40,8 @@ def _tenant_urlconf(settings):
 
 
 def _tenant():
-    from apps.core.modules import default_disabled_for
-
-    return TenantFactory.build(
-        business_type="restaurant", disabled_modules=list(default_disabled_for("restaurant"))
-    )
+    """Ресторан с модулем заказов (KDS — экран гастро-типов, `nav_registry.KITCHEN_TYPES`)."""
+    return TenantFactory.build(business_type="restaurant", disabled_modules=[])
 
 
 def _req(user=None, tenant=None):
@@ -87,7 +83,6 @@ def _status(html):
     return match
 
 
-@RED
 def test_board_limited():
     codes = _orders(LIMIT + 2)
     html = _board()
@@ -96,7 +91,6 @@ def test_board_limited():
     assert _status(html)
 
 
-@RED
 def test_fifo_kept():
     codes = _orders(LIMIT + 1)
     html = _board()
@@ -105,7 +99,6 @@ def test_fifo_kept():
     assert positions == sorted(positions)
 
 
-@RED
 def test_answers_decrypted_only_for_shown(monkeypatch):
     _orders(LIMIT + 3)
     calls = []
@@ -120,7 +113,6 @@ def test_answers_decrypted_only_for_shown(monkeypatch):
     assert len(calls) == LIMIT
 
 
-@RED
 def test_overflow_shows_count_and_warning_style():
     _orders(LIMIT + 3)
     html = _board()
@@ -141,7 +133,6 @@ def test_no_status_without_overflow():
     assert "data-kds-more" not in html and 'role="status"' not in html
 
 
-@RED
 def test_more_link_is_plain_link_named_by_text():
     _orders(LIMIT + 1)
     html = _board()
@@ -165,7 +156,6 @@ def _staff_without_sales():
     return get_user_model().objects.get(pk=staff.pk)
 
 
-@RED
 @pytest.mark.parametrize("closed", ["perm", "package"])
 def test_more_link_needs_list_access(closed, monkeypatch):
     _orders(LIMIT + 2)
@@ -187,7 +177,6 @@ def test_more_link_needs_list_access(closed, monkeypatch):
     assert "<a " not in status.group(1)
 
 
-@RED
 def test_kitchen_page_and_action_use_the_same_limit():
     codes = _orders(LIMIT + 1)
     request = _req()
@@ -208,7 +197,6 @@ MSGID = "%(counter)s weitere offene Bestellung — in der Bestellliste"
 PLURAL = "%(counter)s weitere offene Bestellungen — in der Bestellliste"
 
 
-@RED
 def test_d2_msgids_in_all_po():
     for lang in ("de", "en", "tr", "ru", "uk"):
         po = polib.pofile(str(ROOT / f"locale/{lang}/LC_MESSAGES/django.po"))
