@@ -292,8 +292,11 @@ def test_program_at_a_tour_says_the_block_is_not_shown(caplog):
 def test_cancel_on_a_hidden_row_leaves_the_hidden_list_open(monkeypatch, hide_first):
     """Окно открыто из «Ausgeblendet» и закрыто «Abbrechen» — адрес помнит строку (`zuletzt`,
     как у «Fertig»), `details[data-schema-hidden]` раскрыт, ссылка строки в нём (фокус на неё
-    ставит `aufbau.js`). Якоря в адресе нет: сообщение об отмене — вверху страницы. Видимая
-    строка «Ausgeblendet» не раскрывает."""
+    ставит `aufbau.js`). Видимая строка «Ausgeblendet» не раскрывает.
+
+    FB-33 стопка 14 E9 (решение владельца 2026-11-24, осознанная правка): прежнее «якоря нет —
+    сообщение вверху» отменено — адрес ведёт к якорю строки (`#schema-row-<ref>`) с итогом
+    `abbruch`, сообщение стоит у строки (`test_fb33_e9_cancel_anchor.py`)."""
     tenant, _product = _shop()
     _description(monkeypatch)
     b = Browser(tenant)
@@ -308,7 +311,8 @@ def test_cancel_on_a_hidden_row_leaves_the_hidden_list_open(monkeypatch, hide_fi
     target = urlsplit(resp["Location"])
     query = parse_qs(target.query)
     assert query.get("zuletzt") == ["description"] and "block" not in query
-    assert target.fragment == ""
+    assert query.get("abbruch") == ["same"]  # в окне правок не было
+    assert target.fragment == "schema-row-description"
     html = b.get(f"?{target.query}")
     assert 'data-window-part="inhalt"' not in html  # окно закрыто
     details = re.search(r"<details\b([^>]*data-schema-hidden[^>]*)>(.*?)</details>", html, re.S)
@@ -316,6 +320,7 @@ def test_cancel_on_a_hidden_row_leaves_the_hidden_list_open(monkeypatch, hide_fi
     assert (" open" in details.group(1)) is hide_first
     assert ('id="schema-row-description"' in details.group(2)) is hide_first
     assert html.count('id="schema-row-description"') == 1
+    assert html.count('id="schema-cancel-msg"') == 1
 
 
 # --- 5. длинное имя объекта в ссылке переносится --------------------------------------------------

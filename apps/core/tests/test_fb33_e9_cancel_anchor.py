@@ -41,8 +41,14 @@ RESULTS = {
 }
 TOKEN = "openE9a"
 
-#: красные до реализации E9 (strict: прошли раньше времени — замок не нужен или неверен)
-red = pytest.mark.xfail(strict=True, reason="FB-33 E9: «Abbrechen» к якорю строки")
+
+def said(resp, msgs):
+    """E9: прежние тесты «Abbrechen» читали итог из `messages`; у строки блока он теперь в адресе
+    (`abbruch`) — тот же текст дописывается к сообщениям POST (тесты M3-1b и соседей)."""
+    from apps.core.site_schema_views import CANCEL_KINDS, _cancel_text
+
+    kind = parse_qs(urlsplit(resp.get("Location", "")).query).get("abbruch", [""])[0]
+    return resp, list(msgs) + ([str(_cancel_text(kind)[1])] if kind in CANCEL_KINDS else [])
 
 
 def _browser(hidden=False):
@@ -55,7 +61,8 @@ def _browser(hidden=False):
 def _cancel(b, ref="t1", edit=True):
     b.get(f"?seite=home&block={ref}&wopen={TOKEN}")
     if edit:
-        b.post(seite="home", ref=ref, op="width", value="w6", wopen=TOKEN)
+        b.post(seite="home", ref=ref, op="update", panel_present="1", f_title="Neu", f_body="X",
+               wopen=TOKEN)  # fmt: skip
     resp, msgs = b.post(seite="home", ref=ref, op="revert", wopen=TOKEN)
     assert resp.status_code == 302
     return urlsplit(resp["Location"]), msgs
@@ -75,10 +82,9 @@ def _cancel_html(monkeypatch, kind, hidden=False):
     return target, b.get(f"?{target.query}")
 
 
-# --- красные ------------------------------------------------------------------------------------
+# --- поведение E9 (были strict xfail в коммите замков) ------------------------------------------------------------------------------------
 
 
-@red
 @pytest.mark.parametrize("hidden", [False, True], ids=["visible", "hidden"])
 def test_cancel_to_row_anchor(hidden):
     """№21: после «Abbrechen» — к строке блока: якорь `#schema-row-<ref>`, `zuletzt` (раскрытый
@@ -95,7 +101,6 @@ def test_cancel_to_row_anchor(hidden):
     assert (details is not None and " open" in details.group(1)) is hidden
 
 
-@red
 def test_anchor_exact_ref():
     """№5: якорь — точный ref (`quote(ref, safe="")`); GET сверяет `zuletzt` со строками схемы
     точным совпадением: чужой или обрезанный ref сообщения не даёт."""
@@ -108,7 +113,6 @@ def test_anchor_exact_ref():
     assert 'id="schema-cancel-msg"' in b.get("?seite=home&zuletzt=t1&abbruch=done")
 
 
-@red
 @pytest.mark.parametrize("hidden", [False, True], ids=["visible", "hidden"])
 @pytest.mark.parametrize("kind", ["done", "conflict", "same"])
 def test_cancel_message_in_html_before_row(monkeypatch, kind, hidden):
@@ -135,7 +139,6 @@ def test_cancel_message_in_html_before_row(monkeypatch, kind, hidden):
     assert re.search(r"<p\b[^>]*data-schema-live[^>]*></p>", html)
 
 
-@red
 @pytest.mark.parametrize("kind", ["done", "conflict", "same"])
 def test_cancel_msg_once(monkeypatch, kind):
     """H4: сообщение в ответе ровно одно (ни вверху, ни в живой области второго нет)."""
@@ -144,7 +147,6 @@ def test_cancel_msg_once(monkeypatch, kind):
     assert html.count('id="schema-cancel-msg"') == 1
 
 
-@red
 def test_js_back_branch_takes_abbruch():
     """architect H4: со скриптами — НЕ второй обработчик: ветка `back` (`aufbauWindowBack`, одно
     чтение) берёт и `abbruch`, снимает его из адреса вместе с якорем, текст сообщения — через

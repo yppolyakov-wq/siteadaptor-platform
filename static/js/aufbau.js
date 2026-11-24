@@ -63,7 +63,12 @@ function aufbauSubmitCopy(form, submitter) {
     sessionStorage.removeItem("aufbauWindowBack");
   } catch (err) { back = null; }
   if (aufbauWindowWanted()) return;  // фокус ставит само окно
-  var seite = new URLSearchParams(location.search).get("seite") || "home";
+  var params = new URLSearchParams(location.search);
+  var seite = params.get("seite") || "home";
+  // FB-33 E9: «Abbrechen» строки блока — адрес `zuletzt` + `abbruch` + #schema-row-<ref>; цель
+  // та же, что у «Fertig» (и без записи в sessionStorage: другая вкладка, запись стёрта)
+  var abbruch = params.get("abbruch");
+  if (abbruch && params.get("zuletzt")) back = { seite: seite, ref: params.get("zuletzt"), ts: Date.now() };
   if (back && back.seite === seite && Date.now() - back.ts < 30000) {
     // FB-33 M5c-3: «Fertig» и × — на ⚙ строки блока (у ★ и скрытых строк — их ссылка)
     var row = Array.prototype.find.call(document.querySelectorAll("[data-schema-gear]"), function (a) {
@@ -78,10 +83,16 @@ function aufbauSubmitCopy(form, submitter) {
     if (row) {
       // FB-33 M5b-2 (стенд): адрес после «Fertig» несёт #schema-panel — браузер ставит фокус
       // на якорь уже после скрипта и уводит его со строки. Якорь снять; после load — вернуть.
-      if (location.hash && window.history && history.replaceState) {
-        history.replaceState(history.state, "", location.pathname + location.search);
+      // E9: и `abbruch` — F5 сообщение не повторяет (видимый абзац у строки остаётся до ухода)
+      if ((location.hash || abbruch) && window.history && history.replaceState) {
+        params.delete("abbruch");
+        var rest = params.toString();
+        history.replaceState(history.state, "", location.pathname + (rest ? "?" + rest : ""));
       }
+      // фокус без плавной прокрутки (prefers-reduced-motion — ничего не анимируем)
       row.focus();
+      var said = abbruch && document.getElementById("schema-cancel-msg");
+      if (said) aufbauSay(said.textContent.replace(/\s+/g, " ").trim());
       window.addEventListener("load", function () {
         var at = document.activeElement;
         if (at !== row && (!at || at === document.body || at.id === "schema-panel")) row.focus();
@@ -964,18 +975,22 @@ window.aufbauMoved = function (ref, text) {
     if (target.id === "schema-title") target.setAttribute("tabindex", "-1");
     target.focus({ preventScroll: false });
   }
-  // ревью M5c (silent HIGH): озвучивается только готовый текст сервера — не «Übernommen.»
-  // по умолчанию (отказ иначе звучал бы успехом). Ревью e2e: один таймер, живая область —
-  // перечитать к срабатыванию
-  clearTimeout(window.aufbauMoved.timer);
+  aufbauSay(text);
+};
+/* FB-33 E9: задержанная озвучка после перезагрузки — общая у «⋯» строки и «Abbrechen».
+   Ревью M5c (silent HIGH): озвучивается только готовый текст сервера — не «Übernommen.»
+   по умолчанию (отказ иначе звучал бы успехом). Ревью e2e: один таймер, живая область —
+   перечитать к срабатыванию. */
+function aufbauSay(text) {
+  clearTimeout(aufbauSay.timer);
   var live = document.querySelector("[data-schema-live]");
   if (!live || !text) return;
   live.textContent = "";
-  window.aufbauMoved.timer = setTimeout(function () {
+  aufbauSay.timer = setTimeout(function () {
     var now = document.querySelector("[data-schema-live]");
     if (now) now.textContent = text;
   }, 300);
-};
+}
 (function () {
   "use strict";
   var ref = new URLSearchParams(location.search).get("bewegt");

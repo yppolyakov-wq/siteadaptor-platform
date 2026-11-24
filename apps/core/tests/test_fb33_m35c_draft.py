@@ -15,6 +15,7 @@ import pytest
 
 from apps.core import aufbau_draft
 from apps.core.tests.test_fb27_r2_draft import Browser, _tenant
+from apps.core.tests.test_fb33_e9_cancel_anchor import said  # E9: итог «Abbrechen» в адресе
 from apps.core.tests.test_fb33_m3_window_before import CFG
 from apps.tenants import siteconfig
 from apps.tenants.models import Tenant
@@ -114,7 +115,7 @@ def test_cancel_returns_only_own_block_translations():
     b = Browser(_shop())
     _post(b, ref="bt1", label="Los", url="/x", tr_label_ru="Вперёд")
     _post(b, title="Hallo", body="Welt", tr_title_ru="Привет")
-    resp, msgs = b.post(seite="home", ref="t1", op="revert", wopen=WOPEN)
+    resp, msgs = said(*b.post(seite="home", ref="t1", op="revert", wopen=WOPEN))
     assert "Änderungen an diesem Block zurückgenommen." in msgs
     assert _drafts(b)["home"]["btr"] == {"bt1": {"ru": {"label": "Вперёд"}}}
 

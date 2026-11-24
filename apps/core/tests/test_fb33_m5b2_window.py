@@ -29,6 +29,7 @@ from django.utils import translation
 from apps.core import aufbau_draft, block_window, page_title, page_window, site_schema
 from apps.core.modules import default_disabled_for
 from apps.core.tests.test_fb27_r2_draft import Browser
+from apps.core.tests.test_fb33_e9_cancel_anchor import said  # E9: итог «Abbrechen» в адресе
 from apps.core.tests.test_fb33_m3_window_before import CFG, _capture, _panel
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
@@ -198,7 +199,7 @@ def test_title_edit_and_revert_in_page_window():
     assert set(draft[aufbau_draft.WINDOW_KEY]) == {PAGE}
     html = b.get(f"?seite=services&block={PAGE}&wopen=openA1")
     assert 'value="Termine"' in _section(_panel(html), "seite")
-    _resp, msgs = b.post(seite="services", ref=PAGE, op="revert", wopen="openA1")
+    _resp, msgs = said(*b.post(seite="services", ref=PAGE, op="revert", wopen="openA1"))
     assert "Änderungen an diesem Block zurückgenommen." in msgs
     assert "services" not in (b.session.get(aufbau_draft.SESSION_KEY) or {})
 
@@ -314,7 +315,7 @@ def test_category_view_reset_and_cancel_on_star():
     items = b.session[aufbau_draft.SESSION_KEY][CATEGORY]["items"]
     marker = next(i for i in items if i.get("key") == "main" and not i.get("id"))
     assert "style" not in marker
-    _resp, msgs = b.post(seite=CATEGORY, op="revert", ref="main", wopen="openA1")
+    _resp, msgs = said(*b.post(seite=CATEGORY, op="revert", ref="main", wopen="openA1"))
     assert "Änderungen an diesem Block zurückgenommen." in msgs
     wie = _section(_panel(b.get(f"?seite={CATEGORY}&block=main")), "wie")
     assert "hier geändert gilt nur für „Brot“: Mosaik" in wie

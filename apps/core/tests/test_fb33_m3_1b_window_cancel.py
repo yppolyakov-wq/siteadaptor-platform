@@ -9,6 +9,7 @@ import pytest
 
 from apps.core import aufbau_draft
 from apps.core.tests.test_fb27_r2_draft import Browser
+from apps.core.tests.test_fb33_e9_cancel_anchor import said  # E9: итог «Abbrechen» в адресе
 from apps.core.tests.test_fb33_m3_window import _shop
 from apps.core.tests.test_fb33_m3_window_before import _panel
 from apps.tenants import siteconfig
@@ -41,7 +42,7 @@ def test_cancel_after_an_edit_leaves_no_draft_when_there_was_none():
     _post(b, seite="home", ref="t1", op="update", panel_present="1", f_title="Neu", f_body="X")
     _post(b, seite="home", ref="t1", op="toggle")
     assert _drafts(b)["home"]["window"]  # снимок есть, пока окно не закрыто
-    resp, msgs = _post(b, seite="home", ref="t1", op="revert")
+    resp, msgs = said(*_post(b, seite="home", ref="t1", op="revert"))
     assert resp.status_code == 302 and "block=" not in resp["Location"]
     assert _drafts(b) == {}  # черновика не было — и нет
     assert msgs  # читатель экрана слышит, что правки отменены
@@ -131,7 +132,7 @@ def test_cancel_refuses_when_the_page_was_published_elsewhere():
     cfg["sections"] = [dict(s) for s in cfg["sections"]] + [{"key": "spacer", "id": "sp9"}]
     t.site_config = cfg
     t.save()
-    resp, msgs = _post(b, seite="home", ref="t1", op="revert")
+    resp, msgs = said(*_post(b, seite="home", ref="t1", op="revert"))
     assert resp.status_code == 302
     assert _drafts(b) == before
     assert any("an anderer Stelle gespeichert" in m for m in msgs)
@@ -195,7 +196,7 @@ def test_reopening_the_window_takes_a_fresh_snapshot():
     # окно закрыли мобильной ссылкой «Fertig» (снимок не снят) и открыли снова
     _post(b, seite="home", ref="t1", wopen="openB2", op="update", panel_present="1",
            f_title="Zweites", f_body="")  # fmt: skip
-    resp, msgs = _post(b, seite="home", ref="t1", wopen="openB2", op="revert")
+    resp, msgs = said(*_post(b, seite="home", ref="t1", wopen="openB2", op="revert"))
     assert _home_item(b, "t1")["data"]["title"] == "Erstes"
     assert any("zurückgenommen" in m for m in msgs)
 
@@ -210,7 +211,7 @@ def test_same_block_in_two_tabs_last_opening_wins():
     item = _home_item(b, "t1")
     assert item["enabled"] is False and (item.get("width") or "") != "w6"
     # вкладка A после этого: её снимка уже нет — честно «нечего»
-    _resp, msgs = _post(b, seite="home", ref="t1", wopen="tabAaa", op="revert")
+    _resp, msgs = said(*_post(b, seite="home", ref="t1", wopen="tabAaa", op="revert"))
     assert any("Nichts zurückzunehmen" in m for m in msgs)
 
 
@@ -242,12 +243,12 @@ def test_cancel_without_a_snapshot_warns_instead_of_claiming_success():
     """HIGH: снимка нет (вытеснен, «Verwerfen» в другой вкладке, сессия истекла) —
     предупреждение, а не «zurückgenommen»."""
     b = Browser(_shop())
-    _resp, msgs = _post(b, seite="home", ref="t1", op="revert")
+    _resp, msgs = said(*_post(b, seite="home", ref="t1", op="revert"))
     assert any("Nichts zurückzunehmen" in m for m in msgs)
     assert not any("zurückgenommen." in m for m in msgs)
     _post(b, seite="home", ref="t1", op="toggle")
     _post(b, seite="home", op="discard")  # другая вкладка отбросила черновик
-    _resp, msgs = _post(b, seite="home", ref="t1", op="revert")
+    _resp, msgs = said(*_post(b, seite="home", ref="t1", op="revert"))
     assert any("Nichts zurückzunehmen" in m for m in msgs) and _drafts(b) == {}
 
 
@@ -362,7 +363,7 @@ def test_edit_outside_the_window_writes_no_snapshot_and_cancel_says_nothing():
     assert "window" not in _drafts(b)["home"]
     html = b.get("?seite=home&block=t1")
     token = re.search(r'name="wopen" value="([^"]+)"', html).group(1)
-    _resp, msgs = b.post(seite="home", ref="t1", wopen=token, op="revert")
+    _resp, msgs = said(*b.post(seite="home", ref="t1", wopen=token, op="revert"))
     assert _home_item(b, "t1")["enabled"] is False  # скрытие осталось
     assert any("Nichts zurückzunehmen" in m for m in msgs)
 
@@ -371,7 +372,7 @@ def test_cancel_needs_the_token_of_its_opening():
     b = Browser(_shop())
     _post(b, seite="home", ref="t1", op="toggle")
     for token in ("", "otherOne"):
-        _resp, msgs = b.post(seite="home", ref="t1", wopen=token, op="revert")
+        _resp, msgs = said(*b.post(seite="home", ref="t1", wopen=token, op="revert"))
         assert any("Nichts zurückzunehmen" in m for m in msgs), token
     assert _home_item(b, "t1")["enabled"] is False
 
@@ -451,7 +452,7 @@ def test_normalization_check_covers_section_pages_too(caplog):
     b = Browser(_shop())
     _post(b, seite="product", ref="related", op="toggle")
     with caplog.at_level("WARNING", logger="apps.core.aufbau_draft"):
-        _resp, msgs = _post(b, seite="product", ref="related", op="revert")
+        _resp, msgs = said(*_post(b, seite="product", ref="related", op="revert"))
     assert any("zurückgenommen" in m for m in msgs)
     assert "after revert" not in caplog.text
 
