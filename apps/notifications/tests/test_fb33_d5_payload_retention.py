@@ -485,3 +485,41 @@ def test_owner_mails_erased_in_batches():
     assert (
         not Notification.objects.filter(dedupe_key__endswith=":owner").exclude(payload={}).exists()
     )
+
+
+# ── ревью правок D5 (security + django, 2026-11-24) ──────────────────────────────────────────
+
+RED_R = pytest.mark.xfail(strict=True, reason="FB-33 D5 ревью: до правки")
+
+
+@RED_R
+def test_erase_owner_mails_clears_last_error():
+    """№6: ошибка доставки письма владельцу (адрес, фрагмент текста) — тоже стирается."""
+    c = _customer()
+    key = _keys_order(c)[0]
+    _note(key, status="failed", last_error="550 rejected: Erika Muster")
+    dsgvo.erase_customer(c)
+    assert Notification.objects.get(dedupe_key=key).last_error == ""
+
+
+@RED_R
+def test_erased_marker_is_unique():
+    """№6: маркер «стёрто» — не подстрока чужих ошибок (`retry_failed` ищет `__contains`)."""
+    from apps.notifications import tasks
+
+    assert tasks.ERASED == "content-erased"
+    n = _note("order:m1:created:owner", status="failed", last_error="mailbox erased by user")
+    Notification.objects.filter(pk=n.pk).update(
+        updated_at=timezone.now() - datetime.timedelta(minutes=30), attempts=1
+    )
+    assert tasks.retry_failed() == 1  # чужая ошибка со словом «erased» — повторяется
+
+
+@RED_R
+def test_pilot_report_does_not_count_erased_as_failed():
+    """№6: стёртое уведомление не считается сбоем доставки в отчёте пилота."""
+    from apps.core.management.commands import pilot_report
+
+    _note("order:f1:created:owner", status="failed", last_error="smtp timeout")
+    _note("order:f2:created:owner", status="failed", payload={}, last_error="content-erased")
+    assert pilot_report.failed_notifications() == 1

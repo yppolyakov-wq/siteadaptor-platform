@@ -29,7 +29,10 @@ rf = RequestFactory()
 LD = '<script type="application/ld+json">'
 META = '<meta name="robots" content="noindex,nofollow">'
 ROBOTS = re.compile(r'<meta name="robots"')
-TOKEN_PATH = re.compile(r"<[^>]*(code|token)[^>]*>")
+TOKEN_PATH = re.compile(r"<[^>]*(code|token|signed|secret)[^>]*>")
+#: все три urlconf: витрина бизнеса, платформа, городской портал (ревью §10.6 D8 №3)
+URLCONFS = ("config.urls_tenant", "config.urls_public", "config.urls_portal")
+RED = pytest.mark.xfail(strict=True, reason="FB-33 D8 ревью: до правки")
 
 
 @pytest.fixture(autouse=True)
@@ -43,8 +46,8 @@ def _pp():
     return personal_pages
 
 
-def _routes():
-    """(имя, путь) каждого маршрута `config/urls_tenant.py`."""
+def _routes(urlconf="config.urls_tenant"):
+    """(имя, путь) каждого маршрута urlconf."""
 
     def walk(patterns, prefix=""):
         for p in patterns:
@@ -53,7 +56,11 @@ def _routes():
             elif isinstance(p, URLPattern):
                 yield p.name, prefix + str(p.pattern)
 
-    return list(walk(get_resolver("config.urls_tenant").url_patterns))
+    return list(walk(get_resolver(urlconf).url_patterns))
+
+
+def _all_routes():
+    return [route for urlconf in URLCONFS for route in _routes(urlconf)]
 
 
 def _tenant():
@@ -82,6 +89,7 @@ def _middleware(request, response):
     return PersonalPageHeadersMiddleware(lambda r: response)(request)
 
 
+@RED
 def test_every_token_route_is_classified():
     """Замок покрытия: маршрут с `<code>`/`<token>` в пути — в реестре или в исключениях."""
     pp = _pp()
@@ -201,3 +209,167 @@ def test_not_personal_routes_get_no_headers():
     for name in _pp().NOT_PERSONAL:
         out = _middleware(_req(tenant, "/", url_name=name), HttpResponse())
         assert "X-Robots-Tag" not in out, name
+
+
+# ── ревью D8 (security + django, 2026-11-24) ──────────────────────────────────────────────
+
+
+@RED
+def test_every_secret_route_in_all_urlconfs_is_classified():
+    """№2–3: `<code>`, `<token>`, `<signed>`, `<secret>` — во всех трёх urlconf; исключения —
+    настоящие имена маршрутов."""
+    pp = _pp()
+    routes = _all_routes()
+    secret = {name for name, path in routes if TOKEN_PATH.search(path)}
+    assert {"owner-confirm-email", "telegram-webhook", "business-signup-confirm"} <= secret
+    assert secret - pp.PERSONAL_ROUTES - set(pp.NOT_PERSONAL) == set()
+    names = {name for name, _path in routes}
+    assert set(pp.NOT_PERSONAL) <= names, set(pp.NOT_PERSONAL) - names
+    assert pp.PERSONAL_ROUTES <= names, pp.PERSONAL_ROUTES - names
+
+
+@RED
+def test_every_account_route_is_classified():
+    """№1: ЛК клиента `/konto/…` (витрина и портал) — в реестре или в исключениях с причиной;
+    вход по ссылке (`?t=` в query) — в реестре."""
+    pp = _pp()
+    konto = {name for name, path in _all_routes() if path.startswith("konto/")}
+    assert {"account-home", "account-verify", "portal-login-verify"} <= konto
+    assert konto - pp.PERSONAL_ROUTES - set(pp.NOT_PERSONAL) == set()
+    assert {"account-verify", "portal-login-verify"} <= pp.PERSONAL_ROUTES
+
+
+@RED
+def test_trip_group_feed_is_personal():
+    """№7: лента поездки (посты и имена участников) — личная."""
+    pp = _pp()
+    community = {n for n, _p in _routes() if (n or "").startswith("community-space")}
+    assert community and community <= pp.PERSONAL_ROUTES
+
+
+@RED
+def test_middleware_imports_registry_at_module_level():
+    """№7 LOW: импорт реестра — наверху модуля, не на каждый ответ."""
+    import inspect
+
+    from apps.core import middleware
+
+    assert "personal_pages" in vars(middleware)
+    src = inspect.getsource(middleware.PersonalPageHeadersMiddleware)
+    assert "import personal_pages" not in src
+
+
+# ── сквозные: настоящий стек middleware и urlconf (`django.test.Client`) ─────────────────────
+
+
+@pytest.fixture
+def client_for():
+    from django.db import connections
+    from django.test import Client
+
+    from apps.tenants.tests.factories import DomainFactory
+
+    made = []
+
+    def make():
+        tenant = TenantFactory(
+            business_type="bakery",
+            enabled_locales=["de", "en"],
+            disabled_modules=[],
+            slug=f"d8-{uuid.uuid4().hex[:10]}",
+        )
+        domain = DomainFactory(tenant=tenant, domain=f"{tenant.slug}.siteadaptor.de")
+        made.append(tenant)
+        return tenant, Client(HTTP_HOST=domain.domain)
+
+    yield make
+    connections["default"].set_schema_to_public()
+
+
+def _get(client, path):
+    from django.db import connections
+
+    try:
+        return client.get(path, secure=True)
+    finally:
+        connections["default"].set_schema_to_public()
+
+
+@pytest.mark.parametrize(
+    "path,status",
+    [
+        ("/bestellung/NOPE-D8/", 404),  # неизвестный код — 404 той же вьюхи
+        pytest.param("/konto/", 302, marks=RED),  # ЛК без входа — редирект на вход
+        pytest.param("/konto/verify/?t=x", 400, marks=RED),  # токен в query
+    ],
+)
+def test_full_stack_headers(client_for, path, status):
+    _tenant_, client = client_for()
+    resp = _get(client, path)
+    assert resp.status_code == status, (path, resp.status_code)
+    assert resp["X-Robots-Tag"] == "noindex, nofollow"
+    assert resp["Referrer-Policy"] == "same-origin"
+
+
+def _deal_paths(tenant):
+    """Настоящие личные страницы: заказ, запись, номер, резерв, смета."""
+    import datetime
+
+    from django.utils import timezone
+
+    from apps.booking.models import Booking, Resource
+    from apps.jobs.models import Job
+    from apps.orders.models import Order
+    from apps.promotions.models import Customer, Reservation
+    from apps.promotions.tests.factories import PromotionFactory
+    from apps.stays.models import StayBooking, StayUnit
+
+    def code():
+        return f"D8{uuid.uuid4().hex[:6].upper()}"
+
+    c = Customer.objects.create(name="Erika", email="erika@example.com")
+    start = timezone.now() + datetime.timedelta(days=3)
+    day = timezone.localdate() + datetime.timedelta(days=3)
+    order = Order.objects.create(customer=c, reference_code=code(), total=12)
+    booking = Booking.objects.create(
+        customer=c,
+        resource=Resource.objects.create(name="Stuhl"),
+        reference_code=code(),
+        start=start,
+        end=start + datetime.timedelta(hours=1),
+    )
+    stay = StayBooking.objects.create(
+        customer=c,
+        unit=StayUnit.objects.create(name="Zimmer 1"),
+        reference_code=code(),
+        arrival=day,
+        departure=day + datetime.timedelta(days=2),
+    )
+    resv = Reservation.objects.create(
+        customer=c, promotion=PromotionFactory(), reference_code=code()
+    )
+    job = Job.objects.create(customer=c, reference_code=code(), title="Fenster", status="quoted")
+    return {
+        "order": reverse("storefront-order", args=[order.reference_code]),
+        "termin": reverse("storefront-termin-ok", args=[booking.reference_code]),
+        "stay": reverse("storefront-stay-ok", args=[stay.reference_code]),
+        "reservation": reverse("storefront-confirmation", args=[resv.reference_code]),
+        "angebot": reverse("storefront-angebot", args=[job.public_token]),
+    }
+
+
+def test_real_personal_templates_have_one_robots_meta(client_for):
+    """№5: настоящие шаблоны личных страниц (со своим `{% block robots %}` или без) —
+    ровно одна мета `robots` (`noindex,nofollow`), без LD, с заголовком."""
+    tenant, client = client_for()
+    from django_tenants.utils import schema_context
+
+    with schema_context(tenant.schema_name):
+        paths = _deal_paths(tenant)
+    for kind, path in paths.items():
+        resp = _get(client, path)
+        html = resp.content.decode()
+        assert resp.status_code == 200, (kind, resp.status_code)
+        assert len(ROBOTS.findall(html)) == 1 and META in html, kind
+        assert LD not in html, kind
+        assert resp["X-Robots-Tag"] == "noindex, nofollow", kind
