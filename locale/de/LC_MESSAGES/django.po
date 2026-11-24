@@ -40680,6 +40680,11 @@ msgstr "(nicht mehr in der Liste)"
 msgid "fb33-stack-anchor-d2"
 msgstr "fb33-stack-anchor-d2"
 
+msgid "davon %(counter)s neu"
+msgid_plural "davon %(counter)s neu"
+msgstr[0] "davon %(counter)s neu"
+msgstr[1] "davon %(counter)s neu"
+
 msgid "%(counter)s weitere offene Bestellung wird hier nicht angezeigt"
 msgid_plural "%(counter)s weitere offene Bestellungen werden hier nicht angezeigt"
 msgstr[0] "%(counter)s weitere offene Bestellung wird hier nicht angezeigt"

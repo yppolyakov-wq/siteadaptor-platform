@@ -164,7 +164,7 @@ def _kitchen_context(request) -> dict:
 
     FB-33 D2: не больше `KDS_MAX_ORDERS` (лишний +1 — только признак «есть ещё»), ответы
     расшифровываются только у показанных; при переполнении — число скрытых (`count` только
-    тогда) и ссылка на список (`kds_more`, `kds_list_url`). Строка — обычный абзац без live
+    тогда), из них новых (`kds_more_new`) и ссылка на список (`kds_more`, `kds_list_url`). Строка — обычный абзац без live
     region (ревью §10.4: доска пересоздаётся поллингом); фокус htmx возвращает по `id`."""
     from apps.core import form_answers
 
@@ -173,7 +173,14 @@ def _kitchen_context(request) -> dict:
     if len(orders) > KDS_MAX_ORDERS:
         # между выборкой и счётом заказ мог закрыться — скрытых всё равно не меньше одного
         hidden = max(_active_kitchen_orders().count() - KDS_MAX_ORDERS, 1)
-        ctx.update(kds_more=hidden, kds_list_url=_kitchen_list_url(request))
+        # ревью §10.4: новые (ещё не принятые) за потолком называются отдельно
+        shown_new = sum(o.status == Order.STATUS_NEW for o in ctx["orders"])
+        all_new = _active_kitchen_orders().filter(status=Order.STATUS_NEW).count()
+        ctx.update(
+            kds_more=hidden,
+            kds_more_new=max(min(all_new - shown_new, hidden), 0),
+            kds_list_url=_kitchen_list_url(request),
+        )
     for order in ctx["orders"]:
         order.kds_answers = form_answers.rows(order.custom_answers)
     return ctx

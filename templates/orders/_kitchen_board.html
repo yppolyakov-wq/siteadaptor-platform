@@ -1,7 +1,7 @@
 {% load i18n cabinet %}{# Доска KDS (A4): активные заказы (new/confirmed). HTMX-партиал — перерисовывается поллингом и после действий. #}
 <div id="kds-board" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
   {% if kds_more %}{% blocktrans count counter=kds_more trimmed asvar kds_more_text %}{{ counter }} weitere offene Bestellung wird hier nicht angezeigt{% plural %}{{ counter }} weitere offene Bestellungen werden hier nicht angezeigt{% endblocktrans %}
-    <p data-kds-more class="col-span-full rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-900 px-4 py-3 font-semibold"><span aria-hidden="true">⚠️</span> {{ kds_more_text }}. {% if kds_list_url %}<a id="kds-more-link" href="{{ kds_list_url }}" class="inline-flex items-center min-h-[44px] underline">{% trans "Bestellliste öffnen" %}</a>{% else %}{% trans "Die Bestellliste ist für Ihr Konto nicht freigegeben." %}{% endif %}</p>
+    <p data-kds-more class="col-span-full rounded-xl border-2 border-amber-400 bg-amber-100 text-amber-900 px-4 py-3 font-semibold"><span aria-hidden="true">⚠️</span> {{ kds_more_text }}{% if kds_more_new %} ({% blocktrans count counter=kds_more_new trimmed %}davon {{ counter }} neu{% plural %}davon {{ counter }} neu{% endblocktrans %}){% endif %}. {% if kds_list_url %}<a id="kds-more-link" href="{{ kds_list_url }}" class="inline-flex items-center min-h-[44px] underline">{% trans "Bestellliste öffnen" %}</a>{% else %}{% trans "Die Bestellliste ist für Ihr Konto nicht freigegeben." %}{% endif %}</p>
   {% endif %}
   {% for o in orders %}
     <div class="bg-white rounded-2xl shadow-sm border-l-4 {% if o.status == 'new' %}border-amber-400{% else %}border-sky-500{% endif %} p-4 flex flex-col">

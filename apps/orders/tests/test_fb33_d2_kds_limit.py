@@ -186,8 +186,6 @@ MSGID = "%(counter)s weitere offene Bestellung — in der Bestellliste"
 
 
 # --- ревью диффа (план §10.4) -----------------------------------------------------------------
-#: замки правок ревью — снимаются своими коммитами
-REVIEW = pytest.mark.xfail(strict=True, reason="FB-33 D2 §10.4: до правки")
 PARTIAL = ROOT / "templates/orders/_kitchen_board.html"
 
 
@@ -261,7 +259,6 @@ def test_closed_link_explains(monkeypatch):
     assert "Die Bestellliste ist für Ihr Konto nicht freigegeben." in more
 
 
-@REVIEW
 def test_new_orders_beyond_the_limit_are_named():
     """MEDIUM: 48 принятых и один новый за потолком — строка называет «davon 1 neu»."""
     _orders(LIMIT + 1)
@@ -290,7 +287,6 @@ REVIEW_MSGIDS = [
 ]
 
 
-@REVIEW
 def test_d2_review_msgids_in_all_po():
     """Новые строки — во всех пяти каталогах; старая строка «… — in der Bestellliste» снята."""
     for lang in ("de", "en", "tr", "ru", "uk"):

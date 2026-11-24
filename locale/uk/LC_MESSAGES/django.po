@@ -40931,6 +40931,13 @@ msgstr "(більше немає в списку)"
 msgid "fb33-stack-anchor-d2"
 msgstr "fb33-stack-anchor-d2"
 
+msgid "davon %(counter)s neu"
+msgid_plural "davon %(counter)s neu"
+msgstr[0] "з них нових: %(counter)s"
+msgstr[1] "з них нових: %(counter)s"
+msgstr[2] "з них нових: %(counter)s"
+msgstr[3] "з них нових: %(counter)s"
+
 msgid "%(counter)s weitere offene Bestellung wird hier nicht angezeigt"
 msgid_plural "%(counter)s weitere offene Bestellungen werden hier nicht angezeigt"
 msgstr[0] "Ще %(counter)s відкрите замовлення тут не показано"
