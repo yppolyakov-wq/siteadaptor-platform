@@ -120,7 +120,11 @@ def test_apply_form_counts_parts_not_forms():
     # две применяющие части — ссылки; вкладка не из {texte, felder, karte} — ссылки
     two = win("texte", ("wie", ["platz"]), ("texte", ["fields", "usp"]))
     assert block_window.apply_form(two) is None
-    assert block_window.apply_form(win("wie", ("wie", ["listview", "platz"]), texte)) is None
+    # FB-33 стопка 14 E3: на «Wie» применяет вид списка («Platz» — своя форма, не часть);
+    # у вида блока (`fields` со стилем) — ссылки (решение владельца 2026-11-24)
+    wie = block_window.apply_form(win("wie", ("wie", ["listview", "platz"]), texte))
+    assert (wie["form"], wie["name"], wie["value"]) == ("bw-form-listview", "op", "update")
+    assert block_window.apply_form(win("wie", ("wie", ["fields", "platz"]), texte)) is None
     assert block_window.apply_form(win("was", ("was", ["fields"]), texte)) is None
     # «Karte»: вторая форма «zurücksetzen» — не часть, применяет одна card_pick
     karte = block_window.apply_form(win("karte", ("karte", ["card_pick"]), texte))

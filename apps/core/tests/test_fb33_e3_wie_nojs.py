@@ -112,7 +112,6 @@ def _default_button(panel, form):
 # --- красные: кнопки вкладок применяют форму вида --------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E3: «Wie» с формой вида — вкладки-ссылки")
 def test_wie_tab_buttons_apply_listview():
     b = Browser(_shop(m33.CFG))
     panel = _get(b, LIST_QUERY)
@@ -140,7 +139,6 @@ def test_wie_tab_buttons_apply_listview():
     assert first == second
 
 
-@pytest.mark.xfail(strict=True, reason="E3: APPLY_TAB_PARTS ещё нет, у формы вида нет id")
 def test_every_applying_part_of_a_tab_has_its_form():
     """№14: у каждой живой применяющей части (по вкладкам `APPLY_TAB_PARTS`) — форма с её
     `form_id`; вид списка среди них."""
@@ -163,7 +161,6 @@ def test_every_applying_part_of_a_tab_has_its_form():
     assert {"fields", "usp", "listview"} <= seen
 
 
-@pytest.mark.xfail(strict=True, reason="E3: кнопки по умолчанию у формы вида перед вкладками нет")
 def test_default_submit_is_update():
     """a11y M5: Enter в поле формы вида — `op=update`, а не кнопка вкладки; кнопка по
     умолчанию — перед вкладками; у формы вида одна «Übernehmen», без `aria-hidden`."""
@@ -209,22 +206,20 @@ def test_wie_without_listview_unchanged(case):
     assert m33._render(case) == (m33.GOLDEN / m33._name(case)).read_text()
 
 
+def test_wie_tab_button_keeps_which_mode():
+    """Способ «Welche» переживает кнопку вкладки «Wie» (раньше его несла ссылка вкладки)."""
+    b = Browser(_shop(m33.CFG))
+    panel = _get(b, LIST_QUERY + "&welche=regel")
+    resp, msgs = b.post(**_tab_post(panel, zu_tab="was"))
+    assert msgs == [] and "welche=regel" in resp["Location"] and "tab=was" in resp["Location"]
+
+
 def test_wie_refused_update_stays():
     """№7: отказ правки из формы вида кнопкой вкладки — остаёмся на «Wie», без перехода."""
     b = Browser(_shop(m33.CFG))
     panel = _get(b, LIST_QUERY)
     b.post(seite="home", ref="l1", op="delete")  # блок удалён в другой вкладке
-    data = _tab_post(panel, f_cols="3", zu_tab="was") if LIST_FORM in panel else None
-    if data is None:  # до E3 у формы вида нет id — поля вручную
-        data = {
-            "seite": "home",
-            "ref": "l1",
-            "panel_present": "1",
-            "tab": "wie",
-            "bw_tabs": "was wie karte",
-            "f_cols": "3",
-            "zu_tab": "was",
-        }
+    data = _tab_post(panel, f_cols="3", zu_tab="was")
     with translation.override("de"):
         resp, msgs = b.post(**data)
     loc = resp["Location"]

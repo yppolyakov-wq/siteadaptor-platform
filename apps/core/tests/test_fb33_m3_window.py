@@ -226,11 +226,13 @@ def test_each_tab_with_a_form_remembers_itself_after_an_action():
 def test_which_mode_and_tab_travel_together():
     """Ревью M3-1: ссылки вкладок несут открытый способ «Welche», ссылки «Welche» — вкладку."""
     b = Browser(_shop())
-    html = _panel(b.get("?seite=home&block=l1&welche=regel&tab=wie"))
-    # ссылка вкладки «Was» помнит способ (и токен открытия окна, FB-33 M3-1b)
-    assert re.search(r"&amp;tab=was(&amp;wopen=[A-Za-z0-9_-]+)?&amp;welche=", html)
+    # FB-33 стопка 14 E3: на «Wie» вкладки — кнопки формы вида (способ несёт её `welche`,
+    # замок `test_fb33_e3_wie_nojs`); ссылки вкладок — с «Was»
+    html = _panel(b.get("?seite=home&block=l1&welche=regel&tab=was"))
+    # ссылка вкладки «Wie» помнит способ (и токен открытия окна, FB-33 M3-1b)
+    assert re.search(r"&amp;tab=wie(&amp;wopen=[A-Za-z0-9_-]+)?&amp;welche=", html)
     regel = re.search(r'<a href="([^"]*welche=[a-z]+[^"]*)"[^>]*data-schema-which-mode', html)
-    assert regel and "&amp;tab=wie" in regel.group(1)
+    assert regel and "&amp;tab=was" in regel.group(1)
 
 
 def test_confirm_keeps_the_old_order_and_no_tabs():

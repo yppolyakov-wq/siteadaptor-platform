@@ -329,8 +329,17 @@ def field_meta(selected: dict | None, field: dict) -> dict:
 #: `bw-form-card_pick`/`bw-form-faq`.
 #: Замок: у каждой живой применяющей части окна есть форма с её `form_id`.
 APPLY_FORM_PARTS = ("fields", "usp", "formfields", "card_pick", "faq", "seo")  # seo — M3-6
-#: вкладки, переход с которых применяет форму («Wie anordnen» — две формы, там ссылки)
-APPLY_TABS = ("texte", "felder", "karte")
+#: вкладка → её применяющие части. FB-33 стопка 14 E3 (решение владельца 2026-11-24): на «Wie
+#: anordnen» применяет только вид списка (`bw-form-listview`; «Platz» и «zurücksetzen» — свои
+#: формы, не части); у прочих блоков с видом на «Wie» (FAQ, `usp_bar`, …) вкладки — ссылки
+APPLY_TAB_PARTS: dict[str, tuple[str, ...]] = {
+    "texte": APPLY_FORM_PARTS,
+    "felder": APPLY_FORM_PARTS,
+    "karte": APPLY_FORM_PARTS,
+    "wie": ("listview",),
+}
+#: вкладки, переход с которых применяет форму — ключи `APPLY_TAB_PARTS` (второго списка нет)
+APPLY_TABS = tuple(APPLY_TAB_PARTS)
 #: Enter в поле — та же кнопка, что первая кнопка самой формы (кнопка «по умолчанию» перед
 #: вкладками: иначе ею стала бы кнопка вкладки, и Enter переключал бы вкладку). У FAQ первая
 #: кнопка формы — «Übernehmen» `faq_add` (принимает и новый вопрос; op=update — скрытое поле)
@@ -349,7 +358,7 @@ def apply_form(window: list[dict]) -> dict | None:
     active = next((t for t in window or () if t["active"]), None)
     if active is None or len(window) < 2 or active["key"] not in APPLY_TABS:
         return None
-    mine = [p for p in active["parts"] if p in APPLY_FORM_PARTS]
+    mine = [p for p in active["parts"] if p in APPLY_TAB_PARTS[active["key"]]]
     if len(mine) != 1:
         return None
     name, value = _DEFAULT_SUBMIT.get(mine[0], ("op", "update"))
