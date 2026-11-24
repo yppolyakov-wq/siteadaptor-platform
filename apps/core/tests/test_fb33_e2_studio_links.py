@@ -86,7 +86,6 @@ def _href(attrs) -> str:
     return unescape(re.search(r'href="([^"]*)"', attrs).group(1))
 
 
-@pytest.mark.xfail(strict=True, reason="E2: ссылки в окно у блоков страницы ещё нет")
 def test_window_url_from_window_links():
     tenant = _tenant({CATEGORY_HOST: [_liste("l2"), _banner("b2")]})
     part = _page_part(_studio(tenant), CATEGORY_HOST)
@@ -100,7 +99,6 @@ def test_window_url_from_window_links():
     assert _href(aufbau[0]) == window_links.block_window_url(code, "b2")
 
 
-@pytest.mark.xfail(strict=True, reason="E2: ссылки в окно у блоков страницы ещё нет")
 @pytest.mark.parametrize(
     "host", [CATEGORY_HOST, "seite:x", "seite:x-2", f"promo_group:{HEX}"]
 )  # fmt: skip
@@ -115,7 +113,6 @@ def test_pbhost_key_not_ref(host):
     assert href == window_links.block_window_url(code, "l2", "wie")
 
 
-@pytest.mark.xfail(strict=True, reason="E2: сейчас у баннера страницы ссылка на голый экран")
 def test_host_without_code_no_link():
     host = f"product:{HEX}"
     assert site_schema.page_code_of_host(host) == ""
@@ -125,7 +122,6 @@ def test_host_without_code_no_link():
     assert not _anchors(part, "Seitenaufbau öffnen")
 
 
-@pytest.mark.xfail(strict=True, reason="E2: ссылки в окно у блоков страницы ещё нет")
 def test_links_plain_named_leaveok():
     tenant = _tenant(
         {

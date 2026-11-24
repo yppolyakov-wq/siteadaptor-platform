@@ -151,8 +151,8 @@ collect()/save работают без переименований. data-cb-id 
     {% comment %}LB-1 → FB-33 M4b: что показать (источник, фильтр, сортировка, «Höchstens», ручной состав) и как (вид, вывод, колонки, ряды, форма карточки) правит окно блока «Seitenaufbau» — сервер берёт их из сохранённого (`site_schema.merge_structure`, W0). Здесь — заголовок, вступление и темп ленты (его в окне нет).{% endcomment %}
     {% list_block_hint b.data as lh %}
     <div data-lb-row>
-      {% comment %}Ссылка в окно — только у блока главной: путь страницы блока страницы (pb_page) партиалу неизвестен, голый экран «Seitenaufbau» без блока не ведёт к нему (ревью M4b №8).{% endcomment %}
-      {% if not pb_page %}<p class="text-xs ui-muted" data-stu-window-hint>{% trans "Was gezeigt wird, Anordnung, Karte und Platz ändern Sie im Fenster des Blocks." %} <a href="{% url 'site-schema-open' %}?page=%2F&amp;block={{ b.id|urlencode:'' }}&amp;tab=wie" data-stu-window class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Fenster öffnen" %}</a></p>{% endif %}
+      {% comment %}Ссылка в окно: у главной — по ключу блока; у блока страницы — готовый адрес окна (`b.window_url`, вьюха Студии по `site_schema.page_code_of_host`, FB-33 стопка 14 E2); нет адреса — нет ссылки (голый экран к блоку не ведёт, ревью M4b №8). Имя для чтения с экрана — видимый текст и имя блока (a11y M6).{% endcomment %}
+      {% if not pb_page or b.window_url %}<p class="text-xs ui-muted" data-stu-window-hint>{% trans "Was gezeigt wird, Anordnung, Karte und Platz ändern Sie im Fenster des Blocks." %} <a href="{% if pb_page %}{{ b.window_url }}{% else %}{% url 'site-schema-open' %}?page=%2F&amp;block={{ b.id|urlencode:'' }}&amp;tab=wie{% endif %}" data-stu-window class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Fenster öffnen" %}{% if pb_page %}<span class="sr-only"> – {% firstof b.data.title b.type|cblock_label %}</span>{% endif %}</a></p>{% endif %}
       <details class="bld-grp w-full" data-grp="inhalt" open>
         <summary class="bld-grp-sum">{% trans "Content" %}</summary>
         <div class="bld-grp-body">
@@ -193,7 +193,7 @@ collect()/save работают без переименований. data-cb-id 
     {% if b.data.pick or b.data.from_page or not b.data.url and not b.data.title and not b.data.text %}
     <div class="rounded-lg bg-indigo-50 px-3 py-2 text-sm text-gray-900" data-cb-banner-library>
       <p>{% trans "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block." %}</p>
-      <p class="mt-1 flex flex-wrap gap-x-4"><a href="{% url 'site-banners' %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} <span aria-hidden="true">→</span></a><a href="{% if pb_page %}{% url 'site-schema' %}{% else %}{% url 'site-schema-open' %}?page=%2F&amp;block={{ b.id|urlencode:'' }}{% endif %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau öffnen" %} <span aria-hidden="true">→</span></a></p>
+      <p class="mt-1 flex flex-wrap gap-x-4"><a href="{% url 'site-banners' %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} <span aria-hidden="true">→</span></a>{% if not pb_page or b.window_url %}<a href="{% if pb_page %}{{ b.window_url }}{% else %}{% url 'site-schema-open' %}?page=%2F&amp;block={{ b.id|urlencode:'' }}{% endif %}"{% if pb_page %} data-stu-window{% endif %} class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau öffnen" %} <span aria-hidden="true">→</span>{% if pb_page %}<span class="sr-only"> – {% firstof b.data.title b.type|cblock_label %}</span>{% endif %}</a>{% endif %}</p>
     </div>
     <div hidden data-cb-banner-own>
     {% endif %}
