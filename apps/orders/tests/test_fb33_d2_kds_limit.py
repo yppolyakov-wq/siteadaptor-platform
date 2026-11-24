@@ -166,18 +166,23 @@ def test_more_link_needs_list_access(closed, monkeypatch):
 
 
 def test_kitchen_page_and_action_use_the_same_limit():
+    """Полная страница и ответ действия рисуют доску с тем же потолком. Ревью §10.4 (п. 12):
+    действие настоящее — «Annehmen» самого старого заказа проходит FSM (`noop` вьюха молча
+    пропускала, путь `apply` не проверялся)."""
     codes = _orders(LIMIT + 1)
     request = _req()
     with translation.override("de"):
         page = views.kitchen(request).content.decode()
     assert codes[-1] not in page and _status(page)
+    order = Order.objects.order_by("created_at").first()
     post = RequestFactory().post(
-        f"/dashboard/orders/kitchen/{uuid.uuid4()}/action/", {"action": "noop"}
+        f"/dashboard/orders/kitchen/{order.pk}/action/", {"action": "confirmed"}
     )
     post.user, post.tenant, post.session = request.user, request.tenant, request.session
-    order = Order.objects.order_by("created_at").first()
     with translation.override("de"):
         after = views.kitchen_action(post, pk=order.pk).content.decode()
+    order.refresh_from_db()
+    assert order.status == Order.STATUS_CONFIRMED
     assert codes[-1] not in after and _status(after)
 
 
