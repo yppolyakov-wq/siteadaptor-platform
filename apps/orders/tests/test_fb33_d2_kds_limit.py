@@ -133,20 +133,6 @@ def test_no_status_without_overflow():
     assert "data-kds-more" not in html and 'role="status"' not in html
 
 
-def test_more_link_is_plain_link_named_by_text():
-    _orders(LIMIT + 1)
-    html = _board()
-    status = _status(html)
-    assert status
-    link = re.search(
-        r'<a id="kds-more-link" href="([^"]+)"([^>]*)>(.*?)</a>', status.group(1), re.S
-    )
-    assert link and link.group(1) == reverse("orders:order-list")
-    assert "aria-label" not in link.group(2) and "hx-" not in link.group(2)
-    text = " ".join(link.group(3).split())
-    assert text == "1 weitere offene Bestellung — in der Bestellliste"
-
-
 def _staff_without_sales():
     from apps.core.models import Membership
     from apps.core.tests.test_staff_walk import _user
@@ -168,7 +154,7 @@ def test_more_link_needs_list_access(closed, monkeypatch):
         monkeypatch.setattr(
             packages,
             "view_allowed",
-            lambda tenant, name: False if name == "orders:order-list" else real(tenant, name),
+            lambda tenant, name: False if name == "verkaeufe" else real(tenant, name),
         )
         request = _req()
     else:
@@ -195,22 +181,8 @@ def test_kitchen_page_and_action_use_the_same_limit():
     assert codes[-1] not in after and _status(after)
 
 
+#: строка до ревью §10.4 — снята из каталогов
 MSGID = "%(counter)s weitere offene Bestellung — in der Bestellliste"
-PLURAL = "%(counter)s weitere offene Bestellungen — in der Bestellliste"
-
-
-def test_d2_msgids_in_all_po():
-    for lang in ("de", "en", "tr", "ru", "uk"):
-        po = polib.pofile(str(ROOT / f"locale/{lang}/LC_MESSAGES/django.po"))
-        entries = [e for e in po if not e.obsolete]
-        pairs = [(e.msgctxt, e.msgid) for e in entries]
-        assert len(pairs) == len(set(pairs)), lang
-        entry = next((e for e in entries if e.msgid == MSGID), None)
-        assert entry is not None and entry.msgid_plural == PLURAL, lang
-        forms = [v for _k, v in sorted(entry.msgstr_plural.items())]
-        assert forms and all("%(counter)s" in f for f in forms), (lang, forms)
-        if lang != "de":
-            assert forms[0] != MSGID, lang
 
 
 # --- ревью диффа (план §10.4) -----------------------------------------------------------------
@@ -251,7 +223,6 @@ def test_focus_targets_have_stable_ids():
     assert 'id="kds-more-link"' in _more(html)
 
 
-@REVIEW
 def test_link_named_open_list_and_count_is_text():
     """Имя ссылки — «Bestellliste öffnen»; число — текстом перед ссылкой, не в ней."""
     _orders(LIMIT + 2)
@@ -263,7 +234,6 @@ def test_link_named_open_list_and_count_is_text():
     assert "2 weitere offene Bestellungen" in before
 
 
-@REVIEW
 def test_link_targets_the_sales_screen():
     """MEDIUM: цель — экран «Verkäufe» (вкладка заказов, список), не легаси с 302."""
     _orders(LIMIT + 1)
@@ -271,7 +241,6 @@ def test_link_targets_the_sales_screen():
     assert link and link.group(1).replace("&amp;", "&") == _sales_url()
 
 
-@REVIEW
 def test_closed_link_explains(monkeypatch):
     """Право на KDS есть, на «Verkäufe» нет — ссылки нет, строка поясняет почему."""
     from apps.core import view_perms
@@ -302,7 +271,6 @@ def test_new_orders_beyond_the_limit_are_named():
     assert more is not None and "davon 1 neu" in more
 
 
-@REVIEW
 def test_no_new_count_when_hidden_are_confirmed():
     _orders(LIMIT + 1)
     newest = Order.objects.order_by("-created_at").first()

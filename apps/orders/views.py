@@ -145,14 +145,16 @@ KDS_MAX_ORDERS = 48
 
 
 def _kitchen_list_url(request) -> str:
-    """FB-33 D2: адрес списка заказов для строки переполнения — только если он открыт этому
-    пользователю здесь (запись KDS видна, пакет и право цели): одна проверка с меню
-    (`nav_registry.screen_closed`), своей нет. Иначе "" — строка остаётся без ссылки."""
+    """FB-33 D2: адрес списка заказов для строки переполнения — экран «Verkäufe», вкладка
+    заказов списком (тот же адрес, куда ведёт легаси `orders:order-list` 302-м; ревью §10.4).
+    Только если он открыт этому пользователю здесь (запись KDS видна, пакет и право цели): одна
+    проверка с меню (`nav_registry.screen_closed`), своей нет. Иначе "" — строка поясняет,
+    что список не открыт для этой учётной записи."""
     from apps.core import nav_registry
 
     if getattr(request, "tenant", None) is None:
         return ""
-    url = reverse("orders:order-list")
+    url = reverse("verkaeufe") + "?tab=order&view=liste"
     return "" if nav_registry.screen_closed(request, "orders:kitchen", target_url=url) else url
 
 
