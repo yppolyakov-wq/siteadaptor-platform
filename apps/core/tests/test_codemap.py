@@ -224,3 +224,13 @@ def test_real_fsm_importers_are_complete():
 def test_core_index_covers_subpackages():
     listed = (ROOT / "docs" / "codemap-core.md").read_text(encoding="utf-8")
     assert "templatetags/" in listed and "management/commands/" in listed
+
+
+def test_template_is_searched_by_its_full_file_name():
+    """Стопка 14 (журнал находок): у шаблона справка резала три знака как у `.py` и искала `_cb_row.h` —
+    «тестов 0», хотя `_cb_row.html` называют семь тестов."""
+    mod, index = _real()
+    word, skill_needle, _ = mod._names("templates/tenant/_cb_row.html")
+    assert word == "_cb_row.html" and skill_needle == "_cb_row.html"
+    tests, _how = mod._tests_of(ROOT, index, "templates/tenant/_cb_row.html")
+    assert len(tests) >= 5, sorted(tests)
