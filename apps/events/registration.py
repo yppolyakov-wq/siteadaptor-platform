@@ -8,8 +8,8 @@
 ростера/CSV были стабильны и не зависели от текста свободных вопросов.
 """
 
+from django.utils.translation import gettext, pgettext_lazy
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import pgettext_lazy
 
 # Каталог пресет-полей (порядок = порядок показа). type: text|date|textarea|select.
 # Вариант select — пара (value, label). value — немецкая строка, одна на всех языках: её
@@ -75,6 +75,8 @@ VALID_KEYS = [f["key"] for f in FIELDS]
 
 # Префикс имён полей в POST-форме (изолируем от свободных вопросов q0/q1…).
 POST_PREFIX = "reg_"
+#: Потолок длины ответа (сервер и `maxlength` формы).
+VALUE_MAX = 500
 
 
 def choices() -> list[tuple[str, str]]:
@@ -98,7 +100,36 @@ def collect(raw, post, prefix=POST_PREFIX) -> dict:
     KA-12 T-5: свой `prefix` у каждого участника группы (`p2_reg_` …)."""
     out = {}
     for f in active(raw):
-        value = (post.get(prefix + f["key"]) or "").strip()[:500]
+        value = (post.get(prefix + f["key"]) or "").strip()[:VALUE_MAX]
         if value:
             out[f["key"]] = value
     return out
+
+
+def invalid_selects(raw, post, prefix=POST_PREFIX, *, keep=None) -> list[str]:
+    """FB-33 D6: ключи включённых select, чьё присланное значение не из списка вариантов.
+
+    Решение владельца (2026-11-24): select принимает только вариант реестра (точное
+    совпадение `value` после `strip`, как у `collect`). Исключение — `keep`, прежний ответ
+    ЭТОГО слота из БД (старый вариант, ручная правка): он пересохраняется как был, иначе
+    повторное сохранение формы стёрло бы его. Пустое значение — «не ответил», не ошибка.
+    Текстовые поля не сверяются. Зовётся рядом с `collect` (сигнатура `collect` прежняя)."""
+    keep = keep if isinstance(keep, dict) else {}
+    bad = []
+    for f in active(raw):
+        if f.get("type") != "select":
+            continue
+        value = (post.get(prefix + f["key"]) or "").strip()[:VALUE_MAX]
+        if not value or value in [v for v, _label in f.get("options") or []]:
+            continue
+        if value == keep.get(f["key"]):
+            continue
+        bad.append(f["key"])
+    return bad
+
+
+def select_error(key: str) -> str:
+    """Текст ошибки поля select — подпись поля берётся из реестра (не из POST)."""
+    field = _BY_KEY.get(key)
+    label = field["label"] if field else key
+    return gettext("Bitte bei „%(field)s“ einen Eintrag aus der Liste wählen.") % {"field": label}

@@ -40614,3 +40614,8 @@ msgstr "fb33-stack-anchor-d4a"
 
 msgid "fb33-stack-anchor-d6"
 msgstr "fb33-stack-anchor-d6"
+
+#: apps/events/registration.py
+#, python-format
+msgid "Bitte bei „%(field)s“ einen Eintrag aus der Liste wählen."
+msgstr "Please choose an entry from the list for “%(field)s”."

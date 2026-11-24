@@ -119,7 +119,7 @@
             </fieldset>
           {% endif %}
           <label class="block text-sm text-gray-600 max-w-[12rem]">{% trans "Seats" %}
-            <input name="quantity" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" data-rv1-qty>
+            <input name="quantity" type="number" min="1" value="{% if event_input %}{{ event_input.quantity }}{% else %}1{% endif %}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" data-rv1-qty>
           </label>
           {% if accommodation %}
             <fieldset class="space-y-2">
@@ -150,31 +150,31 @@
           {# Обзор выбора (заполняется JS из Schritt 1). #}
           <div data-rv1-summary hidden class="rounded-lg bg-gray-50 border border-gray-100 px-3 py-2 text-sm text-gray-600"></div>
           <div class="grid sm:grid-cols-2 gap-3">
-            <input name="name" required placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-            <input autocomplete="email" name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-            <input autocomplete="tel" type="tel" name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 sm:col-span-2">
+            <input name="name" required placeholder="{% trans 'Name' %}"{% if event_input.name %} value="{{ event_input.name }}"{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+            <input autocomplete="email" name="email" type="email" placeholder="{% trans 'Email' %}"{% if event_input.email %} value="{{ event_input.email }}"{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+            <input autocomplete="tel" type="tel" name="phone" placeholder="{% trans 'Phone (optional)' %}"{% if event_input.phone %} value="{{ event_input.phone }}"{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2.5 sm:col-span-2">
           </div>
           {% comment %}I18N-12: показываем вопрос на локали гостя, но имя поля
           остаётся индексным (q0, q1…) — ключом ответа во вьюхе служит БАЗОВЫЙ
           немецкий вопрос из event.questions (как value у видов мероприятия).{% endcomment %}
-          {% for q in event.questions_localized %}
-            <label class="block text-sm text-gray-600">{{ q }}
-              <input name="q{{ forloop.counter0 }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          {% for q in event_input.questions|default:event.questions_localized %}
+            <label class="block text-sm text-gray-600">{% firstof q.label q %}
+              <input name="q{{ forloop.counter0 }}" maxlength="500"{% if q.value %} value="{{ q.value }}"{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
             </label>
           {% endfor %}
-          {% for f in event.reg_fields %}
+          {% for f in event_input.fields|default:event.reg_fields %}
             <label class="block text-sm text-gray-600">{{ f.label }}
               {% if f.type == 'select' %}
-                <select name="reg_{{ f.key }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
+                <select name="reg_{{ f.key }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white"{% if f.error %} aria-invalid="true" aria-describedby="reg_{{ f.key }}-error" autofocus{% endif %}>
                   <option value="">–</option>
-                  {% for value, label in f.options %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                  {% for value, label in f.options %}<option value="{{ value }}"{% if f.value and value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
                 </select>
               {% elif f.type == 'textarea' %}
-                <textarea name="reg_{{ f.key }}" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"></textarea>
+                <textarea name="reg_{{ f.key }}" maxlength="500" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">{% if f.value %}{{ f.value }}{% endif %}</textarea>
               {% else %}
-                <input name="reg_{{ f.key }}" {% if f.type == 'date' %}type="date"{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+                <input name="reg_{{ f.key }}" maxlength="500" {% if f.type == 'date' %}type="date"{% endif %}{% if f.value %} value="{{ f.value }}"{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
               {% endif %}
-            </label>
+            </label>{% if f.error %}<p id="reg_{{ f.key }}-error" class="text-sm text-red-700">{{ f.error }}</p>{% endif %}
           {% endfor %}
           {# R4: подарочный/промо-код #}
           <label class="block text-sm text-gray-600">{% trans "Voucher code (optional)" %}
@@ -263,7 +263,17 @@
           if (back) back.addEventListener('click', function () { show(1); });
         });
       })();
-      </script>
+      </script>{% if event_input.has_error %}
+      <script>
+      (function () {
+        var form = document.querySelector('[data-rv1]');
+        var bad = form && form.querySelector('[aria-invalid="true"]');
+        if (!bad) return;
+        var next = form.querySelector('[data-rv1-next]');
+        if (next && !next.hidden) next.click();
+        bad.focus();
+      })();
+      </script>{% endif %}
     {% endif %}
   </section>
 

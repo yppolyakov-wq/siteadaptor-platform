@@ -106,7 +106,6 @@ GOOD = {
 
 
 # --- №6 / №7: подделка select на брони ---------------------------------------------
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_invalid_select_no_ticket_input_kept():
     """Подделанный вариант: билета нет, сообщение с подписью поля, введённое — в форме."""
     event = _event()
@@ -135,7 +134,6 @@ def test_kept_input_shown_once():
     assert "Anna Gast" not in html
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_kept_input_other_event_slot_not_taken():
     """Слот одного события не виден и не снимается на странице другого (pop — по pk)."""
     event, other = _event(), _event(title="Anderes")
@@ -146,7 +144,6 @@ def test_kept_input_other_event_slot_not_taken():
     assert "Anna Gast" in html
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_kept_input_expires():
     event = _event()
     request, _resp = _book(event, {**GOOD, "reg_diet": "Paleo"})
@@ -157,7 +154,6 @@ def test_kept_input_expires():
     assert "Anna Gast" not in html
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_kept_slot_shape_is_bounded():
     """Один слот `{pk, data, ts}`: `q*` — не больше вопросов события, `reg_*` — из реестра,
     каждое значение ≤ 500."""
@@ -181,7 +177,6 @@ def test_kept_input_not_visible_to_other_session():
     assert "Anna Gast" not in html
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_kept_input_not_cached(settings):
     """Страница события вне страничного кэша; с введённым — ещё и `no-store`: вторая сессия
     введённого не видит даже при включённом кэше."""
@@ -205,7 +200,6 @@ def test_valid_select_books_as_before():
     assert "event_input" not in request.session
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_event_free_question_capped():
     event = _event()
     _book(event, {**GOOD, "q0": "z" * 900})
@@ -214,7 +208,6 @@ def test_event_free_question_capped():
 
 
 # --- №5: точное совпадение ---------------------------------------------------------
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 @pytest.mark.parametrize(
     "value,ok",
     [("Vegan", True), ("Vegan ", True), ("vegan", False), ("Vegan​", False), ("", True)],
@@ -226,7 +219,6 @@ def test_value_exact(value, ok):
         assert registration.collect(["diet"], {"reg_diet": value}) == {"diet": "Vegan"}
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_invalid_selects_keep_and_prefix():
     assert registration.invalid_selects(["diet"], {"p2_reg_diet": "Paleo"}, prefix="p2_reg_") == [
         "diet"
@@ -241,7 +233,6 @@ def test_invalid_selects_keep_and_prefix():
     assert registration.invalid_selects(["country"], {"reg_country": "=1+1"}) == []
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_select_error_label_from_registry():
     with translation.override("de"):
         assert registration.select_error("diet") == MSG_DE % {"field": "Ernährung"}
@@ -256,14 +247,15 @@ def test_event_detail_unchanged_without_kept():
     fresh = _req("get")
     fresh.tenant = request.tenant
     _r, plain = _detail(event, session_from=fresh)
-    _r, with_foreign = _detail(event, session_from=request)
+    carrier = _req("get")
+    carrier.session, carrier.tenant = request.session, request.tenant
+    _r, with_foreign = _detail(event, session_from=carrier)
     strip = re.compile(r'name="(csrfmiddlewaretoken|form_token)" value="[^"]*"')
     assert strip.sub("", plain) == strip.sub("", with_foreign)
     assert "aria-invalid" not in plain
 
 
 # --- №22: ошибка поля описана -------------------------------------------------------
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_field_error_described():
     event = _event()
     request, _resp = _book(event, {**GOOD, "reg_diet": "Paleo"})
@@ -273,11 +265,10 @@ def test_field_error_described():
     assert 'aria-describedby="reg_diet-error"' in diet
     assert re.search(r'id="reg_diet-error"[^>]*>[^<]*Ernährung', html)
     assert "aria-invalid" not in _select(html, "reg_experience")
-    assert html.count('aria-invalid="true"') == 1
+    assert _form(html).count('aria-invalid="true"') == 1
 
 
 # --- №26: потолок длины в разметке -------------------------------------------------
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_reg_text_maxlength():
     _r, html = _detail(_event())
     form = _form(html)
@@ -316,7 +307,6 @@ def _cabinet_post(ticket, data):
     return req, resp
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 @pytest.mark.parametrize("page", ["guest", "cabinet"])
 def test_participants_invalid_select_nothing_saved(page):
     event = _event(registration_fields=["diet"])
@@ -346,7 +336,6 @@ def test_participants_invalid_select_nothing_saved(page):
     assert rows == {1: ("Anna", {})}
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_participants_error_in_later_slot_writes_nothing():
     """Сначала проверка всех слотов, потом запись: ошибка в слоте 3 не оставляет записанными
     слоты 1 и 2."""
@@ -382,7 +371,6 @@ def test_legacy_value_kept_on_resave():
     }
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_legacy_value_of_other_slot_not_accepted():
     """`keep` — из строки ЭТОГО слота в БД, не из POST и не из соседнего слота."""
     ticket = _ticket(_event(registration_fields=["diet"]))
@@ -427,7 +415,6 @@ def _roster(event):
         return views.roster_csv(req, pk=event.pk).content.decode("utf-8-sig")
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 def test_roster_header_question_formula_escaped():
     event = _event(questions=["=1+1", "Normal?"], registration_fields=["country"])
     header = _roster(event).splitlines()[0].split(";")
@@ -467,7 +454,6 @@ def test_roster_all_user_cells_escaped(prefix):
 
 
 # --- №16: строки во всех пяти .po ----------------------------------------------------
-@pytest.mark.xfail(strict=True, reason="FB-33 D6: до правки")
 @pytest.mark.parametrize("lang", LOCALES)
 def test_d6_msgids_in_all_po(lang):
     path = pathlib.Path(settings.BASE_DIR) / "locale" / lang / "LC_MESSAGES" / "django.po"

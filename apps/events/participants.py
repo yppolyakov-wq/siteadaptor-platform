@@ -65,9 +65,21 @@ def rows(ticket) -> list:
     return [p for p in ticket.participants.all() if p.position <= ticket.quantity]
 
 
-def slots(ticket, *, hide_contacts=False) -> list[dict]:
+class InvalidAnswers(Exception):
+    """FB-33 D6: значение select не из списка вариантов — ничего не сохранено.
+    `errors` — {позиция места: [ключи полей]}."""
+
+    def __init__(self, errors: dict[int, list[str]]):
+        super().__init__("invalid select answers")
+        self.errors = errors
+
+
+def slots(ticket, *, hide_contacts=False, post=None, errors=None) -> list[dict]:
     """По слоту на место: позиция, имя, поля анкеты с текущими значениями.
-    Первый слот без имени подставляет покупателя (он чаще всего и едет)."""
+    Первый слот без имени подставляет покупателя (он чаще всего и едет).
+
+    FB-33 D6: `post` + `errors` (после `InvalidAnswers`) — форма из присланного: имя и ответы
+    из POST, у поля с ошибкой — текст ошибки, а значение не возвращается."""
     have = {p.position: p for p in rows(ticket)}
     fields = [
         f
@@ -81,12 +93,23 @@ def slots(ticket, *, hide_contacts=False) -> list[dict]:
         if not name and pos == 1:
             name = getattr(ticket.customer, "name", "") or ""
         answers = dict(row.answers) if row else {}
+        bad = (errors or {}).get(pos) or []
+        prefix = f"p{pos}_{registration.POST_PREFIX}"
+        if post is not None and f"p{pos}_name" in post:
+            name = (post.get(f"p{pos}_name") or "").strip()[:NAME_MAX]
+            posted = registration.collect(ticket.event.registration_fields, post, prefix=prefix)
+            answers = {k: v for k, v in posted.items() if k not in bad}
         out.append(
             {
                 "position": pos,
                 "name": name,
                 "fields": [
-                    _slot_field(f, f"p{pos}_{registration.POST_PREFIX}{f['key']}", answers)
+                    _slot_field(
+                        f,
+                        f"{prefix}{f['key']}",
+                        answers,
+                        error=registration.select_error(f["key"]) if f["key"] in bad else "",
+                    )
                     for f in fields
                 ],
             }
@@ -94,13 +117,13 @@ def slots(ticket, *, hide_contacts=False) -> list[dict]:
     return out
 
 
-def _slot_field(field: dict, name: str, answers: dict) -> dict:
+def _slot_field(field: dict, name: str, answers: dict, error: str = "") -> dict:
     """Поле слота с текущим ответом. Сохранённый ответ select, которого нет среди вариантов
     (старый вариант, ручная правка), дорисовывается вариантом `(value, value)` — иначе select
     встаёт на «—» и следующее сохранение формы стирает ответ. Каталог вариантов
     (`registration.FIELDS`) не меняется: список — копия на этот слот."""
     value = answers.get(field["key"], "")
-    out = {**field, "input": name, "value": value}
+    out = {**field, "input": name, "value": value, "error": error}
     if field.get("type") == "select" and value:
         options = list(field.get("options") or [])
         if value not in [v for v, _label in options]:
@@ -115,7 +138,11 @@ def save(ticket, post, *, actor=None, source="guest", ip="", hide_contacts=False
     стирает чужие данные); места сверх `quantity` удаляются. Гостю проверка
     «можно править» — под блокировкой билета (отмена могла успеть раньше).
     Скрытые контактные поля сохраняют прежнее значение. → число строк или None,
-    если править уже нельзя."""
+    если править уже нельзя.
+
+    FB-33 D6: сначала проверяются ВСЕ слоты, потом пишется: значение select не из списка
+    (кроме прежнего ответа слота — из строки БД под блокировкой, не из POST) →
+    `InvalidAnswers`, ничего не записано."""
     from apps.core.audit import audit_event
 
     raw = ticket.event.registration_fields
@@ -124,10 +151,22 @@ def save(ticket, post, *, actor=None, source="guest", ip="", hide_contacts=False
         if source == "guest" and not editable(locked):
             return None
         have = {p.position: p for p in TicketParticipant.objects.filter(ticket=locked)}
+        posted = [pos for pos in range(1, locked.quantity + 1) if f"p{pos}_name" in post]
+        errors = {}
+        for pos in posted:
+            old = have.get(pos)
+            bad = registration.invalid_selects(
+                raw,
+                post,
+                prefix=f"p{pos}_{registration.POST_PREFIX}",
+                keep=(old.answers if old else None),
+            )
+            if bad:
+                errors[pos] = bad
+        if errors:
+            raise InvalidAnswers(errors)
         saved = 0
-        for pos in range(1, locked.quantity + 1):
-            if f"p{pos}_name" not in post:
-                continue
+        for pos in posted:
             name = (post.get(f"p{pos}_name") or "").strip()[:NAME_MAX]
             answers = registration.collect(raw, post, prefix=f"p{pos}_{registration.POST_PREFIX}")
             old = have.get(pos)

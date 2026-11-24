@@ -27,16 +27,16 @@
           {% for f in s.fields %}
             <label class="block text-sm">{{ f.label }}
               {% if f.type == "select" %}
-                <select name="{{ f.input }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+                <select name="{{ f.input }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base"{% if f.error %} aria-invalid="true" aria-describedby="{{ f.input }}-error" autofocus{% endif %}>
                   <option value="">—</option>
                   {% for value, label in f.options %}<option value="{{ value }}"{% if value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
                 </select>
               {% elif f.type == "textarea" %}
-                <textarea name="{{ f.input }}" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">{{ f.value }}</textarea>
+                <textarea name="{{ f.input }}" rows="2" maxlength="500" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">{{ f.value }}</textarea>
               {% else %}
                 <input name="{{ f.input }}" type="{% if f.type == 'date' %}date{% else %}text{% endif %}" value="{{ f.value }}" maxlength="500" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
               {% endif %}
-            </label>
+            </label>{% if f.error %}<p id="{{ f.input }}-error" class="text-sm text-red-700">{{ f.error }}</p>{% endif %}
           {% endfor %}
         </fieldset>
       {% endfor %}

@@ -385,14 +385,21 @@ def ticket_action(request, pk, tid):
         else:
             from apps.core import contact_access
 
-            parts.save(
-                ticket,
-                request.POST,
-                actor=request.user,
-                source="cabinet",
-                hide_contacts=not contact_access.can_see(request.user),
-            )
-            messages.success(request, _("Teilnehmerdaten gespeichert."))
+            try:
+                parts.save(
+                    ticket,
+                    request.POST,
+                    actor=request.user,
+                    source="cabinet",
+                    hide_contacts=not contact_access.can_see(request.user),
+                )
+            except parts.InvalidAnswers as exc:
+                # FB-33 D6: вариант не из списка — ничего не сохранено (из формы кабинета
+                # такое не приходит: только подделанный запрос)
+                for key in dict.fromkeys(k for keys in exc.errors.values() for k in keys):
+                    messages.error(request, registration.select_error(key))
+            else:
+                messages.success(request, _("Teilnehmerdaten gespeichert."))
         return redirect("events:ticket-detail", pk=ticket.pk)
     if request.POST.get("action") == "extras":
         # 3b (зеркало MX-3): правка состава допов билета; итог — свойство
@@ -1013,7 +1020,8 @@ def roster_csv(request, pk):
             "Teilnehmende",
             *(["Unterkunft"] if show_unterkunft else []),
             *(["Waiver"] if show_waiver else []),
-            *question_cols,
+            # FB-33 D6: текст вопроса пишет владелец — шапка экранируется, как и ячейки
+            *[csv_safe(q) for q in question_cols],
             *[label for _key, label in reg_cols],
         ]
     )

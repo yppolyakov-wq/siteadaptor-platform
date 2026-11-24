@@ -6,6 +6,7 @@
 оплаты онлайн — pending (оплата на месте / подтверждает владелец).
 """
 
+import time
 import uuid
 from urllib.parse import quote
 
@@ -15,6 +16,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.cache import patch_cache_control
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
@@ -29,7 +31,7 @@ from apps.core import (
 )
 from apps.stays.services import StayUnavailable
 
-from . import installments, payments, services
+from . import installments, payments, registration, services
 from .models import Event, Teacher, Ticket, Tour
 
 RL_LIMIT = 5
@@ -410,7 +412,14 @@ def veranstaltung_detail(request, pk):
         # встройка тянула растровые тайлы OSM, которые для нагрузки запрещены.
         ctx["map_point"] = {"lat": lat, "lng": lng}
         ctx["map_link"] = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lng}#map=15/{lat}/{lng}"
-    return render(request, "storefront/event_detail.html", ctx)
+    # FB-33 D6: введённое до ошибки поля — один раз в форму брони (без него разметка прежняя)
+    kept = _take_event_input(request, event)
+    if kept:
+        ctx["event_input"] = kept
+    response = render(request, "storefront/event_detail.html", ctx)
+    if kept:
+        patch_cache_control(response, no_store=True, private=True)
+    return response
 
 
 def event_review_submit(request, pk):
@@ -472,6 +481,83 @@ def veranstaltung_memo(request, code):
     return resp
 
 
+#: FB-33 D6: введённое в форму брони до ошибки поля — один слот `{pk, data, ts}` в сессии.
+EVENT_INPUT_KEY = "event_input"
+#: Сколько секунд слот ждёт гостя (дольше — введённое не возвращается).
+EVENT_INPUT_TTL = 30 * 60
+_EVENT_INPUT_FIELDS = ("name", "email", "phone")
+
+
+def _keep_event_input(request, event, errors) -> None:
+    """FB-33 D6: ошибка поля не стирает введённое. Берём только известное: имя, контакты,
+    число мест, ответы на ВОПРОСЫ ЭТОГО события (`q0…`, не больше их числа) и годные поля
+    анкеты (ключи реестра, без полей с ошибкой) — каждое не длиннее `VALUE_MAX`. Слот один
+    на сессию: новый перезаписывает прежний. В журнал не пишется."""
+    post = request.POST
+    cap = registration.VALUE_MAX
+
+    def _val(name):
+        return (post.get(name) or "").strip()[:cap]
+
+    try:
+        qty = max(1, min(int(post.get("quantity", "1")), 50))
+    except (TypeError, ValueError):
+        qty = 1
+    data = {k: _val(k) for k in _EVENT_INPUT_FIELDS}
+    data["quantity"] = qty
+    data["questions"] = [{"value": _val(f"q{i}")} for i in range(len(event.questions or []))]
+    collected = registration.collect(event.registration_fields, post)
+    data["reg"] = {k: v for k, v in collected.items() if k not in errors}
+    data["errors"] = [k for k in errors if k in registration.VALID_KEYS]
+    request.session[EVENT_INPUT_KEY] = {"pk": str(event.pk), "data": data, "ts": int(time.time())}
+
+
+def _take_event_input(request, event):
+    """Введённое до ошибки — один раз и только своему событию (слот чужого события остаётся
+    в сессии). Протухший слот снимается. → данные формы для шаблона или None."""
+    session = getattr(request, "session", None)
+    if session is None:
+        return None
+    slot = session.get(EVENT_INPUT_KEY)
+    if not isinstance(slot, dict) or slot.get("pk") != str(event.pk):
+        return None
+    session.pop(EVENT_INPUT_KEY, None)
+    data = slot.get("data")
+    ts = slot.get("ts")
+    if not isinstance(data, dict) or not isinstance(ts, int):
+        return None
+    if time.time() - ts > EVENT_INPUT_TTL:
+        return None
+    return _event_form_input(event, data)
+
+
+def _event_form_input(event, data) -> dict:
+    """Контекст формы брони из сохранённого слота: значения полей и ошибки — в том же
+    порядке, что и вопросы и поля анкеты события (`questions_localized`, `reg_fields`)."""
+    reg = data.get("reg") if isinstance(data.get("reg"), dict) else {}
+    errors = data.get("errors") if isinstance(data.get("errors"), list) else []
+    kept_q = data.get("questions") if isinstance(data.get("questions"), list) else []
+    questions = []
+    for i, label in enumerate(event.questions_localized()):
+        item = kept_q[i] if i < len(kept_q) and isinstance(kept_q[i], dict) else {}
+        questions.append({"label": label, "value": str(item.get("value") or "")})
+    fields = [
+        {
+            **f,
+            "value": "" if f["key"] in errors else str(reg.get(f["key"]) or ""),
+            "error": registration.select_error(f["key"]) if f["key"] in errors else "",
+        }
+        for f in event.reg_fields
+    ]
+    return {
+        **{k: str(data.get(k) or "") for k in _EVENT_INPUT_FIELDS},
+        "quantity": data.get("quantity") if isinstance(data.get("quantity"), int) else 1,
+        "questions": questions,
+        "fields": fields,
+        "has_error": any(f["error"] for f in fields),
+    }
+
+
 def veranstaltung_book(request, pk):
     _require_events_active(request)
     if request.method != "POST":
@@ -490,12 +576,20 @@ def veranstaltung_book(request, pk):
         qty = max(1, min(int(request.POST.get("quantity", "1")), 50))
     except (TypeError, ValueError):
         qty = 1
+    # FB-33 D6 (ревью M9): свободный ответ — с тем же потолком, что и поля анкеты
     answers = {
-        q: request.POST.get(f"q{i}", "").strip() for i, q in enumerate(event.questions or [])
+        q: request.POST.get(f"q{i}", "").strip()[: registration.VALUE_MAX]
+        for i, q in enumerate(event.questions or [])
     }
+    # FB-33 D6: select анкеты — только вариант из списка; иначе билета нет, введённое ждёт
+    # гостя в форме (один раз), у поля — ошибка
+    invalid = registration.invalid_selects(event.registration_fields, request.POST)
+    if invalid:
+        for key in invalid:
+            messages.error(request, registration.select_error(key))
+        _keep_event_input(request, event, invalid)
+        return redirect("storefront-event", pk=pk)
     # R1: ответы на структурированные пресет-поля (страна/питание/опыт…).
-    from . import registration
-
     answers.update(registration.collect(event.registration_fields, request.POST))
     # A6 ценовой тир: цена/решение об оплате — по выбранному тиру (иначе единой цене).
     tier_label = request.POST.get("tier", "").strip()
@@ -1121,21 +1215,38 @@ def veranstaltung_participants(request, token):
         raise Http404
     ticket = get_object_or_404(Ticket.objects.select_related("event", "customer"), pk=pk)
     editable = parts.editable(ticket)
+    invalid = None
     if request.method == "POST":
-        if parts.save(ticket, request.POST, source="guest", ip=ip) is None:
-            messages.error(request, _("Die Angaben können nicht mehr geändert werden."))
+        try:
+            saved = parts.save(ticket, request.POST, source="guest", ip=ip)
+        except parts.InvalidAnswers as exc:
+            # FB-33 D6: вариант не из списка — ничего не сохранено; форма из присланного с
+            # ошибкой у поля (200, не redirect: введённое не теряется и не ложится в сессию)
+            invalid = exc.errors
+            for key in dict.fromkeys(k for keys in invalid.values() for k in keys):
+                messages.error(request, registration.select_error(key))
         else:
-            messages.success(request, _("Teilnehmerdaten gespeichert."))
-        return redirect(reverse("storefront-ticket-participants", args=[token]))
-    return render(
+            if saved is None:
+                messages.error(request, _("Die Angaben können nicht mehr geändert werden."))
+            else:
+                messages.success(request, _("Teilnehmerdaten gespeichert."))
+            return redirect(reverse("storefront-ticket-participants", args=[token]))
+    response = render(
         request,
         "storefront/event_participants.html",
         {
             "ticket": ticket,
             "event": ticket.event,
             # Данные (в т.ч. о здоровье) — только пока их можно править.
-            "slots": parts.slots(ticket) if editable else [],
+            "slots": (
+                parts.slots(ticket, post=request.POST if invalid else None, errors=invalid)
+                if editable
+                else []
+            ),
             "editable": editable,
             "token": token,
         },
     )
+    if invalid:
+        patch_cache_control(response, no_store=True, private=True)
+    return response
