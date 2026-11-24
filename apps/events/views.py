@@ -396,8 +396,10 @@ def ticket_action(request, pk, tid):
             except parts.InvalidAnswers as exc:
                 # FB-33 D6: вариант не из списка — ничего не сохранено (из формы кабинета
                 # такое не приходит: только подделанный запрос)
-                for key in dict.fromkeys(k for keys in exc.errors.values() for k in keys):
-                    messages.error(request, registration.select_error(key))
+                for pos, keys in sorted(exc.errors.items()):
+                    person = _("Person %(n)s") % {"n": pos}
+                    for key in keys:
+                        messages.error(request, f"{person}: {registration.select_error(key)}")
             else:
                 messages.success(request, _("Teilnehmerdaten gespeichert."))
         return redirect("events:ticket-detail", pk=ticket.pk)

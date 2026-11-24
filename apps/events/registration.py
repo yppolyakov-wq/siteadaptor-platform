@@ -8,7 +8,7 @@
 ростера/CSV были стабильны и не зависели от текста свободных вопросов.
 """
 
-from django.utils.translation import gettext, pgettext_lazy
+from django.utils.translation import gettext, ngettext, pgettext_lazy
 from django.utils.translation import gettext_lazy as _
 
 # Каталог пресет-полей (порядок = порядок показа). type: text|date|textarea|select.
@@ -72,6 +72,9 @@ FIELDS = [
 
 _BY_KEY = {f["key"]: f for f in FIELDS}
 VALID_KEYS = [f["key"] for f in FIELDS]
+#: FB-33 D6 (ревью): ответы, которые при ошибке формы НЕ возвращаются через сессию — здоровье
+#: (Art. 9 DSGVO), экстренный контакт третьего лица, дата рождения. Гость вводит их заново.
+NO_ECHO_KEYS = ("medical", "allergies", "emergency_contact", "birth_date")
 
 # Префикс имён полей в POST-форме (изолируем от свободных вопросов q0/q1…).
 POST_PREFIX = "reg_"
@@ -126,6 +129,13 @@ def invalid_selects(raw, post, prefix=POST_PREFIX, *, keep=None) -> list[str]:
             continue
         bad.append(f["key"])
     return bad
+
+
+def error_summary(n: int) -> str:
+    """Одно сводное сообщение над формой (подробность — у каждого поля)."""
+    return ngettext("Bitte %(n)s Angabe korrigieren.", "Bitte %(n)s Angaben korrigieren.", n) % {
+        "n": n
+    }
 
 
 def select_error(key: str) -> str:

@@ -70,9 +70,7 @@
   {# 15. Anfrage / Buchung #}
   <section id="buchen" class="mt-8 bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h2 class="text-xl font-bold mb-1">{% trans "Reserve your spot" %}</h2>
-    {% if messages %}
-      {% for m in messages %}<div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="my-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>{% endfor %}
-    {% endif %}
+    {# FB-33 D6: сообщения выводит _base — второй раз в карточке не повторяем #}
     {% if event.is_sold_out %}
       <p class="text-red-600 font-medium mt-2">{% trans "Sold out" %}</p>
       <p class="text-sm text-gray-600 mt-3">{% trans "Join the waitlist and we'll email you the moment a spot opens up." %}</p>
@@ -109,7 +107,7 @@
               {% for t in event.tiers_display %}
                 <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 {% if t.sold_out %}opacity-60 cursor-not-allowed{% else %}cursor-pointer hover:border-indigo-300{% endif %}">
                   <span class="flex items-center gap-2 text-sm">
-                    <input type="radio" name="tier" value="{{ t.label }}" data-rv1-label="{{ t.label }}" {% if t.is_default %}checked{% endif %} {% if t.sold_out %}disabled{% endif %} required>
+                    <input type="radio" name="tier" value="{{ t.label }}" data-rv1-label="{{ t.label }}" {% if event_input %}{% if t.label == event_input.tier %}checked{% endif %}{% elif t.is_default %}checked{% endif %} {% if t.sold_out %}disabled{% endif %} required>
                     {{ t.label }}
                     {% if t.closed %}<span class="text-xs text-gray-500">· {% trans "Abgelaufen" %}</span>{% elif t.sold_out %}<span class="text-xs text-red-600 font-medium">· {% trans "Sold out" %}</span>{% elif t.until_date %}<span class="text-xs text-amber-700">· {% blocktrans with d=t.until_date|date:"d.m.Y" %}bis {{ d }}{% endblocktrans %}</span>{% elif t.seats_left %}<span class="text-xs text-gray-500">· {% blocktrans with n=t.seats_left %}{{ n }} left{% endblocktrans %}</span>{% endif %}
                   </span>
@@ -125,13 +123,13 @@
             <fieldset class="space-y-2">
               <legend class="text-sm font-medium mb-1">{% trans "Accommodation" %} · {{ accommodation.0.nights }} {% trans "nights" %}</legend>
               <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-indigo-300">
-                <span class="flex items-center gap-2 text-sm"><input type="radio" name="stay_unit" value="" data-rv1-label="{% trans 'Without accommodation' %}" checked> {% trans "Without accommodation" %}</span>
+                <span class="flex items-center gap-2 text-sm"><input type="radio" name="stay_unit" value="" data-rv1-label="{% trans 'Without accommodation' %}"{% if not event_input.stay_unit %} checked{% endif %}> {% trans "Without accommodation" %}</span>
                 <span class="text-sm text-gray-400">+0 €</span>
               </label>
               {% for o in accommodation %}
                 <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 {% if o.available %}cursor-pointer hover:border-indigo-300{% else %}opacity-50{% endif %}">
                   <span class="flex items-center gap-2 text-sm">
-                    <input type="radio" name="stay_unit" value="{{ o.unit.pk }}" data-rv1-label="{{ o.unit.name }}" {% if not o.available %}disabled{% endif %}>
+                    <input type="radio" name="stay_unit" value="{{ o.unit.pk }}" data-rv1-label="{{ o.unit.name }}" {% if not o.available %}disabled{% endif %}{% if event_input.stay_unit and event_input.stay_unit == o.unit.pk|stringformat:"s" %} checked{% endif %}>
                     {{ o.unit.name }}{% if o.unit.bed_type %} · {{ o.unit.bed_type }}{% endif %}
                     {% if not o.available %}<span class="text-xs text-red-600">({% trans "booked out" %})</span>{% endif %}
                   </span>
@@ -158,21 +156,21 @@
           остаётся индексным (q0, q1…) — ключом ответа во вьюхе служит БАЗОВЫЙ
           немецкий вопрос из event.questions (как value у видов мероприятия).{% endcomment %}
           {% for q in event_input.questions|default:event.questions_localized %}
-            <label class="block text-sm text-gray-600">{% firstof q.label q %}
+            <label class="block text-sm text-gray-600">{% if event_input %}{{ q.label }}{% else %}{{ q }}{% endif %}
               <input name="q{{ forloop.counter0 }}" maxlength="500"{% if q.value %} value="{{ q.value }}"{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
             </label>
           {% endfor %}
           {% for f in event_input.fields|default:event.reg_fields %}
             <label class="block text-sm text-gray-600">{{ f.label }}
               {% if f.type == 'select' %}
-                <select name="reg_{{ f.key }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white"{% if f.error %} aria-invalid="true" aria-describedby="reg_{{ f.key }}-error" autofocus{% endif %}>
+                <select name="reg_{{ f.key }}" class="mt-1 w-full rounded-lg border {% if f.error %}border-red-600 scroll-mt-24 scroll-mb-32{% else %}border-gray-300{% endif %} px-3 py-2.5 bg-white"{% if f.error %} aria-invalid="true" aria-describedby="reg_{{ f.key }}-error"{% if f.autofocus %} autofocus{% endif %}{% endif %}>
                   <option value="">–</option>
                   {% for value, label in f.options %}<option value="{{ value }}"{% if f.value and value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
                 </select>
               {% elif f.type == 'textarea' %}
-                <textarea name="reg_{{ f.key }}" maxlength="500" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">{% if f.value %}{{ f.value }}{% endif %}</textarea>
+                <textarea name="reg_{{ f.key }}" maxlength="500" rows="2" class="mt-1 w-full rounded-lg border {% if f.error %}border-red-600 scroll-mt-24 scroll-mb-32{% else %}border-gray-300{% endif %} px-3 py-2.5"{% if f.error %} aria-invalid="true" aria-describedby="reg_{{ f.key }}-error"{% if f.autofocus %} autofocus{% endif %}{% endif %}>{% if f.value %}{{ f.value }}{% endif %}</textarea>
               {% else %}
-                <input name="reg_{{ f.key }}" maxlength="500" {% if f.type == 'date' %}type="date"{% endif %}{% if f.value %} value="{{ f.value }}"{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+                <input name="reg_{{ f.key }}" maxlength="500" {% if f.type == 'date' %}type="date"{% endif %}{% if f.value %} value="{{ f.value }}"{% endif %} class="mt-1 w-full rounded-lg border {% if f.error %}border-red-600 scroll-mt-24 scroll-mb-32{% else %}border-gray-300{% endif %} px-3 py-2.5"{% if f.error %} aria-invalid="true" aria-describedby="reg_{{ f.key }}-error"{% if f.autofocus %} autofocus{% endif %}{% endif %}>
               {% endif %}
             </label>{% if f.error %}<p id="reg_{{ f.key }}-error" class="text-sm text-red-700">{{ f.error }}</p>{% endif %}
           {% endfor %}
@@ -186,7 +184,7 @@
           {# R10: рассрочка — оплата частями (мандат + авто-списания) #}
           {% if installment_offer %}
             <label class="flex items-start gap-2 text-sm text-gray-700 bg-indigo-50 rounded-lg px-3 py-2">
-              <input type="checkbox" name="pay_mode" value="installments" class="mt-0.5">
+              <input type="checkbox" name="pay_mode" value="installments" class="mt-0.5"{% if event_input.pay_mode %} checked{% endif %}>
               <span>{% blocktrans with n=installment_offer.count f=installment_offer.first_eur|floatformat:0 %}Pay in {{ n }} instalments — about {{ f }} € now, the rest is charged automatically.{% endblocktrans %}</span>
             </label>
           {% endif %}
@@ -270,8 +268,13 @@
         var bad = form && form.querySelector('[aria-invalid="true"]');
         if (!bad) return;
         var next = form.querySelector('[data-rv1-next]');
+        var step2 = form.querySelector('[data-rv1-step="2"]');
+        // шаг 2 открывается только при годном шаге 1 (иначе `next` оставит фокус на шаге 1)
         if (next && !next.hidden) next.click();
-        bad.focus();
+        if (step2 && step2.hidden) return;
+        var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        bad.focus({ preventScroll: true });
+        bad.scrollIntoView({ block: 'center', behavior: calm ? 'auto' : 'smooth' });
       })();
       </script>{% endif %}
     {% endif %}

@@ -6,11 +6,13 @@
 оплаты онлайн — pending (оплата на месте / подтверждает владелец).
 """
 
+import logging
 import time
 import uuid
 from urllib.parse import quote
 
 import stripe
+from django.conf import settings
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -33,6 +35,8 @@ from apps.stays.services import StayUnavailable
 
 from . import installments, payments, registration, services
 from .models import Event, Teacher, Ticket, Tour
+
+logger = logging.getLogger(__name__)
 
 RL_LIMIT = 5
 RL_WINDOW = 600
@@ -507,26 +511,67 @@ def _keep_event_input(request, event, errors) -> None:
     data["quantity"] = qty
     data["questions"] = [{"value": _val(f"q{i}")} for i in range(len(event.questions or []))]
     collected = registration.collect(event.registration_fields, post)
-    data["reg"] = {k: v for k, v in collected.items() if k not in errors}
+    data["reg"] = {
+        k: v for k, v in collected.items() if k not in errors and k not in registration.NO_ECHO_KEYS
+    }
     data["errors"] = [k for k in errors if k in registration.VALID_KEYS]
-    request.session[EVENT_INPUT_KEY] = {"pk": str(event.pk), "data": data, "ts": int(time.time())}
+    data.update(_kept_choices(event, post))
+    try:
+        request.session[EVENT_INPUT_KEY] = {
+            "pk": str(event.pk),
+            "data": data,
+            "ts": int(time.time()),
+        }
+    except Exception:  # noqa: BLE001 — хранилище сессий недоступно: бронь всё равно отклонена
+        logger.warning(
+            "event input not kept in session (event %s): guest re-enters the form",
+            event.pk,
+            exc_info=True,
+        )
+
+
+def _kept_choices(event, post) -> dict:
+    """Выбор шага 1 — только известные значения ЭТОГО события: тариф, допы, номер, рассрочка.
+    Код ваучера, подпись и галочка отказа не возвращаются (осознанно — вводятся заново)."""
+    from apps.core import extras as extras_engine
+
+    tier = (post.get("tier") or "").strip()
+    tiers = {str(t.get("label")) for t in event.tier_list if isinstance(t, dict)}
+    extras = [
+        x["id"]
+        for x in extras_engine.snapshot(
+            post.getlist("extra")[:50], "events", entity_kind="event", entity_id=str(event.pk)
+        )
+    ]
+    unit = (post.get("stay_unit") or "").strip()
+    units = {str(o["unit"].pk) for o in services.accommodation_options(event)} if unit else set()
+    return {
+        "tier": tier if tier in tiers else "",
+        "extras": extras,
+        "stay_unit": unit if unit in units else "",
+        "pay_mode": "installments" if post.get("pay_mode") == "installments" else "",
+    }
 
 
 def _take_event_input(request, event):
     """Введённое до ошибки — один раз и только своему событию (слот чужого события остаётся
     в сессии). Протухший слот снимается. → данные формы для шаблона или None."""
     session = getattr(request, "session", None)
-    if session is None:
+    # без cookie сессии слота быть не может — не трогаем сессию (иначе `Vary: Cookie`)
+    if session is None or settings.SESSION_COOKIE_NAME not in request.COOKIES:
         return None
     slot = session.get(EVENT_INPUT_KEY)
-    if not isinstance(slot, dict) or slot.get("pk") != str(event.pk):
+    if slot is None:
+        return None
+    ts = slot.get("ts") if isinstance(slot, dict) else None
+    if not isinstance(ts, int) or time.time() - ts > EVENT_INPUT_TTL:
+        session.pop(EVENT_INPUT_KEY, None)  # протухший или битый — снимаем на любой странице
+        return None
+    if slot.get("pk") != str(event.pk):
         return None
     session.pop(EVENT_INPUT_KEY, None)
     data = slot.get("data")
-    ts = slot.get("ts")
-    if not isinstance(data, dict) or not isinstance(ts, int):
-        return None
-    if time.time() - ts > EVENT_INPUT_TTL:
+    if not isinstance(data, dict):
         return None
     return _event_form_input(event, data)
 
@@ -541,20 +586,29 @@ def _event_form_input(event, data) -> dict:
     for i, label in enumerate(event.questions_localized()):
         item = kept_q[i] if i < len(kept_q) and isinstance(kept_q[i], dict) else {}
         questions.append({"label": label, "value": str(item.get("value") or "")})
-    fields = [
-        {
-            **f,
-            "value": "" if f["key"] in errors else str(reg.get(f["key"]) or ""),
-            "error": registration.select_error(f["key"]) if f["key"] in errors else "",
-        }
-        for f in event.reg_fields
-    ]
+    fields, first = [], True
+    for f in event.reg_fields:
+        bad = f["key"] in errors
+        fields.append(
+            {
+                **f,
+                "value": "" if bad else str(reg.get(f["key"]) or ""),
+                "error": registration.select_error(f["key"]) if bad else "",
+                "autofocus": bad and first,  # только первое поле с ошибкой
+            }
+        )
+        first = first and not bad
+    extras = data.get("extras") if isinstance(data.get("extras"), list) else []
     return {
         **{k: str(data.get(k) or "") for k in _EVENT_INPUT_FIELDS},
         "quantity": data.get("quantity") if isinstance(data.get("quantity"), int) else 1,
         "questions": questions,
         "fields": fields,
         "has_error": any(f["error"] for f in fields),
+        "tier": str(data.get("tier") or ""),
+        "extras": [str(x) for x in extras],
+        "stay_unit": str(data.get("stay_unit") or ""),
+        "pay_mode": str(data.get("pay_mode") or ""),
     }
 
 
@@ -585,8 +639,8 @@ def veranstaltung_book(request, pk):
     # гостя в форме (один раз), у поля — ошибка
     invalid = registration.invalid_selects(event.registration_fields, request.POST)
     if invalid:
-        for key in invalid:
-            messages.error(request, registration.select_error(key))
+        # одно сводное сообщение; что именно не так — у каждого поля
+        messages.error(request, registration.error_summary(len(invalid)))
         _keep_event_input(request, event, invalid)
         return redirect("storefront-event", pk=pk)
     # R1: ответы на структурированные пресет-поля (страна/питание/опыт…).
@@ -1223,8 +1277,9 @@ def veranstaltung_participants(request, token):
             # FB-33 D6: вариант не из списка — ничего не сохранено; форма из присланного с
             # ошибкой у поля (200, не redirect: введённое не теряется и не ложится в сессию)
             invalid = exc.errors
-            for key in dict.fromkeys(k for keys in invalid.values() for k in keys):
-                messages.error(request, registration.select_error(key))
+            messages.error(
+                request, registration.error_summary(sum(len(k) for k in invalid.values()))
+            )
         else:
             if saved is None:
                 messages.error(request, _("Die Angaben können nicht mehr geändert werden."))

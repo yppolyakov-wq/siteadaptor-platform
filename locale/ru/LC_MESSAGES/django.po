@@ -40974,3 +40974,12 @@ msgstr "fb33-stack-anchor-d6"
 #, python-format
 msgid "Bitte bei „%(field)s“ einen Eintrag aus der Liste wählen."
 msgstr "Пожалуйста, выберите вариант из списка в поле «%(field)s»."
+
+#: apps/events/registration.py
+#, python-format
+msgid "Bitte %(n)s Angabe korrigieren."
+msgid_plural "Bitte %(n)s Angaben korrigieren."
+msgstr[0] "Исправьте %(n)s поле."
+msgstr[1] "Исправьте %(n)s поля."
+msgstr[2] "Исправьте %(n)s полей."
+msgstr[3] "Исправьте %(n)s поля."

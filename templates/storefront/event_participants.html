@@ -4,11 +4,7 @@
 
 {% block content %}
 <div class="max-w-xl mx-auto">
-  {% if messages %}
-    {% for m in messages %}
-      <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
+  {# FB-33 D6: сообщения выводит _base — второй раз не повторяем #}
   <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h1 class="text-2xl font-bold mb-2">{% trans "Teilnehmerdaten" %}</h1>
     <p class="text-gray-600">{{ event.title_text }}</p>
@@ -27,14 +23,14 @@
           {% for f in s.fields %}
             <label class="block text-sm">{{ f.label }}
               {% if f.type == "select" %}
-                <select name="{{ f.input }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base"{% if f.error %} aria-invalid="true" aria-describedby="{{ f.input }}-error" autofocus{% endif %}>
+                <select name="{{ f.input }}" class="mt-1 block w-full rounded-lg border {% if f.error %}border-red-600 scroll-mt-24 scroll-mb-32{% else %}border-gray-300{% endif %} px-3 py-2 text-base"{% if f.error %} aria-invalid="true" aria-describedby="{{ f.input }}-error"{% if f.autofocus %} autofocus{% endif %}{% endif %}>
                   <option value="">—</option>
                   {% for value, label in f.options %}<option value="{{ value }}"{% if value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
                 </select>
               {% elif f.type == "textarea" %}
-                <textarea name="{{ f.input }}" rows="2" maxlength="500" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">{{ f.value }}</textarea>
+                <textarea name="{{ f.input }}" rows="2" maxlength="500" class="mt-1 block w-full rounded-lg border {% if f.error %}border-red-600 scroll-mt-24 scroll-mb-32{% else %}border-gray-300{% endif %} px-3 py-2 text-base"{% if f.error %} aria-invalid="true" aria-describedby="{{ f.input }}-error"{% if f.autofocus %} autofocus{% endif %}{% endif %}>{{ f.value }}</textarea>
               {% else %}
-                <input name="{{ f.input }}" type="{% if f.type == 'date' %}date{% else %}text{% endif %}" value="{{ f.value }}" maxlength="500" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+                <input name="{{ f.input }}" type="{% if f.type == 'date' %}date{% else %}text{% endif %}" value="{{ f.value }}" maxlength="500" class="mt-1 block w-full rounded-lg border {% if f.error %}border-red-600 scroll-mt-24 scroll-mb-32{% else %}border-gray-300{% endif %} px-3 py-2 text-base"{% if f.error %} aria-invalid="true" aria-describedby="{{ f.input }}-error"{% if f.autofocus %} autofocus{% endif %}{% endif %}>
               {% endif %}
             </label>{% if f.error %}<p id="{{ f.input }}-error" class="text-sm text-red-700">{{ f.error }}</p>{% endif %}
           {% endfor %}

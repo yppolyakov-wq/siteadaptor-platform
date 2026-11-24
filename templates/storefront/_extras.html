@@ -7,7 +7,7 @@
   {% for e in extras %}
     <label class="flex items-center justify-between gap-3 text-sm">
       <span class="flex items-center gap-2">
-        <input type="checkbox" name="extra" value="{{ e.pk }}" class="rounded border-gray-300">
+        <input type="checkbox" name="extra" value="{{ e.pk }}" class="rounded border-gray-300"{% if event_input.extras and e.pk|stringformat:"s" in event_input.extras %} checked{% endif %}>
         {% comment %}A5: миниатюра фото доп-услуги (если задано).{% endcomment %}
         {% if e.image_url %}<img src="{{ e.image_url }}" alt="{{ e.label_localized }}" class="w-8 h-8 rounded object-cover">{% endif %}
         {{ e.label_localized }}</span>

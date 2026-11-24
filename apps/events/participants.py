@@ -87,6 +87,7 @@ def slots(ticket, *, hide_contacts=False, post=None, errors=None) -> list[dict]:
         if not (hide_contacts and f["key"] in CONTACT_KEYS)
     ]
     out = []
+    first = True  # `autofocus` — только у первого поля с ошибкой
     for pos in range(1, ticket.quantity + 1):
         row = have.get(pos)
         name = row.name if row else ""
@@ -99,21 +100,18 @@ def slots(ticket, *, hide_contacts=False, post=None, errors=None) -> list[dict]:
             name = (post.get(f"p{pos}_name") or "").strip()[:NAME_MAX]
             posted = registration.collect(ticket.event.registration_fields, post, prefix=prefix)
             answers = {k: v for k, v in posted.items() if k not in bad}
-        out.append(
-            {
-                "position": pos,
-                "name": name,
-                "fields": [
-                    _slot_field(
-                        f,
-                        f"{prefix}{f['key']}",
-                        answers,
-                        error=registration.select_error(f["key"]) if f["key"] in bad else "",
-                    )
-                    for f in fields
-                ],
-            }
-        )
+        slot_fields = []
+        for f in fields:
+            item = _slot_field(
+                f,
+                f"{prefix}{f['key']}",
+                answers,
+                error=registration.select_error(f["key"]) if f["key"] in bad else "",
+            )
+            item["autofocus"] = bool(item["error"]) and first
+            first = first and not item["error"]
+            slot_fields.append(item)
+        out.append({"position": pos, "name": name, "fields": slot_fields})
     return out
 
 

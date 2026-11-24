@@ -35,7 +35,6 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 MSG_DE = "Bitte bei „%(field)s“ einen Eintrag aus der Liste wählen."
-XF = pytest.mark.xfail(strict=True, reason="FB-33 D6 ревью §10.5: до правки")
 
 
 def _summary(n):
@@ -119,7 +118,6 @@ GOOD = {
 
 
 # --- №6 / №7: подделка select на брони ---------------------------------------------
-@XF
 def test_invalid_select_no_ticket_input_kept():
     """Подделанный вариант: билета нет, сообщение с подписью поля, введённое — в форме."""
     event = _event()
@@ -480,7 +478,6 @@ def test_d6_msgids_in_all_po(lang):
 
 
 # --- ревью диффа D6 (план §10.5) ---------------------------------------------------
-@XF
 def test_event_input_slot_excludes_medical():
     """Art. 9: здоровье, аллергии, экстренный контакт, дата рождения — не в слот сессии."""
     event = _event(
@@ -514,7 +511,6 @@ def test_event_input_slot_excludes_medical():
         assert value not in html
 
 
-@XF
 def test_event_input_expired_slot_removed_on_foreign_event():
     event, other = _event(), _event(title="Anderes")
     request, _resp = _book(event, {**GOOD, "reg_diet": "Paleo"})
@@ -525,15 +521,25 @@ def test_event_input_expired_slot_removed_on_foreign_event():
     assert public_views.EVENT_INPUT_KEY not in request.session
 
 
-@XF
 def test_no_session_read_without_cookie():
-    """Без cookie сессии слот не читается — страница события не получает `Vary: Cookie`
-    из-за D6."""
+    """Без cookie сессии слот D6 не читается и не снимается. (`Vary: Cookie` у витрины и так
+    есть: сессию читают контекстные процессоры `modules_nav` — кабинет клиента и столик.)"""
     event = _event()
     request = _req("get")
-    with mock.patch.object(public_views, "_take_event_input", wraps=public_views._take_event_input):
-        public_views.veranstaltung_detail(request, pk=event.pk)
-    assert not request.session.accessed
+    asked = []
+    real_get, real_pop = request.session.get, request.session.pop
+    request.session.get = lambda key, *a: asked.append(key) or real_get(key, *a)
+    request.session.pop = lambda key, *a: asked.append(key) or real_pop(key, *a)
+    public_views.veranstaltung_detail(request, pk=event.pk)
+    assert public_views.EVENT_INPUT_KEY not in asked
+    # с cookie — читается (контроль, что замок видит чтение)
+    request = _req("get")
+    request.COOKIES[settings.SESSION_COOKIE_NAME] = "stand-in"
+    asked.clear()
+    real_get = request.session.get
+    request.session.get = lambda key, *a: asked.append(key) or real_get(key, *a)
+    public_views.veranstaltung_detail(request, pk=event.pk)
+    assert public_views.EVENT_INPUT_KEY in asked
 
 
 class _BrokenSession(dict):
@@ -541,7 +547,6 @@ class _BrokenSession(dict):
         raise RuntimeError("session store down")
 
 
-@XF
 def test_session_write_failure_logged(caplog):
     event = _event()
     request = _req("post", {**GOOD, "reg_diet": "Paleo"})
@@ -554,7 +559,6 @@ def test_session_write_failure_logged(caplog):
     assert hits and "event input" in hits[0].getMessage()
 
 
-@XF
 def test_one_summary_message_and_field_texts():
     """Одна ошибка — одно объявление: одно сводное сообщение, подробность — у полей; на
     странице сводка ровно один раз (локальный цикл сообщений карточки снят)."""
@@ -570,7 +574,6 @@ def test_one_summary_message_and_field_texts():
     assert html.count(MSG_DE % {"field": "Ernährung"}) == 1  # только у поля
 
 
-@XF
 def test_guest_one_summary_message():
     ticket = _ticket(_event(registration_fields=["diet"]))
     resp = _guest_post(ticket, {"p1_name": "A", "p2_name": "B", "p2_reg_diet": "Paleo"})
@@ -579,7 +582,6 @@ def test_guest_one_summary_message():
     assert html.count(MSG_DE % {"field": "Ernährung"}) == 1
 
 
-@XF
 def test_event_input_restores_tier_and_extras():
     from apps.core.models import Extra
 
@@ -610,14 +612,12 @@ def test_event_input_restores_tier_and_extras():
     assert "GS-ABC" not in form
 
 
-@XF
 def test_event_input_unknown_tier_not_kept():
     event = _event(tiers=[{"label": "Standard", "price_cents": 0}])
     request, _resp = _book(event, {**GOOD, "reg_diet": "Paleo", "tier": "Erfunden"})
     assert request.session[public_views.EVENT_INPUT_KEY]["data"]["tier"] == ""
 
 
-@XF
 def test_all_field_types_described_and_one_autofocus():
     """`aria-invalid`/`aria-describedby` и рамка — у поля с ошибкой любого типа;
     `autofocus` — только у первого."""
@@ -643,7 +643,6 @@ def test_all_field_types_described_and_one_autofocus():
     assert re.search(r'<input name="reg_country"[^>]*autofocus', form)
 
 
-@XF
 def test_cabinet_message_names_position():
     ticket = _ticket(_event(registration_fields=["diet"]), quantity=3)
     req, _resp = _cabinet_post(
@@ -654,7 +653,6 @@ def test_cabinet_message_names_position():
     assert not TicketParticipant.objects.filter(ticket=ticket).exists()
 
 
-@XF
 @pytest.mark.parametrize("lang", LOCALES)
 def test_d6_summary_msgid_in_all_po(lang):
     path = pathlib.Path(settings.BASE_DIR) / "locale" / lang / "LC_MESSAGES" / "django.po"

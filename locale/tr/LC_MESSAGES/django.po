@@ -40766,3 +40766,10 @@ msgstr "fb33-stack-anchor-d6"
 #, python-format
 msgid "Bitte bei „%(field)s“ einen Eintrag aus der Liste wählen."
 msgstr "Lütfen „%(field)s“ için listeden bir seçenek seçin."
+
+#: apps/events/registration.py
+#, python-format
+msgid "Bitte %(n)s Angabe korrigieren."
+msgid_plural "Bitte %(n)s Angaben korrigieren."
+msgstr[0] "Lütfen %(n)s bilgiyi düzeltin."
+msgstr[1] "Lütfen %(n)s bilgiyi düzeltin."
