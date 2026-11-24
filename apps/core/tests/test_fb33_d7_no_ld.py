@@ -129,7 +129,6 @@ def test_detail_ld_untouched():
 
 # ── правки ревью §10.6 (решение владельца 2026-11-24) ─────────────────────────────────────────
 
-RED = pytest.mark.xfail(strict=True, reason="FB-33 D7 §10.6: до правки")
 FAQ = [{"q": "Habt ihr Parkplätze?", "a": "Ja, hinter dem Haus."}]
 
 
@@ -145,7 +144,6 @@ def _faq_html(route_path, data):
     )
 
 
-@RED
 def test_faqpage_not_on_search():
     """FAQPage на выдаче `?q=` не выводится; видимый блок FAQ — прежний."""
     path = reverse("storefront-products")
@@ -156,7 +154,6 @@ def test_faqpage_not_on_search():
     assert searched.strip() == plain[plain.index("</script>") + len("</script>") :].strip()
 
 
-@RED
 def test_breadcrumb_ld_not_built_on_search(monkeypatch):
     """`catalog_breadcrumb_ld` на `?q=` не считается (не только не выводится)."""
     from apps.core import seo

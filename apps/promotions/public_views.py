@@ -1915,9 +1915,10 @@ def product_list(request, slug=None):
             (str(c), reverse("storefront-category", args=[c.slug]) if c != category else "")
             for c in chain
         ]
-        catalog_breadcrumb_ld = _breadcrumb_ld(
-            [(n, request.build_absolute_uri(u) if u else "") for n, u in catalog_breadcrumbs]
-        )
+        if not q:  # FB-33 D7: выдача ?q= вне индекса — BreadcrumbList не нужен
+            catalog_breadcrumb_ld = _breadcrumb_ld(
+                [(n, request.build_absolute_uri(u) if u else "") for n, u in catalog_breadcrumbs]
+            )
     # MEN-24d (фидбэк «переключатели видов рядом с сортировкой»): посетительский
     # вид каталога — серверный ?ansicht=<preset> (работает при ЛЮБОМ стиле
     # владельца, вкл. авторские karte/buch — class-swap их не умел). Мусор →
