@@ -133,6 +133,7 @@
   ],
   "selected": [
    "can_hide",
+   "content",
    "fixed",
    "flex",
    "key",
@@ -147,6 +148,7 @@
   "forms": [],
   "ops": [],
   "selected": [
+   "content",
    "enabled",
    "fixed",
    "flex",
@@ -739,6 +741,7 @@
   "forms": [],
   "ops": [],
   "selected": [
+   "content",
    "enabled",
    "fixed",
    "flex",

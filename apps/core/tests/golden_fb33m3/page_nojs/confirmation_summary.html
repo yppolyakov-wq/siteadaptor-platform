@@ -266,7 +266,9 @@
   
   <aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
     
-    <p class="xl:hidden -mt-1 mb-1 text-right"><a href="?seite=confirmation#schema-row-summary" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></a></p>
+    <form method="post" class="xl:hidden -mt-1 mb-1 text-right"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
+<input type="hidden" name="ref" value="summary"><button name="op" value="window_done" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></button></form>
+    
     
     
     
@@ -283,6 +285,27 @@
     
 
 
+<section id="schema-tab-was" class="scroll-mt-20 focus:outline-none" data-window-tab="was" tabindex="-1">
+  <h3 class="sr-only">Was</h3>
+  <div data-window-part="inhalt">
+<p class="mt-3 text-sm text-gray-800" data-inhalt-summary>Dieser Block zeigt: die Bestätigung des Kunden — Nummer, Positionen, Summe, Zahlung. Gilt für Bestellung, Termin, Zimmer, Ticket und Tisch.</p>
+<p class="mt-2 text-sm text-gray-700"><span class="ui-badge" aria-hidden="true" data-inhalt-fixed>🔒 fest</span> Er gehört fest zur Seite und lässt sich nicht ausblenden oder verschieben.</p>
+<dl class="mt-2 space-y-1 break-words text-sm text-gray-700" data-inhalt-dl><div><dt class="inline font-semibold">Woher:</dt> <dd class="inline" data-inhalt-woher>automatisch — aus der Bestellung oder Buchung.</dd></div></dl>
+<p class="mt-3 text-xs text-gray-700" data-inhalt-hint>Eigene Blöcke darüber oder darunter fügen Sie mit „Block hinzufügen“ in der Liste ein.</p>
+
+</div>
+</section>
+
+
+
+<form method="post" class="mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-3" data-window-actions data-wait-error="Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen.">
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
+
+  <input type="hidden" name="ref" value="summary">
+  <button name="op" value="revert" class="ui-btn ui-btn-secondary min-h-[44px]">Abbrechen</button>
+  <button name="op" value="window_done" class="ui-btn ui-btn-primary min-h-[44px]">Fertig</button>
+</form>
 
 
     
