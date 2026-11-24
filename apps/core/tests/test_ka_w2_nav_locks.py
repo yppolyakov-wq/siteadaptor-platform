@@ -43,6 +43,8 @@ PALETTE_ONLY_OK = {
     "imports:website": "вход с экрана импорта",
     "orders:table-qr": "вход из KDS",
     "promotions:promotion-quick": "ассистент — кнопка «＋»",
+    # FB-33 стопка 14 E6 (решение владельца 2026-11-24): якоря заморожены — только палитра
+    "site-home?page=%2F&block=gallery": "галерея — Студия на главной; вход из окна «Beispiele»",
     "verkaeufe?tab=reservation": "резервы — вкладка продаж (с первой записи)",
     "verkaeufe-zusatz": "вход из тулбара Verkäufe",
 }

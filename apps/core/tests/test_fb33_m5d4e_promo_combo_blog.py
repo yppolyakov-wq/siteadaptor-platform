@@ -50,8 +50,9 @@ MAP = {
     ("promo", "card"): ("setting", "settings", True),
     ("promo", "related"): ("auto", "", True),
     ("combo", "config"): ("setting", "catalog:combo-list", False),
-    # писатель `site_config["gallery"]` — Студия (`site-home`), записи реестра у неё нет
-    ("combo", "examples"): ("auto", "", True),
+    # писатель `site_config["gallery"]` — Студия; FB-33 стопка 14 E6 (осознанно, решение
+    # владельца 2026-11-24): запись «Galerie» `site-home?page=%2F&block=gallery`
+    ("combo", "examples"): ("setting", "site-home", True),
     ("combo", "related"): ("auto", "", True),
     ("blog_post", "article"): ("setting", "blog-list", False),
     ("blog_post", "more"): ("auto", "", True),
@@ -60,7 +61,17 @@ MAP = {
 PAGES = {"promo": "promo", "combo": "combo", "blog_post": "blog_post"}
 #: окно у этих строк уже есть — срез их не трогает
 UNTOUCHED = {("promo", "offer"), ("combo", "reviews"), ("combo", "cta")}
-LINK_LABELS = {"settings": "Mein Geschäft", "catalog:combo-list": "Kombi", "blog-list": "Blog"}
+LINK_LABELS = {
+    "settings": "Mein Geschäft",
+    "catalog:combo-list": "Kombi",
+    "blog-list": "Blog",
+    "site-home": "Galerie",
+}
+#: FB-33 стопка 14 E6: у этих экранов запись реестра одна и с query (вход, а не сам экран)
+QUERY_ONLY = {"site-home": "?page=%2F&block=gallery"}
+#: FB-33 стопка 14 E6: «Woher» у «Beispiele» сменился — прежняя строка остаётся под якорем
+#: среза в `.po` (каталоги правит координатор), источником её больше нет
+RETIRED_MSGIDS = {"automatisch — die ersten Fotos der Galerie Ihrer Website."}
 
 
 @pytest.fixture(autouse=True)
@@ -218,7 +229,8 @@ def test_blog_type_only():
 
 def test_combo_type_only():
     """Kombi — только тип страницы: конфигуратор закреплён, ссылка — список «Kombi»;
-    «Beispiele» и «Weitere Menüs» — авто, без ссылки, только скрываются."""
+    «Weitere Menüs» — авто, без ссылки; «Beispiele» (FB-33 стопка 14 E6) — ссылка «Galerie» в
+    Студию на главной; оба только скрываются."""
     assert "combo" not in site_schema.OBJECT_KINDS
     assert "this" not in site_schema.OBJECT_WORDS["combo"]
     assert not site_schema.is_object_code(f"combo@combo:{uuid.uuid4().hex}")
@@ -232,11 +244,20 @@ def test_combo_type_only():
         "only_here": False,
     }
     assert "Inhalt bearbeiten: Kombi" in _text(part)
-    for key in ("examples", "related"):
-        part, ct = _inhalt(tenant, f"?seite=combo&block={key}")
-        assert ct["link"] is None and not ct["reason"] and "<a " not in part, key
-        assert ct["visibility"] == "sichtbar." and ct["actions"] == ACT_HIDE, key
-        assert ct["woher"].startswith("automatisch") and "Erscheint nur" in ct["woher"], key
+    part, ct = _inhalt(tenant, "?seite=combo&block=related")
+    assert ct["link"] is None and not ct["reason"] and "<a " not in part
+    assert ct["visibility"] == "sichtbar." and ct["actions"] == ACT_HIDE
+    assert ct["woher"].startswith("automatisch") and "Erscheint nur" in ct["woher"]
+    # FB-33 стопка 14 E6 (осознанно): «Beispiele» — ссылка «Galerie» в Студию на главной
+    part, ct = _inhalt(tenant, "?seite=combo&block=examples")
+    assert ct["link"] == {
+        "label": nav_registry.entry_by_url("site-home").label,
+        "url": reverse("site-home") + QUERY_ONLY["site-home"],
+        "only_here": False,
+    }
+    assert not ct["reason"] and "Inhalt bearbeiten: Galerie" in _text(part)
+    assert ct["visibility"] == "sichtbar." and ct["actions"] == ACT_HIDE
+    assert not ct["woher"].startswith("automatisch") and "Erscheint nur" in ct["woher"]
 
 
 def test_promo_rows():
@@ -293,8 +314,8 @@ def test_hidden_row_window_says_how_to_show(code, key, flag):
 
 def test_content_nav_entries_are_unambiguous():
     """Каждый `content_nav` среза — имя URL однозначной записи `nav_registry`, экран открыт
-    владельцу; подпись ссылки — подпись записи. У галереи сайта записи нет — «Beispiele»
-    остаются без ссылки."""
+    владельцу; подпись ссылки — подпись записи. FB-33 стопка 14 E6: у галереи сайта запись одна
+    и с query («Galerie», `QUERY_ONLY`)."""
     tenant = _tenant()
     req = SimpleNamespace(tenant=tenant, user=SimpleNamespace(is_authenticated=True))
     navs = {
@@ -306,12 +327,14 @@ def test_content_nav_entries_are_unambiguous():
     assert navs == set(LINK_LABELS)
     for url_name, label in LINK_LABELS.items():
         entries = [e for e in nav_registry.ENTRIES if e.url_name == url_name]
-        assert len([e for e in entries if not e.query]) == 1, url_name
+        if url_name in QUERY_ONLY:
+            assert [e.query for e in entries] == [QUERY_ONLY[url_name]], url_name
+        else:
+            assert len([e for e in entries if not e.query]) == 1, url_name
         with translation.override("de"):
             assert str(nav_registry.entry_by_url(url_name).label) == label
         assert reverse(url_name)
         assert nav_registry.screen_closed(req, url_name) == "", url_name
-    assert nav_registry.entry_by_url("site-home") is None
 
 
 def test_link_closed_without_the_right():
@@ -387,7 +410,8 @@ def test_new_msgids_in_all_po():
         start = text.index(f"# {ANCHOR}\n")
         block = text[start : text.index("# fb33-stack-anchor-", start + 1)]
         own = set(re.findall(r'^msgid "(.+)"$', block, re.M))
-        assert own and own <= {m.replace('"', '\\"') for m in msgids} | {ANCHOR}, (lang, own)
+        allowed = {m.replace('"', '\\"') for m in msgids} | {ANCHOR} | RETIRED_MSGIDS
+        assert own and own <= allowed, (lang, own)
 
 
 def test_window_in_russian_has_no_german_source_text():

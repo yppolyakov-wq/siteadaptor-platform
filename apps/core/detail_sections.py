@@ -752,15 +752,16 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
             ),
         ),
         DetailSection("reviews", _("Customer reviews")),
-        # фото — галерея сайта (`site_config["gallery"]`, пополняется в Студии): записи
-        # `nav_registry` у этого экрана нет — без ссылки
+        # фото — галерея сайта (`site_config["gallery"]`, пополняется в Студии). FB-33 E6:
+        # ссылка — запись «Galerie» (`site-home?page=%2F&block=gallery`, главная Студии)
         DetailSection(
             "examples",
             _("Beispiele unserer Arbeit"),
+            content_nav="site-home",
             source=ContentSource(
-                "auto",
+                "setting",
                 shows=_("bis zu 6 Fotos aus der Galerie Ihrer Website"),
-                woher=_("automatisch — die ersten Fotos der Galerie Ihrer Website."),
+                woher=_("Die ersten Fotos der Galerie Ihrer Website."),
                 only_if=_("Erscheint nur, wenn die Galerie Fotos hat."),
             ),
         ),
