@@ -139,12 +139,15 @@ PAYLOAD_RETENTION = __import__("datetime").timedelta(days=30)
 def purge_payloads(*, now=None) -> int:
     """SEC-G7 (аудит 2026-11-01): стереть содержимое (тело, вложения) отправленных и
     окончательно упавших уведомлений старше срока — строка остаётся для статистики и
-    дедупа (dedupe_key), персональные данные письма — нет."""
+    дедупа (dedupe_key), персональные данные письма — нет.
+
+    FB-33 D5: и `pending` старше срока — доставка ставится сразу при записи (`on_commit`),
+    повтор берёт только FAILED за сутки (`RETRY_WINDOW`): такую строку уже никто не отправит."""
     from .models import Notification
 
     cutoff = (now or timezone.now()) - PAYLOAD_RETENTION
     return (
-        Notification.objects.filter(status__in=[SENT, FAILED], updated_at__lt=cutoff)
+        Notification.objects.filter(status__in=[SENT, FAILED, PENDING], updated_at__lt=cutoff)
         .exclude(payload={})
         .update(payload={})
     )

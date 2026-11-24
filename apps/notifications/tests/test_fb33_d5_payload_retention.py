@@ -23,7 +23,6 @@ from apps.promotions.models import Customer
 
 pytestmark = pytest.mark.django_db
 
-RED = pytest.mark.xfail(strict=True, reason="FB-33 D5: до реализации")
 OWNER_BODY = {"body": "Neue Bestellung von Erika Muster, Tel. 0170 1, Antwort: ohne Nüsse"}
 
 
@@ -64,7 +63,6 @@ def test_owner_mail_with_answers_purged_after_retention():
     assert Notification.objects.get(dedupe_key="order:c:created:owner").payload == OWNER_BODY
 
 
-@RED
 def test_pending_notification_payload_purged():
     """Ревью §10.1 M2: `pending`, зависший дольше срока, — тоже стирается (доставка шла
     `on_commit` сразу; повтор берёт только FAILED за сутки — такую строку никто не отправит)."""
@@ -235,7 +233,6 @@ KINDS = {
 }
 
 
-@RED
 def test_dsgvo_erase_wipes_owner_mails_of_customer_deals():
     """Ответ владельца §9 №7 «стирать»: письмо владельцу о заказе клиента (имя, телефон,
     ответы) теряет тему и содержимое; письмо самому клиенту — как раньше (по адресу)."""
@@ -252,7 +249,6 @@ def test_dsgvo_erase_wipes_owner_mails_of_customer_deals():
     assert kept.recipient == "owner@example.com"  # адрес владельца — не данные клиента
 
 
-@RED
 @pytest.mark.parametrize("kind", sorted(KINDS))
 def test_erase_owner_mails_all_kinds(kind):
     """§10.1 M2 / §10.2 H5: все виды писем владельцу о сделке клиента, с `:tg`."""
@@ -287,7 +283,6 @@ def test_erase_owner_mails_only_of_this_customer_deals():
         assert n.payload == OWNER_BODY and n.subject, key
 
 
-@RED
 def test_owner_mail_keys_registry_covers_code():
     """Одна константа ключей: каждый ключ письма владельцу в коде (`…:owner`, `…:owner:tg`)
     либо в `dsgvo.OWNER_MAIL_KEYS`, либо в `dsgvo.OWNER_MAIL_EXEMPT` с причиной (письмо не

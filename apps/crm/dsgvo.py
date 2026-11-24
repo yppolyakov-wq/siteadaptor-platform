@@ -77,6 +77,28 @@ ERASURE_POLICY = {
     "community.FeedComment": ("author", ()),
 }
 
+#: FB-33 D5 (ответ владельца 2026-11-24 «стирать»): письма владельцу о сделке клиента несут
+#: имя, контакты, состав и ответы на вопросы. Ключ такого письма — `<префикс>:<pk>:…:owner`
+#: или `…:owner:tg` (`notify` / `telegram.notify.send_to_owner`). Метка модели сделки →
+#: (префикс ключа, путь к pk от строки сделки): у треда — и сообщения, у билета — платежи
+#: рассрочки. Замок `test_owner_mail_keys_registry_covers_code` сверяет реестр с кодом.
+OWNER_MAIL_KEYS = {
+    "orders.Order": (("order", "pk"),),
+    "orders.Offer": (("offer", "pk"),),
+    "jobs.Job": (("job", "pk"),),
+    "booking.Booking": (("booking", "pk"),),
+    "stays.StayBooking": (("stay", "pk"),),
+    "events.Ticket": (("ticket", "pk"), ("installment", "installment_plan__charges__id")),
+    "promotions.Reservation": (("resv", "pk"),),
+    "inbox.Conversation": (("inbox:conv", "pk"), ("inbox:msg", "messages__id")),
+}
+#: Письма владельцу с тем же окончанием ключа, но не о сделке клиента.
+OWNER_MAIL_EXEMPT = {
+    "event": "минимум участников события — числа, без клиента",
+    "event-cancel": "сводка отмены события — коды билетов и числа, без имён",
+}
+OWNER_MAIL_SUFFIXES = (":owner", ":owner:tg")
+
 # Дочерние строки, которые входят в выгрузку вместе с родителем.
 CHILDREN = {
     "orders.Order": ("items",),
@@ -305,6 +327,8 @@ def erase_customer(customer, tenant=None) -> dict:
         if blockers:
             raise ErasureBlocked(blockers)
         email = customer.email
+        # FB-33 D5: ключи писем владельцу — ДО стирания (тред удаляется с сообщениями)
+        owner_mails = _owner_mail_q(customer)
         for label, model, field in _related_specs():
             action, arg = ERASURE_POLICY[label]
             qs = model.objects.filter(**{field: customer})
@@ -347,6 +371,13 @@ def erase_customer(customer, tenant=None) -> dict:
         if files:
             transaction.on_commit(lambda: _delete_files(files))
         stats.update(_erase_email_linked(email, chats))
+        if owner_mails is not None:
+            from apps.notifications.models import Notification
+
+            # адрес владельца остаётся (не данные клиента); тема и тело — с именем и ответами
+            stats["notifications.owner"] = Notification.objects.filter(owner_mails).update(
+                subject="", payload={}
+            )
         _anonymize_customer(customer)
         if documents:
             from apps.documents import services as document_services
@@ -354,6 +385,29 @@ def erase_customer(customer, tenant=None) -> dict:
             # Файл удаляется после фиксации: потерянный файл лучше потерянной записи.
             transaction.on_commit(lambda: _purge_documents(document_services, documents))
     return stats
+
+
+def _owner_mail_q(customer):
+    """Q писем владельцу о сделках клиента (`OWNER_MAIL_KEYS`); None — сделок нет.
+
+    pk сделок — через `_related_specs()` (без импорта моделей сделок), ключ — с завершающим
+    `:` после pk (иной pk с тем же началом не совпадёт) и окончанием из `OWNER_MAIL_SUFFIXES`."""
+    from django.db.models import Q
+
+    prefixes = []
+    for label, model, field in _related_specs():
+        for prefix, path in OWNER_MAIL_KEYS.get(label, ()):
+            ids = model.objects.filter(**{field: customer}).values_list(path, flat=True)
+            prefixes.extend(f"{prefix}:{pk}:" for pk in ids if pk is not None)
+    if not prefixes:
+        return None
+    starts = Q()
+    for prefix in prefixes:
+        starts |= Q(dedupe_key__startswith=prefix)
+    ends = Q()
+    for suffix in OWNER_MAIL_SUFFIXES:
+        ends |= Q(dedupe_key__endswith=suffix)
+    return starts & ends
 
 
 def _delete_files(names):
