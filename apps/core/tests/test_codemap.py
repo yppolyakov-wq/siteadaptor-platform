@@ -6,6 +6,7 @@
 молчит о том, что есть, и что оглавление ядра и базовая линия взаимных зависимостей не устарели.
 """
 
+import functools
 import importlib.util
 import pathlib
 
@@ -17,6 +18,13 @@ def _mod():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+@functools.lru_cache(maxsize=1)
+def _real():
+    """Индекс настоящего репозитория — один на весь файл (разбор 2000+ файлов не быстрый)."""
+    mod = _mod()
+    return mod, mod.build_index(ROOT)
 
 
 def _tree(tmp_path, files):
@@ -95,15 +103,15 @@ def test_core_index_lines_carry_module_and_purpose(tmp_path):
 
 
 def test_real_repo_known_links_are_found():
-    mod = _mod()
-    index = mod.build_index(ROOT)
+    mod, index = _real()
     apps = {path.split("/")[1] for path in mod.importers(index, "apps/core/form_spec.py")}
     assert {"orders", "jobs"} <= apps, apps
     assert len(mod.importers(index, "apps/core/fsm.py")) >= 10
 
 
 def test_report_is_not_silent_about_a_core_module():
-    text = _mod().report(ROOT, "apps/core/form_spec.py")
+    mod, index = _real()
+    text = mod.report(ROOT, "apps/core/form_spec.py", index)
     for part in ("Кто импортирует", "Тесты", "Скилл", "Память проекта"):
         assert part in text, part
     assert "sa-block-editor" in text, "скилл редактора блоков называет form_spec"
@@ -127,7 +135,7 @@ def test_core_index_lists_every_core_module():
 
 
 def test_no_new_mutual_dependencies_between_apps():
-    mod = _mod()
+    mod, index = _real()
     baseline = {
         tuple(line.split())
         for line in (ROOT / "docs" / "codemap-mutual-baseline.txt")
@@ -135,7 +143,7 @@ def test_no_new_mutual_dependencies_between_apps():
         .splitlines()
         if line.strip() and not line.startswith("#")
     }
-    new = [pair for pair in mod.mutual_pairs(mod.build_index(ROOT)) if pair not in baseline]
+    new = [pair for pair in mod.mutual_pairs(index) if pair not in baseline]
     assert not new, (
         f"новые взаимные зависимости приложений: {new}. Два приложения стали импортировать друг друга — "
         "вынести общее в apps/core или развязать сигналом; осознанно — строка в docs/codemap-mutual-baseline.txt"
