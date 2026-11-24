@@ -15,6 +15,7 @@ import pytest
 
 from apps.core import aufbau_draft
 from apps.core.tests.test_fb27_r2_draft import Browser
+from apps.core.tests.test_fb33_e9_cancel_anchor import said  # E9: итог «Abbrechen» в адресе
 from apps.tenants import siteconfig
 from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
@@ -143,7 +144,7 @@ def test_cancel_restores_everything():
     before = copy.deepcopy(Tenant.objects.get(pk=b.tenant.pk).site_config)
     _scope(b, "a1", wopen="tok12345")
     assert (_draft(b) or {}).get("scope")
-    _resp, msgs = b.post(seite="home", op="revert", ref="a1", wopen="tok12345")
+    _resp, msgs = said(*b.post(seite="home", op="revert", ref="a1", wopen="tok12345"))
     assert any("zurückgenommen" in m for m in msgs)
     assert _draft(b) is None
     assert Tenant.objects.get(pk=b.tenant.pk).site_config == before
@@ -339,7 +340,7 @@ def test_cancel_after_the_type_changed_elsewhere():
         "promo_groups": {TYPE: {"style": "countdown", "card": "ring"}},
     }
     t.save(update_fields=["site_config"])
-    _resp, msgs = b.post(seite="home", op="revert", ref="a1", wopen="tok12345")
+    _resp, msgs = said(*b.post(seite="home", op="revert", ref="a1", wopen="tok12345"))
     assert any("zurückgenommen" in m for m in msgs), msgs
     assert _draft(b) is None
     assert _saved(t)["promo_groups"][TYPE] == {"style": "countdown", "card": "ring"}

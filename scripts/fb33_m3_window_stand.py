@@ -633,7 +633,7 @@ with sync_playwright() as p:
         # без правок в этом окне — честное «нечего», не «zurückgenommen»
         pg.click("[data-window-actions] button[value=revert]")
         pg.wait_for_url(lambda u: "block=" not in u, timeout=10000)
-        note = pg.locator("[data-schema-messages]").inner_text()
+        note = pg.locator("[data-schema-cancel]").inner_text()  # E9: итог у строки
         check(
             ("Nichts zurückzunehmen" in note or "Nothing to undo" in note) and "undone" not in note,
             f"Abbrechen без снимка — предупреждение ({note[:50]})",
@@ -665,7 +665,7 @@ with sync_playwright() as p:
         pg.goto(open_url)
         pg.click("[data-window-actions] button[value=revert]")
         pg.wait_for_url(lambda u: "block=" not in u, timeout=10000)
-        note = pg.locator("[data-schema-messages]").inner_text()
+        note = pg.locator("[data-schema-cancel]").inner_text()  # E9: итог у строки
         pg.goto(open_url)
         hidden = pg.locator("#schema-panel").inner_text()
         check(

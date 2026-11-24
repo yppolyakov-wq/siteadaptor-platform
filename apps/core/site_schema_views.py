@@ -48,6 +48,33 @@ def _keep(source) -> dict:
     return keep
 
 
+#: E9 (стопка 14): значения `abbruch` в адресе после «Abbrechen» (белый список GET)
+CANCEL_KINDS = ("done", "conflict", "same")
+
+
+def _cancel_kind(done: str) -> str:
+    """E9: итог `aufbau_draft.cancel` → значение `abbruch`."""
+    from apps.core import aufbau_draft
+
+    if done == aufbau_draft.CANCEL_DONE:
+        return "done"
+    if done == aufbau_draft.CANCEL_CONFLICT:
+        return "conflict"
+    return "same"
+
+
+def _cancel_text(kind: str) -> tuple[int, str]:
+    """E9: уровень и текст итога «Abbrechen» (тексты M3-1b; вне белого списка — «нечего»)."""
+    if kind == "done":
+        return messages.SUCCESS, _("Änderungen an diesem Block zurückgenommen.")
+    if kind == "conflict":
+        return messages.ERROR, _(
+            "Die Seite wurde inzwischen an anderer Stelle gespeichert – "
+            "Abbrechen ist nicht mehr möglich. Bitte den Block prüfen."
+        )
+    return messages.WARNING, _("Nichts zurückzunehmen – der Block ist so wie beim Öffnen.")
+
+
 def _url(code: str, block: str = "", keep: dict | None = None) -> str:
     query = {"seite": code}
     if block:
@@ -212,25 +239,17 @@ def site_schema_view(request):
         row_form = request.POST.get("zeile") == "1"
         if row_form:
             token = ""
+        cancel_kind = ""  # E9: итог «Abbrechen» (`CANCEL_KINDS`), пусто — отмены не было
         try:
             if op == "revert":
-                # FB-33 M3-1b: «Abbrechen» — блок как на момент открытия окна; итог честный
+                # FB-33 M3-1b: «Abbrechen» — блок как на момент открытия окна; итог честный.
+                # E9 (стопка 14): у строки блока итог — в адресе (`abbruch`), сообщение — у
+                # строки (`_cancel_note`); у ★-строки страницы — как прежде, вверху
                 done = aufbau_draft.cancel(request, tenant, code, ref, token)
-                if done == aufbau_draft.CANCEL_DONE:
-                    messages.success(request, _("Änderungen an diesem Block zurückgenommen."))
-                elif done == aufbau_draft.CANCEL_CONFLICT:
-                    messages.error(
-                        request,
-                        _(
-                            "Die Seite wurde inzwischen an anderer Stelle gespeichert – "
-                            "Abbrechen ist nicht mehr möglich. Bitte den Block prüfen."
-                        ),
-                    )
-                else:
-                    messages.warning(
-                        request,
-                        _("Nichts zurückzunehmen – der Block ist so wie beim Öffnen."),
-                    )
+                cancel_kind = _cancel_kind(done)
+                if site_schema.page_ref(ref) == site_schema.PAGE_REF:
+                    level, text = _cancel_text(cancel_kind)
+                    messages.add_message(request, level, text)
             elif op == "save":
                 force = request.POST.get("force") == "1"
                 said: list[str] = []  # FB-33 M2i-5: что запись поправила (способ связи)
@@ -430,12 +449,17 @@ def site_schema_view(request):
         if (op in aufbau_draft.WINDOW_OPS or op == "revert") and ref:
             # FB-33 M5c-3 (a11y B4): после «Fertig» «＋ Block» остаётся под этой строкой.
             # M5d-2b: и после «Abbrechen» — по `zuletzt` список «Ausgeblendet» остаётся раскрытым
-            # у скрытой строки (фокус на её ссылку ставит `aufbau.js`); якоря нет — сообщение
-            # об отмене стоит вверху страницы
+            # у скрытой строки (фокус на её ссылку ставит `aufbau.js`)
             keep["zuletzt"] = ref
+        cancel_row = bool(cancel_kind and ref and site_schema.page_ref(ref) != site_schema.PAGE_REF)
+        if cancel_row:
+            # E9 (решение владельца 2026-11-24): итог «Abbrechen» — белым списком, GET пишет
+            # сообщение у строки и сверяет `zuletzt` со строками схемы
+            keep["abbruch"] = cancel_kind
         target = _url(code, "" if closed else ref, keep)
-        if op in aufbau_draft.WINDOW_OPS and ref:
-            # FB-33 M5c-3 (a11y B3): «Fertig» без скриптов — к строке блока (её ⚙)
+        if (op in aufbau_draft.WINDOW_OPS or cancel_row) and ref:
+            # FB-33 M5c-3 (a11y B3): «Fertig» без скриптов — к строке блока (её ⚙); E9: и
+            # «Abbrechen» строки блока
             target = f"{target}#schema-row-{quote(ref, safe='')}"
         if row_form:
             # FB-33 M5c-2: из «⋯» строки — окно не открывается; фокус и сообщение «ist jetzt
@@ -754,6 +778,14 @@ def site_schema_view(request):
             "n": moved["num"],
             "total": len(numbers),
         }
+    # E9 (стопка 14, a11y H1): итог «Abbrechen» — статичным абзацем перед строкой блока (белый
+    # список `abbruch`; `zuletzt` — точно ref строки схемы, у которой есть ссылка). Вверху его
+    # нет; живая область пуста — текст туда кладёт `aufbau.js` (ветка `back`)
+    cancel_ref, cancel_kind, cancel_msg = "", "", ""
+    if selected is None and request.GET.get("abbruch") in CANCEL_KINDS and anchor is not None:
+        if not anchor.get("shared"):
+            cancel_ref, cancel_kind = anchor["ref"], request.GET["abbruch"]
+            cancel_msg = _cancel_text(cancel_kind)[1]
     # FB-33 M5b-2 (V4, a11y Y-H2): серая метка «Überschrift der Seite» — только в разметке,
     # после ряда с последним видимым блоком над заголовком (не строка: не в `blocks`/рядах)
     title_hint = None
@@ -802,6 +834,10 @@ def site_schema_view(request):
             # FB-33 M5c-2: сообщение после перестановки и раскрытый «Ausgeblendet» после скрытия
             "moved_msg": moved_msg,
             "moved_hidden": moved is not None and not moved["enabled"],
+            # E9: сообщение «Abbrechen» у строки (`cancel_ref`); вид — `cancel_kind`
+            "cancel_ref": cancel_ref,
+            "cancel_kind": cancel_kind,
+            "cancel_msg": cancel_msg,
             "add_at": add_at,  # FB-33 M5c-3
             # ревью L2: «Fertig» у скрытого блока — якорь #schema-row в раскрытом «Ausgeblendet»
             "last_hidden": selected is None and anchor is not None and not anchor["enabled"],

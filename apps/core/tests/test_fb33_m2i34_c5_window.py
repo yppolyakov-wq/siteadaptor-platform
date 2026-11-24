@@ -18,6 +18,7 @@ from django.utils import translation
 
 from apps.core import aufbau_draft, block_window, form_spec, site_schema
 from apps.core.tests.test_fb27_r2_draft import Browser
+from apps.core.tests.test_fb33_e9_cancel_anchor import said  # E9: итог «Abbrechen» в адресе
 from apps.tenants import siteconfig
 from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
@@ -207,7 +208,7 @@ def test_3b_cancel_returns_cart_draft_byte_for_byte():
     b = Browser(_shop())
     b.get(WINDOW)
     _edit(b, mode_email="req")
-    resp, msgs = b.post(seite="cart", ref="form", op="revert", wopen=WOPEN)
+    resp, msgs = said(*b.post(seite="cart", ref="form", op="revert", wopen=WOPEN))
     assert resp.status_code == 302 and msgs
     assert _drafts(b) == {}
     _edit(b, wopen="openB1", mode_note="off")

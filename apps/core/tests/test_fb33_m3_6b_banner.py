@@ -18,6 +18,7 @@ from django.utils import timezone
 from apps.core import aufbau_draft, window_banner
 from apps.core.models import Banner
 from apps.core.tests.test_fb27_r2_draft import Browser, _tenant
+from apps.core.tests.test_fb33_e9_cancel_anchor import said  # E9: итог «Abbrechen» в адресе
 from apps.core.tests.test_fb33_m3_window_before import _panel
 
 pytestmark = pytest.mark.django_db
@@ -190,7 +191,7 @@ def test_abbrechen_restores_places_byte_for_byte():
     b = Browser(_shop([a.pk]))
     token = _token(b.get("?seite=text&block=bn1"))
     b.post(seite="text", op="places", ref="bn1", value="add", wo_add="category:brot", wopen=token)
-    _resp, msgs = b.post(seite="text", op="revert", ref="bn1", wopen=token)
+    _resp, msgs = said(*b.post(seite="text", op="revert", ref="bn1", wopen=token))
     assert msgs == ["Änderungen an diesem Block zurückgenommen."]
     assert aufbau_draft.get(_Req(b.session), "text") is None
 
