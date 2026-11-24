@@ -241,16 +241,38 @@ def test_gift_voucher_checks_only_the_base(monkeypatch):
     assert {kw.get("direction") for kw in seen} == {""}
 
 
-def test_every_storefront_sale_call_passes_the_channel():
-    """Замок класса: вьюха витрины, зовущая сервис продажи, передаёт channel="storefront"
-    (или внесена сюда с причиной)."""
+def _calls_without_channel(source: str) -> list[str]:
+    """Имена вызовов сервиса продажи в `source` без `channel="storefront"` (или проброса
+    `channel=channel`): окно 2500 символов после открывающей скобки."""
     import re
-    from pathlib import Path
 
-    root = Path(__file__).resolve().parents[3]
     calls = re.compile(
         r"(?<![\w.])(?:\w*services\.)?(book|book_many|book_stay|book_ticket|create_order|purchase)\("
     )
+    out = []
+    for m in calls.finditer(source):
+        if source[max(0, m.start() - 4) : m.start()] == "def ":
+            continue
+        window = source[m.end() : m.end() + 2500]
+        depth, end = 1, 0
+        for i, ch in enumerate(window):
+            depth += ch == "("
+            depth -= ch == ")"
+            if depth == 0:
+                end = i
+                break
+        args = window[:end]
+        if not ("channel=" in args and ('"storefront"' in args or "channel=channel" in args)):
+            out.append(m.group(1))
+    return out
+
+
+def test_every_storefront_sale_call_passes_the_channel():
+    """Замок класса: вьюха витрины, зовущая сервис продажи, передаёт channel="storefront"
+    (или внесена сюда с причиной)."""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3]
     allow = {
         # пробрасывает channel вызывающего (публичного вызова нет; витрина передаст storefront)
         "apps/promotions/price_layer.py:book",
@@ -258,24 +280,27 @@ def test_every_storefront_sale_call_passes_the_channel():
     missing_channel = []
     paths = [*root.glob("apps/*/public_views.py"), root / "apps/promotions/price_layer.py"]
     for path in paths:
-        text = path.read_text(encoding="utf-8")
-        for m in calls.finditer(text):
-            if text[max(0, m.start() - 4) : m.start()] == "def ":
-                continue
-            window = text[m.end() : m.end() + 2500]
-            depth, end = 1, 0
-            for i, ch in enumerate(window):
-                depth += ch == "("
-                depth -= ch == ")"
-                if depth == 0:
-                    end = i
-                    break
-            args = window[:end]
-            key = f"{path.relative_to(root)}:{m.group(1)}"
-            gated = "channel=" in args and ('"storefront"' in args or "channel=channel" in args)
-            if not gated and not any(key.startswith(a) for a in allow):
+        for name in _calls_without_channel(path.read_text(encoding="utf-8")):
+            key = f"{path.relative_to(root)}:{name}"
+            if not any(key.startswith(a) for a in allow):
                 missing_channel.append(key)
     assert not missing_channel, missing_channel
+
+
+SALE_CALLS = ("book", "book_many", "book_stay", "book_ticket", "create_order", "purchase")
+
+
+@pytest.mark.xfail(strict=True, reason="FB-33 D1 §10.4: до правки")
+def test_channel_check_reads_the_whole_call():
+    """Ревью диффа D1 (§10.4): `channel=` ищется в аргументах вызова (ast), а не окном
+    символов — длинный вызов не даёт ложного «нет channel», вызов без него — ловится."""
+    filler = "".join(f"    x{i}={'1' * 40},\n" for i in range(80))  # > 2500 символов
+    long_ok = f'create_order(\n{filler}    channel="storefront",\n)\n'
+    bare = "services.book(slot, name)\n"
+    via_name = "def f(channel):\n    return book(slot, channel=channel)\n"
+    assert _calls_without_channel(long_ok) == []
+    assert _calls_without_channel(bare) == ["book"]
+    assert _calls_without_channel(via_name) == []
 
 
 def test_gate_without_tenant_is_allowed_not_500(settings):

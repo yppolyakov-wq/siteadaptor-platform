@@ -192,7 +192,7 @@ def test_changed_choice_stored():
 
 def test_stale_capped_and_trimmed():
     post = _post({f"q{n}": "x" * 1000 for n in range(10, 40)})
-    snap = form_answers.answers_for_deal([], post, kind="order", next_id=100)
+    snap = form_answers.answers_for_deal(QUESTIONS[:1], post, kind="order", next_id=100)
     assert len(snap) == form_answers.STALE_MAX
     assert all(len(item["value"]) == form_answers.LABEL_MAX * 2 for item in snap.values())
 
@@ -321,3 +321,93 @@ def test_d1_msgids_in_all_po():
             assert pair in have, (lang, pair)
             if lang != "de":
                 assert have[pair] and have[pair] != pair[1], (lang, pair)
+
+
+# --- ревью диффа (план §10.4) -----------------------------------------------------------------
+#: замки правок ревью — снимаются своими коммитами
+REVIEW = pytest.mark.xfail(strict=True, reason="FB-33 D1 §10.4: до правки")
+
+
+@REVIEW
+@pytest.mark.parametrize(
+    "raw, want",
+    [
+        (7, 7),
+        ("7", 7),
+        (None, 0),
+        ("x", 0),
+        (-3, 0),
+        (10**9, form_answers.ID_MAX),
+        (float("inf"), 0),
+    ],
+)
+def test_next_id_reader(raw, want, caplog):
+    """Тонкий читатель номера: тот же зажим, что `normalize`; мусор — 0 и WARNING."""
+    from apps.core import form_spec
+
+    site = {"form_fields": {"checkout": {"next_id": raw}}}
+    with caplog.at_level(logging.WARNING, logger="apps.core.form_spec"):
+        assert form_spec.next_id(site, "checkout") == want
+    if raw in ("x", float("inf")):
+        assert any(r.levelno == logging.WARNING for r in caplog.records)
+    assert form_spec.next_id({}, "anfrage") == 0
+
+
+@REVIEW
+def test_views_read_next_id_through_form_spec(monkeypatch):
+    """Корзина и заявка берут номер у `form_spec.next_id`, не через `edit_state`."""
+    from apps.core import form_spec
+
+    seen = []
+    monkeypatch.setattr(form_spec, "next_id", lambda site, form: seen.append(form) or 2)
+    monkeypatch.setattr(
+        form_spec, "edit_state", lambda *a, **kw: pytest.fail("edit_state на публичном POST")
+    )
+    snap = _checkout({"q2": "weg"}, _ff("checkout"))
+    assert snap["q2"]["stale"] == "removed"
+    from apps.orders.models import Order
+
+    Order.objects.all().delete()
+    assert _anfrage({"q2": "weg"}, _ff("anfrage"))["q2"]["stale"] == "removed"
+    assert seen == ["checkout", "anfrage"]
+
+
+@REVIEW
+@pytest.mark.parametrize("form", sorted(DEALS))
+def test_orphan_not_stored_when_form_has_no_questions(form):
+    """Вопросов в форме нет (все удалены) — осиротевший ответ не хранится, как бы ни был
+    велик сохранённый номер."""
+    snap = DEALS[form]({"q1": "x"}, {"form_fields": {form: {"next_id": 5}}})
+    assert snap == {}
+
+
+@REVIEW
+def test_bool_false_not_logged(caplog):
+    """Снятая галочка (`0/off/no/false`) — не потерянный ответ."""
+    caplog.set_level(logging.INFO, logger=LOGGER)
+    questions = [{"id": "q4", "type": "bool", "label": "Geschenk"}]
+    for raw in ("0", "off", "no", "false", "OFF"):
+        assert form_answers.dropped(questions, _post({"q4": raw})) == []
+    form_answers.answers_for_deal(questions, _post({"q4": "0"}), kind="order", next_id=4)
+    assert not _records(caplog)
+
+
+@REVIEW
+def test_lost_answers_warn_with_schema(caplog):
+    """Сохранено меньше потерянного — WARNING со схемой; названы потерянные id; без значений."""
+    caplog.set_level(logging.INFO, logger=LOGGER)
+    post = _post({f"q{n}": SECRET for n in range(2, 13)})  # 11 осиротевших
+    snap = form_answers.answers_for_deal(QUESTIONS[:1], post, kind="order", next_id=100)
+    assert len(snap) == form_answers.STALE_MAX
+    (record,) = _records(caplog)
+    message = record.getMessage()
+    assert record.levelno == logging.WARNING and "schema=" in message
+    assert "q12" in message and SECRET not in message
+
+
+@REVIEW
+def test_everything_kept_logs_info(caplog):
+    caplog.set_level(logging.INFO, logger=LOGGER)
+    form_answers.answers_for_deal(QUESTIONS, _post({"q2": "a"}), kind="order", next_id=NEXT_ID)
+    (record,) = _records(caplog)
+    assert record.levelno == logging.INFO and "schema=" in record.getMessage()
