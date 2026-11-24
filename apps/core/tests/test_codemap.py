@@ -148,3 +148,76 @@ def test_no_new_mutual_dependencies_between_apps():
         f"новые взаимные зависимости приложений: {new}. Два приложения стали импортировать друг друга — "
         "вынести общее в apps/core или развязать сигналом; осознанно — строка в docs/codemap-mutual-baseline.txt"
     )
+
+
+# --- ревью silent-failure-hunter (2026-11-24): где справка молча давала неполный ответ -----------
+
+
+def test_string_references_are_reported_not_hidden(tmp_path):
+    # Таблицы «модуль строкой» (transactions, finder, setup_steps) и settings — связь без import.
+    files = dict(FILES)
+    files["apps/core/registry.py"] = (
+        'TABLE = (("apps.orders.views", "OrderView"),)\nX = "apps.core.fsm.apply"\n'
+    )
+    root = _tree(tmp_path, files)
+    index = _mod().build_index(root)
+    assert _mod().string_refs(index, "apps/orders/views.py") == ["apps/core/registry.py"]
+    assert _mod().string_refs(index, "apps/core/fsm.py") == ["apps/core/registry.py"]
+    assert "apps/core/registry.py" not in _mod().importers(index, "apps/orders/views.py")
+
+
+def test_config_and_scripts_are_indexed_too(tmp_path):
+    files = dict(FILES)
+    files["config/urls.py"] = "from apps.orders import views\n"
+    files["scripts/tool.py"] = "import apps.core.fsm\n"
+    index = _mod().build_index(_tree(tmp_path, files))
+    assert "config/urls.py" in _mod().importers(index, "apps/orders/views.py")
+    assert "scripts/tool.py" in _mod().importers(index, "apps/core/fsm.py")
+    assert _mod().mutual_pairs(index) == [], "config и scripts в пары приложений не входят"
+
+
+def test_ambiguous_bare_name_lists_candidates_instead_of_guessing(tmp_path):
+    root = _tree(tmp_path, {**FILES, "apps/booking/models.py": "", "apps/core/models.py": ""})
+    assert _mod().resolve(root, "models") is None
+    text = _mod().report(root, "models")
+    assert "apps/orders/models.py" in text and "apps/booking/models.py" in text
+
+
+def test_missing_name_in_file_is_said_plainly(tmp_path):
+    root = _tree(tmp_path, FILES)
+    text = _mod().report(root, "apps/core/fsm.py::no_such_name")
+    assert "нет в файле" in text
+
+
+def test_broken_file_is_reported_in_every_mode(tmp_path):
+    root = _tree(tmp_path, {**FILES, "apps/core/bad.py": "def broken(:\n"})
+    mod = _mod()
+    index = mod.build_index(root)
+    assert mod.broken_note(index) and "apps/core/bad.py" in mod.broken_note(index)
+    assert "apps/core/bad.py" in mod.core_index(root, index)
+
+
+def test_generic_module_name_does_not_drag_every_test_in():
+    mod, index = _real()
+    text = mod.report(ROOT, "apps/orders/models.py", index)
+    line = next(ln for ln in text.splitlines() if ln.startswith("## Тесты"))
+    count = int(line.split("—")[1].split()[0])
+    assert count < 300, f"по слову «models» попали тесты всех приложений: {line}"
+
+
+def test_real_repo_string_table_and_template_tags_are_visible():
+    mod, index = _real()
+    assert "apps/core/transactions.py" in mod.string_refs(index, "apps/orders/state_machine.py")
+    text = mod.report(ROOT, "apps/tenants/templatetags/siteui.py", index)
+    assert "{% load" in text and "siteui" in text
+
+
+def test_real_fsm_importers_are_complete():
+    mod, index = _real()
+    who = mod.importers(index, "apps/core/fsm.py")
+    assert len(who) >= 30 and "apps/orders/state_machine.py" in who, len(who)
+
+
+def test_core_index_covers_subpackages():
+    listed = (ROOT / "docs" / "codemap-core.md").read_text(encoding="utf-8")
+    assert "templatetags/" in listed and "management/commands/" in listed
