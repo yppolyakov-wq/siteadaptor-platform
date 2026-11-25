@@ -22,12 +22,16 @@ from django.utils.html import escape
 
 from apps.core import site_schema, views, window_links
 from apps.core.modules import default_disabled_for
+from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
 
 HEX = "0123456789abcdef0123456789abcdef"
+#: стопка 15 M5e-3 (S14-E2-ghost, осознанно): ссылка в окно — только у живой страницы; замок
+#: держит живые категорию, страницы и группу акций (`_live_pages`)
+GROUP = "Sommer"
 CATEGORY_HOST = "catalog:brot"
 
 
@@ -47,7 +51,19 @@ def _tenant(page_blocks=None, sections=None):
         {"sections": sections or [], "page_blocks": page_blocks or {}}
     )
     tenant.save()
+    _live_pages()
     return tenant
+
+
+def _live_pages():
+    from apps.catalog.tests.factories import CategoryFactory
+    from apps.core.models import ContentPage
+    from apps.promotions.tests.factories import PromotionFactory
+
+    CategoryFactory(slug=CATEGORY_HOST.split(":", 1)[1])
+    for slug in ("x", "x-2"):
+        ContentPage.objects.create(slug=slug, title=slug, body="b", is_published=True)
+    PromotionFactory(group=GROUP)
 
 
 def _studio(tenant) -> str:
@@ -100,7 +116,7 @@ def test_window_url_from_window_links():
 
 
 @pytest.mark.parametrize(
-    "host", [CATEGORY_HOST, "seite:x", "seite:x-2", f"promo_group:{HEX}"]
+    "host", [CATEGORY_HOST, "seite:x", "seite:x-2", siteconfig.promo_group_host(GROUP)]
 )  # fmt: skip
 def test_pbhost_key_not_ref(host):
     """Страница окна — код хоста (`page_code_of_host`), а не ключ блока или голый хост."""

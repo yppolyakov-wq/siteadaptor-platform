@@ -236,33 +236,20 @@ def page_family(host) -> str:
     """FB-33 M5e-2a: семья страницы для `detail_sections.PAGE_SOURCES`: "home" — главная (хост
     ""), "catalog_list" — каталог и категории, "list" — другая страница с основным списком
     (`siteconfig.has_main_list`), "" — другая."""
-    from apps.core import site_schema
     from apps.tenants import siteconfig
 
     if host == "":
         return "home"
     if not siteconfig.has_main_list(host):
         return ""
-    # TODO(M5e-3): публичный `site_schema.main_list_source(host)` вместо частных имён
-    if site_schema._main_list_host(host) in ("catalog", "category"):
-        return "catalog_list"
-    return "list"
+    return "catalog_list" if siteconfig.is_catalog_host(host) else "list"
 
 
 def _list_source(host) -> str:
-    """Источник основного списка хоста (как у `site_schema.main_list_name`); "" — нет."""
+    """Источник основного списка хоста (`site_schema.main_list_source`); "" — нет."""
     from apps.core import site_schema
-    from apps.tenants import siteconfig
 
-    if not isinstance(host, str) or not siteconfig.has_main_list(host):
-        return ""
-    # TODO(M5e-3): публичный `site_schema.main_list_source(host)` вместо частных имён
-    base = site_schema._main_list_host(host)
-    return (
-        site_schema._MAIN_LIST_SOURCES.get(base)
-        or siteconfig.BUILTIN_LIST_SOURCES.get(base)
-        or (base if base in siteconfig.LIST_SOURCES else "")
-    )
+    return site_schema.main_list_source(host)
 
 
 def list_source_screen(source: str) -> str:

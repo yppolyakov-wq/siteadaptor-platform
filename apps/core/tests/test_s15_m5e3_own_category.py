@@ -30,7 +30,6 @@ pytestmark = pytest.mark.django_db
 ROOT = Path(__file__).resolve().parents[3]
 OWN = "catalog:brot"
 OWN_CODE = f"category@{OWN}"
-MISSING = pytest.mark.xfail(strict=True, reason="M5e-3: ещё не сделано")
 
 
 @pytest.fixture(autouse=True)
@@ -84,7 +83,6 @@ def _literals(path: Path, funcs: set[str]) -> list[str]:
     return found
 
 
-@MISSING
 def test_one_catalog_predicate():
     """№2/№3: «страница каталога» — один предикат `siteconfig.is_catalog_host`; в местах плана
     литерала («catalog», «category») больше нет."""
@@ -105,8 +103,8 @@ def test_one_catalog_predicate():
 @pytest.mark.parametrize(
     "host",
     [
-        pytest.param(OWN, marks=MISSING),
-        pytest.param("catalog:brot-2", marks=MISSING),
+        OWN,
+        "catalog:brot-2",
         "category",  # охранный: общая страница — как была
     ],
 )
@@ -121,7 +119,6 @@ def test_own_host_exact(host):
     assert ("t1abc" in refs) == (host == OWN), refs
 
 
-@MISSING
 @pytest.mark.parametrize("ref", ["page_head", "combos", "categories", "main"])
 def test_own_category_windows_equal_shared(ref):
     """№6: окно строки своей схемы — то же, что у общей страницы категорий (имя, вид, плитки)."""
@@ -142,7 +139,6 @@ def _set_rows(tenant, host, rows):
     tenant.save()
 
 
-@MISSING
 def test_own_without_parts_follows_storefront():
     """№6: своя схема без осей — витрина берёт оси «Alle Kategorien» (`category_host`); окно
     показывает их же. С осями — свои."""
@@ -161,7 +157,6 @@ def test_own_without_parts_follows_storefront():
     assert _window(tenant, OWN_CODE, "categories")["catview"]["value"] == "index"
 
 
-@MISSING
 def test_sets_row_only_with_combos():
     """§0.1 №4: «Sets & Menüs» своей схемы — только если у бизнеса есть наборы."""
     from apps.catalog.models import Combo
@@ -175,7 +170,6 @@ def test_sets_row_only_with_combos():
 # --- A8: первая ось своей схемы ------------------------------------------------------------------
 
 
-@MISSING
 @pytest.mark.parametrize(
     "op,ref,value", [("catview", "categories", "index"), ("mainview", "main", "magazin")]
 )
@@ -217,7 +211,10 @@ def test_one_category_query():
     """№31: строки своей схемы ищут категорию один раз на `blocks_for`."""
     tenant = _tenant({OWN: [_text_block()]})
     with CaptureQueriesContext(connection) as q:
-        site_schema.blocks_for(tenant.site_config, OWN_CODE, tenant=tenant, has_combos=False)
+        # хост экран уже знает (`resolve`) — как у вьюхи схемы
+        site_schema.blocks_for(
+            tenant.site_config, OWN_CODE, host=OWN, tenant=tenant, has_combos=False
+        )
     hits = [x["sql"] for x in q.captured_queries if "catalog_category" in x["sql"]]
     assert len(hits) == 1, hits
 
@@ -229,7 +226,6 @@ def _liste(ref):
     return {"key": "list", "id": ref, "enabled": True, "data": {"source": "events", "title": ""}}
 
 
-@MISSING
 def test_deleted_category_no_window_url():
     """Ghost: у блоков удалённой категории (хост остался в конфиге) ссылки в окно нет; у живой
     — есть."""
@@ -254,26 +250,43 @@ def test_window_url_opens_that_block():
     assert selected and selected["ref"] == "l2"
 
 
-@MISSING
-def test_ghost_check_constant_queries():
-    """№31, A13: проверка «страница жива» — постоянное число запросов (не на каждый хост)."""
+def test_ghost_check_constant_queries(monkeypatch):
+    """№31, A13: проверка «страница жива» — слаги загружаются один раз на тип подстраниц (не на
+    каждый хост), `host_for` получает их готовыми. (Строка ★ каждого хоста Студии стоит свой
+    запрос и раньше — `_main_list_row` → `page_row_ref`; это не проверка призраков.)"""
     from apps.core.tests.test_fb33_e2_studio_links import _studio
 
-    def count(n):
-        blocks = {f"catalog:g{i}": [_liste(f"l{i}")] for i in range(n)}
-        tenant = _tenant({OWN: [_liste("l0x")], **blocks}, slugs=("brot",))
-        _studio(tenant)
-        with CaptureQueriesContext(connection) as q:
-            _studio(tenant)
-        return len(q.captured_queries)
+    tenant = _tenant()
+    blocks = {f"catalog:g{i}": [_liste(f"l{i}")] for i in range(4)}
+    _set_rows(tenant, OWN, [_liste("l0x")])
+    cfg = copy.deepcopy(tenant.site_config)
+    cfg["page_blocks"] = {OWN: [_liste("l0x")], "seite:x": [_liste("l9")], **blocks}
+    tenant.site_config = siteconfig.normalize(cfg)
+    tenant.save()
+    loads, checks = [], []
+    real_known, real_host_for = site_schema.known_slugs_for, site_schema.host_for
 
-    assert count(1) == count(4)
+    def known(code):
+        loads.append(code.split("@", 1)[0])
+        return real_known(code)
+
+    def host_for(code, known_slugs=None):
+        checks.append(known_slugs is not None)
+        return real_host_for(code, known_slugs=known_slugs)
+
+    monkeypatch.setattr(site_schema, "known_slugs_for", known)
+    monkeypatch.setattr(site_schema, "host_for", host_for)
+    with CaptureQueriesContext(connection) as q:
+        _studio(tenant)
+    assert sorted(loads) == ["category", "text"], loads
+    assert checks.count(True) == 6  # каждый хост подстраницы — с готовыми слагами
+    slug_reads = [x for x in q.captured_queries if 'SELECT "catalog_category"."slug"' in x["sql"]]
+    assert len(slug_reads) == 1
 
 
 # --- TODO M5e-2a: публичный источник основного списка --------------------------------------------
 
 
-@MISSING
 def test_main_list_source_public():
     """`site_schema.main_list_source(host)` — источник «Liste» основного списка; `main_list_name`
     и `window_parts.main_list_screen` берут его (частных имён `site_schema` снаружи нет)."""

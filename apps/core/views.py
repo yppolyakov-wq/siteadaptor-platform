@@ -3289,6 +3289,8 @@ def home_builder_view(request):
     )
     from apps.core import window_links  # E2: адрес окна блока страницы
 
+    known_slugs: dict = {}  # стопка 15 M5e-3: тип подстраниц → живые слаги (один запрос)
+
     for host in _hosts:
         stored = (config.get("page_blocks") or {}).get(host) or []
         if not stored:
@@ -3325,6 +3327,15 @@ def home_builder_view(request):
         # окно этого блока — адрес готов здесь (партиал хоста не разбирает); нет кода — нет ссылки.
         # Вкладка — как у тех же ссылок главной: «Liste» — «Wie», баннер — без вкладки.
         host_code = site_schema.page_code_of_host(host)
+        # стопка 15 M5e-3 (S14-E2-ghost, A13): только у живой страницы — блоки удалённой
+        # категории, страницы или группы остаются в конфиге; страницы проверяет `host_for`
+        # по слагам, загруженным один раз на тип (`known_slugs_for`)
+        if "@" in host_code:
+            kind = host_code.split("@", 1)[0]
+            if kind not in known_slugs:
+                known_slugs[kind] = site_schema.known_slugs_for(host_code)
+            if site_schema.host_for(host_code, known_slugs=known_slugs[kind]) != host:
+                host_code = ""
         for row in host_rows if host_code else ():
             tab = {"list": "wie", "banner": ""}.get(row.get("type"))
             if tab is not None:

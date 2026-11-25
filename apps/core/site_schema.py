@@ -18,7 +18,7 @@ import uuid
 from dataclasses import dataclass
 from fractions import Fraction
 
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError, connection, transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -1033,6 +1033,28 @@ def text_pages(tenant=None) -> list[SubPage]:
     return out
 
 
+def known_slugs_for(code: str) -> set[str] | None:
+    """FB-33 стопка 15 M5e-3 (A13): `known_slugs` для `host_for` у подстраниц типа кода `code` —
+    одним запросом: слаги категорий, слаги своих текстовых страниц, хосты живых групп акций.
+    None — у типа подстраниц из базы нет (проверять нечего)."""
+    from apps.tenants import siteconfig
+
+    pt = _page_type(code)
+    if pt is None:
+        return None
+    if pt.code == CATEGORY:
+        from apps.catalog.models import Category
+
+        return set(Category.objects.values_list("slug", flat=True))
+    if pt.code == PROMO_GROUP:
+        return {siteconfig.promo_group_host(k) for k, _l in live_promo_groups()}
+    if pt.code == TEXT:
+        from apps.core.models import ContentPage
+
+        return set(ContentPage.objects.values_list("slug", flat=True))
+    return None
+
+
 def host_for(code: str, known_slugs: set[str] | None = None) -> str:
     """Хост блоков строки схемы ("" у главной). Неизвестная подстраница → "".
 
@@ -1063,6 +1085,8 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
         return host if Category.objects.filter(slug=slug).exists() else ""
     if pt.code == PROMO_GROUP:
         # FB-31 P3 R6: только живая группа акций — иначе POST плодил бы хосты-призраки
+        if known_slugs is not None:  # стопка 15 M5e-3: хосты живых групп, загруженные раз
+            return host if host in known_slugs else ""
         return host if promo_group_key(host) else ""
     if pt.code != TEXT:
         return ""
@@ -1371,6 +1395,8 @@ def blocks_for(
             items = siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host))
     out = []
     names = width_names()
+    catalog_page = siteconfig.is_catalog_host(host)
+    catalog_seen = None  # части страницы каталога — один раз на вызов (№31: один запрос)
     for item in items:
         key = item.get("key", "")
         main = siteconfig.is_main_marker(item)
@@ -1436,8 +1462,10 @@ def blocks_for(
             }
         )
         # FB-30.16 R4: блоки каталога — вид категорий и вид товаров ★ (стратегия FB-31)
-        if host in ("catalog", "category") and (main or key in siteconfig.CATALOG_PART_STYLES):
-            out[-1].update(_catalog_view_panel(config, host, item, main))
+        if catalog_page and (main or key in siteconfig.CATALOG_PART_STYLES):
+            if catalog_seen is None:
+                catalog_seen = catalog_seen_parts(config, host)
+            out[-1].update(_catalog_view_panel(catalog_seen, item, main))
         elif siteconfig.part_surface(host) is not None and (
             main or (key in siteconfig.part_surface(host).keys() and not item.get("id"))
         ):
@@ -1479,9 +1507,7 @@ def blocks_for(
         _form_row(config, out, host)
     if _dp.object_kind(host or ""):
         out = _with_shared_rows(config, host, out)
-    if host in ("catalog", "category") and not (
-        _has_combos() if has_combos is None else has_combos
-    ):
+    if catalog_page and not (_has_combos() if has_combos is None else has_combos):
         # «Sets & Menüs» — только если наборы есть (иначе строке нечего показывать)
         out = [b for b in out if b["key"] != siteconfig.CATALOG_SETS_KEY]
     if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
@@ -1768,6 +1794,25 @@ def _main_list_host(host: str) -> str:
     return host
 
 
+def main_list_source(host) -> str:
+    """FB-33 стопка 15 M5e-3: источник блока «Liste» той же сущности, что главный список
+    страницы `host` (`siteconfig.LIST_SOURCES`): особое имя хоста (`_MAIN_LIST_SOURCES`), ключ
+    встроенного списка или сам хост-источник. "" — у списка своё имя без источника (Team,
+    Galerie, Merkzettel, Lookbook) или у страницы основного списка нет."""
+    from apps.tenants import siteconfig
+
+    if not isinstance(host, str) or not siteconfig.has_main_list(host):
+        return ""
+    base = _main_list_host(host)
+    if base in _MAIN_LIST_OWN_NAMES:
+        return ""
+    return (
+        _MAIN_LIST_SOURCES.get(base)
+        or siteconfig.BUILTIN_LIST_SOURCES.get(base)
+        or (base if base in siteconfig.LIST_SOURCES else "")
+    )
+
+
 def main_list_name(host, tenant) -> str:
     """FB-33 M5b-2: имя главного списка страницы `host` — как у блока «Liste» той же сущности
     (`list_blocks.source_label`: «Leistungen», «Blog», «Produkte»…), у наборов — по типу
@@ -1782,11 +1827,7 @@ def main_list_name(host, tenant) -> str:
     base = _main_list_host(host)
     if base in _MAIN_LIST_OWN_NAMES:
         return str(_MAIN_LIST_OWN_NAMES[base])
-    source = (
-        _MAIN_LIST_SOURCES.get(base)
-        or siteconfig.BUILTIN_LIST_SOURCES.get(base)
-        or (base if base in siteconfig.LIST_SOURCES else "")
-    )
+    source = main_list_source(host)
     return list_blocks.source_label(source, tenant) if source else ""
 
 
@@ -2594,23 +2635,13 @@ def lift_hero_choice(config: dict, items: list[dict]) -> None:
 def _catalog_code(config: dict, host: str) -> str:
     """Прежний код шаблона страницы каталога/категории (то, что вид блоков перекрывает)."""
     from apps.catalog import category_styles
-    from apps.tenants import siteconfig
 
     if host == "catalog":
         return category_styles.root_page_style(config.get("catalog_page_style", ""))
-    if host == "category":  # «Alle Kategorien»: общий шаблон категорий сайта
-        return category_styles.page_style(
-            None, (config.get("site_defaults") or {}).get("category_page_style", "")
-        )
-    slug = host.removeprefix(siteconfig.CATEGORY_HOST_PREFIX)
-    default = (config.get("site_defaults") or {}).get("category_page_style", "")
-    try:
-        from apps.catalog.models import Category
-
-        category = Category.objects.filter(slug=slug).first()
-    except Exception:  # noqa: BLE001 — экран не должен падать без схемы бизнеса
-        category = None
-    return category_styles.page_style(category, default) if category else ""
+    # «Alle Kategorien»: общий шаблон категорий сайта (своя категория — `catalog_seen_parts`)
+    return category_styles.page_style(
+        None, (config.get("site_defaults") or {}).get("category_page_style", "")
+    )
 
 
 #: FB-30.16 R4: подписи видов блоков каталога (плитки панели; миниатюра — по коду шаблона).
@@ -2813,15 +2844,34 @@ def _has_combos() -> bool:
         return False
 
 
-def _catalog_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
-    """Панель вида блока каталога: текущий вид (сохранённый либо из прежнего шаблона)."""
+def catalog_seen_parts(config: dict, host: str):
+    """Части страницы каталога `host`, как их видит посетитель (`catalog_parts.Parts`): у своей
+    схемы категории — правило витрины `catalog_parts.category_parts` (свой хост — только при
+    осях, иначе «Alle Kategorien»); категорию ищем один раз. Нет категории — свои строки."""
     from apps.catalog import catalog_parts
+    from apps.tenants import siteconfig
 
+    if host not in ("catalog", "category"):
+        slug = host.removeprefix(siteconfig.CATEGORY_HOST_PREFIX)
+        try:
+            from apps.catalog.models import Category
+
+            category = Category.objects.filter(slug=slug).first()
+        except Exception:  # noqa: BLE001 — экран не должен падать без схемы бизнеса
+            logger.exception("site_schema: category %r lookup failed - own rows", slug)
+            category = None
+        if category is not None:
+            return catalog_parts.category_parts(config, category)
+        return catalog_parts.effective(config, host)
     rows_cfg = config
     if host == "category" and "category" not in (config.get("page_blocks") or {}):
         # до первого сохранения витрина категорий берёт вид из шаблона — панель тоже
         rows_cfg = {}
-    parts = catalog_parts.effective(rows_cfg, host, code=_catalog_code(config, host))
+    return catalog_parts.effective(rows_cfg, host, code=_catalog_code(config, host))
+
+
+def _catalog_view_panel(parts, item: dict, main: bool) -> dict:
+    """Панель вида блока каталога: текущий вид (`parts` — `catalog_seen_parts`)."""
     if main:
         value = parts.products if parts.products in MAIN_VIEW_CHOICES else "raster"
         return {"mainview": {"value": value, "choices": MAIN_VIEW_LABELS}}
@@ -3493,6 +3543,28 @@ def _insert(items: list[dict], new_blocks: list[dict], after: str, rows_host: st
         raise
 
 
+def _inherit_catalog_axes(items: list[dict], host: str, ref: str):
+    """A8 (стопка 15 M5e-3): первая ось своей схемы категории переключает витрину на свой хост
+    (`catalog_parts.category_host`) — прочие оси, которые посетитель видел из «Alle
+    Kategorien», записываются явно (`catalog_parts.write_rows`), свои блоки и порядок остаются.
+    Строки меняются НА МЕСТЕ; ответ — строка `ref` после записи (None — записывать нечего).
+    Оси — из сохранённого конфига бизнеса соединения (то, что видит витрина)."""
+    from apps.catalog import catalog_parts
+    from apps.tenants import siteconfig
+
+    if host in ("catalog", "category") or not siteconfig.is_catalog_host(host):
+        return None
+    if catalog_parts.has_parts(items):
+        return None
+    tenant = getattr(connection, "tenant", None)
+    config = getattr(tenant, "site_config", None)
+    if not isinstance(config, dict):
+        logger.error("site_schema: no tenant config to inherit catalog axes of %s", host)
+        return None
+    items[:] = catalog_parts.write_rows(items, catalog_seen_parts(config, host))
+    return next((it for it in items if (it.get("id") or it.get("key")) == ref), None)
+
+
 def mutate(
     items: list[dict],
     code: str,
@@ -3624,6 +3696,7 @@ def mutate(
         catalog_page = "categories" in siteconfig.page_builtin_keys(rows_host)
         if not pinned or not catalog_page or value not in allowed:
             raise SchemaError("op")
+        item = _inherit_catalog_axes(items, rows_host, ref) or item
         item["style"] = value
         item["enabled"] = True  # ревью R4: старая скрытая строка снова действует
         return ref
@@ -3634,6 +3707,7 @@ def mutate(
             raise SchemaError("op")
         if value not in ("raster", *MAIN_VIEW_CHOICES):
             raise SchemaError("op")
+        item = _inherit_catalog_axes(items, rows_host, ref) or item
         for k in ("style", "grid"):
             item.pop(k, None)
         if value != "raster":

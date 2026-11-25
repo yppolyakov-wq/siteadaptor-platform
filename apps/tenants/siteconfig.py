@@ -1741,10 +1741,19 @@ def _compact_detail_anchors(blocks: list, anchor_keys) -> list:
     return [b for b in blocks if b.get("id") or b.get("key") not in anchor_keys]
 
 
+def is_catalog_host(host) -> bool:
+    """FB-33 стопка 15 M5e-3: страница каталога — корень (`catalog`), «Alle Kategorien»
+    (`category`) или своя схема одной категории (`catalog:<slug>`). Один предикат для строк,
+    видов и окон этих страниц (замок `test_one_catalog_predicate`)."""
+    return isinstance(host, str) and (
+        host in ("catalog", "category") or bool(_CATEGORY_HOST_RE.match(host))
+    )
+
+
 def page_builtin_keys(host) -> frozenset:
     """FB-31 P0: какие встроенные строки-списки (как на главной) может хранить страница.
     Пилот — каталог и его категории: блок «Kategorien»; P3 — строки осей страниц акций."""
-    if isinstance(host, str) and (host in ("catalog", "category") or _CATEGORY_HOST_RE.match(host)):
+    if is_catalog_host(host):
         return frozenset({"categories", CATALOG_HEAD_KEY, CATALOG_SETS_KEY})
     surface = part_surface(host)
     if surface is not None:
@@ -1784,7 +1793,7 @@ def part_surface(host):
 
 def part_styles(host, key) -> tuple:
     """Допустимые виды встроенной строки `key` на хосте (явное «как обычно» — тоже вид)."""
-    if host in ("catalog", "category") or (isinstance(host, str) and _CATEGORY_HOST_RE.match(host)):
+    if is_catalog_host(host):
         return CATALOG_PART_STYLES.get(key, ())
     surface = part_surface(host)
     if surface is None:
@@ -1854,7 +1863,8 @@ def main_list_sequence(host, blocks) -> list:
         blocks = [{"key": MAIN_LIST_KEY}, *blocks]
     # FB-30.16 R4: на странице каталога блок «Kategorien» стоит всегда и прямо над ★ — так
     # он и рисуется на витрине (навигация категорий прикреплена к списку товаров).
-    if host in ("catalog", "category"):  # своя схема одной категории — позже
+    # FB-33 стопка 15 M5e-3: и у своей схемы одной категории — те же строки, что у общей
+    if is_catalog_host(host):
 
         def _take(key):
             row = next((b for b in blocks if b.get("key") == key and not b.get("id")), None)
