@@ -1034,9 +1034,9 @@ def text_pages(tenant=None) -> list[SubPage]:
 
 
 def known_slugs_for(code: str) -> set[str] | None:
-    """FB-33 стопка 15 M5e-3 (A13): `known_slugs` для `host_for` у подстраниц типа кода `code` —
-    одним запросом: слаги категорий, слаги своих текстовых страниц, хосты живых групп акций.
-    None — у типа подстраниц из базы нет (проверять нечего)."""
+    """FB-33 стопка 15 M5e-3 (A13): готовые ответы для `host_for` у подстраниц типа кода `code` —
+    одним запросом: слаги категорий и своих текстовых страниц (`known_slugs`), хосты живых групп
+    акций (`live_groups`; `known_live_kwargs`). None — у типа подстраниц из базы нет."""
     from apps.tenants import siteconfig
 
     pt = _page_type(code)
@@ -1055,7 +1055,17 @@ def known_slugs_for(code: str) -> set[str] | None:
     return None
 
 
-def host_for(code: str, known_slugs: set[str] | None = None) -> str:
+def known_live_kwargs(code: str, known: set[str] | None) -> dict:
+    """Аргумент `host_for` для ответа `known_slugs_for(code)`: у групп акций — `live_groups`."""
+    pt = _page_type(code)
+    if pt is not None and pt.code == PROMO_GROUP:
+        return {"live_groups": known}
+    return {"known_slugs": known}
+
+
+def host_for(
+    code: str, known_slugs: set[str] | None = None, live_groups: set[str] | None = None
+) -> str:
     """Хост блоков строки схемы ("" у главной). Неизвестная подстраница → "".
 
     `known_slugs` — слаги существующих страниц, если вызывающий уже загрузил их
@@ -1085,8 +1095,8 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
         return host if Category.objects.filter(slug=slug).exists() else ""
     if pt.code == PROMO_GROUP:
         # FB-31 P3 R6: только живая группа акций — иначе POST плодил бы хосты-призраки
-        if known_slugs is not None:  # стопка 15 M5e-3: хосты живых групп, загруженные раз
-            return host if host in known_slugs else ""
+        if live_groups is not None:  # стопка 15 M5e-3: хосты живых групп, загруженные раз
+            return host if host in live_groups else ""
         return host if promo_group_key(host) else ""
     if pt.code != TEXT:
         return ""

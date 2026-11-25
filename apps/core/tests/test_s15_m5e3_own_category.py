@@ -270,9 +270,9 @@ def test_ghost_check_constant_queries(monkeypatch):
         loads.append(code.split("@", 1)[0])
         return real_known(code)
 
-    def host_for(code, known_slugs=None):
-        checks.append(known_slugs is not None)
-        return real_host_for(code, known_slugs=known_slugs)
+    def host_for(code, known_slugs=None, live_groups=None):
+        checks.append(known_slugs is not None or live_groups is not None)
+        return real_host_for(code, known_slugs=known_slugs, live_groups=live_groups)
 
     monkeypatch.setattr(site_schema, "known_slugs_for", known)
     monkeypatch.setattr(site_schema, "host_for", host_for)

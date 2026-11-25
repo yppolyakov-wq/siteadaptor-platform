@@ -3334,7 +3334,8 @@ def home_builder_view(request):
             kind = host_code.split("@", 1)[0]
             if kind not in known_slugs:
                 known_slugs[kind] = site_schema.known_slugs_for(host_code)
-            if site_schema.host_for(host_code, known_slugs=known_slugs[kind]) != host:
+            live = site_schema.known_live_kwargs(host_code, known_slugs[kind])
+            if site_schema.host_for(host_code, **live) != host:
                 host_code = ""
         for row in host_rows if host_code else ():
             tab = {"list": "wie", "banner": ""}.get(row.get("type"))
