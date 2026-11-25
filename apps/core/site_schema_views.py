@@ -465,6 +465,13 @@ def site_schema_view(request):
                 from apps.core import block_i18n
 
                 messages.error(request, block_i18n.conflict_note())
+            elif exc.args and exc.args[0] == "htx_conflict":
+                # FB-33 стопка 15 M5e-1b: тексты секции главной изменили в Студии/на канве —
+                # черновик цел, «Trotzdem speichern» пишет поверх
+                from apps.core import home_texts
+
+                key = exc.args[1] if len(exc.args) > 1 else ""
+                messages.error(request, home_texts.stale_note(home_texts.section_label(key)))
             elif exc.args and exc.args[0] == "faq_conflict":
                 # FB-33 M3-5b: общие вопросы FAQ изменили в Студии/на канве — черновик цел
                 from apps.core import faq_content
@@ -733,6 +740,17 @@ def site_schema_view(request):
         current.host if current else "",
         request.session.pop(aufbau_draft.FAQ_OPENED, None) if selected else None,
         user=getattr(request, "user", None),  # FB-33 M2b-2b (ревью): своё право на вопросы
+    )
+    # FB-33 стопка 15 M5e-1b: тексты секции главной («Texte»), те же поля, что в Студии
+    from apps.core import home_texts
+
+    home_texts.decorate(
+        selected,
+        saved,
+        draft,
+        code == "home",
+        tenant,
+        getattr(request, "session", None) if selected else None,
     )
     # FB-33 M3-5c: переводы текстов блока, вопросов FAQ и подписей плашек — в окне (языки
     # бизнеса кнопками; один язык — окно прежнее)

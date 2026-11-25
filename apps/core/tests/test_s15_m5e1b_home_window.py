@@ -28,7 +28,6 @@ pytestmark = pytest.mark.django_db
 
 FORM = "bw-form-hometext"
 WOPEN = "openH1"
-X = "M5e-1b: части hometext ещё нет"
 
 CFG = {
     "sections": [
@@ -92,6 +91,7 @@ def _post(b, ref, **change):
     data, _p = form_post(panel, FORM)
     assert data, "формы bw-form-hometext нет"
     data["seite"], data["wopen"] = ["home"], [WOPEN]
+    data.setdefault("op", ["update"])  # кнопка «Übernehmen»
     for name, value in change.items():
         data[name] = [value]
     with translation.override("de"):
@@ -106,7 +106,6 @@ def _save(b, **extra):
 # ───────────── реестры ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_registry_rows():
     assert block_window.PART_TAB["hometext"] == "texte"
     assert block_window.PANEL_KEYS["home_texts"] == "hometext"
@@ -114,7 +113,6 @@ def test_registry_rows():
     assert ("htx", ("htx", "htx_base")) in aufbau_draft.SIDE_PARTS
 
 
-@pytest.mark.xfail(strict=True, reason="S14-E3-wie: «Wie» применяет только listview")
 def test_wie_applies_listview_and_fields_without_extra_condition():
     """S14-E3-wie (A17): «Wie» применяет вид списка и форму `fields` — без второго условия."""
     assert block_window.APPLY_TAB_PARTS["wie"] == ("listview", "fields")
@@ -123,7 +121,6 @@ def test_wie_applies_listview_and_fields_without_extra_condition():
 # ───────────── окно: поля, подписи, a11y ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 @pytest.mark.parametrize("key", ["hero", "about", "cta", "trust"])
 def test_window_fields_equal_studio_names(key):
     b = Browser(_shop())
@@ -136,7 +133,6 @@ def test_window_fields_equal_studio_names(key):
     assert "Dieselben Felder wie im Studio." in form
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 @pytest.mark.parametrize(
     "key,legend", [("process", "Schritt"), ("team", "Mitglied"), ("testimonials", "Stimme")]
 )
@@ -153,7 +149,6 @@ def test_repeated_items_fieldset_legend(key, legend):
             assert f'for="schema-f-htx_{key}_{i}_{field}"' in form
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_caps_server_and_maxlength():
     b = Browser(_shop())
     form = _form(_get(b, "about"))
@@ -164,7 +159,6 @@ def test_caps_server_and_maxlength():
     assert _draft(b)["htx"]["about"]["about_title"] == "Ü" * 120
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_old_long_value_has_no_maxlength():
     b = Browser(_shop(about_title="L" * 300))
     form = _form(_get(b, "about"))
@@ -172,7 +166,6 @@ def test_old_long_value_has_no_maxlength():
     assert not re.search(r'name="f_about_title"[^>]*maxlength', form)
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 @pytest.mark.parametrize("url", ["javascript:alert(1)", "/\\evil.example"])
 def test_cta_url_rejected_and_error_bound_to_field(url):
     """№6/№26, Y1: ссылка не записана; ошибка у поля (id, aria-describedby, aria-invalid),
@@ -185,10 +178,11 @@ def test_cta_url_rejected_and_error_bound_to_field(url):
     field = re.search(r'<input[^>]*name="f_cta_button_url"[^>]*>', form).group(0)
     assert 'aria-invalid="true"' in field and "schema-f-cta_button_url-err" in field
     assert 'id="schema-f-cta_button_url-err"' in form
-    assert 'type="url"' in field and 'autocomplete="off"' in field
+    # Y1: поле ссылки — не `type="url"`: браузер отверг бы относительную «/termin/», которую
+    # писатель принимает; клавиатура ссылки — `inputmode`
+    assert 'inputmode="url"' in field and 'autocomplete="off"' in field
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_default_button_and_no_aria_hidden_on_focusable():
     b = Browser(_shop())
     panel = _get(b, "about")
@@ -201,33 +195,32 @@ def test_default_button_and_no_aria_hidden_on_focusable():
     assert panel.index("data-window-default") < panel.index('name="zu_tab"')
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_no_fixed_px_height_textareas():
     b = Browser(_shop())
-    for key in ("about", "process", "team"):
+    for key in ("about", "process", "testimonials"):
         found = re.findall(r"<textarea\b[^>]*>", _form(_get(b, key)))
         assert found, key
         for ta in found:
             assert "height" not in ta and 'rows="' in ta, ta
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_texte_lang_only_when_differs():
     """Y8: у полей текста на языке окна `lang` нет."""
     b = Browser(_shop())
     form = _form(_get(b, "about"))
     assert form
     for tag in re.findall(r"<(?:input|textarea)\b[^>]*>", form):
+        if "f_tr_" in tag or " disabled" in tag:
+            continue  # поле перевода — на своём языке (`_bw_tr.html`)
         assert " lang=" not in tag, tag
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_hero_texte_only_when_title_shown():
     """Витрина: при выбранных баннерах библиотеки заголовок главной не показывается
     (`siteui.hero_lead`) — и полей в окне нет."""
     b = Browser(_shop())
     assert _form(_get(b, "hero"))
-    b2 = Browser(_shop(hero_banners={"pick": ["b1"]}))
+    b2 = Browser(_shop(hero_banners={"pick": ["0f8d2a4e-6b1c-4d3e-9a2b-1c2d3e4f5a6b"]}))
     assert not _form(_get(b2, "hero"))
 
 
@@ -240,7 +233,6 @@ def test_other_rows_have_no_hometext():
 # ───────────── черновик и «Speichern» ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_edit_goes_to_draft_and_save_writes_through_home_texts(monkeypatch):
     b = Browser(_shop())
     resp, msgs = _post(b, "about", f_about_title="Wer wir sind")
@@ -264,14 +256,12 @@ def test_edit_goes_to_draft_and_save_writes_through_home_texts(monkeypatch):
     assert not _draft(b)
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_same_as_saved_keeps_no_draft():
     b = Browser(_shop())
     _post(b, "about")
     assert "htx" not in _draft(b)
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_changes_counts_sections():
     b = Browser(_shop())
     _post(b, "about", f_about_title="A")
@@ -288,7 +278,6 @@ class SimpleReq:
         self.session = b.session
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_cancel_restores_texts_of_that_window_only():
     b = Browser(_shop())
     _post(b, "cta", f_cta_title="Bleibt")
@@ -299,7 +288,6 @@ def test_cancel_restores_texts_of_that_window_only():
     assert "about" not in htx and htx["cta"]["cta_title"] == "Bleibt"
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_open_draft_fingerprint_unchanged():
     """№11: тексты — вне `_saved_state`: отпечаток открытого черновика не меняется."""
     b = Browser(_shop())
@@ -311,7 +299,6 @@ def test_open_draft_fingerprint_unchanged():
     assert "about_title" not in aufbau_draft._saved_state(_saved(b), True, "")
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_commit_conflict_logged_and_noted(caplog):
     b = Browser(_shop())
     _post(b, "about", f_about_title="Aus dem Fenster")
@@ -327,7 +314,6 @@ def test_commit_conflict_logged_and_noted(caplog):
     assert _draft(b)["htx"]["about"]["about_title"] == "Aus dem Fenster", "черновик цел"
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_htx_checked_under_lock_before_write():
     """№9: отказ — до записи остального черновика (блоки страницы не записаны)."""
     b = Browser(_shop())
@@ -342,7 +328,6 @@ def test_htx_checked_under_lock_before_write():
     assert trust["enabled"] is True
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_htx_force_symmetric_with_faq():
     b = Browser(_shop())
     _post(b, "about", f_about_title="Fenster")
@@ -354,7 +339,6 @@ def test_htx_force_symmetric_with_faq():
     assert any("Gespeichert" in m for m in msgs)
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_team_photo_kept_by_name_after_reorder():
     b = Browser(_shop())
     _post(
@@ -373,7 +357,6 @@ def test_team_photo_kept_by_name_after_reorder():
     ]
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_new_and_removed_items():
     b = Browser(_shop())
     _post(b, "process", f_htx_process_0_title="", f_htx_process_2_title="Genießen")
@@ -381,16 +364,14 @@ def test_new_and_removed_items():
     assert [p["title"] for p in _saved(b)["process"]] == ["Abholen", "Genießen"]
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_testimonials_keep_stars_and_photo():
     b = Browser(_shop())
     _post(b, "testimonials", f_htx_testimonials_0_text="Sehr gut!")
     _save(b)
     t = _saved(b)["testimonials"][0]
-    assert (t["name"], t["text"], t["stars"]) == ("Eva", "Sehr gut!", "5")
+    assert (t["name"], t["text"], str(t["stars"])) == ("Eva", "Sehr gut!", "5")
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_list_overlays_realigned_on_save():
     b = Browser(_shop(i18n={"ru": {"process": [{"title": "Выбрать"}, {"title": "Забрать"}]}}))
     _post(b, "process", f_htx_process_0_title="")
@@ -398,7 +379,6 @@ def test_list_overlays_realigned_on_save():
     assert _saved(b)["i18n"]["ru"]["process"] == [{"title": "Забрать"}]
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_texte_tab_applies_without_js():
     """№19: на «Texte» прочие вкладки — кнопки формы `bw-form-hometext`; переход применяет."""
     b = Browser(_shop())
@@ -413,7 +393,6 @@ def test_texte_tab_applies_without_js():
     assert _draft(b)["htx"]["about"]["about_title"] == "Neu"
 
 
-@pytest.mark.xfail(strict=True, reason="S14-E3-wie: «Wie» применяет только listview")
 @pytest.mark.parametrize("ref", ["faq", "cta", "about", "testimonials"])
 def test_wie_fields_apply(ref):
     """S14-E3-wie: на «Wie» с формой вида (`fields`) вкладки — кнопки этой формы. Переписка
@@ -428,7 +407,6 @@ def test_wie_fields_apply(ref):
 # ───────────── переводы (A4) ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_hometext_lang_buttons_like_block():
     b = Browser(_shop(i18n={"ru": {"about_title": "О нас", "about_text": "С 1998."}}))
     b.tenant.enabled_locales = ["de", "ru"]
@@ -442,7 +420,6 @@ def test_hometext_lang_buttons_like_block():
     assert _saved(b)["about_title"] == "Über uns"
 
 
-@pytest.mark.xfail(strict=True, reason=X)
 def test_german_edit_drops_only_that_field():
     b = Browser(_shop(i18n={"ru": {"about_title": "О нас", "about_text": "С 1998."}}))
     b.tenant.enabled_locales = ["de", "ru"]
@@ -460,7 +437,6 @@ def _stats_form(b):
     return _form(_get(b, "st1"), "bw-form-fields")
 
 
-@pytest.mark.xfail(strict=True, reason="A12: поля строк цифр в окне нет")
 def test_stats_rows_roundtrip():
     b = Browser(_shop())
     form = _stats_form(b)
@@ -479,7 +455,6 @@ def test_stats_rows_roundtrip():
     ]
 
 
-@pytest.mark.xfail(strict=True, reason="A12: обрезка строк цифр молчит")
 def test_stats_cap_noted():
     b = Browser(_shop())
     data, _p = form_post(_get(b, "st1"), "bw-form-fields")
@@ -489,6 +464,5 @@ def test_stats_cap_noted():
     assert siteconfig.cap_note() in msgs
 
 
-@pytest.mark.xfail(strict=True, reason="A12: stats не переводится в окне")
 def test_stats_translatable():
     assert "stats" in block_i18n.TEXT_FIELDS

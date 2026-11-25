@@ -42,6 +42,7 @@ PART_TAB: dict[str, str] = {
     "pagelink": "wie",  # FB-33 M5b-2 (A-H1): у списка без своего вида — ссылка на ★-строку
     "card_pick": "karte",  # FB-33 M3-4 (M0-2): форма карточки — только подходящие виду
     "platz": "wie",  # ширина и ряд — секция «Platz» (решение владельца)
+    "hometext": "texte",  # FB-33 стопка 15 M5e-1b: тексты секции главной (те же, что в Студии)
     "usp": "texte",  # пункты полосы доверия
     "faq": "texte",  # FB-33 M3-5b: вопросы FAQ (общие для всех страниц)
     "seo": "texte",  # FB-33 M3-6: SEO страницы у «Einstellungen der Seite» (текстовые)
@@ -69,6 +70,7 @@ PART_ORDER = (
     "formfields",
     "formlink",
     "platz",
+    "hometext",
     "usp",
     "faq",
     "seo",
@@ -123,6 +125,7 @@ PANEL_KEYS: dict[str, str] = {
     "field_langs": "fields",  # FB-33 M3-5c: языки переводов окна (поля — у своей части)
     "form_link": "formlink",
     "content": "inhalt",  # FB-33 M5d-1 (`window_parts.content_part`)
+    "home_texts": "hometext",  # FB-33 стопка 15 M5e-1b (`home_texts.decorate`)
 }
 #: ключи строки, которые панель не рисует частью (метки строки, шапка окна, сырые данные)
 ROW_KEYS = frozenset(
@@ -189,6 +192,7 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
         "listlink": bool(selected.get("list_link")),
         "fields": bool(selected.get("fields")),
         "platz": bool(selected.get("widths")),
+        "hometext": bool(selected.get("home_texts")),
         "usp": bool(selected.get("usp")),
         "faq": bool(selected.get("faq_items")),
         "seo": bool(selected.get("seo")),
@@ -328,15 +332,16 @@ def field_meta(selected: dict | None, field: dict) -> dict:
 #: «zurücksetzen». `card_pick` (вкладка `karte`, M3-4) и `faq` (во «Texte», M3-5b) — формы
 #: `bw-form-card_pick`/`bw-form-faq`.
 #: Замок: у каждой живой применяющей части окна есть форма с её `form_id`.
-APPLY_FORM_PARTS = ("fields", "usp", "formfields", "card_pick", "faq", "seo")  # seo — M3-6
+APPLY_FORM_PARTS = ("fields", "usp", "formfields", "card_pick", "faq", "seo", "hometext")
 #: вкладка → её применяющие части. FB-33 стопка 14 E3 (решение владельца 2026-11-24): на «Wie
-#: anordnen» применяет только вид списка (`bw-form-listview`; «Platz» и «zurücksetzen» — свои
-#: формы, не части); у прочих блоков с видом на «Wie» (FAQ, `usp_bar`, …) вкладки — ссылки
+#: anordnen» применяет вид списка (`bw-form-listview`; «Platz» и «zurücksetzen» — свои формы, не
+#: части); стопка 15 S14-E3-wie — и форма вида `fields` (FAQ, CTA, …): `tab_of` кладёт её на
+#: «Wie» только по её полям (A17 — второго условия нет); две такие части — вкладки-ссылки
 APPLY_TAB_PARTS: dict[str, tuple[str, ...]] = {
     "texte": APPLY_FORM_PARTS,
     "felder": APPLY_FORM_PARTS,
     "karte": APPLY_FORM_PARTS,
-    "wie": ("listview",),
+    "wie": ("listview", "fields"),
 }
 #: вкладки, переход с которых применяет форму — ключи `APPLY_TAB_PARTS` (второго списка нет)
 APPLY_TABS = tuple(APPLY_TAB_PARTS)

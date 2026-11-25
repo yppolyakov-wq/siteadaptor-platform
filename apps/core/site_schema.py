@@ -1633,6 +1633,9 @@ PANEL_FIELDS = {
         ("url", gettext_lazy("Link"), "line"),
     ),
     "image": (("caption", gettext_lazy("Bildunterschrift"), "line"),),
+    # FB-33 стопка 15 M5e-1b (A12): строки «Zahlen» — одним полем «Wert | Bezeichnung», как в
+    # Студии (`_cb_row.html`); подсказка — `STATS_HINT`, канонизация — `normalize`
+    "stats": (("rows", gettext_lazy("Zeilen"), "area"),),
     # FB-27 R6: у блоков-ссылок в панели только выбор — что показать и как; пункты
     # селектов дополняет `fill_options` (нужен запрос — только для открытого блока).
     "textpage": (
@@ -1655,10 +1658,32 @@ def panel_fields(item: dict) -> list[dict]:
 
     key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
     data = item.get("data") or {}
-    return [
+    out = [
         {"name": name, "label": str(label), "kind": kind, "value": data.get(name, "")}
         for name, label, kind in PANEL_FIELDS.get(key, ())
     ]
+    if key == "stats":
+        for f in out:  # A12: список строк — текстом туда и обратно (не repr списка)
+            f["value"] = (
+                siteconfig.stats_to_text(f["value"]) if isinstance(f["value"], list) else f["value"]
+            )
+            f["hint"] = str(STATS_HINT)
+    return out
+
+
+#: Y2: подсказка поля строк «Zahlen» (в `aria-describedby`)
+STATS_HINT = gettext_lazy("Wert | Bezeichnung, eine Zeile je Eintrag")
+#: A12: потолки строки «Zahlen» — те же, что режет `siteconfig._clean_cblock_data`
+STATS_VALUE_MAX, STATS_LABEL_MAX = 12, 40
+
+
+def stats_capped(text) -> bool:
+    """Строка «Wert | Bezeichnung» длиннее потолка нормализации (её обрежут — с заметкой)."""
+    for line in str(text or "").splitlines():
+        value, _sep, label = line.partition("|")
+        if len(value.strip()) > STATS_VALUE_MAX or len(label.strip()) > STATS_LABEL_MAX:
+            return True
+    return False
 
 
 #: FB-33 M2d / M5b-2: поля заголовка ★-строки страницы (`__page`, вкладка «Seite»); в `page_blocks` не хранятся
@@ -3740,6 +3765,15 @@ def mutate(
             if not page_embeddable(sent["page"], host_for(code)):
                 raise SchemaError("page")
         sent, capped = siteconfig.cap_block_texts(key, sent, stored=data)
+        if (
+            key == "stats"
+            and "rows" in sent
+            and sent["rows"]
+            != siteconfig.stats_to_text(
+                data.get("rows") if isinstance(data.get("rows"), list) else []
+            )
+        ):
+            capped = capped or stats_capped(sent["rows"])  # A12: обрезка — не молча
         if capped and notes is not None:
             notes.append(siteconfig.cap_note())
         patched = {**data, **sent}

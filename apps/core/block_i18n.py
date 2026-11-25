@@ -40,6 +40,8 @@ TEXT_FIELDS = {
     "image_text": ("title", "body"),
     "button": ("label",),
     "image": ("caption",),
+    # FB-33 стопка 15 M5e-1b (A12): строки «Zahlen» — текстом «Wert | Bezeichnung» (`stats_rows`)
+    "stats": ("rows",),
 }
 _TITLE_FIELDS = ("title", "intro")
 _NEXT_FIELD = "text"
@@ -89,6 +91,8 @@ def kinds(page: dict, ref: str) -> tuple[str, ...]:
     out = []
     if row.get("id") and _type(row) in TEXT_FIELDS:
         out.append("block")
+    if page.get("home") and not row.get("id") and row.get("key") in _home_texts().FIELDS:
+        out.append("htx")  # FB-33 стопка 15 M5e-1b: тексты секции главной (без списков)
     if row.get("id") and _type(row) == "quick_links":
         out.append("tiles")
     if aufbau_draft._is_faq_row(page, row):
@@ -129,7 +133,9 @@ def german(config: dict, page: dict, ref: str) -> dict:
     if "block" in found:
         data = row.get("data") or {}
         for field in TEXT_FIELDS[_type(row)]:
-            out[field] = _s(data.get(field))
+            out[field] = _rows_text(data.get(field)) if field == "rows" else _s(data.get(field))
+    if "htx" in found:
+        out.update(_htx_texts(config, page, row["key"]))
     if "title" in found:
         entry = page.get("title") or {}
         for field in _TITLE_FIELDS:
@@ -202,8 +208,9 @@ def saved_for(config: dict, page: dict, ref: str) -> dict:
             data = entry.get("data") if isinstance(entry.get("data"), dict) else {}
             if "block" in found:
                 for field in TEXT_FIELDS[_type(_row(page, ref))]:
-                    if _s(data.get(field)):
-                        mine[field] = _s(data[field])
+                    text = _rows_text(data.get(field)) if field == "rows" else _s(data.get(field))
+                    if text:
+                        mine[field] = text
             if "tiles" in found and isinstance(data.get("labels"), dict):
                 for key, text in data["labels"].items():
                     if _s(text):
@@ -214,6 +221,12 @@ def saved_for(config: dict, page: dict, ref: str) -> dict:
             for field in _TITLE_FIELDS:
                 if _s(entry.get(field)):
                     mine[field] = _s(entry[field])
+        if "htx" in found:
+            key = (_row(page, ref) or {}).get("key")
+            for name in _htx_texts(config, page, key):
+                text = _at(node, _home_texts().tr_path(key, name))
+                if text:
+                    mine[name] = text
         if "next" in found and _s(node.get("confirmation_next")):
             mine[_NEXT_FIELD] = _s(node["confirmation_next"])
         lists = {"faq": node.get("faq"), "ofaq": obj_tr.get(loc)}
@@ -299,10 +312,16 @@ def _caps(page: dict, ref: str, key: str) -> int:
                 return k.max_q if field == "q" else k.max_a
         return faq_content.MAX_Q if field == "q" else faq_content.MAX_A
     found = kinds(page, ref)
+    if "htx" in found:
+        spec = _home_texts()._spec((_row(page, ref) or {}).get("key") or "", key)
+        if spec is not None:
+            return spec[3]
     if "title" in found:
         return page_title.TITLE_MAX if key == "title" else page_title.INTRO_MAX
     if "next" in found:
         return confirmation_page.NEXT_MAX
+    if key == "rows":
+        return _ROWS_MAX
     return siteconfig.CBLOCK_INPUT_CAPS.get(_type(_row(page, ref)), {}).get(key, 200)
 
 
@@ -608,10 +627,15 @@ def apply(config: dict, draft: dict, home: bool, host: str) -> None:
                     _set_path(config, loc, ("page_titles", host, key), text)
                 elif "next" in found and key == _NEXT_FIELD:
                     _set_path(config, loc, ("confirmation_next",), text)
+                elif "htx" in found and home:
+                    row = _row(draft, ref) or {}
+                    if _home_texts().translatable(row.get("key") or "", key):
+                        _set_path(config, loc, _home_texts().tr_path(row["key"], key), text)
                 elif at is None:
                     continue  # блока на странице больше нет — переводить нечего
                 elif "block" in found and key in TEXT_FIELDS.get(_type(at[1]), ()):
-                    _set_path(config, loc, (*_block_path(home, host, at[0]), key), text)
+                    value = _rows_list(text) if key == "rows" else text
+                    _set_path(config, loc, (*_block_path(home, host, at[0]), key), value)
                 elif "tiles" in found and key.startswith("label."):
                     tile = key[6:]
                     own = hero_tiles.clean_data(at[1].get("data") or {}).get("labels") or {}
@@ -743,6 +767,20 @@ def decorate(
                 area=f.get("kind") == "area",
             )
             part = "fields"
+    htx = selected.get("home_texts") or {}
+    for f in [
+        *(htx.get("fields") or ()),
+        *(x for g in htx.get("groups") or () for x in g["fields"]),
+    ]:
+        name = f.get("name", "")
+        if name in texts and not part.startswith("fields"):
+            f["translations"] = inputs(
+                name,
+                lambda loc, n=name: f"f_tr_{n}_{loc}",
+                f"schema-f-{name}",
+                area=f.get("kind") == "text",
+            )
+            part = "hometext"
     faq = selected.get("faq_items") or {}
     scope = "ofaq" if faq.get("scope") == "object" else "faq"
     if (
@@ -796,3 +834,60 @@ def decorate(
 #: id заголовка и подсказки кнопок языка окна (одна такая форма на окно; у «Felder» — свои)
 TITLE_ID = "bwtr-lang-title"
 HINT_ID = "bwtr-lang-hint"
+
+
+# ───────────── FB-33 стопка 15 M5e-1b: тексты секций главной и строки «Zahlen» ─────────────
+#: потолок текста строк «Zahlen» в поле перевода (12 строк по «Wert | Bezeichnung»)
+_ROWS_MAX = 1000
+
+
+def _home_texts():
+    from apps.core import home_texts
+
+    return home_texts
+
+
+def _htx_texts(config: dict, page: dict, key) -> dict:
+    """Немецкие тексты секции главной, перевод которых правится в окне (черновик или
+    сохранённое; списки — нет: их пункты переводятся в Студии)."""
+    ht = _home_texts()
+    if key not in ht.FIELDS:
+        return {}
+    current = ht.state(
+        config, key, page, ht.arch_keys_of(ht.pending(page, key) or {}) or _tenant_keys(config, key)
+    )
+    return {n: v for n, v in current.items() if ht.translatable(key, n)}
+
+
+def _tenant_keys(config: dict, key: str) -> list[str]:
+    if key != "archetypes":
+        return []
+    arch = config.get("archetypes") if isinstance(config.get("archetypes"), dict) else {}
+    return sorted(arch, key=str)
+
+
+def _at(node, path: tuple) -> str:
+    for step in path:
+        node = node.get(step) if isinstance(node, dict) else None
+    return _s(node)
+
+
+def _rows_text(value) -> str:
+    """Строки «Zahlen» → текст поля «Wert | Bezeichnung» (как у Студии)."""
+    from apps.tenants import siteconfig
+
+    if isinstance(value, str):
+        return value.strip()
+    return siteconfig.stats_to_text(value if isinstance(value, list) else [])
+
+
+def _rows_list(text: str):
+    """Текст «Wert | Bezeichnung» → строки перевода [{value, label}] ("" — снять перевод)."""
+    if not text:
+        return ""
+    rows = []
+    for line in text.splitlines():
+        value, _sep, label = line.partition("|")
+        if value.strip():
+            rows.append({"value": value.strip(), "label": label.strip()})
+    return rows or ""
