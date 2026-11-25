@@ -23,6 +23,7 @@ from apps.core import (
     block_catalog,
     compositions,
     faq_content,
+    home_texts,
     list_blocks,
     permissions,
     presence,
@@ -2893,19 +2894,19 @@ def home_builder_view(request):
         # W6: форма билдера владеет ТОЛЬКО этими тремя ключами. Остальное у архетипа
         # (intro, обложка hero_image, кнопка, галерея) пишет другой экран — загрузчик
         # обложек; пересборка словаря с нуля стирала их каждым сохранением билдера.
-        arch = dict(config.get("archetypes") or {})
-        for spec in storefront.teaser_specs(request.tenant):
-            key = spec["key"]
-            entry = dict(arch.get(key) or {})
-            entry.update(
-                {
-                    "label": request.POST.get(f"arch_label_{key}", "").strip(),
-                    "blurb": request.POST.get(f"arch_blurb_{key}", "").strip(),
-                    "hidden": request.POST.get(f"arch_visible_{key}") != "on",
-                }
-            )
-            arch[key] = entry
-        config["archetypes"] = arch
+        # FB-33 стопка 15 M5e-1a: тексты — один писатель `home_texts` (только тизеры, чьи поля
+        # пришли в форме; отпечаток секции — A3), видимость — там же
+        htx_stored = siteconfig.normalize(request.tenant.site_config)
+        htx_stale, htx_written = home_texts.put_form(
+            config,
+            request.POST.get,
+            ("archetypes",),
+            stored=htx_stored,
+            translating=translating,
+            notes=save_notes,
+            tenant=request.tenant,
+        )
+        home_texts.put_teaser_visibility(config, request.POST.get, request.tenant)
         # M20U-7: кастомные заголовки секций главной (normalize чистит/обрезает). FB-33 E5
         # (ревью M6): пересобираются только ключи формы, прочие (общий заголовок FAQ окна
         # блока) переносятся как есть
@@ -2995,16 +2996,19 @@ def home_builder_view(request):
             if isinstance(menus, dict) and isinstance(menus.get("top"), dict):
                 menus["top"]["style"] = nav["style"]
                 menus["top"]["sticky"] = nav["sticky"]
-        # SE-7d: область «Баннер» — заголовок/текст hero (presence-guard, чтобы прочие
-        # сохранения не затирали; инпуты пред-заполнены из config → round-trip).
-        if "hero_title" in request.POST:
-            config["hero_title"] = request.POST.get("hero_title", "").strip()
-            config["hero_text"] = request.POST.get("hero_text", "").strip()
-        # LAY-1a: тексты «О нас» — теперь и в панели (раньше только инлайн на канве).
-        # Тот же presence-guard: POST без блока «О нас» не должен их стирать (W0).
-        if "about_title" in request.POST:
-            config["about_title"] = request.POST.get("about_title", "").strip()
-            config["about_text"] = request.POST.get("about_text", "").strip()
+        # SE-7d / LAY-1a: тексты баннера и «О нас» — presence-guard (POST без полей секции их
+        # не стирает, W0); FB-33 стопка 15 M5e-1a: пишет `home_texts` (потолки, снятие перевода
+        # изменённого поля, отпечаток секции)
+        _stale, _written = home_texts.put_form(
+            config,
+            request.POST.get,
+            home_texts.SCALAR_KEYS,
+            stored=htx_stored,
+            translating=translating,
+            notes=save_notes,
+        )
+        htx_stale += _stale
+        htx_written.update(_written)
         # W11-5: фон баннера по URL (перенос со страницы «Site») — presence-guard.
         if "hero_image" in request.POST:
             config["hero_image"] = request.POST.get("hero_image", "").strip()
@@ -3024,12 +3028,11 @@ def home_builder_view(request):
         # тексты — поэтому гейт по сентинелу, который рисует сама форма конструктора.
         if "content_sections_present" in request.POST:
             _sections = siteconfig.parse_content_sections(request.POST.get)
-            # LAY-6d: переводы списков переставляем ВСЛЕД за базой, пока старая база
-            # ещё в `config`. Иначе удаление второго вопроса сдвигало бы русские
-            # ответы на чужие вопросы: оверлей мёржится позиционно.
-            # LAY-6b: при сохранении ПЕРЕВОДА база списков не меняется — выравнивать
-            # нечего, а сравнение русских строк с немецкой базой снесло бы переводы;
-            # там элементы сопоставляет `split_translation` (по переводу и по id).
+            # FB-33 стопка 15 M5e-1a: секции главной пишет `home_texts` (тот же разбор; переводы
+            # списков выравнивает он же, вслед за базой — LAY-6d; при сохранении ПЕРЕВОДА —
+            # нет, LAY-6b); здесь остаются FAQ и полоса доверия
+            for _key in home_texts.CONTENT_KEYS:
+                _sections.pop(_key, None)
             if not translating:
                 # FB-33 M3-5b: вопросы FAQ пишет один писатель (`faq_content`): переводы —
                 # по номеру поля (индекс источника), если форма несёт отпечаток списка,
@@ -3043,8 +3046,17 @@ def home_builder_view(request):
                 if faq_in is None:
                     faq_in = (_sections["faq"], None)
                 _sections.pop("faq", None)
-                siteconfig.realign_list_overlays(config, _sections)
                 faq_content.put(config, faq_in[0], faq_in[1] if faq_fp else None, faq_fp or None)
+            _stale, _written = home_texts.put_form(
+                config,
+                request.POST.get,
+                home_texts.CONTENT_KEYS,
+                stored=htx_stored,
+                translating=translating,
+                notes=save_notes,
+            )
+            htx_stale += _stale
+            htx_written.update(_written)
             config.update(_sections)
         # STU-12g: акцент (Tenant.primary_color) — поле экрана «Design des Shops».
         update_fields = ["site_config", "updated_at"]
@@ -3084,8 +3096,26 @@ def home_builder_view(request):
         with transaction.atomic():
             if _structure_is_stale(request, start_hash):
                 return _redirect_builder(request)
+            # FB-33 стопка 15 M5e-1a (A3, ревью №5): тексты секций главной сверяются со СВЕЖЕЙ
+            # строкой под той же блокировкой — окно блока или канва могли записать их, пока шёл
+            # этот запрос; такая секция и пропущенные остаются как в свежей строке
+            from apps.tenants.models import Tenant
+
+            fresh_row = (
+                Tenant.objects.select_for_update().only("site_config").get(pk=request.tenant.pk)
+            )
+            htx_stale += home_texts.recheck(
+                request.tenant.site_config,
+                siteconfig.normalize(fresh_row.site_config),
+                htx_stale,
+                htx_written,
+            )
             request.tenant.save(update_fields=update_fields)
         messages.success(request, _("Gespeichert."))
+        # ревью №1: пропуск секции виден — заметка на каждую
+        section_labels = {key: label for key, label, _default in siteconfig.SECTIONS}
+        for key in dict.fromkeys(htx_stale):
+            messages.warning(request, home_texts.stale_note(section_labels.get(key, key)))
         for note in dict.fromkeys(save_notes):
             messages.warning(request, note)
         if stale_tab:
@@ -3722,6 +3752,10 @@ def home_builder_view(request):
             # FB-33 M3-5b: отпечаток списка, с которого открыта форма (номера полей — его
             # индексы; Save из устаревшей вкладки сопоставит переводы по тексту)
             "faq_base": faq_content.fingerprint(config["faq"]),
+            # FB-33 стопка 15 M5e-1a (A3): отпечатки СОХРАНЁННЫХ текстов секций главной —
+            # Save из устаревшей вкладки (или с восстановленного черновика) не вернёт тексты,
+            # записанные тем временем окном блока или канвой
+            "htx_base": home_texts.fingerprints(siteconfig.normalize(request.tenant.site_config)),
             "testimonials_text": siteconfig.testimonials_to_text(config["testimonials"]),
             "process_text": siteconfig.pairs_to_text(config["process"], "title", "text"),
             "team_text": "\n".join(
@@ -3950,16 +3984,18 @@ def site_preview_draft(request):
             # LB-2 §11.7: превью = результат Save — переводы за своими блоками.
             siteconfig.realign_block_overlays(cfg, new_sections=rows)
             cfg["sections"] = rows
+    # FB-33 стопка 15 M5e-1a: тексты главной в превью пишет тот же `home_texts`, что и Save;
+    # переводы превью не трогает (`translating=True`, как раньше)
     if isinstance(data.get("archetypes"), dict):
-        arch = dict(cfg.get("archetypes") or {})
+        _teasers = {}
         for key, ov in data["archetypes"].items():
             if isinstance(ov, dict):
-                cur = dict(arch.get(key) or {})
-                cur["label"] = str(ov.get("label", "")).strip()
-                cur["blurb"] = str(ov.get("blurb", "")).strip()
-                cur["hidden"] = bool(ov.get("hidden"))
-                arch[key] = cur
-        cfg["archetypes"] = arch
+                _teasers[f"arch_label_{key}"] = str(ov.get("label", ""))
+                _teasers[f"arch_blurb_{key}"] = str(ov.get("blurb", ""))
+                if not ov.get("hidden"):
+                    _teasers[f"arch_visible_{key}"] = "on"
+        home_texts.put(cfg, "archetypes", _teasers.get, translating=True, tenant=request.tenant)
+        home_texts.put_teaser_visibility(cfg, _teasers.get, request.tenant)
     # M20U-7: кастомные заголовки секций — в превью (normalize чистит ключи/длину). FB-33 E5
     # (ревью M6): как Save — из черновика только ключи формы, прочие — сохранённые
     if isinstance(data.get("section_titles"), dict):
@@ -4045,18 +4081,18 @@ def site_preview_draft(request):
         if isinstance(_mm, dict) and isinstance(_mm.get("top"), dict):
             _mm["top"]["style"] = nav["style"]
             _mm["top"]["sticky"] = nav["sticky"]
-    if isinstance(data.get("hero_title"), str):
-        cfg["hero_title"] = data["hero_title"].strip()
-    if isinstance(data.get("hero_text"), str):
-        cfg["hero_text"] = data["hero_text"].strip()
+
+    def _draft_get(name, default=None):
+        value = data.get(name)
+        return value if isinstance(value, str) else default
+
+    home_texts.put(cfg, "hero", _draft_get, translating=True)
     # W11-5: фон баннера (URL) и быстрый заказ на карточках — перенесены со страницы
     # «Site» в билдер; в превью, иначе правка видна только после Save.
     if isinstance(data.get("hero_image"), str):
         cfg["hero_image"] = data["hero_image"].strip()
     # LAY-1a: тексты «О нас» — в живой черновик (иначе правка видна только после Save).
-    for _about in ("about_title", "about_text"):
-        if isinstance(data.get(_about), str):
-            cfg[_about] = data[_about].strip()
+    home_texts.put(cfg, "about", _draft_get, translating=True)
     if isinstance(data.get("quick_add"), bool):
         cfg["quick_add"] = data["quick_add"]
     if isinstance(data.get("wishlist"), bool):
@@ -4064,6 +4100,9 @@ def site_preview_draft(request):
     # M20d: контент-секции — отражаем в превью, только если присланы (иначе не трём).
     if any(k in data for k in siteconfig.CONTENT_FIELDS):
         _parsed = siteconfig.parse_content_sections(data.get)
+        for _key in home_texts.CONTENT_KEYS:
+            _parsed.pop(_key, None)
+            home_texts.put(cfg, _key, _draft_get, translating=True)
         if "faq_present" not in data and "faq_text" not in data:
             # FB-33 M3-5b: вопросов FAQ в присланном нет (пары полей превью не шлёт) —
             # черновик их не стирает (иначе восстановленный `_draft` открыл бы Студию с
@@ -4220,13 +4259,44 @@ def site_inline_edit(request):
         return HttpResponseBadRequest()
     field = data.get("field")
     value = data.get("value", "")
-    value = value.strip() if isinstance(value, str) else ""
+    if not isinstance(value, str):
+        return HttpResponseBadRequest()  # ревью M5e-1a №6: не текст — не «пустая строка»
+    value = value.strip()
     cfg = siteconfig.normalize(request.tenant.site_config)
     # LAY-6c: сначала РАЗБИРАЕМ поле в путь, потом решаем, куда писать — в базу или
     # в перевод. Раньше запись была вшита в каждую ветку, и локаль учесть было негде:
     # правка русского текста уходила в немецкое поле, немецкая витрина показывала
     # русскую фразу, а на канве правка не появлялась вовсе (оверлей замещает базу).
     path = None
+    if field in home_texts.INLINE_FIELDS:
+        # FB-33 стопка 15 M5e-1a: тексты главной (баннер, «О нас», CTA) — один писатель
+        # `home_texts.set_text` (правка немецкого снимает перевод этого поля, потолки), под
+        # блокировкой строки бизнеса и от СВЕЖЕГО конфига (Студия или окно блока могли
+        # записать тексты тем временем)
+        from apps.tenants.models import Tenant
+
+        key, name = home_texts.INLINE_FIELDS[field]
+        locale = (data.get("locale") or "").strip()
+        if not siteconfig.is_translation_locale(request.tenant, locale):
+            locale = ""
+        with transaction.atomic():
+            locked = Tenant.objects.select_for_update().get(pk=request.tenant.pk)
+            cfg = siteconfig.normalize(locked.site_config)
+            result = home_texts.set_text(cfg, key, name, value, locale)
+            if result == home_texts.REJECTED:
+                return HttpResponse(status=422)  # небезопасная ссылка — не записано
+            locked.site_config = siteconfig.normalize(cfg)
+            locked.save(update_fields=["site_config", "updated_at"])
+        request.tenant.site_config = locked.site_config
+        if result == home_texts.CAPPED:
+            # ревью №4: обрезанное — ответ с тем, что сохранено (канва показывает правду)
+            from django.http import JsonResponse
+
+            stored = (
+                siteconfig.localize(locked.site_config, locale) if locale else locked.site_config
+            )
+            return JsonResponse({"capped": True, "value": home_texts.values(stored, key)[name]})
+        return HttpResponse(status=204)
     if field in siteconfig.TEXT_FIELDS:
         path = (field,)
     elif field in siteconfig.NESTED_TEXT_FIELDS:

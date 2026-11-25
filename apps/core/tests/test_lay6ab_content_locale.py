@@ -168,11 +168,13 @@ def test_save_in_a_translation_writes_the_overlay_and_keeps_the_base():
 
 
 def test_save_in_the_base_language_is_unchanged():
-    """Паритет: сохранение на немецком пишет базу и не трогает перевод."""
+    """Сохранение на немецком пишет базу. FB-33 стопка 15 M5e-1a (осознанная переписка, решение
+    владельца §9 №3): перевод изменённого поля снимается, перевод прочих полей цел."""
     tenant = _tenant("lay6b2")
     cfg = _save(tenant, _form(hero_title="Servus", content_lang="de"), lang_cookie="de")
     assert cfg["hero_title"] == "Servus"
-    assert cfg["i18n"]["ru"]["hero_title"] == "Добро пожаловать", "перевод сбит"
+    assert "hero_title" not in cfg["i18n"]["ru"]
+    assert cfg["i18n"]["ru"]["about_title"] == "О нас", "чужое поле не тронуто"
 
 
 def test_structure_is_shared_between_languages():
