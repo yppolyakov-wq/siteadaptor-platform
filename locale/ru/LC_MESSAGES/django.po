@@ -41049,3 +41049,76 @@ msgstr "Не применено:"
 #: apps/events/views.py
 msgid "Die Seite dieses Angebots wurde inzwischen an anderer Stelle geändert – nichts wurde gespeichert. Ihre Eingaben stehen unten, Fotos bitte erneut auswählen. Bitte prüfen und erneut speichern."
 msgstr "Страницу этого предложения тем временем изменили в другом месте — ничего не сохранено. Ваши данные ниже, фото выберите заново. Проверьте и сохраните ещё раз."
+
+# FB-33 стопка 15 (P0, план docs/fb33-stack15-plan-2026-11-25.md §5.2, §14)
+msgid "Die Angaben kommen aus Ihren Geschäftsdaten."
+msgstr "Данные берутся из сведений о вашем бизнесе."
+
+msgid "Geschäftsdaten bearbeiten"
+msgstr "Изменить данные бизнеса"
+
+#, python-format
+msgid "%(n)s von %(m)s ausgefüllt"
+msgstr "Заполнено %(n)s из %(m)s"
+
+msgid "Überschrift (H1)"
+msgstr "Заголовок (H1)"
+
+msgid "Diese Ansicht hat keine Karten"
+msgstr "У этого вида нет карточек"
+
+msgid "Dieselben Felder wie im Studio."
+msgstr "Те же поля, что в Студии."
+
+#, python-format
+msgid "Schritt %(n)s"
+msgstr "Шаг %(n)s"
+
+#, python-format
+msgid "Mitglied %(n)s"
+msgstr "Участник %(n)s"
+
+#, python-format
+msgid "Stimme %(n)s"
+msgstr "Отзыв %(n)s"
+
+msgid "Wert | Bezeichnung, eine Zeile je Eintrag"
+msgstr "Значение | подпись, по строке на запись"
+
+msgid "(passt nicht zur Ansicht)"
+msgstr "(не подходит к виду)"
+
+#, python-format
+msgid "Ansicht im Block „%(name)s“ ändern"
+msgstr "Изменить вид в блоке «%(name)s»"
+
+#, python-format
+msgid "%(field)s: bitte mit https:// beginnen."
+msgstr "%(field)s: начните с https://."
+
+msgid "fb33-stack-anchor-s15-k0"
+msgstr "fb33-stack-anchor-s15-k0"
+
+msgid "fb33-stack-anchor-s15-m5e1a"
+msgstr "fb33-stack-anchor-s15-m5e1a"
+
+msgid "fb33-stack-anchor-s15-m5e1b"
+msgstr "fb33-stack-anchor-s15-m5e1b"
+
+msgid "fb33-stack-anchor-s15-m5e2a"
+msgstr "fb33-stack-anchor-s15-m5e2a"
+
+msgid "fb33-stack-anchor-s15-m5e2b"
+msgstr "fb33-stack-anchor-s15-m5e2b"
+
+msgid "fb33-stack-anchor-s15-m5e3"
+msgstr "fb33-stack-anchor-s15-m5e3"
+
+msgid "fb33-stack-anchor-s15-m1d"
+msgstr "fb33-stack-anchor-s15-m1d"
+
+msgid "fb33-stack-anchor-s15-e1t"
+msgstr "fb33-stack-anchor-s15-e1t"
+
+msgid "fb33-stack-anchor-s15-e8c"
+msgstr "fb33-stack-anchor-s15-e8c"
