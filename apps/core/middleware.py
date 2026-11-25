@@ -255,6 +255,8 @@ class CabinetOwnerAccessMiddleware:
         if view_name == STOREFRONT_CONTENT_PAGE:
             # FB-33 K0: страница витрины `<slug>/` под кабинетным префиксом — не экран
             # кабинета; без права в реестре она давала 500 (strict) или 403 — честно 404.
+            # Запасная ветка: сегодня у каждого префикса есть корень, сюда попадёт только
+            # будущий префикс без пути "" (замок — tests/urls_s15_k0_prefix.py).
             raise Http404
         if not view_perms.allowed(request.user, view_name, request.method):
             return HttpResponseForbidden(_("Dafür fehlt Ihnen das Recht."))
