@@ -112,6 +112,13 @@ class ContentSource:
     #: FB-33 M5d-2b: виды объекта, у которых раздел вообще рисуется (пусто — у всех видов хоста);
     #: у строки объекта другого вида окно говорит, что блока там нет
     kinds: tuple[str, ...] = ()
+    #: FB-33 M5e-2a (§0.3 №2): своё имя ссылки («Geschäftsdaten bearbeiten») — имя экрана;
+    #: пусто — прежнее «Inhalt bearbeiten: <экран>»
+    link_text: object = ""
+    #: FB-33 M5e-2a: чьи поля `fields` — "" объекта строки, "tenant" — бизнеса (`request.tenant`):
+    #: «Woher» списком полей со словом «ausgefüllt»/«leer» и итогом «N von M ausgefüllt»;
+    #: «ausgefüllt» — только пробами `window_parts._PROBES` (тот же гейт, что у витрины)
+    subject: str = ""
 
 
 #: FB-33 M5d-2: обычное «когда появляется» раздела-поля
@@ -762,7 +769,20 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # деньги и PAngV, не скрывается и не делится) и «Weitere Aktionen» (скрывается,
     # `promo_show_related`). Порядок постоянный.
     "promo": (
-        DetailSection("offer", _("Angebot"), hideable=False),
+        # FB-33 стопка 15 M5e-2a (ревью 1): «Inhalt» строки типа — экран акций; у строки одной
+        # акции части нет (её хост — не общий хост детали)
+        DetailSection(
+            "offer",
+            _("Angebot"),
+            hideable=False,
+            content_nav="promotions:promotion-list",
+            source=ContentSource(
+                "setting",
+                shows=_("Preis, Bedingungen und Gutscheincode der Aktion"),
+                woher=_("Die jeweilige Aktion aus „Aktionen“."),
+                link_text=_("Aktion bearbeiten"),
+            ),
+        ),
         # FB-33 M2g: внутри колонки «Angebot» — скрываются на месте (цены в них нет)
         # FB-33 M5d-4e: откуда содержимое (окно «Inhalt»); строка одной акции части не получает
         DetailSection(
@@ -949,6 +969,112 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         ),
     ),
 }
+
+
+# --- FB-33 M5e-2a: источники «Inhalt» у строк главной и листингов --------------------------------
+
+#: ключ семьи страницы → строки с источником содержимого (тот же `DetailSection`/`ContentSource`,
+#: что у деталей; разделов-порядка здесь нет — только часть окна «Inhalt»). Семья — по хосту
+#: (`window_parts.page_family`): у страницы с модулем деталей (`detail_parts.module_of`) действует он.
+#: Экран ★ основного списка (`main`) — из записи источника списка
+#: (`window_parts.main_list_screen`), своего `content_nav` у строки нет.
+#: ★ основного списка: экран и имя — из записи источника (`window_parts.list_source_screen`)
+_MAIN_LIST = DetailSection("main", _("Hauptliste"), source=ContentSource("setting"))
+PAGE_SOURCES: dict[str, tuple[DetailSection, ...]] = {
+    "home": (
+        # артборд M5eInhalt: пункты — подписи формы «Mein Geschäft» (`tenants/forms.py`);
+        # «ausgefüllt» — гейт `storefront/sections/_contact.html` (пробы `contact_*`)
+        DetailSection(
+            "contact",
+            _("Contact & opening hours"),
+            content_nav="settings",
+            source=ContentSource(
+                "setting",
+                woher=_("Die Angaben kommen aus Ihren Geschäftsdaten."),
+                # `field` — поле формы «Mein Geschäft» (подпись — та же строка, замок
+                # `test_labels_on_cabinet_form`); ревью 1 №4: e-mail и карта тоже открывают блок
+                fields=(
+                    SourceField(
+                        "address", field="address", label=_("Address"), probe="contact_address"
+                    ),
+                    SourceField(
+                        "public_phone",
+                        field="contact_phone",
+                        label=_("Phone"),
+                        probe="contact_phone",
+                    ),
+                    SourceField(
+                        "opening_hours",
+                        field="opening_hours",
+                        label=_("Opening hours"),
+                        probe="contact_hours",
+                    ),
+                    SourceField(
+                        "public_email",
+                        field="contact_email",
+                        label=_("Email"),
+                        probe="contact_email",
+                    ),
+                    SourceField(
+                        "map_url", field="map_url", label=_("Karten-Link"), probe="contact_map"
+                    ),
+                ),
+                link_text=_("Geschäftsdaten bearbeiten"),
+                subject="tenant",
+            ),
+        ),
+        DetailSection(
+            "reviews",
+            _("Customer reviews"),
+            content_nav="reviews:list",
+            # условия показа — те же, что у витрины (замок `test_only_if_equals_storefront`)
+            source=ContentSource(
+                "setting", only_if=_("Erscheint nur, wenn es freigegebene Bewertungen gibt.")
+            ),
+        ),
+        DetailSection(
+            "finder",
+            _("Finder"),
+            content_nav="finder-settings",
+            source=ContentSource(
+                "setting", only_if=_("Erscheint nur, wenn der Finder eingerichtet ist.")
+            ),
+        ),
+        # запись «Galerie» — вход в Студию на главной у блока галереи (стопка 14 E6)
+        DetailSection(
+            "gallery",
+            _("Photo gallery"),
+            content_nav="site-home",
+            source=ContentSource(
+                "setting", only_if=_("Erscheint nur, wenn die Galerie Fotos hat.")
+            ),
+        ),
+    ),
+    "list": (_MAIN_LIST,),
+    # ревью 1 №7: «Kategorien» и «Sets & Menüs» — только у страниц каталога и категорий
+    "catalog_list": (
+        _MAIN_LIST,
+        DetailSection(
+            "categories",
+            _("Kategorien"),
+            content_nav="catalog:category-list",
+            source=ContentSource("setting", only_if=_("Erscheint nur, wenn es Kategorien gibt.")),
+        ),
+        DetailSection(
+            "combos",
+            _("Sets & Menüs"),
+            content_nav="catalog:combo-list",
+            source=ContentSource(
+                "setting", only_if=_("Erscheint nur, wenn es Sets oder Menüs gibt.")
+            ),
+        ),
+    ),
+}
+
+
+def page_sources(family: str) -> tuple[DetailSection, ...]:
+    """FB-33 M5e-2a: строки с источником «Inhalt» семьи страницы (`window_parts.page_family`)."""
+    return PAGE_SOURCES.get(family, ())
 
 
 def sections_for(module: str) -> tuple[DetailSection, ...]:

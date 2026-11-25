@@ -40842,6 +40842,27 @@ msgstr "fb33-stack-anchor-s15-m5e1b"
 msgid "fb33-stack-anchor-s15-m5e2a"
 msgstr "fb33-stack-anchor-s15-m5e2a"
 
+msgid "Die jeweilige Aktion aus „Aktionen“."
+msgstr "Die jeweilige Aktion aus „Aktionen“."
+
+msgid "Erscheint nur, wenn es freigegebene Bewertungen gibt."
+msgstr "Erscheint nur, wenn es freigegebene Bewertungen gibt."
+
+msgid "Erscheint nur, wenn der Finder eingerichtet ist."
+msgstr "Erscheint nur, wenn der Finder eingerichtet ist."
+
+msgid "Erscheint nur, wenn es Kategorien gibt."
+msgstr "Erscheint nur, wenn es Kategorien gibt."
+
+msgid "Erscheint nur, wenn es Sets oder Menüs gibt."
+msgstr "Erscheint nur, wenn es Sets oder Menüs gibt."
+
+msgid "Preis, Bedingungen und Gutscheincode der Aktion"
+msgstr "Preis, Bedingungen und Gutscheincode der Aktion"
+
+msgid "Aktion bearbeiten"
+msgstr "Aktion bearbeiten"
+
 msgid "fb33-stack-anchor-s15-m5e2b"
 msgstr "fb33-stack-anchor-s15-m5e2b"
 
