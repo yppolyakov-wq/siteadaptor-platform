@@ -430,6 +430,10 @@ def test_probe_registry_closed(caplog, monkeypatch):
         "additive_labels": ("field", "apps.catalog.food", "additive_labels"),
         "landing": ("field", "apps.events.details", "normalize"),
         "amenity_badges": ("property", "", "amenity_badges"),
+        # FB-33 стопка 15 M5e-2a: пункты «Kontakt» главной — гейт `_contact.html`
+        "contact_address": ("object", "apps.core.window_parts", "contact_address"),
+        "contact_phone": ("object", "apps.core.window_parts", "contact_phone"),
+        "contact_hours": ("object", "apps.core.window_parts", "contact_hours"),
     }
     for module, key in LIST_SECTIONS.values():
         for sf in _sfields(module, key):

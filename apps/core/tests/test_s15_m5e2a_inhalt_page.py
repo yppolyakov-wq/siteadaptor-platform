@@ -65,7 +65,6 @@ MAIN_SCREENS = {
 NO_RIGHT = "Nur mit Berechtigung bearbeitbar"
 MODULE_OFF = "Modul ist nicht aktiv"
 NO_PACKAGE = "Nicht in Ihrem Paket enthalten"
-MISSING = pytest.mark.xfail(strict=True, reason="M5e-2a: части «Inhalt» у главной и листингов нет")
 
 
 @pytest.fixture(autouse=True)
@@ -130,7 +129,6 @@ def _content(request, host, key, **row):
 # --- №2: один реестр -----------------------------------------------------------------------------
 
 
-@MISSING
 def test_page_sources_in_contentsource():
     """№2: источники страниц — те же `DetailSection` с `ContentSource` в `PAGE_SOURCES` по семье;
     ключей семей нет среди модулей деталей; экран у каждой строки — запись `nav_registry`
@@ -159,7 +157,6 @@ def test_page_sources_in_contentsource():
                 assert s.source.subject == "" and not s.source.link_text, s.key
 
 
-@MISSING
 @pytest.mark.parametrize("host", sorted(MAIN_SCREENS))
 def test_main_screen_from_source_record(host):
     """№2: экран ★ — из записи источника основного списка; у списков без источника блока
@@ -188,13 +185,12 @@ GATES = {
     # структурные часы без текста: витрина рисует «Öffnungszeiten» по `open_status` —
     # по имени поля `opening_hours` окно сказало бы «leer»
     "Öffnungszeiten": (
-        {"opening_hours_structured": {"mon": [["08:00", "18:00"]]}},
+        {"opening_hours_structured": {"0": ["08:00", "18:00"]}},
         "Öffnungszeiten</p>",
     ),
 }
 
 
-@MISSING
 @pytest.mark.parametrize("item", sorted(GATES))
 def test_filled_matches_storefront_gate(item):
     """№2/№3: «„X“ — ausgefüllt» ровно тогда, когда витрина рисует этот пункт контактов
@@ -210,7 +206,6 @@ def test_filled_matches_storefront_gate(item):
         assert f"„{item}“ — {word}" in _text(part), (item, case, _text(part))
 
 
-@MISSING
 def test_zero_two_three_of_three():
     """№14: итог «N von M ausgefüllt» считает пункты (0, 2 и 3 из 3); значок — украшение,
     состояние — словом."""
@@ -236,7 +231,6 @@ def test_zero_two_three_of_three():
         assert "aria-live" not in part and 'role="status"' not in part  # Y4: статичный итог
 
 
-@MISSING
 def test_state_word_not_icon_only():
     """Y4: значок состояния `aria-hidden`, слово — в тексте пункта."""
     with translation.override("de"):
@@ -251,7 +245,6 @@ def test_state_word_not_icon_only():
 # --- №5: ключ строки — точно ------------------------------------------------------------------------
 
 
-@MISSING
 @pytest.mark.parametrize(
     "host,key,screen",
     [("catalog", "main", "sellable-manage"), *[("catalog", k, v) for k, v in LISTING.items()]],
@@ -272,7 +265,6 @@ def test_section_key_exact(host, key, screen):
     assert "content" not in selected
 
 
-@MISSING
 @pytest.mark.parametrize("key", sorted(HOME))
 def test_home_rows_have_the_part(key):
     """Главная: у contact, reviews, finder, gallery — часть «Inhalt» на «Was»."""
@@ -301,7 +293,6 @@ def test_unknown_family_no_part():
 # --- №8: проба незнакомая — в журнал --------------------------------------------------------------
 
 
-@MISSING
 def test_probe_unknown_logged(monkeypatch, caplog):
     """№8: незнакомая проба — ошибка в журнал, состояние «неизвестно» (пункт без слова),
     экран не падает."""
@@ -331,7 +322,6 @@ def test_probe_unknown_logged(monkeypatch, caplog):
 # --- №13: подписи на языке окна -------------------------------------------------------------------
 
 
-@MISSING
 @pytest.mark.parametrize(
     "lang,words",
     [
@@ -353,7 +343,6 @@ def test_labels_ru_de(lang, words):
 # --- №22, Y4: имя ссылки -------------------------------------------------------------------------
 
 
-@MISSING
 @pytest.mark.parametrize(
     "query,name",
     [
@@ -388,7 +377,6 @@ def test_link_name_starts_with_visible():
 # --- №28: экран закрыт -----------------------------------------------------------------------------
 
 
-@MISSING
 def test_link_closed_module():
     """№28 (модуль): экран выключенного модуля — абзац причины без `<a>`."""
     with translation.override("de"):
@@ -397,7 +385,6 @@ def test_link_closed_module():
     assert "<a " not in part and MODULE_OFF in part and "data-inhalt-reason" in part
 
 
-@MISSING
 def test_link_closed_package(monkeypatch):
     """№28 (пакет): экрана нет в пакете — причина без ссылки."""
     from apps.core import packages
@@ -410,7 +397,6 @@ def test_link_closed_package(monkeypatch):
     assert "Geschäftsdaten bearbeiten" not in part  # имя ссылки — только у ссылки
 
 
-@MISSING
 def test_no_anchor_when_closed():
     """№28 (право), Y4: сотрудник без права на экран — абзац `ct.reason` без `<a>` (не
     `aria-disabled`); владелец — со ссылкой."""
@@ -422,7 +408,10 @@ def test_no_anchor_when_closed():
     path = "/dashboard/site/aufbau/?seite=home&block=contact"
     staff = _user(Membership.ROLE_STAFF)
     Membership.objects.filter(user=staff).update(
-        permissions={"add": ["website.view", "website.edit"], "remove": ["settings.view"]}
+        permissions={
+            "add": ["website.view", "website.edit"],
+            "remove": ["einstellungen.view", "einstellungen.edit"],
+        }
     )
     with translation.override("de"):
         resp = walk_open(path, tenant, staff)
@@ -438,7 +427,6 @@ def test_no_anchor_when_closed():
 # --- №31: запросы ---------------------------------------------------------------------------------
 
 
-@MISSING
 def test_inhalt_page_queries(monkeypatch):
     """№31: часть «Inhalt» у строки главной и ★ стоит не больше двух запросов поверх окна без
     неё (каникулы для `open_status`)."""

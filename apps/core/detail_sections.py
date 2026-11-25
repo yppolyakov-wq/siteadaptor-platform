@@ -112,6 +112,13 @@ class ContentSource:
     #: FB-33 M5d-2b: виды объекта, у которых раздел вообще рисуется (пусто — у всех видов хоста);
     #: у строки объекта другого вида окно говорит, что блока там нет
     kinds: tuple[str, ...] = ()
+    #: FB-33 M5e-2a (§0.3 №2): своё имя ссылки («Geschäftsdaten bearbeiten») — имя экрана;
+    #: пусто — прежнее «Inhalt bearbeiten: <экран>»
+    link_text: object = ""
+    #: FB-33 M5e-2a: чьи поля `fields` — "" объекта строки, "tenant" — бизнеса (`request.tenant`):
+    #: «Woher» списком полей со словом «ausgefüllt»/«leer» и итогом «N von M ausgefüllt»;
+    #: «ausgefüllt» — только пробами `window_parts._PROBES` (тот же гейт, что у витрины)
+    subject: str = ""
 
 
 #: FB-33 M5d-2: обычное «когда появляется» раздела-поля
@@ -949,6 +956,70 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         ),
     ),
 }
+
+
+# --- FB-33 M5e-2a: источники «Inhalt» у строк главной и листингов --------------------------------
+
+#: ключ семьи страницы → строки с источником содержимого (тот же `DetailSection`/`ContentSource`,
+#: что у деталей; разделов-порядка здесь нет — только часть окна «Inhalt»). Семья — по хосту
+#: (`window_parts.page_family`): у страницы с модулем деталей (`detail_parts.module_of`) действует он.
+#: Экран ★ основного списка (`main`) — из записи источника списка
+#: (`window_parts.main_list_screen`), своего `content_nav` у строки нет.
+PAGE_SOURCES: dict[str, tuple[DetailSection, ...]] = {
+    "home": (
+        # артборд M5eInhalt: пункты — подписи формы «Mein Geschäft» (`tenants/forms.py`);
+        # «ausgefüllt» — гейт `storefront/sections/_contact.html` (пробы `contact_*`)
+        DetailSection(
+            "contact",
+            _("Contact & opening hours"),
+            content_nav="settings",
+            source=ContentSource(
+                "setting",
+                woher=_("Die Angaben kommen aus Ihren Geschäftsdaten."),
+                fields=(
+                    SourceField("address", label=_("Address"), probe="contact_address"),
+                    SourceField("public_phone", label=_("Phone"), probe="contact_phone"),
+                    SourceField("opening_hours", label=_("Opening hours"), probe="contact_hours"),
+                ),
+                link_text=_("Geschäftsdaten bearbeiten"),
+                subject="tenant",
+            ),
+        ),
+        DetailSection(
+            "reviews",
+            _("Customer reviews"),
+            content_nav="reviews:list",
+            source=ContentSource("setting"),
+        ),
+        DetailSection(
+            "finder", _("Finder"), content_nav="finder-settings", source=ContentSource("setting")
+        ),
+        # запись «Galerie» — вход в Студию на главной у блока галереи (стопка 14 E6)
+        DetailSection(
+            "gallery", _("Photo gallery"), content_nav="site-home", source=ContentSource("setting")
+        ),
+    ),
+    "list": (
+        DetailSection("main", _("Hauptliste"), source=ContentSource("setting")),
+        DetailSection(
+            "categories",
+            _("Kategorien"),
+            content_nav="catalog:category-list",
+            source=ContentSource("setting"),
+        ),
+        DetailSection(
+            "combos",
+            _("Sets & Menüs"),
+            content_nav="catalog:combo-list",
+            source=ContentSource("setting"),
+        ),
+    ),
+}
+
+
+def page_sources(family: str) -> tuple[DetailSection, ...]:
+    """FB-33 M5e-2a: строки с источником «Inhalt» семьи страницы (`window_parts.page_family`)."""
+    return PAGE_SOURCES.get(family, ())
 
 
 def sections_for(module: str) -> tuple[DetailSection, ...]:
