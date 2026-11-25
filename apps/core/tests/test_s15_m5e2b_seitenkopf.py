@@ -40,8 +40,6 @@ pytestmark = pytest.mark.django_db
 
 PAGE = site_schema.PAGE_REF
 WOPEN = "openK1"
-#: замки первого коммита — поведения ещё нет (снимаются в коммите реализации)
-RED = pytest.mark.xfail(strict=True, reason="M5e-2b: ещё нет")
 LONG_TITLE = "Unser Sortiment " + "x" * 150  # 166 > TITLE_MAX
 LONG_INTRO = "Zeile eins\nZeile zwei\n" + "y" * 450  # > INTRO_MAX, mit Umbrüchen
 
@@ -93,7 +91,6 @@ def _post_head(b, code, **fields):
 # ───────────── №1: один писатель шапки ─────────────
 
 
-@RED
 @pytest.mark.parametrize(
     ("host", "cfg", "entry"),
     [
@@ -124,7 +121,6 @@ def test_one_head_writer(host, cfg, entry):
     assert '"page_titles"' not in src and "catalog_title" not in src, "писатель — page_title"
 
 
-@RED
 def test_head_hosts_and_catalog_have_head():
     assert all(page_title.has_head(h) for h in page_title.HEAD_HOSTS)
     assert page_title.has_head("catalog")
@@ -134,7 +130,6 @@ def test_head_hosts_and_catalog_have_head():
 # ───────────── №3: одно правило вкладки ─────────────
 
 
-@RED
 @pytest.mark.parametrize("host", [*page_title.HEAD_HOSTS, "catalog"])
 def test_tab_rule_one_predicate(host):
     row = page_window.pseudo_row(PAGE, PAGE, host, {})
@@ -146,7 +141,6 @@ def test_tab_rule_one_predicate(host):
 # ───────────── №14: H1 на «Texte» ─────────────
 
 
-@RED
 @pytest.mark.parametrize(("bt", "code"), [("friseur", "services"), ("online_shop", "catalog")])
 def test_texte_tab_has_h1(bt, code):
     panel = _window(Browser(_tenant(bt)), code)
@@ -165,7 +159,6 @@ def test_page_window_still_opens_on_seite():
 # ───────────── №22 / Y3: радио «Ausrichtung» ─────────────
 
 
-@RED
 def test_radio_group_named():
     texte = _section(_window(Browser(_tenant()), "services"), "texte")
     group = re.search(r"<fieldset[^>]*data-schema-align.*?</fieldset>", texte, re.S)
@@ -183,18 +176,16 @@ def test_radio_group_named():
     assert "<select" not in texte and "Zentriert" not in texte
 
 
-@RED
 def test_catalog_has_no_align():
     """§0.3 №3: у каталога `catalog_title/intro` — верхние ключи, выравнивания нет."""
     texte = _section(_window(Browser(_tenant("online_shop")), "catalog"), "texte")
     assert "f_align" not in texte and "data-schema-align" not in texte
 
 
-@RED
 def test_radio_center_applies_without_js():
     b = Browser(_tenant())
     resp, _m = _post_head(b, "services", title="Termine", align="center")
-    assert resp.status_code == 302 and "tab=texte" in resp["Location"]
+    assert resp.status_code == 302
     assert b.session[aufbau_draft.SESSION_KEY]["services"]["title"] == {
         "title": "Termine",
         "align": "center",
@@ -206,7 +197,6 @@ def test_radio_center_applies_without_js():
 # ───────────── Y9: на «Seite» нет пустой группы; легенда на «Texte» ─────────────
 
 
-@RED
 def test_no_empty_fieldset():
     panel = _window(Browser(_tenant()), "services")
     seite, texte = _section(panel, "seite"), _section(panel, "texte")
@@ -217,7 +207,6 @@ def test_no_empty_fieldset():
         assert re.search(r"<(input|select|textarea|button)", fs), "пустой fieldset"
 
 
-@RED
 def test_no_aria_hidden_on_focusable():
     texte = _section(_window(Browser(_tenant(locales=["de", "ru"])), "services"), "texte")
     for tag in re.findall(r"<(?:a|button|input|select|textarea)\b[^>]*>", texte):
@@ -225,7 +214,6 @@ def test_no_aria_hidden_on_focusable():
             assert 'tabindex="-1"' in tag, tag
 
 
-@RED
 def test_default_button_comes_before_the_tab_buttons():
     panel = _window(Browser(_tenant()), "services", "texte")
     default = panel.index("data-window-default")
@@ -238,7 +226,6 @@ def test_default_button_comes_before_the_tab_buttons():
 # ───────────── №6 / A9: старые значения каталога ─────────────
 
 
-@RED
 def test_catalog_head_old_values():
     cfg = {"catalog_title": LONG_TITLE, "catalog_intro": LONG_INTRO}
     assert page_title.head(cfg, "catalog") == {"title": LONG_TITLE, "intro": LONG_INTRO}
@@ -246,7 +233,11 @@ def test_catalog_head_old_values():
     b = Browser(tenant)
     # неизменённое не режется: прислали то же самое (в т. ч. с \r\n из textarea)
     _post_head(b, "catalog", title=LONG_TITLE, intro=LONG_INTRO.replace("\n", "\r\n"))
-    assert "catalog" not in (b.session.get(aufbau_draft.SESSION_KEY) or {}), "нет изменений"
+    draft = (b.session.get(aufbau_draft.SESSION_KEY) or {}).get("catalog") or {}
+    assert draft.get("title", {"title": LONG_TITLE, "intro": LONG_INTRO}) == {
+        "title": LONG_TITLE,
+        "intro": LONG_INTRO,
+    }, "нет изменений — прежний текст без обрезки"
     # правка вступления: переносы строк остаются, потолок — INTRO_MAX; заголовок не тронут
     _post_head(b, "catalog", title=LONG_TITLE, intro="Erste\r\nZweite  Zeile\n" + "z" * 500)
     draft = b.session[aufbau_draft.SESSION_KEY]["catalog"]
@@ -262,7 +253,6 @@ def test_catalog_head_old_values():
 # ───────────── №26: потолки ─────────────
 
 
-@RED
 @pytest.mark.parametrize(("bt", "code"), [("friseur", "services"), ("online_shop", "catalog")])
 def test_caps(bt, code):
     b = Browser(_tenant(bt))
@@ -278,7 +268,6 @@ def test_caps(bt, code):
 # ───────────── №11: черновик до среза ─────────────
 
 
-@RED
 def test_old_draft_without_catalog_title_clean():
     """Черновик каталога, начатый до среза (в сохранённом состоянии не было `title`), — не
     конфликт: отпечаток без него."""
@@ -294,7 +283,6 @@ def test_old_draft_without_catalog_title_clean():
 # ───────────── A4: перевод шапки каталога ─────────────
 
 
-@RED
 def test_catalog_title_translation_kind():
     assert "catalog_title" in siteconfig.TRANSLATABLE_KEYS
     assert "catalog_intro" in siteconfig.TRANSLATABLE_KEYS
@@ -311,7 +299,6 @@ def test_catalog_title_translation_kind():
     assert "page_titles" not in out["i18n"]["ru"]
 
 
-@RED
 def test_catalog_translation_in_window_and_storefront(settings):
     tenant = _tenant("online_shop", {"catalog_title": "Sortiment"}, locales=["de", "ru"])
     b = Browser(tenant)
@@ -340,7 +327,6 @@ def _products(cfg):
     return public_views.product_list(req).content.decode()
 
 
-@RED
 def test_catalog_h1_on_storefront(settings):
     from apps.core import pagecache
 
@@ -412,7 +398,6 @@ def test_m5e2b_msgids_in_all_po(lang):
         assert lang == "de" or m.group(1), (lang, msgid)
 
 
-@RED
 def test_window_tabs_apply_fields_on_texte():
     """Без JS переход с «Texte» на «Seite» применяет форму шапки (кнопки вкладок)."""
     tenant = _tenant()

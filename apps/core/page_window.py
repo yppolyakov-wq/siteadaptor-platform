@@ -96,9 +96,11 @@ def pseudo_row(ref: str, page_ref: str, host: str = "", config: dict | None = No
         "can_up": False,
         "can_down": False,
     }
-    if host in page_title.HEAD_HOSTS:
+    if page_title.has_head(host):
+        # стопка 15 M5e-2b (вариант A): поля шапки — группой «Überschrift der Seite» на
+        # вкладке «Texte» (у всех листингов и каталога); «Seite» — только настройки типа
         row["fields"] = site_schema.title_fields(config or {}, host)
-        row["with_title"] = True  # «Überschrift der Seite» и «Einstellungen dieser Seitenart»
+        row["title_row"] = True
     return row
 
 

@@ -11,7 +11,8 @@
 Что переводится (ключ поля в черновике → где лежит перевод):
 - C-блок «Text», «Foto + Text», «Button», «Bild»: `title`/`body`/`label`/`caption` →
   `i18n[<язык>]["sections"|"page_blocks"][<хост>][<позиция блока>]["data"][<поле>]`;
-- «Seitentitel»: `title`/`intro` → `i18n[<язык>]["page_titles"][<хост>]`;
+- «Seitentitel»: `title`/`intro` → `i18n[<язык>]["page_titles"][<хост>]`, у каталога —
+  `i18n[<язык>]["catalog_title"|"catalog_intro"]` (`page_title.tr_path`, стопка 15 M5e-2b);
 - «Was passiert jetzt»: `text` → `i18n[<язык>]["confirmation_next"]`;
 - плашки «Schnellzugriff»: `label.<ключ>` → `…["data"]["labels"][<ключ>]`;
 - общие вопросы FAQ: `faq.<src>.q|a` → `i18n[<язык>]["faq"]` (пишет `faq_content.put(explicit=)`);
@@ -82,7 +83,8 @@ def kinds(page: dict, ref: str) -> tuple[str, ...]:
     if site_schema.page_ref(ref) == site_schema.PAGE_REF:
         # FB-33 M5b-2: после слияния переводы заголовка — в окне ★-строки страницы; отпечаток
         # тот же, что у прежнего `__title` (открытые до деплоя черновики — без конфликта)
-        return ("title",) if host in page_title.HEAD_HOSTS else ()
+        # стопка 15 M5e-2b (A4): и шапка каталога (`page_title.has_head`)
+        return ("title",) if page_title.has_head(host) else ()
     if ref == site_schema.NEXT_REF:
         return ("next",) if host == confirmation_page.HOST else ()
     row = _row(page, ref)
@@ -216,11 +218,10 @@ def saved_for(config: dict, page: dict, ref: str) -> dict:
                     if _s(text):
                         mine[f"label.{key}"] = _s(text)
         if "title" in found:
-            titles = node.get("page_titles") if isinstance(node.get("page_titles"), dict) else {}
-            entry = titles.get(host) if isinstance(titles.get(host), dict) else {}
             for field in _TITLE_FIELDS:
-                if _s(entry.get(field)):
-                    mine[field] = _s(entry[field])
+                text = _at(node, _page_title().tr_path(host, field))
+                if text:
+                    mine[field] = text
         if "htx" in found:
             key = (_row(page, ref) or {}).get("key")
             for name in _htx_texts(config, page, key):
@@ -624,7 +625,7 @@ def apply(config: dict, draft: dict, home: bool, host: str) -> None:
                 if not isinstance(text, str):
                     continue
                 if "title" in found and key in _TITLE_FIELDS:
-                    _set_path(config, loc, ("page_titles", host, key), text)
+                    _set_path(config, loc, _page_title().tr_path(host, key), text)
                 elif "next" in found and key == _NEXT_FIELD:
                     _set_path(config, loc, ("confirmation_next",), text)
                 elif "htx" in found and home:
@@ -874,6 +875,12 @@ def _at(node, path: tuple) -> str:
     for step in path:
         node = node.get(step) if isinstance(node, dict) else None
     return _s(node)
+
+
+def _page_title():
+    from apps.core import page_title
+
+    return page_title
 
 
 def _rows_text(value) -> str:

@@ -153,7 +153,7 @@ ROW_KEYS = frozenset(
         "builtin_data",
         "banner_choice",
         "family_label",  # шапка окна: «Gehört zu: …»
-        "with_title",  # FB-33 M5b-2: на «Seite» — «Überschrift der Seite» и «…dieser Seitenart»
+        "title_row",  # стопка 15 M5e-2b: на «Texte» — группа «Überschrift der Seite»
         "can_up",  # меню «⋯» в шапке
         "can_down",
         "can_hide",  # FB-33 M5c-2: «Ausblenden» в «⋯» — по правилу `mutate`
@@ -208,12 +208,9 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
 
 
 def tab_of(part: str, selected: dict) -> str:
-    from apps.core import site_schema
-
     if part == "fields":
-        if site_schema.is_title_row(selected):
-            # FB-33 M5b-2: поля «Seitentitel» — на «Seite» ★-строки (переводы — той же формой)
-            return "seite"
+        # стопка 15 M5e-2b (вариант A): поля шапки ★-строки текстовые — «Texte» по общему
+        # правилу `fields_tab` у всех `page_title.HEAD_HOSTS` и каталога (переводы — той же формой)
         return fields_tab(selected.get("fields") or [])
     if part == "inhalt" and selected.get("legal"):
         # FB-33 M5d-1 (ответ владельца §8.5 №6): у правовой строки — на вкладке плашки

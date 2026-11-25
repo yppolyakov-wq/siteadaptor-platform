@@ -41,10 +41,11 @@ def _saved_state(config: dict, home: bool, host: str) -> dict:
     state = {"items": site_schema.load_items(config, home, host)}
     from apps.core import page_title
 
-    if host in page_title.HEAD_HOSTS:
+    if page_title.has_head(host):
         # FB-33 M2d: «Seitentitel» — часть страницы в черновике (правка в другом месте —
-        # конфликт, возврат к сохранённому — черновика нет)
-        state["title"] = page_title.clean_one((config.get("page_titles") or {}).get(host))
+        # конфликт, возврат к сохранённому — черновика нет); стопка 15 M5e-2b: и у каталога,
+        # читает тот же писатель `page_title.head` (черновик до среза — `_base_fingerprint`)
+        state["title"] = page_title.head(config, host)
     from apps.core import confirmation_page, detail_parts
 
     if host == confirmation_page.HOST:
@@ -697,19 +698,11 @@ def _put_form(config: dict, draft: dict, form: str = "anfrage") -> dict:
 
 
 def _put_title(config: dict, host: str, title) -> None:
-    """FB-33 M2d: «Seitentitel» страницы `host` — в `page_titles` (пусто — ключа нет)."""
+    """FB-33 M2d: «Seitentitel» страницы `host` — единственным писателем шапки
+    (`page_title.put_head`: `page_titles` у списков и форм, ключи каталога у «Produkte»)."""
     from apps.core import page_title
 
-    titles = dict(config.get("page_titles") or {})
-    entry = page_title.clean_one(title)
-    if entry:
-        titles[host] = entry
-    else:
-        titles.pop(host, None)
-    if titles:
-        config["page_titles"] = titles
-    else:
-        config.pop("page_titles", None)
+    page_title.put_head(config, host, title)
 
 
 def _put_next(config: dict, text) -> None:
@@ -978,7 +971,7 @@ def _window_has_title(host: str, ref: str) -> bool:
 
     if site_schema.is_title_alias(ref):
         return True
-    return ref == site_schema.PAGE_REF and host in page_title.HEAD_HOSTS
+    return ref == site_schema.PAGE_REF and page_title.has_head(host)
 
 
 def _alias(ref: str) -> str:
