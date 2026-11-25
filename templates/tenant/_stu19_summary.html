@@ -13,7 +13,7 @@ FB-33 стопка 15 M1d: no_cards — страницы, у вида основ
   {% for e in s.no_cards %}
   <p class="mt-1 text-xs text-gray-600" data-stu-page="{{ e.page }}" data-stu19-no-cards>
     <span id="stu19-nc-{{ e.page }}">{% trans "Diese Ansicht hat keine Karten" %}</span>
-    <a href="{{ e.url }}" class="inline-block py-2 text-indigo-700 underline" aria-describedby="stu19-nc-{{ e.page }}" data-stu19-view-link>{% blocktrans with name=e.name %}Ansicht im Block „{{ name }}“ ändern{% endblocktrans %}</a>
+    <a href="{{ e.url }}" class="inline-flex min-h-11 items-center text-indigo-700 underline" aria-describedby="stu19-nc-{{ e.page }}" data-stu19-view-link>{% blocktrans with name=e.name %}Ansicht im Block „{{ name }}“ ändern{% endblocktrans %}</a>
   </p>
   {% endfor %}
 </div>
