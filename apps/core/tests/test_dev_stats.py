@@ -79,7 +79,7 @@ def test_snapshot_row_joins_commits_with_journal_findings_of_the_same_steps():
         "| 2026-11-22 | T-99 | после мержа | владелец | другое | q | — | нет правила | строка |\n"
     )
     row = mod.snapshot_row("FB-33 стопка 5", COMMITS[:6], found, "2", "2026-11-22")
-    assert row == "| 2026-11-22 | FB-33 стопка 5 | 6 | 3 | 50 % | 0 | 1 | 2 | 0 | 2 | — | — |"
+    assert row == "| 2026-11-22 | FB-33 стопка 5 | 6 | 3 | 50 % | 0 | 1 | 2 | 0 | 2 | — | — | — |"
 
 
 def test_real_report_builds_and_names_the_indicator():
@@ -163,7 +163,7 @@ def test_snapshot_row_reports_plan_review_commits_in_their_own_column():
         ("2026-11-22", "FB-33 M5a: правки ревью — третий рубеж 404"),
     ]
     row = mod.snapshot_row("FB-33 стопка 8", commits, {"rows": []}, "1", "2026-11-22")
-    assert row == "| 2026-11-22 | FB-33 стопка 8 | 4 | 1 | 25 % | 1 | 0 | 0 | 0 | 1 | — | — |"
+    assert row == "| 2026-11-22 | FB-33 стопка 8 | 4 | 1 | 25 % | 1 | 0 | 0 | 0 | 1 | — | — | — |"
 
 
 # --- T-16 (2026-11-24): расход сессии — в историю стопок ------------------------------------------
@@ -174,7 +174,7 @@ def test_snapshot_row_carries_session_cost_and_agent_share():
     row = mod.snapshot_row(
         "FB-33 стопка 14", COMMITS[:3], {"rows": []}, "0", "2026-11-26", cost="143", agents="80 %"
     )
-    assert row.endswith("| 143 | 80 % |")
+    assert row.endswith("| 143 | 80 % | — |")
 
 
 def test_history_rows_read_old_and_new_table_width():

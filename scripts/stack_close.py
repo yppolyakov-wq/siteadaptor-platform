@@ -50,7 +50,7 @@ def checks(label: str, stack: str, state: dict) -> list[tuple[bool | None, str, 
                 if line.startswith("|")
             ),
             "снимок статистики",
-            f'uv run python scripts/dev_stats.py --snapshot "{label}" --range origin/main..HEAD --red-ci N',
+            f'uv run python scripts/dev_stats.py --snapshot "{label}" --range origin/main..HEAD --red-ci N --ci-cancelled N --ci-late M',
         ),
         (
             _mentions(trend, label),
