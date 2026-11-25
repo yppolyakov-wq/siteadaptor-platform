@@ -40899,6 +40899,9 @@ msgstr "“%(name)s” metinleri bu arada başka bir yerde değiştirildi – bu
 msgid "fb33-stack-anchor-s15-m5e1b"
 msgstr "fb33-stack-anchor-s15-m5e1b"
 
+msgid "neu – leer lassen, wenn nicht benötigt"
+msgstr "yeni – gerekmiyorsa boş bırakın"
+
 msgid "fb33-stack-anchor-s15-m5e2a"
 msgstr "fb33-stack-anchor-s15-m5e2a"
 

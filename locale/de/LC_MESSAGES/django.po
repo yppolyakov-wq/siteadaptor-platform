@@ -40839,6 +40839,9 @@ msgstr "Die Texte von „%(name)s“ wurden inzwischen an anderer Stelle geände
 msgid "fb33-stack-anchor-s15-m5e1b"
 msgstr "fb33-stack-anchor-s15-m5e1b"
 
+msgid "neu – leer lassen, wenn nicht benötigt"
+msgstr "neu – leer lassen, wenn nicht benötigt"
+
 msgid "fb33-stack-anchor-s15-m5e2a"
 msgstr "fb33-stack-anchor-s15-m5e2a"
 
