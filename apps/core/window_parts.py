@@ -176,6 +176,7 @@ _ICONS = {True: "✓", False: "–"}
 #: - "field" — функция(значение поля модели — голова пути), дальше ключи пути по результату
 #:   (коды аллергенов → подписи каталога; `details` → `landing` базового языка);
 #: - "property" — свойство модели объекта (только `property`, читает свои поля; модуль пуст).
+#: - "tenant" — функция(бизнес, вид блока строки) (FB-33 M5e-2a: пункты «Kontakt» главной).
 #: Без запросов к БД (кроме `contact_hours`: каникулы `open_status`, как у витрины).
 _PROBES = {
     "map_point": ("object", "apps.events.services", "map_point"),
@@ -184,86 +185,128 @@ _PROBES = {
     "landing": ("field", "apps.events.details", "normalize"),
     "amenity_badges": ("property", "", "amenity_badges"),
     # FB-33 M5e-2a: пункты блока «Kontakt» главной — условия `storefront/sections/_contact.html`
-    "contact_address": ("object", "apps.core.window_parts", "contact_address"),
-    "contact_phone": ("object", "apps.core.window_parts", "contact_phone"),
-    "contact_hours": ("object", "apps.core.window_parts", "contact_hours"),
+    # у вида блока (`section_row.style`): вид "tenant" — функция(бизнес, вид блока)
+    "contact_address": ("tenant", "apps.core.window_parts", "contact_address"),
+    "contact_phone": ("tenant", "apps.core.window_parts", "contact_phone"),
+    "contact_email": ("tenant", "apps.core.window_parts", "contact_email"),
+    "contact_hours": ("tenant", "apps.core.window_parts", "contact_hours"),
+    "contact_map": ("tenant", "apps.core.window_parts", "contact_map"),
 }
 #: FB-33 M5e-2a: разделы меню, где живут списки сущностей (не «Verkäufe»: там сделки —
 #: «Check-ins» с ключом `stays`)
 _LIST_HUBS = ("sellables", "marketing")
 #: FB-33 M5e-2a: итог «Woher» данных бизнеса — статичный текст (без живой области, Y4)
 _N_OF_M = gettext_lazy("%(n)s von %(m)s ausgefüllt")
+#: вид блока «Kontakt» одной строкой: без карты и без часов текстом (`_contact.html`)
+_COMPACT = "compact"
 
 
-def contact_address(tenant, _tenant=None) -> bool:
-    """Проба M5e-2a: адрес на витрине — `{% if request.tenant.address %}` (`_contact.html`)."""
+def contact_address(tenant, style: str = "") -> bool:
+    """Проба M5e-2a: адрес — `{% if request.tenant.address %}` (`_contact.html`, все виды)."""
     return bool(tenant.address)
 
 
-def contact_phone(tenant, _tenant=None) -> bool:
-    """Проба M5e-2a: телефон на витрине — `public_phone` (`contact_phone` или телефон
-    владельца), как `_contact.html`."""
+def contact_phone(tenant, style: str = "") -> bool:
+    """Проба M5e-2a: телефон — `public_phone` (свой или телефон владельца), все виды."""
     return bool(tenant.public_phone)
 
 
-def contact_hours(tenant, _tenant=None) -> bool:
-    """Проба M5e-2a: часы на витрине — текст часов или статус по структурным часам
-    (`opening_hours or open_status`, `_contact.html`)."""
+def contact_email(tenant, style: str = "") -> bool:
+    """Проба M5e-2a (ревью 1 №4): e-mail — `public_email` (свой или владельца), все виды."""
+    return bool(tenant.public_email)
+
+
+def contact_hours(tenant, style: str = "") -> bool:
+    """Проба M5e-2a: часы — у вида «compact» только «Heute» по статусу (`open_status`: часы по
+    дням или каникулы), у прочих — ещё текст часов (`_contact.html`)."""
+    if style == _COMPACT:
+        return bool(tenant.open_status())
     return bool(tenant.opening_hours or tenant.open_status())
+
+
+def contact_map(tenant, style: str = "") -> bool:
+    """Проба M5e-2a (ревью 1 №4): карта — ссылка «Karte öffnen» (`map_url`, все виды) или
+    встроенная карта по координатам (кроме «compact»)."""
+    if tenant.map_url:
+        return True
+    return style != _COMPACT and bool(tenant.latitude and tenant.longitude)
 
 
 def page_family(host) -> str:
     """FB-33 M5e-2a: семья страницы для `detail_sections.PAGE_SOURCES`: "home" — главная (хост
-    ""), "list" — страница с основным списком (`siteconfig.has_main_list`), "" — другая."""
+    ""), "catalog_list" — каталог и категории, "list" — другая страница с основным списком
+    (`siteconfig.has_main_list`), "" — другая."""
+    from apps.core import site_schema
     from apps.tenants import siteconfig
 
     if host == "":
         return "home"
-    return "list" if siteconfig.has_main_list(host) else ""
+    if not siteconfig.has_main_list(host):
+        return ""
+    # TODO(M5e-3): публичный `site_schema.main_list_source(host)` вместо частных имён
+    if site_schema._main_list_host(host) in ("catalog", "category"):
+        return "catalog_list"
+    return "list"
 
 
-def main_list_screen(host) -> str:
-    """FB-33 M5e-2a: имя URL экрана, где правится ★ основной список страницы `host`, — из записи
-    его источника (`siteconfig.LIST_SOURCES`): запись `nav_registry` с тем же ключом и модулем
-    источника, иначе список объектов детали его карточек (`content_nav` раздела-поля). Тот же
-    разбор «хост → источник», что у имени списка (`site_schema.main_list_name`); "" — у списка
-    нет источника (Team, Galerie, Merkzettel, Lookbook) или у страницы нет списка."""
-    from apps.core import detail_parts, detail_sections, nav_registry, site_schema
+def _list_source(host) -> str:
+    """Источник основного списка хоста (как у `site_schema.main_list_name`); "" — нет."""
+    from apps.core import site_schema
     from apps.tenants import siteconfig
 
     if not isinstance(host, str) or not siteconfig.has_main_list(host):
         return ""
+    # TODO(M5e-3): публичный `site_schema.main_list_source(host)` вместо частных имён
     base = site_schema._main_list_host(host)
-    source = (
+    return (
         site_schema._MAIN_LIST_SOURCES.get(base)
         or siteconfig.BUILTIN_LIST_SOURCES.get(base)
         or (base if base in siteconfig.LIST_SOURCES else "")
     )
+
+
+def list_source_screen(source: str) -> str:
+    """FB-33 M5e-2a: имя URL экрана, где правятся записи источника `siteconfig.LIST_SOURCES`:
+    запись `nav_registry` (разделы `_LIST_HUBS`) с ключом источника — сначала с ТОЧНО его
+    модулем, потом без модуля; иначе — единственный список объектов детали его карточек
+    (`content_nav` раздела-поля; несколько разных — предупреждение, экрана нет). "" — нет."""
+    from apps.core import detail_parts, detail_sections, nav_registry
+    from apps.tenants import siteconfig
+
     spec = siteconfig.LIST_SOURCES.get(source)
     if not spec:
         return ""
-    entry = next(
-        (
-            e
-            for e in nav_registry.ENTRIES
-            if e.hub in _LIST_HUBS
-            and e.nav_key == source
-            and not e.query
-            and e.module_key in (spec["module"], None)
-        ),
-        None,
-    )
-    if entry is not None:
-        return entry.url_name
+    entries = [
+        e
+        for e in nav_registry.ENTRIES
+        if e.hub in _LIST_HUBS and e.nav_key == source and not e.query
+    ]
+    for module in (spec["module"], None):
+        entry = next((e for e in entries if e.module_key == module), None)
+        if entry is not None:
+            return entry.url_name
     module = detail_parts.SECTION_HOSTS.get(f"{spec.get('facets') or ''}_detail", "")
-    return next(
-        (
-            s.content_nav
-            for s in detail_sections.sections_for(module)
-            if s.content_nav and s.source is not None and s.source.kind == "field"
-        ),
-        "",
-    )
+    screens = {
+        s.content_nav
+        for s in detail_sections.sections_for(module)
+        if s.content_nav and s.source is not None and s.source.kind == "field"
+    }
+    if len(screens) > 1:
+        logger.warning(
+            "window_parts: list source %r has several object screens %s - no screen",
+            source,
+            sorted(screens),
+        )
+        return ""
+    return next(iter(screens), "")
+
+
+def main_list_screen(host) -> str:
+    """FB-33 M5e-2a: экран ★ основного списка страницы `host` — экран его источника
+    (`list_source_screen`); "" — у списка нет источника (Team, Galerie, Merkzettel, Lookbook)
+    или у страницы нет списка."""
+    source = _list_source(host)
+    return list_source_screen(source) if source else ""
 
 
 #: ревью M5: видно ли поле в форме объекта этого бизнеса — «вид → (модуль, функция(tenant,
@@ -313,22 +356,23 @@ def content_part(
     if not selected or selected.get("cblock"):
         return
     from apps.core import detail_parts, detail_sections
-    from apps.tenants import siteconfig
 
     key = selected.get("key") or ""
-    host = host or ""
+    if host is None:
+        # ревью 1 №6: None — не главная (её хост ""): без части, ошибка в журнал
+        logger.error("window_parts: no host for the content of %r - no part", key)
+        return
     module = detail_parts.module_of(detail_parts.shared_host(host))
     # M5e-2a: у страницы без модуля деталей — источники семьи (главная, листинги)
+    family = "" if module else page_family(host)
     sections = (
-        detail_sections.sections_for(module)
-        if module
-        else detail_sections.page_sources(page_family(host))
+        detail_sections.sections_for(module) if module else detail_sections.page_sources(family)
     )
     section = next((s for s in sections if s.key == key and (s.content_nav or s.source)), None)
     if section is None or selected.get("ref") != key:
         return
-    if not module and key == siteconfig.MAIN_LIST_KEY:
-        section = _main_section(section, host, request)
+    if family in ("list", "catalog_list"):
+        section = _list_section(section, host, request)
         if section is None:
             return
     source = section.source
@@ -365,20 +409,33 @@ def content_part(
     selected["content"] = content
 
 
-def _main_section(section, host: str, request):
-    """M5e-2a: строка ★ с экраном и именем её списка (`main_list_screen`,
-    `site_schema.main_list_name`); экрана нет — None (части нет)."""
+def _list_section(section, host: str, request):
+    """M5e-2a: строка листинга с именем по типу бизнеса: ★ — экран и имя её списка
+    (`list_source_screen`, `site_schema.main_list_name`), «Kategorien»/«Sets & Menüs» — имя
+    источника (`list_blocks.source_label`, у гастро «Menü-Pakete»). У ★ без источника части
+    нет; источник есть, а экрана нет — предупреждение в журнал."""
     import dataclasses
 
-    from apps.core import site_schema
+    from apps.core import list_blocks, site_schema
+    from apps.tenants import siteconfig
 
+    tenant = getattr(request, "tenant", None)
     try:
-        screen = main_list_screen(host)
-        name = site_schema.main_list_name(host, getattr(request, "tenant", None)) if screen else ""
+        if section.key != siteconfig.MAIN_LIST_KEY:
+            name = list_blocks.source_label(section.key, tenant)
+            return dataclasses.replace(section, label=name or section.label)
+        source = _list_source(host)
+        if not source:
+            return None
+        screen = list_source_screen(source)
+        if not screen:
+            logger.warning(
+                "window_parts: main list source %r of %s has no screen - no part", source, host
+            )
+            return None
+        name = site_schema.main_list_name(host, tenant)
     except Exception:  # noqa: BLE001 — строка без окна «Inhalt» лучше упавшего экрана
-        logger.exception("window_parts: main list screen of %s failed - no part", host)
-        return None
-    if not screen:
+        logger.exception("window_parts: list row %s/%s failed - no part", host, section.key)
         return None
     return dataclasses.replace(section, content_nav=screen, label=name or section.label)
 
@@ -429,7 +486,7 @@ def _source_content(
         return
     tenant = getattr(request, "tenant", None)
     content["woher"], content["filled"], content["woher_list"] = _content_woher(
-        source, host, key, kind, obj, words, tenant
+        source, host, key, kind, obj, words, tenant, style=_row_style(selected)
     )
     content["visibility"], content["actions"] = _content_visibility(
         selected, source, module, key, bool(kind), words, tenant
@@ -445,8 +502,21 @@ def _source_content(
         content["more_links"] = _more_links(source, host, key, request)
 
 
+def _row_style(selected: dict) -> str:
+    """Вид блока строки — значение поля «style» её формы (тот же, что `section_row.style`
+    витрины; с черновиком окна)."""
+    return next(
+        (
+            str(f.get("value") or "")
+            for f in selected.get("fields") or ()
+            if isinstance(f, dict) and f.get("name") == "style"
+        ),
+        "",
+    )
+
+
 def _content_woher(
-    source, host: str, key: str, kind: str, obj, words: dict, tenant=None
+    source, host: str, key: str, kind: str, obj, words: dict, tenant=None, *, style: str = ""
 ) -> tuple[str, str, dict]:
     """(«Woher», «заполнено ли» у объекта, список полей). У поля — подпись поля и слово вида
     объекта; M5d-8: у раздела из нескольких полей (`SourceField`) — список (`_woher_list`),
@@ -455,7 +525,7 @@ def _content_woher(
 
     only_if = str(source.only_if or "")
     if source.subject == "tenant":
-        woher_list = _tenant_list(source, host, key, tenant)
+        woher_list = _tenant_list(source, host, key, tenant, style)
         if woher_list:
             return "", "", woher_list
     if source.kind != "field":
@@ -528,7 +598,7 @@ def _woher_list(source, host: str, key: str, kind: str, obj, words: dict, tenant
     }
 
 
-def _tenant_list(source, host: str, key: str, tenant) -> dict:
+def _tenant_list(source, host: str, key: str, tenant, style: str = "") -> dict:
     """M5e-2a: «Woher» из данных бизнеса (`ContentSource.subject == "tenant"`) — `{intro, items,
     after, filled}`: вводная — `source.woher`, пункт — «„X“ — ausgefüllt/leer» по пробе (гейт
     витрины), итог «N von M ausgefüllt» — в `after` (неизвестное не считается). Бизнеса нет или
@@ -546,7 +616,10 @@ def _tenant_list(source, host: str, key: str, tenant) -> dict:
         text = _sf_text(sf, host, key, "")
         if not text:
             return {}
-        state = _sf_state(tenant, sf, host, key, tenant)
+        if sf.probe:
+            state = _probe(sf.probe, tenant, tenant, host, key, sf.path, style=style)
+        else:
+            state = _sf_state(tenant, sf, host, key, tenant)
         if state is not None:
             known.append(state)
         items.append(_object_item(sf, text, state, host, key, ""))
@@ -654,7 +727,9 @@ def _form_shown(host: str, kind: str, tenant, sf, obj) -> bool:
         return True
 
 
-def _probe(name: str, obj, tenant, host: str, key: str, path: str = "") -> bool | None:
+def _probe(
+    name: str, obj, tenant, host: str, key: str, path: str = "", *, style: str = ""
+) -> bool | None:
     """Ревью M4: «заполнено ли» пробой из закрытого реестра `_PROBES`; незнакомое имя —
     ошибка в журнал и None («неизвестно») без импорта и вызова; сбой помощника — тоже None.
     `path` — путь пункта (у вида "field": голова — поле модели, хвост — ключи результата)."""
@@ -680,6 +755,8 @@ def _probe(name: str, obj, tenant, host: str, key: str, path: str = "") -> bool 
                 return None
             return _has_content(getattr(obj, attr))
         helper = getattr(importlib.import_module(module), attr)
+        if mode == "tenant":
+            return bool(helper(obj, style))  # M5e-2a: бизнес и вид блока строки
         if mode == "object":
             return bool(helper(obj, tenant))
         head, *rest = path.split(".")

@@ -98,7 +98,9 @@ def test_type_row_has_the_second_link():
     assert "data-inhalt-link" in a1 and "data-inhalt-more" not in a1
     assert "data-inhalt-link" in a2 and "data-inhalt-more" in a2
     assert f'href="{reverse(TOUR_LIST)}"' in a2 and "break-words" in p2
-    assert "aria-" not in a2 and inner2.strip() == "<span>Inhalt bearbeiten: Reisen</span>"
+    assert "aria-" not in a2 and inner2.strip() == (
+        '<span class="min-w-0 [overflow-wrap:anywhere]">Inhalt bearbeiten: Reisen</span>'
+    )  # стопка 15 M5e-2a: перенос длинного слова
     assert "data-inhalt-only-here" not in part
     # порядок (Y1): ссылки — между dl и подсказкой
     assert (

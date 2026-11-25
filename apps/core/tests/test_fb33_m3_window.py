@@ -111,8 +111,8 @@ def test_one_tab_needs_no_tab_bar_and_banner_shows_choice_and_page():
     hero = b.get("?seite=home&block=hero")
     assert [t for t, _h in _tabs_of(hero)] == ["was", "seite"]
     assert [t for t, _h in _tabs_of(b.get("?seite=text&block=bn1"))] == ["was", "wie"]
-    # FB-33 M5b-2 W1: у ★ каталога — только вид товаров; настройки типа — у ★-строки
-    # FB-33 стопка 15 M5e-2a: и «Inhalt» на «Was» (экран списка товаров)
+    # FB-33 M5b-2 W1: настройки типа — у ★-строки; у ★ каталога — вид товаров на «Wie» и
+    # (стопка 15 M5e-2a) «Inhalt» на «Was» — где правится список товаров
     assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=main"))] == ["was", "wie"]
     assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=__page"))] == ["seite"]
     # FB-33 M3-4: «Kartenform» — своей вкладкой «Karte»

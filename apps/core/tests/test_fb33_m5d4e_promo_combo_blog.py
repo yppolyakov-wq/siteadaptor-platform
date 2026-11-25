@@ -46,6 +46,8 @@ NOTHING_TO_DO = "Nichts zu pflegen."
 #: (модуль, раздел) → (вид источника, экран ссылки, есть ли presence-гейт на витрине).
 #: Карта плана §3, сверена с шаблонами и вьюхами витрины.
 MAP = {
+    # FB-33 стопка 15 M5e-2a (ревью 1, осознанно): «Angebot» — экран акций, «Aktion bearbeiten»
+    ("promo", "offer"): ("setting", "promotions:promotion-list", False),
     ("promo", "share"): ("auto", "", False),
     ("promo", "card"): ("setting", "settings", True),
     ("promo", "related"): ("auto", "", True),
@@ -59,10 +61,13 @@ MAP = {
 }
 #: код страницы типа → модуль реестра
 PAGES = {"promo": "promo", "combo": "combo", "blog_post": "blog_post"}
+#: FB-33 стопка 15 M5e-2a: фраза «Woher» у «Angebot» ждёт строки в `.po` (координатор)
+NO_WOHER_YET = {("promo", "offer")}
 #: окно у этих строк уже есть — срез их не трогает
-UNTOUCHED = {("promo", "offer"), ("combo", "reviews"), ("combo", "cta")}
+UNTOUCHED = {("combo", "reviews"), ("combo", "cta")}
 LINK_LABELS = {
     "settings": "Mein Geschäft",
+    "promotions:promotion-list": "Aktionen",
     "catalog:combo-list": "Kombi",
     "blog-list": "Blog",
     "site-home": "Galerie",
@@ -169,7 +174,8 @@ def test_source_texts_are_well_formed():
             assert not text or type(text).__name__ == "__proxy__", where
         shows = str(source.shows)
         assert shows and not shows.endswith(".") and "%(" not in shows, where
-        assert str(source.woher).endswith("."), where
+        if where not in NO_WOHER_YET:
+            assert str(source.woher).endswith("."), where
         assert bool(source.only_if) == MAP[where][2], where
         assert not source.only_if or str(source.only_if).endswith("."), where
         if source.kind == "auto":
@@ -424,6 +430,7 @@ def test_window_in_russian_has_no_german_source_text():
         for (module, key), (shows, woher, note) in de.items():
             code = next(c for c, m in PAGES.items() if m == module)
             part, ct = _inhalt(tenant, f"?seite={code}&block={key}")
-            assert ct["summary"] != shows and woher not in ct["woher"], (module, key)
+            assert ct["summary"] != shows, (module, key)
+            assert not woher or woher not in ct["woher"], (module, key)
             assert not note or note not in _text(part), (module, key)
             assert "automatisch" not in ct["woher"], (module, key)

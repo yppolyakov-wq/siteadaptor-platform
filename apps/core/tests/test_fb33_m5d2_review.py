@@ -442,11 +442,17 @@ def test_link_label_is_one_span_and_long_words_wrap(monkeypatch):
     p = re.search(r"<p\b([^>]*)>\s*<a\b[^>]*data-inhalt-link[^>]*>(.*?)</a>", part, re.S)
     assert p and "break-words" in p.group(1)
     inner = p.group(2).strip()
-    assert inner.startswith("<span>") and inner.endswith("</span></span>")
+    # стопка 15 M5e-2a (ревью 1 a11y): подпись переносит длинное слово
+    assert inner.startswith('<span class="min-w-0 [overflow-wrap:anywhere]">') and inner.endswith(
+        "</span></span>"
+    )
     assert _text(inner).endswith("Darjeeling")
     part, _panel, _selected, _view = _inhalt(tenant, "?seite=product&block=description")
     a = re.search(r"<a\b[^>]*data-inhalt-link[^>]*>(.*?)</a>", part, re.S)
-    assert a.group(1).strip() == "<span>Inhalt bearbeiten: Sortiment</span>"
+    assert (
+        a.group(1).strip()
+        == '<span class="min-w-0 [overflow-wrap:anywhere]">Inhalt bearbeiten: Sortiment</span>'
+    )
     monkeypatch.setattr(packages, "view_allowed", lambda t, name: name != "sellable-manage")
     part, _panel, _selected, _view = _inhalt(tenant, "?seite=product&block=description")
     reason = re.search(r"<p\b([^>]*data-inhalt-reason[^>]*)>", part)

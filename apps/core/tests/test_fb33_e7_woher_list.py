@@ -379,6 +379,14 @@ def test_labels_on_cabinet_form(lang):
             "lat": lat,
             "lng": lng,
         }
+    # FB-33 стопка 15 M5e-2a: пункты «Kontakt» главной — подписи формы «Mein Geschäft»
+    from apps.tenants.forms import BusinessSettingsForm
+
+    contact = next(s for s in detail_sections.PAGE_SOURCES["home"] if s.key == "contact")
+    with translation.override(lang):
+        for sf in contact.source.fields:
+            form_label = BusinessSettingsForm.base_fields[sf.field].label
+            assert str(sf.label) == str(form_label), sf.field
     tenant = _event_tenant()
     event, tour = _event(), _tour()
     photos = labels["images"].label
@@ -431,13 +439,20 @@ def test_probe_registry_closed(caplog, monkeypatch):
         "landing": ("field", "apps.events.details", "normalize"),
         "amenity_badges": ("property", "", "amenity_badges"),
         # FB-33 стопка 15 M5e-2a: пункты «Kontakt» главной — гейт `_contact.html`
-        "contact_address": ("object", "apps.core.window_parts", "contact_address"),
-        "contact_phone": ("object", "apps.core.window_parts", "contact_phone"),
-        "contact_hours": ("object", "apps.core.window_parts", "contact_hours"),
+        "contact_address": ("tenant", "apps.core.window_parts", "contact_address"),
+        "contact_phone": ("tenant", "apps.core.window_parts", "contact_phone"),
+        "contact_email": ("tenant", "apps.core.window_parts", "contact_email"),
+        "contact_hours": ("tenant", "apps.core.window_parts", "contact_hours"),
+        "contact_map": ("tenant", "apps.core.window_parts", "contact_map"),
     }
     for module, key in LIST_SECTIONS.values():
         for sf in _sfields(module, key):
             assert not sf.probe or sf.probe in window_parts._PROBES
+    # FB-33 стопка 15 M5e-2a: пробы строк главной и листингов — из того же закрытого реестра
+    for rows in detail_sections.PAGE_SOURCES.values():
+        for s in rows:
+            for sf in s.source.fields if s.source else ():
+                assert not sf.probe or sf.probe in window_parts._PROBES, sf.path
     called = []
     monkeypatch.setattr(importlib, "import_module", lambda *a, **k: called.append(a))
     with caplog.at_level("ERROR", logger="apps.core.window_parts"):

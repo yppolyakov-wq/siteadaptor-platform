@@ -29,7 +29,6 @@ from apps.core.tests.test_fb33_m3_window_before import _capture, _panel
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-REVIEW1 = pytest.mark.xfail(strict=True, reason="M5e-2a ревью 1: ещё не сделано")
 
 ROOT = Path(__file__).resolve().parents[3]
 LANGS = ("de", "en", "tr", "ru", "uk")
@@ -149,16 +148,15 @@ def _content(request, host, key, **row):
 # --- №2: один реестр -----------------------------------------------------------------------------
 
 
-@REVIEW1
 def test_page_sources_in_contentsource():
     """№2: источники страниц — те же `DetailSection` с `ContentSource` в `PAGE_SOURCES` по семье;
     ключей семей нет среди модулей деталей; экран у каждой строки — запись `nav_registry`
     (у ★ — из записи источника, своего `content_nav` нет)."""
     sources = detail_sections.PAGE_SOURCES
-    assert set(sources) == {"home", "list", "catalog"}
+    assert set(sources) == {"home", "list", "catalog_list"}
     assert not set(sources) & set(detail_sections.DETAIL_SECTIONS)
     keys = {fam: {s.key for s in rows} for fam, rows in sources.items()}
-    assert keys == {"home": set(HOME), "list": {"main"}, "catalog": {*LISTING, "main"}}
+    assert keys == {"home": set(HOME), "list": {"main"}, "catalog_list": {*LISTING, "main"}}
     for fam, rows in sources.items():
         for s in rows:
             assert isinstance(s, detail_sections.DetailSection)
@@ -170,7 +168,7 @@ def test_page_sources_in_contentsource():
     contact = next(s for s in sources["home"] if s.key == "contact")
     assert contact.source.subject == "tenant"
     assert str(contact.source.link_text) == "Geschäftsdaten bearbeiten"
-    assert all(s.source.subject == "" for s in (*sources["list"], *sources["catalog"]))
+    assert all(s.source.subject == "" for s in (*sources["list"], *sources["catalog_list"]))
     # прежние источники деталей — без `subject`; своё имя ссылки — только у «Angebot» акции
     for module, rows in detail_sections.DETAIL_SECTIONS.items():
         for s in rows:
@@ -199,14 +197,12 @@ def test_main_list_screen_covers_all_list_sources():
     assert set(SOURCE_SCREENS) == set(siteconfig.LIST_SOURCES)
 
 
-@REVIEW1
 @pytest.mark.parametrize("source", sorted(SOURCE_SCREENS))
 def test_main_list_screen_expected_url_per_source(source):
     """Ревью 1 №2: экран источника — по таблице (точный модуль раньше «ядра»)."""
     assert window_parts.list_source_screen(source) == SOURCE_SCREENS[source]
 
 
-@REVIEW1
 def test_main_section_without_screen_logged(monkeypatch, caplog):
     """Ревью 1 №2: у настоящего источника экран не нашёлся — предупреждение в журнал."""
     monkeypatch.setattr(window_parts, "list_source_screen", lambda source: "")
@@ -251,7 +247,12 @@ GATES = {
     ),
     # часы текстом: у вида «compact» витрина их НЕ рисует (только «Heute» по статусу)
     "hours-text": ("Öffnungszeiten", {"opening_hours": "Mo–Fr 8–18"}, _hours_shown),
-    "map-link": ("Karten-Link", {"map_url": "https://maps.example/x"}, _map_shown),
+    # ссылка на карту сама блок не открывает (гейт `_contact.html`) — с адресом
+    "map-link": (
+        "Karten-Link",
+        {"map_url": "https://maps.example/x", "address": "Markt 2"},
+        _map_shown,
+    ),
     # точка на карте без ссылки: карта рисуется у всех видов, кроме «compact»
     "map-point": ("Karten-Link", {"latitude": "51.1", "longitude": "7.08"}, _map_shown),
 }
@@ -286,16 +287,8 @@ def test_filled_matches_storefront_gate(case, style):
     assert _window_word(tenant, item, style) == ("ausgefüllt" if shown else "leer"), (case, shown)
 
 
-#: заполняется до кода (красные случаи ревью 1); после кода — пусто
-XFAIL_GATES: set = {
-    ("email", ""),
-    ("email", "compact"),
-    ("map-link", ""),
-    ("map-link", "compact"),
-    ("map-point", ""),
-    ("map-point", "compact"),
-    ("hours-text", "compact"),
-}
+#: красные случаи ревью 1 до кода (e-mail, карта, часы текстом у «compact»); после кода — пусто
+XFAIL_GATES: set = set()
 
 
 def test_holiday_hours_match_storefront(monkeypatch):
@@ -315,7 +308,6 @@ def test_holiday_hours_match_storefront(monkeypatch):
         ), style
 
 
-@REVIEW1
 def test_zero_two_three_of_three():
     """№14: итог «N von M ausgefüllt» считает пункты (0, 2 и 3 из 3); значок — украшение,
     состояние — словом."""
@@ -344,7 +336,6 @@ def test_zero_two_three_of_three():
         assert "aria-live" not in part and 'role="status"' not in part  # Y4: статичный итог
 
 
-@REVIEW1
 def test_state_word_not_icon_only():
     """Y4: значок состояния `aria-hidden`, слово — в тексте пункта."""
     with translation.override("de"):
@@ -407,7 +398,6 @@ def test_unknown_family_no_part():
 # --- №8: проба незнакомая — в журнал --------------------------------------------------------------
 
 
-@REVIEW1
 def test_probe_unknown_logged(monkeypatch, caplog):
     """№8: незнакомая проба — ошибка в журнал, состояние «неизвестно» (пункт без слова),
     экран не падает."""
@@ -454,7 +444,6 @@ def test_probe_unknown_logged(monkeypatch, caplog):
         ("ru", ("Адрес", "Телефон", "Часы работы", "Электронная почта", "Ссылка на карту")),
     ],
 )
-@REVIEW1
 def test_labels_ru_de(lang, words):
     """№13: подписи пунктов — те же msgid, что на форме «Mein Geschäft», на языке окна."""
     with translation.override(lang):
@@ -487,7 +476,9 @@ def test_link_purpose_names_screen(query, name):
         part, _selected = _inhalt(_tenant("online_shop", disabled=[]), query)
     links = re.findall(r"<a [^>]*data-inhalt-link[^>]*>(.*?)</a>", part, re.S)
     assert len(links) == 1, part
-    assert re.fullmatch(r"<span>[^<]*</span>", links[0]), links[0]
+    assert re.fullmatch(
+        r'<span class="min-w-0 \[overflow-wrap:anywhere\]">[^<]*</span>', links[0]
+    ), links[0]
     assert _text(links[0]) == name
     assert "aria-label" not in re.search(r"<a [^>]*data-inhalt-link[^>]*>", part).group(0)
 
@@ -579,7 +570,6 @@ def test_inhalt_page_queries(monkeypatch):
 # --- ревью 1 -----------------------------------------------------------------------------------
 
 
-@REVIEW1
 def test_offer_part_links_to_promotions():
     """Ревью 1 №0: «Angebot» деталей акции (строка типа) — «Inhalt»: что показывает и ссылка
     «Aktion bearbeiten» на экран акций; у строки одной акции части нет (как раньше)."""
@@ -592,7 +582,6 @@ def test_offer_part_links_to_promotions():
     assert link.group(1).startswith(reverse("promotions:promotion-list"))
 
 
-@REVIEW1
 @pytest.mark.parametrize(
     "query", ["?seite=home&block=contact", "?seite=catalog&block=main", "?seite=promo&block=offer"]
 )
@@ -637,7 +626,6 @@ def test_link_text_has_no_interpolation():
             assert "%(" not in text and "{" not in text, s.key
 
 
-@REVIEW1
 def test_combos_summary_uses_business_label():
     """Ревью 1 №5: «Sets & Menüs» — имя источника по типу бизнеса (`source_label`)."""
     from apps.core import list_blocks
@@ -650,7 +638,6 @@ def test_combos_summary_uses_business_label():
     assert content and content["summary"] == str(want)
 
 
-@REVIEW1
 def test_gallery_only_if_presence():
     """Ревью 1 №5: галерея главной рисуется только с фото — у «Woher» это сказано."""
     with translation.override("de"):
@@ -679,7 +666,6 @@ def test_tenant_list_missing_label_logged(monkeypatch, caplog):
     assert not selected["content"]["woher_list"] and "data-inhalt-woher-item" not in part
 
 
-@REVIEW1
 def test_page_family_unknown_host_empty(caplog):
     """Ревью 1 №6: хост None — не главная: части нет, ошибка в журнал."""
     request = _request(_tenant())
@@ -690,7 +676,6 @@ def test_page_family_unknown_host_empty(caplog):
     assert any("no host" in r.getMessage() for r in caplog.records)
 
 
-@REVIEW1
 @pytest.mark.parametrize("key", sorted(LISTING))
 def test_catalog_rows_only_on_catalog_hosts(key):
     """Ревью 1 №7: «Kategorien» и «Sets & Menüs» — у страниц каталога, не у других листингов."""
