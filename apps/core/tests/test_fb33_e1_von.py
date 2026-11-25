@@ -301,10 +301,14 @@ def test_own_text_page_with_blocks_not_on_info(settings):
 
 
 def test_own_text_page_without_blocks_on_info(settings):
-    """Охранный: своя страница без своих блоков рисует блоки хоста `info` — как сейчас."""
+    """Охранный (стопка 15 E1t, A6): своя страница и без своих блоков — страница хоста
+    `seite:foo` (блоков `info` витрина на ней не рисует): `von` принимает её схема, не «Über uns»."""
     tenant = _content_tenant(settings, {})
-    _html, ctx = _ctx(Browser(tenant), "?seite=text&von=/foo/")
+    b = Browser(tenant)
+    _html, ctx = _ctx(b, "?seite=text%40seite%3Afoo&von=/foo/")
     assert _studio_page(ctx) == "/foo/" and "von=" in ctx["keep_q"]
+    _html, ctx = _ctx(b, "?seite=text&von=/foo/")
+    assert "von=" not in ctx["keep_q"]
 
 
 def test_old_title_link_keeps_von():

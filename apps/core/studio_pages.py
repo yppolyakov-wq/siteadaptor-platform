@@ -844,6 +844,10 @@ def resolve_page(path: str, query: dict | None = None) -> PageContext:
     return resolve_match(match, q, path=clean)
 
 
+#: E1t: маршруты своей текстовой страницы (короткий и старый адрес) — хост `seite:<slug>`
+_CONTENT_PAGE_URLS = ("storefront-content-page", "storefront-content-page-legacy")
+
+
 def resolve_match(match, query: dict | None = None, path: str = "") -> PageContext:
     """То же, но по УЖЕ разобранному `request.resolver_match`.
 
@@ -886,5 +890,13 @@ def resolve_match(match, query: dict | None = None, path: str = "") -> PageConte
         from apps.tenants.siteconfig import category_host
 
         host = category_host(ref) or pt.block_host
+    # FB-33 стопка 15 E1t (A6): своя текстовая страница рисует блоки СВОЕГО хоста
+    # `seite:<slug>` (`content_page_views.storefront_page`), не общего `info` — иначе ⚙
+    # Студии открывал схему «Über uns». Хост — тот же разбор, что у «Seiten».
+    slug = match.kwargs.get("slug")
+    if pt.code == "text" and match.url_name in _CONTENT_PAGE_URLS and slug:
+        from apps.core.content_pages import schema_ref
+
+        host = schema_ref(str(slug))[0]
 
     return PageContext(pt, object_ref=ref, block_host=host, path=path, query=q)
