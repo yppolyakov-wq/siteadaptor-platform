@@ -184,3 +184,44 @@ def test_history_rows_read_old_and_new_table_width():
     rows = mod.history_rows(old + "\n" + new + "\n")
     assert [r["stack"] for r in rows] == ["FB-33 стопка 10", "FB-33 стопка 14"]
     assert rows[0]["cost"] is None and rows[1]["cost"] == 143 and rows[1]["agents"] == 80
+
+
+# --- T-18 (2026-11-25): отменённые прогоны CI в снимке стопки ---------------------------------
+
+
+def test_snapshot_row_carries_cancelled_ci_runs():
+    # Стопка 14: 26 прогонов из 34 отменены следующим пушем, пять — после 10-й минуты.
+    mod = _mod()
+    row = mod.snapshot_row(
+        "FB-33 стопка 5", COMMITS[:6], {"rows": []}, "2", "2026-11-25", ci_cancelled="26 / 5"
+    )
+    assert row.endswith("| 2 | — | — | 26 / 5 |")
+    # без счётчика строка прежней ширины плюс прочерк — старые вызовы не ломаются
+    assert mod.snapshot_row("x", COMMITS[:6], {"rows": []}, "2", "2026-11-25").endswith("| — |")
+
+
+def test_history_rows_read_cancelled_and_late_runs_and_old_rows():
+    mod = _mod()
+    rows = mod.history_rows(
+        "| 2026-11-24 | FB-33 стопка 13 | 82 | 35 | 43 % | 11 | 6 | 9 | 1 | 0 | 197 | ≈80 % |\n"
+        "| 2026-11-25 | FB-33 стопка 14 | 59 | 14 | 24 % | 5 | 11 | 24 | 0 | 2 | 117 | ≈70 % | 26 / 5 |\n"
+    )
+    assert [r["ci_cancelled"] for r in rows] == [None, 26]
+    assert [r["ci_late"] for r in rows] == [None, 5]
+    assert rows[1]["red_ci"] == 2
+
+
+def test_history_head_names_the_cancelled_column():
+    mod = _mod()
+    assert "Отменено CI / после 10 мин" in mod.HISTORY_HEAD
+    assert "Отменено CI / после 10 мин" in mod.HISTORY.read_text(encoding="utf-8")
+
+
+def test_increment_skill_holds_the_ci_push_rule():
+    text = (mod_root() / ".claude/skills/sa-increment/SKILL.md").read_text(encoding="utf-8")
+    assert "T-18" in text and "не перебивать" in text and "--ci-cancelled" in text
+    assert "--ci-cancelled" in (mod_root() / "scripts/stack_close.py").read_text(encoding="utf-8")
+
+
+def mod_root():
+    return _mod().ROOT
