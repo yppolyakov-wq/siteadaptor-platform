@@ -1769,6 +1769,8 @@ def title_hint_at(host: str, blocks: list[dict]) -> int | None:
     M2d-0). Метка — только показ: в строки схемы, ряды и цели `move` не входит."""
     from apps.core import detail_parts, page_title
 
+    # стопка 15 M5e-2b (ревью 1): только `HEAD_HOSTS` — у каталога H1 стоит в шапке списка
+    # под «Banner · Fotos der Seite» и метки не требует (своя шапка — `page_title.has_head`)
     if host not in page_title.HEAD_HOSTS:
         return None
     if host in page_title.H1_FIRST:
@@ -2029,7 +2031,9 @@ def siteconfig_key(key: str) -> str:
     return siteconfig.cblock_type(key) or key
 
 
-def title_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
+def title_op(
+    host: str, draft: dict, op: str, fields: dict | None, notes: list | None = None
+) -> str:
     """Правка «Seitentitel» в черновике: только `update` (двигать, скрывать, удалять — нет).
     Присланные поля заменяют прежние, неприсланные остаются (ПАТЧ, как у блоков)."""
     from apps.core import page_title
@@ -2044,10 +2048,17 @@ def title_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
         if name in fields:
             current[name] = str(fields[name])
     if host not in page_title.HEAD_HOSTS:
-        current.pop("align", None)  # стопка 15 M5e-2b: у каталога выравнивания нет
+        # стопка 15 M5e-2b (§0.3 №3): у каталога выравнивания нет — присланное — отказ
+        if current.pop("align", ""):
+            raise SchemaError("fields")
     if current.get("align", "") not in page_title.ALIGNS:
         raise SchemaError("fields")
-    draft["title"] = page_title.clean_head(host, current, before)
+    cut: list = []
+    draft["title"] = page_title.clean_head(host, current, before, cut)
+    if cut and notes is not None:
+        from apps.tenants import siteconfig
+
+        notes.append(siteconfig.cap_note())  # ревью 1: обрезанное — не молча
     return PAGE_REF  # FB-33 M5b-2: окно заголовка — ★-строка страницы
 
 
@@ -4423,9 +4434,11 @@ def apply(
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
     if is_title_alias(ref) or is_page_title_edit(ref, fields):
-        from apps.core import aufbau_draft
+        from apps.core import aufbau_draft, page_title
 
-        draft = {"title": (config.get("page_titles") or {}).get(host) or {}}
+        # ревью 1 (M5e-2b): основа правки — сохранённая шапка тем же читателем (у каталога
+        # иначе правка только заголовка стёрла бы вступление)
+        draft = {"title": page_title.head(config, host)}
         title_op(host, draft, op, fields)
         aufbau_draft._put_title(config, host, draft["title"])
         locked.site_config = siteconfig.normalize(config)

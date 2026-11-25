@@ -55,7 +55,7 @@ def label(host: str) -> str:
     страниц со своим заголовком, иначе «Einstellungen der Seite»."""
     from apps.core import page_title
 
-    if host in page_title.HEAD_HOSTS:
+    if page_title.has_head(host):  # стопка 15 M5e-2b (ревью 1): и каталог
         return _("Seitentitel und Seite")
     return _("Einstellungen der Seite")
 
@@ -65,8 +65,8 @@ def summary(host: str, config: dict) -> str:
     des Eintrags»; у прочих — "" ("wie alle …-Seiten" не выводим)."""
     from apps.core import page_title
 
-    if host in page_title.HEAD_HOSTS:
-        title = page_title.clean_one((config.get("page_titles") or {}).get(host)).get("title")
+    if page_title.has_head(host):
+        title = page_title.head(config, host).get("title")
         return f"„{title}“" if title else _("Standard")
     if _entry_page(host):
         return _("Titel = Name des Eintrags")

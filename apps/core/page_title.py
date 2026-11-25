@@ -14,7 +14,10 @@
 
 from __future__ import annotations
 
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 TITLE_REF = "__title"
 
@@ -119,14 +122,21 @@ def has_head(host) -> bool:
     return host in HEAD_HOSTS or host == CATALOG
 
 
-def _catalog_text(name: str, value) -> str:
-    """Текст шапки каталога из формы: заголовок — одной строкой, вступление хранит переносы
-    строк (витрина рисует его `whitespace-pre-line`, A9)."""
+#: вступление с переносами строк — только там, где витрина рисует его `whitespace-pre-line`
+#: (каталог: `products.html`, `category/_root_header.html`, A9). Списки и формы рисуют
+#: вступление однострочным абзацем — шаблоны M2d держит замок байт-в-байт, поэтому у них
+#: переносы схлопываются (`clean_one`). Правило одно и живёт здесь (`_text`).
+KEEPS_BREAKS = frozenset({CATALOG})
+
+
+def _text(host: str, name: str, value) -> str:
+    """Текст поля шапки из формы: заголовок — одной строкой; вступление хранит переносы
+    строк только у `KEEPS_BREAKS`, иначе схлопывает пробелы (как `clean_one`)."""
     if not isinstance(value, str):
         return ""
-    if name == "title":
-        return " ".join(value.split())
-    return value.replace("\r\n", "\n").replace("\r", "\n").strip()
+    if name == "intro" and host in KEEPS_BREAKS:
+        return value.replace("\r\n", "\n").replace("\r", "\n").strip()
+    return " ".join(value.split())
 
 
 def head(config, host: str) -> dict:
@@ -146,39 +156,50 @@ def head(config, host: str) -> dict:
     return {}
 
 
-def clean_head(host: str, raw, before: dict | None = None) -> dict:
-    """Шапка из правки окна. У `HEAD_HOSTS` — `clean_one`; у каталога своя очистка: поле,
-    равное прежнему (`before`), остаётся прежним без обрезки, изменённое — с потолком."""
-    if host != CATALOG:
-        return clean_one(raw)
+def clean_head(host: str, raw, before: dict | None = None, cut: list | None = None) -> dict:
+    """Шапка из правки (окно, канва, прямая правка схемы). Поле, равное прежнему (`before`),
+    остаётся прежним без обрезки (A9); изменённое — по правилу `_text` и с потолком; имена
+    обрезанных полей — в `cut` (сообщение «gekürzt»). `align` — только у `HEAD_HOSTS`."""
     raw = raw if isinstance(raw, dict) else {}
     before = before if isinstance(before, dict) else {}
     out = {}
-    for name in CATALOG_KEYS:
-        text = _catalog_text(name, raw.get(name))
+    for name, cap in _CAPS.items():
+        text = _text(host, name, raw.get(name))
         old = before.get(name)
-        if text and isinstance(old, str) and text == _catalog_text(name, old):
+        if text and isinstance(old, str) and text == _text(host, name, old):
             out[name] = old
         elif text:
-            out[name] = text[: _CAPS[name]].strip()
+            if len(text) > cap and cut is not None:
+                cut.append(name)
+            out[name] = text[:cap].strip()
+    align = raw.get("align")
+    if host in HEAD_HOSTS and align and align in ALIGNS:
+        out["align"] = align
     return out
+
+
+def _unknown(host: str):
+    from apps.core.site_schema import SchemaError
+
+    logger.warning("page head: host %r has no own head — not written", host)
+    return SchemaError("block")
 
 
 def put_head(config: dict, host: str, entry) -> None:
     """Записать шапку страницы `host` в `config` (пусто — ключа нет): `page_titles[host]` у
-    `HEAD_HOSTS`, `catalog_title`/`catalog_intro` у каталога. Единственный писатель окна."""
+    `HEAD_HOSTS`, `catalog_title`/`catalog_intro` у каталога. Единственный писатель шапки;
+    хост без своей шапки — `SchemaError("block")` (как `site_schema.title_op`)."""
+    if not has_head(host):
+        raise _unknown(host)
+    clean = clean_head(host, entry, head(config, host))
     if host == CATALOG:
-        clean = clean_head(host, entry, head(config, host))
         for name, key in CATALOG_KEYS.items():
             if clean.get(name):
                 config[key] = clean[name]
             else:
                 config.pop(key, None)
         return
-    if host not in HEAD_HOSTS:
-        return
     titles = dict(config.get("page_titles") or {})
-    clean = clean_one(entry)
     if clean:
         titles[host] = clean
     else:
@@ -189,6 +210,50 @@ def put_head(config: dict, host: str, entry) -> None:
         config.pop("page_titles", None)
 
 
+#: ответ записи одного поля (`set_field`): как `home_texts.set_text` (M5e-1a)
+CHANGED, CAPPED = "changed", "capped"
+
+
+def inline_field(field) -> tuple[str, str] | None:
+    """Поле инлайн-правки канвы → (хост, поле шапки): `catalog_title`/`catalog_intro` и
+    `page_titles.<хост>.title|intro`; иначе None."""
+    if not isinstance(field, str):
+        return None
+    for name, key in CATALOG_KEYS.items():
+        if field == key:
+            return CATALOG, name
+    parts = field.split(".")
+    if len(parts) == 3 and parts[0] == "page_titles" and parts[1] in HEAD_HOSTS:
+        if parts[2] in _CAPS:
+            return parts[1], parts[2]
+    return None
+
+
+def set_field(config: dict, host: str, name: str, value, locale: str = "") -> str:
+    """Одно поле шапки с канвы — тем же правилом и потолками, что окно: немецкий текст —
+    `put_head`, перевод (`locale`) — в оверлей по `tr_path`. Ответ — `CHANGED`/`CAPPED`."""
+    from apps.tenants import siteconfig
+
+    cut: list = []
+    if locale:
+        overlay = (config.get("i18n") or {}).get(locale) or {}
+        node = overlay
+        for step in tr_path(host, name):
+            node = node.get(step) if isinstance(node, dict) else None
+        before = {name: node} if isinstance(node, str) else {}
+        text = clean_head(host, {name: value}, before, cut).get(name, "")
+        siteconfig.set_overlay_value(config, locale, tr_path(host, name), text)
+    else:
+        current = head(config, host)
+        put_head(config, host, clean_head(host, {**current, name: value}, current, cut))
+    return CAPPED if cut else CHANGED
+
+
+def shown_text(config, host: str, name: str) -> str:
+    """Сохранённое поле шапки (ответ канве на обрезку)."""
+    return head(config, host).get(name, "")
+
+
 def tr_path(host: str, field: str) -> tuple:
     """Путь перевода поля шапки в оверлее `i18n[<язык>]` (A4: как у блоков)."""
     if host == CATALOG:
@@ -197,14 +262,19 @@ def tr_path(host: str, field: str) -> tuple:
 
 
 def catalog_shown(config, locale: str | None) -> dict:
-    """Шапка каталога на витрине в языке `locale`: перевод (оверлей), иначе немецкий текст."""
+    """Шапка каталога на витрине в языке `locale`: перевод (оверлей), иначе немецкий текст.
+    Перевод не строкой (испорченный оверлей) — немецкий текст и одно предупреждение."""
     config = config if isinstance(config, dict) else {}
     overlay = config.get("i18n") if isinstance(config.get("i18n"), dict) else {}
     node = overlay.get(locale) if locale and isinstance(overlay.get(locale), dict) else {}
-    out = {}
+    out, bad = {}, []
     for name, key in CATALOG_KEYS.items():
         value = node.get(key)
+        if value is not None and not isinstance(value, str):
+            bad.append(key)
         if not (isinstance(value, str) and value.strip()):
             value = config.get(key)
         out[name] = value.strip() if isinstance(value, str) else ""
+    if bad:
+        logger.warning("catalog head: overlay %s for %s is not text — German shown", bad, locale)
     return out

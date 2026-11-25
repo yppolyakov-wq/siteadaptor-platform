@@ -143,7 +143,8 @@ def test_star_row_markup():
 @pytest.mark.parametrize(("bt", "code", "label", "summary"), [
     ("friseur", "services", "Seitentitel und Seite", "Standard"),
     ("friseur", "contact", "Seitentitel und Seite", "Standard"),
-    ("online_shop", "catalog", "Einstellungen der Seite", None),
+    # стопка 15 M5e-2b (ревью 1, осознанная переписка): у каталога своя шапка
+    ("online_shop", "catalog", "Seitentitel und Seite", "Standard"),
     ("online_shop", "lookbook", "Einstellungen der Seite", None),
     ("online_shop", "promo_group", "Einstellungen der Seite", None),
     ("online_shop", "product", "Einstellungen der Seite", "Titel = Name des Eintrags"),

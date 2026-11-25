@@ -155,8 +155,52 @@ def check_window(rep, pg, t, lang, js, radios, cat):
     rep.check(m["winOver"] <= 0, f"{t}: окно без гор. прокрутки ({m['winOver']}px)", code="win")
     over = sl.overflow(pg)
     rep.check(over <= 0, f"{t}: без гор. скролла ({over}px)", code="overflow")
+    if js and radios:
+        cover(rep, pg, t)
+    if js:
+        tab_focus(rep, pg, t)
     scope = f'{DLG}[open] [data-window-tab="texte"]' if js else '[data-window-tab="texte"]'
     sl.a11y_check(rep, pg, t, scope=scope, minimum=44)
+
+
+COVER_JS = """() => {
+  const r = document.querySelector('dialog.ui-bwin[open] #schema-f-align-center');
+  if (!r) return null;
+  r.focus();
+  const box = (r.closest('label') || r).getBoundingClientRect();
+  const panel = r.closest('[data-schema-panel]').getBoundingClientRect();
+  const bar = document.querySelector('dialog.ui-bwin[open] [data-window-actions]');
+  const b = bar ? bar.getBoundingClientRect() : null;
+  const hit = document.elementFromPoint(box.left + 4, box.top + box.height / 2);
+  return {inPanel: box.top >= panel.top - 1 && box.bottom <= panel.bottom + 1,
+          underBar: !!(b && box.bottom > b.top && box.top < b.bottom),
+          own: !!(hit && (hit === r || r.closest('label').contains(hit)))};
+}"""
+
+
+def cover(rep, pg, t):
+    """Ревью 1 (a11y): последнее радио в фокусе видно — не под нижней полосой окна."""
+    m = pg.evaluate(COVER_JS)
+    ok = m is not None and m["inPanel"] and not m["underBar"] and m["own"]
+    rep.check(ok, f"{t}: радио «Mittig» в фокусе не перекрыто ({m})", code="cover")
+
+
+def tab_focus(rep, pg, t):
+    """Ревью 1 (a11y): после «Texte» → «Seite» → «Texte» фокус — на разделе вкладки или его
+    заголовке (не потерян на body)."""
+    try:
+        pg.click(f'{DLG}[open] [data-window-tab-link="seite"]')
+        pg.wait_for_selector('[data-window-tab="seite"]:not([hidden])', timeout=5000)
+        pg.click(f'{DLG}[open] [data-window-tab-link="texte"]')
+        pg.wait_for_selector('[data-window-tab="texte"]:not([hidden])', timeout=5000)
+    except Exception:  # noqa: BLE001 — стенд сообщает ✗, а не падает
+        rep.check(False, f"{t}: переключение вкладок", code="tabs")
+        return
+    at = pg.evaluate(
+        "() => { const a = document.activeElement; return a ? {tag: a.tagName,"
+        " tab: !!a.closest('[data-window-tab-link], [role=tab], [data-window-tab]')} : null; }"
+    )
+    rep.check(bool(at and at["tab"]), f"{t}: фокус после смены вкладок ({at})", code="tabfocus")
 
 
 def keyboard_pass(rep, pg, out):

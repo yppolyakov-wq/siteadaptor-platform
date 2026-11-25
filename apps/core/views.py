@@ -4309,6 +4309,35 @@ def site_inline_edit(request):
             )
             return JsonResponse({"capped": True, "value": home_texts.values(stored, key)[name]})
         return HttpResponse(status=204)
+    from apps.core import page_title
+
+    head_field = page_title.inline_field(field)
+    if head_field is not None:
+        # стопка 15 M5e-2b (ревью 1): шапка списка и каталога — тем же писателем и потолками,
+        # что окно (`page_title.set_field`), под блокировкой строки бизнеса и от свежего конфига
+        from apps.tenants.models import Tenant
+
+        host, name = head_field
+        locale = (data.get("locale") or "").strip()
+        if not siteconfig.is_translation_locale(request.tenant, locale):
+            locale = ""
+        with transaction.atomic():
+            locked = Tenant.objects.select_for_update().get(pk=request.tenant.pk)
+            cfg = siteconfig.normalize(locked.site_config)
+            result = page_title.set_field(cfg, host, name, value, locale)
+            locked.site_config = siteconfig.normalize(cfg)
+            locked.save(update_fields=["site_config", "updated_at"])
+        request.tenant.site_config = locked.site_config
+        if result == page_title.CAPPED:
+            from django.http import JsonResponse
+
+            stored = (
+                siteconfig.localize(locked.site_config, locale) if locale else locked.site_config
+            )
+            return JsonResponse(
+                {"capped": True, "value": page_title.shown_text(stored, host, name)}
+            )
+        return HttpResponse(status=204)
     if field in siteconfig.TEXT_FIELDS:
         path = (field,)
     elif field in siteconfig.NESTED_TEXT_FIELDS:
@@ -4349,16 +4378,6 @@ def site_inline_edit(request):
             locked.save(update_fields=["site_config", "updated_at"])
         request.tenant.site_config = locked.site_config
         return HttpResponse(status=204)
-    elif field and field.startswith("page_titles."):
-        # FB-33 M2d: заголовок и вступление страницы-списка или формы — на превью
-        from apps.core import page_title
-
-        parts = field.split(".")
-        if len(parts) != 3 or parts[1] not in page_title.HEAD_HOSTS:
-            return HttpResponseBadRequest()
-        if parts[2] not in ("title", "intro"):
-            return HttpResponseBadRequest()
-        path = ("page_titles", parts[1], parts[2])  # пусто → прежний текст страницы
     elif field and field.startswith("section_intros."):
         # H1: описания секций главной правятся инлайн на превью (как заголовки).
         key = field.split(".", 1)[1]

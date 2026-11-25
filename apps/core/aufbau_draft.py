@@ -697,6 +697,24 @@ def _put_form(config: dict, draft: dict, form: str = "anfrage") -> dict:
     return out
 
 
+def _seed_legacy_title(config: dict, draft: dict, saved: dict, host: str) -> None:
+    """Ревью 1 (M5e-2b): черновик, начатый до шапки в черновике (у каталога — до среза), без
+    `title`. Правка шапки идёт от сохранённой (иначе правка только заголовка стёрла бы
+    вступление); отпечаток основы переносится, только если в остальном он совпадает (иначе
+    конфликт остаётся конфликтом)."""
+    if "title" in draft or "title" not in saved:
+        return
+    fresh = _base_fingerprint(saved, config, draft) == draft.get("base")
+    draft["title"] = copy.deepcopy(saved["title"])
+    if fresh:
+        draft["base"] = _base_fingerprint(saved, config, draft)
+    logger.warning(
+        "aufbau draft %s: started without the page head — title seeded from saved (%s)",
+        host,
+        "rebased" if fresh else "conflict kept",
+    )
+
+
 def _put_title(config: dict, host: str, title) -> None:
     """FB-33 M2d: «Seitentitel» страницы `host` — единственным писателем шапки
     (`page_title.put_head`: `page_titles` у списков и форм, ключи каталога у «Produkte»)."""
@@ -1198,13 +1216,15 @@ def op(
     elif site_schema.is_page_title_edit(ref, fields):
         # FB-33 M5b-2: «Seitentitel» на ★-строке страницы — тот же писатель, что у `__title`
         # (раньше `_m36_edit`: SEO окна — поля `seo_*`, не заголовка)
-        ref = site_schema.title_op(host, draft, op_name, fields)
+        _seed_legacy_title(config, draft, saved, host)
+        ref = site_schema.title_op(host, draft, op_name, fields, notes)
     elif _m36_edit(host, ref, op_name, fields):
         # FB-33 M3-6: SEO страницы, вид категории, «Wo zeigen», закреплённые правовые строки
         ref = _m36_op(request, config, draft, code, host, saved, op_name, ref, fields, notes)
     elif site_schema.is_title_alias(asked):
         # FB-33 M2d: «Seitentitel» — не строка `page_blocks`: тексты и вид — в черновике
-        ref = site_schema.title_op(host, draft, op_name, fields)
+        _seed_legacy_title(config, draft, saved, host)
+        ref = site_schema.title_op(host, draft, op_name, fields, notes)
     elif site_schema.is_next_edit(host, ref, op_name):
         # FB-33 M2h-5: текст «Was passiert jetzt» — в черновике, строка остаётся на месте
         ref = site_schema.next_op(host, draft, op_name, fields)

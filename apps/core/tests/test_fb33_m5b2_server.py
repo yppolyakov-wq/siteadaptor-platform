@@ -87,9 +87,9 @@ def test_title_on_page_ref_goes_through_title_op(monkeypatch):
     calls = []
     real = site_schema.title_op
 
-    def spy(host, draft, op, fields):
+    def spy(host, draft, op, fields, notes=None):  # стопка 15 M5e-2b: + notes («gekürzt»)
         calls.append((host, op))
-        return real(host, draft, op, fields)
+        return real(host, draft, op, fields, notes)
 
     monkeypatch.setattr(site_schema, "title_op", spy)
     old, new = Browser(_shop()), Browser(_shop())
@@ -150,7 +150,6 @@ WRITERS = {
     # стопка 15 M5e-2b: один писатель шапки `put_head` (черновик зовёт его, переводы —
     # путём `tr_path`)
     "apps/core/page_title.py",
-    "apps/core/views.py",  # инлайн-правка H1 в Студии
     "apps/tenants/siteconfig.py",  # `normalize`
 }
 

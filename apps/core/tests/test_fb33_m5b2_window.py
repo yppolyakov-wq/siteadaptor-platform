@@ -13,7 +13,7 @@
   у списков со своим видом;
 - строка наследования вида категории — в окне ★ категории, вкладка «Wie anordnen»; ссылка на
   форму категории — у ★-строки;
-- подпись ★: «Seitentitel und Seite» только у `page_title.HEAD_HOSTS`, иначе «Einstellungen der
+- подпись ★: «Seitentitel und Seite» только у страниц со своей шапкой (`page_title.has_head`: HEAD_HOSTS и, со стопки 15 M5e-2b, каталог), иначе «Einstellungen der
   Seite».
 """
 
@@ -95,7 +95,7 @@ CATEGORY = "category@catalog:brot"
     ("friseur", "services", "Seitentitel und Seite"),
     ("friseur", "contact", "Seitentitel und Seite"),
     ("online_shop", "promos", "Seitentitel und Seite"),
-    ("online_shop", "catalog", "Einstellungen der Seite"),
+    ("online_shop", "catalog", "Seitentitel und Seite"),  # стопка 15 M5e-2b, ревью 1
     ("online_shop", "product", "Einstellungen der Seite"),  # было и до W1
 ])  # fmt: skip
 def test_page_window_opens_on_seite(bt, code, label):

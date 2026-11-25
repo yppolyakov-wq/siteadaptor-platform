@@ -409,9 +409,6 @@ def test_window_tabs_apply_fields_on_texte():
 
 # ═════════════ ревью 1 (django, seo, silent-failure-hunter, a11y) ═════════════
 
-#: замки ревью 1 — поведения ещё нет (снимаются в коммите правок)
-R1 = pytest.mark.xfail(strict=True, reason="M5e-2b ревью 1: ещё нет")
-
 
 def _inline(field, value, tenant, locale=""):
     import json
@@ -435,7 +432,6 @@ def _inline(field, value, tenant, locale=""):
 
 
 # №1 (django HIGH): прямая правка схемы не стирает вступление каталога
-@R1
 def test_apply_title_only_keeps_catalog_intro():
     tenant = _tenant("online_shop", {"catalog_title": "Alt", "catalog_intro": "Frisch"})
     site_schema.apply(tenant, "catalog", "update", ref=PAGE, fields={"title": "X"})
@@ -443,7 +439,6 @@ def test_apply_title_only_keeps_catalog_intro():
     assert saved["catalog_title"] == "X" and saved["catalog_intro"] == "Frisch"
 
 
-@R1
 def test_head_read_only_in_page_title():
     """Шапку `page_titles[host]` читает только `page_title` (витрина — тегом через `get`)."""
     root = Path(__file__).resolve().parents[3]
@@ -466,7 +461,6 @@ def _desc(html):
     return re.search(r'<meta name="description" content="([^"]*)"', html).group(1)
 
 
-@R1
 def test_catalog_title_tag_follows_h1(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     cfg = {
@@ -485,7 +479,6 @@ def test_catalog_title_tag_follows_h1(settings):
     assert "Наш хлеб" in re.search(r"<h1[^>]*>(.*?)</h1>", ru, re.S).group(1)
 
 
-@R1
 def test_catalog_title_tag_clamped(settings):
     from apps.core.seo_meta import TITLE_MAX
 
@@ -532,13 +525,11 @@ def test_breadcrumb_root_follows_translation(settings):
 
 
 # №3 (sfh HIGH)
-@R1
 def test_put_head_unknown_host_not_silent():
     with pytest.raises(site_schema.SchemaError):
         page_title.put_head({}, "cart", {"title": "x"})
 
 
-@R1
 def test_head_cap_reports_cut():
     b = Browser(_tenant())
     _resp, msgs = _post_head(b, "services", title="T" * 300)
@@ -547,7 +538,6 @@ def test_head_cap_reports_cut():
     assert siteconfig.cap_note() not in msgs
 
 
-@R1
 def test_intro_newlines_rule_one_place():
     """Одно правило переносов строк вступления (`page_title.KEEPS_BREAKS`): каталог рисует
     вступление `whitespace-pre-line` и хранит переносы; списки рисуют его в однострочном
@@ -562,7 +552,6 @@ def test_intro_newlines_rule_one_place():
 
 
 # №4 (django MED): инлайн-правка канвы — тот же писатель и потолки
-@R1
 def test_inline_catalog_intro_capped():
     tenant = _tenant("online_shop")
     resp = _inline("catalog_intro", "z" * 500, tenant)
@@ -570,14 +559,12 @@ def test_inline_catalog_intro_capped():
     assert len(_saved(tenant)["catalog_intro"]) == page_title.INTRO_MAX
 
 
-@R1
 def test_inline_catalog_title_newline_collapsed():
     tenant = _tenant("online_shop")
     assert _inline("catalog_title", "Unser\nBrot", tenant).status_code == 204
     assert _saved(tenant)["catalog_title"] == "Unser Brot"
 
 
-@R1
 def test_inline_page_title_capped_and_translation():
     tenant = _tenant(locales=["de", "ru"])
     resp = _inline("page_titles.services.title", "T" * 300, tenant)
@@ -596,7 +583,6 @@ def json_capped(resp) -> bool:
 
 
 # №5 (django MED): шапка и сводка ★ каталога
-@R1
 def test_catalog_star_label_and_summary():
     cfg = {"catalog_title": "Unser Brot"}
     row = page_window.pseudo_row(PAGE, PAGE, "catalog", cfg)
@@ -607,28 +593,23 @@ def test_catalog_star_label_and_summary():
 
 
 # №6 (sfh MED)
-@R1
 def test_catalog_align_rejected():
     with pytest.raises(site_schema.SchemaError):
         site_schema.title_op("catalog", {}, "update", {"title": "x", "align": "center"})
     site_schema.title_op("catalog", {}, "update", {"title": "x", "align": ""})
 
 
-@R1
 def test_old_draft_missing_title_keeps_head(caplog):
     """Черновик каталога до среза (без `title`): правка только заголовка не стирает
     сохранённое вступление; не конфликт; в логе — предупреждение."""
     tenant = _tenant("online_shop", {"catalog_title": "Alt", "catalog_intro": "Frisch"})
     b = Browser(tenant)
-    b.post(seite="catalog", op="toggle", ref="categories")  # черновик без шапки
-    drafts = b.session[aufbau_draft.SESSION_KEY]
-    drafts["catalog"].pop("title", None)
+    b.get("?seite=catalog")
     cfg = siteconfig.normalize(_saved(tenant))
     saved = aufbau_draft._saved_state(cfg, False, "catalog")
-    drafts["catalog"]["base"] = aufbau_draft._fingerprint(
-        {k: v for k, v in saved.items() if k != "title"}
-    )
-    b.session[aufbau_draft.SESSION_KEY] = drafts
+    old = {k: copy.deepcopy(v) for k, v in saved.items() if k != "title"}  # черновик без шапки
+    old.update(home=False, host="catalog", base=aufbau_draft._fingerprint(old))
+    b.session[aufbau_draft.SESSION_KEY] = {"catalog": old}
     with caplog.at_level("WARNING", logger="apps.core.aufbau_draft"):
         b.post(seite="catalog", ref=PAGE, op="update", panel_present="1", f_title="Neu")
     assert any("title" in r.getMessage() for r in caplog.records)
@@ -638,7 +619,6 @@ def test_old_draft_missing_title_keeps_head(caplog):
     assert saved["catalog_title"] == "Neu" and saved["catalog_intro"] == "Frisch"
 
 
-@R1
 def test_catalog_shown_malformed_overlay_logged(caplog):
     cfg = {"catalog_title": "Sortiment", "i18n": {"ru": {"catalog_title": ["kaputt"]}}}
     with caplog.at_level("WARNING", logger="apps.core.page_title"):
@@ -657,7 +637,6 @@ def test_catalog_translation_survives_normalize():
 
 
 # №7 (a11y LOW): радио — видимый фокус и цвет; прокрутка окна с запасом снизу
-@R1
 def test_radio_focus_and_accent_rules():
     css = Path("static/src/app.css").read_text(encoding="utf-8")
     assert re.search(r"\[data-schema-align\] input\[type=\"radio\"\]\s*\{[^}]*accent-color", css)
