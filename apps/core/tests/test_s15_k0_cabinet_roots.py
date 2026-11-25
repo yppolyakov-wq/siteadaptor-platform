@@ -163,3 +163,118 @@ def test_cabinet_404_has_h1_and_back_link():
     html = response.content.decode()
     assert "<h1" in html
     assert '<a href="/"' in html
+
+
+# ── ревью 1: сквозные проверки через настоящий стек middleware (`django.test.Client`) ──────
+
+TEST_URLCONF = "apps.core.tests.urls_s15_k0_prefix"
+
+
+@pytest.fixture
+def client_for():
+    from django.db import connections
+    from django.test import Client
+
+    from apps.tenants.tests.factories import DomainFactory
+
+    def make(user=None, profile=None):
+        tenant = _tenant()
+        if profile:
+            tenant.site_config = {**(tenant.site_config or {}), "profile": profile}
+            tenant.save(update_fields=["site_config"])
+        domain = DomainFactory(tenant=tenant, domain=f"{tenant.slug}.siteadaptor.de")
+        client = Client(HTTP_HOST=domain.domain)
+        if user is not None:
+            from apps.core.session_schema import SESSION_SCHEMA_KEY
+
+            client.force_login(user)
+            # вход в тесте идёт на public — штамп схемы бизнеса, как при настоящем входе
+            session = client.session
+            session[SESSION_SCHEMA_KEY] = tenant.schema_name
+            session.save()
+        return client
+
+    yield make
+    connections["default"].set_schema_to_public()
+
+
+def _get(client, path):
+    from django.db import connections
+
+    try:
+        return client.get(path, secure=True)
+    finally:
+        connections["default"].set_schema_to_public()
+
+
+@override_settings(PERMS_STRICT=True)
+def test_content_page_under_cabinet_prefix_404_full_stack(client_for, settings):
+    """Ревью 1 №1: префикс без корня (тестовый urlconf) → страница витрины → 404 всем стеком,
+    не 500 (`ImproperlyConfigured`) и не 403."""
+    settings.ROOT_URLCONF = TEST_URLCONF
+    client = client_for(_user(Membership.ROLE_OWNER))
+    assert resolve("/crm/", urlconf=TEST_URLCONF).view_name == CONTENT_PAGE
+    cabinet = _get(client, "/dashboard/")
+    assert "/accounts/login/" not in cabinet.get("Location", ""), "владелец не вошёл"
+    response = _get(client, "/crm/")
+    assert response.status_code == 404
+
+
+@override_settings(PERMS_STRICT=True)
+def test_cabinet_404_full_stack_has_h1_and_back_link(client_for, settings):
+    """Ревью 1 №2 (Y10): Http404 из `process_view` → handler404 → простая страница с `<h1>`
+    и ссылкой назад, без хрома витрины."""
+    settings.ROOT_URLCONF = TEST_URLCONF
+    response = _get(client_for(_user(Membership.ROLE_OWNER)), "/crm/")
+    assert response.status_code == 404
+    html = response.content.decode()
+    assert "<h1" in html
+    assert '<a href="/"' in html
+
+
+@pytest.mark.parametrize("prefix", CABINET_PREFIXES)
+def test_no_content_page_slug_shadowed_by_cabinet_root(prefix):
+    """Ревью 1 №3: slug, совпадающий с кабинетным префиксом, не получает короткий адрес своей
+    страницы (иначе `/catalog/` снова ушла бы на витрину)."""
+    from apps.core import content_pages
+
+    slug = prefix.strip("/")
+    assert not content_pages.short_url_free(slug), slug
+
+
+def test_index_staff_with_sortiment_redirects():
+    """Ревью 1 №4: сотрудник с правом «Sortiment» проходит корень /catalog/ к экрану."""
+    staff = _user(Membership.ROLE_STAFF)
+    assert permissions.has_perm(staff, "sortiment.view")
+    response = gates.open_as(_request(reverse("catalog:index"), _tenant(), staff))
+    assert response.status_code == 302
+    assert response["Location"] == reverse("sellable-manage")
+
+
+@pytest.mark.parametrize("profile", [packages.AKTIONEN, packages.EINTRAG])
+@pytest.mark.parametrize(("index", "target"), sorted(INDEX_TARGETS.items()))
+def test_index_light_package_403(client_for, profile, index, target):
+    """Ревью 1 №4: лёгкий пакет получает на корне тот же ответ, что на экране-цели:
+    «In Ihrem Paket nicht enthalten» (403) или переход к открытому экрану."""
+    owner = _user(Membership.ROLE_OWNER)
+    client = client_for(owner, profile=profile)
+    root = _get(client, reverse(index))
+    target_allowed = target in packages.PACKAGES[profile].cabinet_allow
+    if target_allowed:
+        assert root.status_code == 302
+        assert root["Location"] == reverse(target)
+    else:
+        assert root.status_code == 403
+        assert _get(client, reverse(target)).status_code == 403
+
+
+@pytest.mark.parametrize("role", [Membership.ROLE_ADMIN, Membership.ROLE_STAFF])
+def test_imports_website_stays_owner_only(role):
+    """Ревью 1 №4: корень /imports/ не открывает импорт с сайта — пол владельца как был."""
+    tenant = _tenant()
+    response = gates.open_as(_request(reverse("imports:website"), tenant, _user(role)), gates.ok)
+    assert response.status_code == 403
+    owner = gates.open_as(
+        _request(reverse("imports:website"), tenant, _user(Membership.ROLE_OWNER)), gates.ok
+    )
+    assert owner.status_code == 200
