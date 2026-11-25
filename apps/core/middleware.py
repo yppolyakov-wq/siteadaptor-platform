@@ -20,6 +20,9 @@ from .roles import (
 )
 from .session_schema import SESSION_SCHEMA_KEY
 
+#: имя маршрута страницы витрины `<slug>/` (config/urls_tenant.py) — на кабинетном префиксе 404
+STOREFRONT_CONTENT_PAGE = "storefront-content-page"
+
 
 class SessionSchemaGuardMiddleware:
     """HIGH-10: сбросить сессию, пришедшую на схему ≠ схеме её логина.
@@ -249,6 +252,10 @@ class CabinetOwnerAccessMiddleware:
 
         match = getattr(request, "resolver_match", None)
         view_name = getattr(match, "view_name", "") or ""
+        if view_name == STOREFRONT_CONTENT_PAGE:
+            # FB-33 K0: страница витрины `<slug>/` под кабинетным префиксом — не экран
+            # кабинета; без права в реестре она давала 500 (strict) или 403 — честно 404.
+            raise Http404
         if not view_perms.allowed(request.user, view_name, request.method):
             return HttpResponseForbidden(_("Dafür fehlt Ihnen das Recht."))
         return None

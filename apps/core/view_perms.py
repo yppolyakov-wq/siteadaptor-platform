@@ -226,6 +226,7 @@ RULES: dict[str, Rule] = {
     "stock-settings": _r(L, LE),  # UX-D D6.2b
     "purchasing": _r(L, LE),
     "purchasing-maengel-pdf": _r(L),
+    "imports:index": _r(L, LE),  # FB-33 K0: редирект на imports:start — то же право
     "imports:start": _r(L, LE),
     "imports:map": _r(L, LE),
     "imports:preview": _r(L, LE),
@@ -266,6 +267,7 @@ RULES: dict[str, Rule] = {
     "catalog:product-image-primary": _r(S, SE),
     "catalog:product-inline-edit": _r(S, SE),
     "catalog:product-list": _r(S, SE),
+    "catalog:index": _r(S, SE),  # FB-33 K0: редирект на sellable-manage — то же право
     "catalog:product-photo-edit": _r(S, SE),
     "catalog:products-merge": _r(S, SE),
     "catalog:products-bulk-visibility": _r(S, SE),

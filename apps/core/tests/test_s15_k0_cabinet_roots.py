@@ -35,11 +35,6 @@ INDEX_TARGETS = {
     "imports:index": "imports:start",
 }
 CONTENT_PAGE = "storefront-content-page"
-#: K0 до кода: замок красный, снимается коммитом реализации
-RED = pytest.mark.xfail(strict=True, reason="K0: корни префиксов ещё не заведены")
-ROOTS = [
-    pytest.param(p, marks=RED) if p in ("/catalog/", "/imports/") else p for p in CABINET_PREFIXES
-]
 
 
 @pytest.fixture(autouse=True)
@@ -74,7 +69,7 @@ def _request(path, tenant, user):
 
 
 @override_settings(PERMS_STRICT=True)
-@pytest.mark.parametrize("prefix", ROOTS)
+@pytest.mark.parametrize("prefix", CABINET_PREFIXES)
 def test_cabinet_prefix_root_never_500(prefix):
     """№6: корень каждого кабинетного префикса — владельцу 200/302, сотруднику без права
     403 (или 200/302 у открытого экрана), а не 500."""
@@ -92,7 +87,6 @@ def test_cabinet_prefix_root_never_500(prefix):
     assert staff.status_code in expected, prefix
 
 
-@RED
 @pytest.mark.parametrize(("index", "target"), sorted(INDEX_TARGETS.items()))
 def test_index_rule_equals_target(index, target):
     """№2: у корня то же право и та же запись пакетов, что у экрана, куда он ведёт."""
@@ -105,7 +99,6 @@ def test_index_rule_equals_target(index, target):
         assert (index in allow) == (target in allow), (key, index)
 
 
-@RED
 @pytest.mark.parametrize(("index", "target"), sorted(INDEX_TARGETS.items()))
 def test_index_redirects_owner_to_target(index, target):
     tenant = _tenant()
@@ -115,7 +108,6 @@ def test_index_redirects_owner_to_target(index, target):
     assert response["Location"] == reverse(target)
 
 
-@RED
 @pytest.mark.parametrize("index", sorted(INDEX_TARGETS))
 def test_index_redirect_needs_membership(index):
     """№28: без Membership — 403 пола, аноним — на вход; адрес цели не раскрывается."""
@@ -131,7 +123,6 @@ def test_index_redirect_needs_membership(index):
     assert reverse(INDEX_TARGETS[index]) not in anon["Location"].split("?")[0]
 
 
-@RED
 @override_settings(PERMS_STRICT=True)
 @pytest.mark.parametrize("prefix", CABINET_PREFIXES)
 def test_content_page_under_cabinet_prefix_404(prefix):
