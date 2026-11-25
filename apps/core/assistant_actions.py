@@ -367,7 +367,7 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
         if spec.verb == "page":  # A-4c: доступные варианты настройки (как на экране кабинета)
             from apps.core import assistant_pages
 
-            options = assistant_pages.options(request.tenant, _target_pk(item))
+            options = assistant_pages.options(request.tenant, _target_pk(item), _item_type(item))
         else:
             options = category_options(request.tenant, items, upto, existing)
         values = item.get("values") or {}
@@ -423,6 +423,12 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
 
 def _target_pk(item: dict) -> str:
     return str((item.get("target") or {}).get("pk") or "")
+
+
+def _item_type(item: dict) -> str:
+    """M1d: тип страницы пункта «Seite einstellen» — из кэша пакета (не из POST): по нему
+    отбираются формы карточки вида основного списка."""
+    return str((item.get("values") or {}).get("type") or "")
 
 
 def _page_url(request, spec: ActionSpec, type_code: str) -> str:
@@ -580,7 +586,10 @@ def _clean(items: list[dict], post, existing: list, tenant=None) -> tuple[list[d
             elif f.kind == "setting":
                 from apps.core import assistant_pages
 
-                allowed_values = {v for v, _l in assistant_pages.options(tenant, _target_pk(item))}
+                allowed_values = {
+                    v
+                    for v, _l in assistant_pages.options(tenant, _target_pk(item), _item_type(item))
+                }
                 if raw not in allowed_values:
                     err = _("Bitte eine Einstellung aus der Liste wählen.")
             elif f.kind == "category" and raw not in {
@@ -917,10 +926,10 @@ def _page_stored(tenant, code: str):
     return _page_raw(fresh.site_config or {}, code)
 
 
-def _page_options(tenant, code: str):
+def _page_options(tenant, code: str, type_code: str = ""):
     from apps.core import assistant_pages
 
-    return assistant_pages.options(tenant, code)
+    return assistant_pages.options(tenant, code, type_code)
 
 
 def _change_page(row: dict, tenant) -> dict:
@@ -931,6 +940,13 @@ def _change_page(row: dict, tenant) -> dict:
     if code in assistant_pages.replaced_codes():
         # FB-31 P6 (ревью безопасности): пункт, построенный до P6, тоже не применяется
         raise ApplyError("invalid", {f"{row['index']}:value": assistant_pages.REPLACED_NOTE})
+    # M1d (ревью 1): форма карточки, которой вид основного списка этой страницы не примет, —
+    # отказ (запись `_clean` берёт любую форму реестра: форма сайта — для всех страниц)
+    allowed = page_settings.card_form_values(tenant, code, _item_type(item))
+    if allowed is not None and row["after"] and row["after"] not in allowed:
+        raise ApplyError(
+            "invalid", {f"{row['index']}:value": _("Bitte eine Einstellung aus der Liste wählen.")}
+        )
     before = str(item.get("before") or "")
     if _page_current(tenant, code) != before:
         raise ApplyError(
@@ -939,7 +955,7 @@ def _change_page(row: dict, tenant) -> dict:
     try:
         new_cfg = _write_page(tenant, code, row["after"], gate=row.get("gate"))
     except page_settings.PageSettingError as exc:
-        allowed_values = {v for v, _l in _page_options(tenant, code)}
+        allowed_values = {v for v, _l in _page_options(tenant, code, _item_type(item))}
         msg = (
             _("Bitte eine Einstellung aus der Liste wählen.")
             if allowed_values

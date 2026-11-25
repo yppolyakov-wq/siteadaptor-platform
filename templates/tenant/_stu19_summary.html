@@ -1,12 +1,22 @@
 {% load i18n %}
 {% comment %}STU-19e: a setting the cabinet owns — the Studio shows its value and a link.
-Input: s = {label, value, url} from page_settings.summaries (None → nothing).{% endcomment %}
+Input: s = {label, value, url, no_cards} from page_settings.summaries (None → nothing).
+FB-33 стопка 15 M1d: no_cards — страницы, у вида основного списка которых карточек нет:
+подсказка (называет страницу — без JS видны все) и ссылка в окно блока ★ (с JS видна
+только на своей странице, `data-stu-page`). Имя блока — подпись кабинета (gettext), язык
+совпадает с языком окна — `lang` не нужен (Y7).{% endcomment %}
 {% if s %}
 <div class="text-sm" data-stu19-summary>
   <span class="stu-lb">{{ s.label }}</span>
   <p class="flex flex-wrap items-baseline gap-x-2">
     <span class="font-medium">{{ s.value }}</span>
-    <a href="{{ s.url }}" class="text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} →</a>
+    <a href="{{ s.url }}" class="text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} <span aria-hidden="true">→</span></a>
   </p>
+  {% for e in s.no_cards %}
+  <p class="mt-1 text-xs text-gray-600" data-stu-page="{{ e.page }}" data-stu19-no-cards>
+    <span id="stu19-nc-{{ e.page }}"><span class="font-medium">{{ e.page_label }}:</span> {% trans "Diese Ansicht hat keine Karten" %}</span>
+    <a href="{{ e.url }}" class="inline-flex min-h-11 items-center text-indigo-700 underline" aria-describedby="stu19-nc-{{ e.page }}" data-stu19-view-link>{% blocktrans with name=e.name %}Ansicht im Block „{{ name }}“ ändern{% endblocktrans %}</a>
+  </p>
+  {% endfor %}
 </div>
 {% endif %}
