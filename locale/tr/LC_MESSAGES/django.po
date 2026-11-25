@@ -40892,6 +40892,10 @@ msgstr "fb33-stack-anchor-s15-k0"
 msgid "fb33-stack-anchor-s15-m5e1a"
 msgstr "fb33-stack-anchor-s15-m5e1a"
 
+#, python-format
+msgid "Die Texte von „%(name)s“ wurden inzwischen an anderer Stelle geändert – Ihre Änderung daran wurde nicht übernommen."
+msgstr "“%(name)s” metinleri bu arada başka bir yerde değiştirildi – bu metinlerdeki değişikliğiniz uygulanmadı."
+
 msgid "fb33-stack-anchor-s15-m5e1b"
 msgstr "fb33-stack-anchor-s15-m5e1b"
 
