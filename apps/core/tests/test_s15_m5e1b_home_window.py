@@ -147,8 +147,8 @@ def test_repeated_items_fieldset_legend(key, legend):
     b = Browser(_shop())
     form = _form(_get(b, key))
     assert "<legend" in form and f"{legend} 1</legend>" in form
-    count = len(CFG[key]) + 1  # и пустой новый — с меткой «Hinzufügen» (ревью E)
-    assert f"{legend} {count} – Hinzufügen</legend>" in form
+    count = len(CFG[key]) + 1  # и пустой новый пункт с меткой (ревью E)
+    assert f"{legend} {count} – neu – leer lassen, wenn nicht benötigt</legend>" in form
     assert "Text 1" not in form
     for i in range(count):
         for field, _label in home_texts.ITEM_FIELDS[key]:
@@ -609,7 +609,7 @@ def test_new_item_slot_marked():
     b = Browser(_shop())
     with translation.override("de"):
         form = _form(_get(b, "process"))
-    assert "Schritt 3 – Hinzufügen</legend>" in form
+    assert "Schritt 3 – neu – leer lassen, wenn nicht benötigt</legend>" in form
 
 
 def test_window_op_without_fields_notes():

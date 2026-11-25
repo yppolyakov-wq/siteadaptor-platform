@@ -898,7 +898,11 @@ def decorate(
                 {
                     # E: пустой пункт для нового — с меткой в легенде (не только пустотой)
                     "legend": str(ITEM_LEGENDS[key]) % {"n": i + 1}
-                    + (f" – {gettext('Hinzufügen')}" if i == len(rows) else ""),
+                    + (
+                        f" – {gettext('neu – leer lassen, wenn nicht benötigt')}"
+                        if i == len(rows)
+                        else ""
+                    ),
                     "fields": [
                         {
                             "name": f"htx_{key}_{i}_{field}",
