@@ -212,3 +212,25 @@ def test_wave_wider_than_the_limit_is_reported():
         f"| S{i} | P0 | `f{i}.py` | — | 0 | |" for i in range(mod.MAX_PARALLEL)
     ]
     assert mod.check(_plan(*ok), _exists(*files)) == []
+
+
+# --- T-17b (2026-11-25): у цепочки срезов своя база у каждого — «Ветка» вида `база..ветка` ----------
+
+
+def test_branch_cell_may_carry_its_own_base():
+    # Стопка 14 вела срезы цепочкой и записала «Ветка» как `63421de..origin/claude/…-e8`:
+    # stack_close упал с трассировкой git вместо сверки.
+    mod = _mod()
+    assert mod.diff_range("origin/main", "claude/s-e8") == "origin/main...claude/s-e8"
+    assert (
+        mod.diff_range("origin/main", "63421de..origin/claude/s-e8")
+        == "63421de..origin/claude/s-e8"
+    )
+    assert mod.diff_range("origin/main", "a...b") == "a...b"
+
+
+def test_unreadable_slice_range_is_a_finding_not_a_crash():
+    mod = _mod()
+    slices = _plan("| A | — | `x.py` | — | 0 | no-such-ref-zz..also-missing-zz |")
+    touched, problems = mod.touched_by_slice(slices, "origin/main")
+    assert touched == {} and any("A" in p and "не читается" in p for p in problems)
