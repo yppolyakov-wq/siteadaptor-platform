@@ -16,7 +16,14 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils import translation
 
-from apps.core import assistant_pages, card_forms, page_settings, studio_pages, window_links
+from apps.core import (
+    assistant_actions,
+    assistant_pages,
+    card_forms,
+    page_settings,
+    studio_pages,
+    window_links,
+)
 from apps.core.modules import default_disabled_for
 from apps.core.tests.test_assistant_a2 import _user
 from apps.tenants.tests.factories import TenantFactory
@@ -26,6 +33,8 @@ pytestmark = pytest.mark.django_db
 CODE = "product_card_form"
 OUTSIDE = "(passt nicht zur Ansicht)"
 NO_CARDS = "Diese Ansicht hat keine Karten"
+#: потолок запросов сводки (замер на ветке; рост — повод разобраться, а не поднять число)
+SUMMARY_QUERIES = 15
 
 
 def _tenant(business_type="online_shop"):
@@ -101,17 +110,106 @@ def test_design_screen_keeps_all_forms():
     assert [c.value for c in st.choices] == _all_keys()
 
 
+def _page_item(type_code, value="deal"):
+    return {
+        "action": assistant_actions.PAGE_SETTING,
+        "target": {"kind": "page", "pk": CODE},
+        "values": {"name": "x", "value": value, "type": type_code},
+        "before": "",
+        "before_set": False,
+    }
+
+
+def _clean_errors(tenant, item):
+    _rows, errors = assistant_actions._clean([item], {}, [], tenant)
+    return errors
+
+
+@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
 def test_assistant_variants_by_view():
+    """Ревью 1 №1: путь продакшена — пункт ассистента несёт тип, варианты берутся по нему."""
     tenant = _tenant()
     user = _user()
     phrase = "Zeige die Produkte als Deal-Zeile"
     assert assistant_pages.build(tenant, user, phrase)  # у сетки — предлагается
     _preisliste(tenant)
     assert not assistant_pages.build(tenant, user, phrase)  # у прайс-листа — нет
-    values = {v for v, _l in assistant_pages.options(tenant, CODE, type_code="catalog")}
-    assert "deal" not in values
+    # проверка формы пакета: «deal» у каталога с прайс-листом — не из списка
+    assert _clean_errors(tenant, _page_item("catalog"))
     # подпись «vorher/nachher» — словом и для формы вне вида
     assert assistant_pages.value_label(tenant, CODE, "deal") == str(card_forms.label_for("deal"))
+
+
+@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
+def test_assistant_two_types_different_views():
+    """Форма, допустимая только у другого типа, у этого отклоняется (а не по объединению)."""
+    tenant = TenantFactory(business_type="online_shop", disabled_modules=[])
+    _preisliste(tenant)
+    assert _clean_errors(tenant, _page_item("catalog"))
+    assert not _clean_errors(tenant, _page_item("services"))
+
+
+@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
+def test_apply_rejects_form_outside_view():
+    tenant = _preisliste(_tenant())
+    item = _page_item("catalog")
+    row = {
+        "index": 0,
+        "spec": assistant_actions.ACTIONS[assistant_actions.PAGE_SETTING],
+        "item": item,
+        "values": item["values"],
+        "after": "deal",
+    }
+    with pytest.raises(assistant_actions.ApplyError):
+        assistant_actions._change_page(row, tenant)
+    tenant.refresh_from_db()
+    assert page_settings.current_value(tenant.site_config, studio_pages.SETTINGS[CODE])[0] == ""
+
+
+# ───────────────────────── вид основного списка (ревью 1 №2) ─────────────────────────
+
+
+def test_main_view_only_main_list():
+    """Вид — только у основного списка хоста: у детали товара (без ★) — "" и без ссылки."""
+    from apps.tenants import siteconfig
+
+    tenant = _tenant()
+    raw = {**(tenant.site_config or {}), "detail_related_layout": {"preset": "preisliste"}}
+    norm = siteconfig.normalize(raw)
+    assert page_settings.main_view("product", raw, norm) == ""
+    tenant.site_config = raw
+    tenant.save(update_fields=["site_config"])
+    found = page_settings.summaries(tenant, [CODE])[CODE]
+    assert all("block=main" not in e["url"] or e["page"] != "product" for e in found["no_cards"])
+    assert not _state(tenant, "product").no_cards
+
+
+def test_main_view_ignores_other_layouts():
+    """Две сетки в конфиге: каталог смотрит только на свою, чужой прайс-лист не в счёт."""
+    from apps.tenants import siteconfig
+
+    raw = {"service_index_layout": {"preset": "preisliste"}}
+    norm = siteconfig.normalize(raw)
+    assert page_settings.main_view("catalog", raw, norm) == ""
+    assert page_settings.main_view("services", raw, norm) == "preisliste"
+
+
+def test_main_view_failure_logged(monkeypatch, caplog):
+    from apps.core import site_schema
+
+    def boom(*a, **k):
+        raise RuntimeError("x")
+
+    monkeypatch.setattr(site_schema, "host_for", boom)
+    with caplog.at_level("WARNING", logger="apps.core.page_settings"):
+        assert page_settings.main_view("catalog", {}, {}) == ""
+    assert "main view of catalog failed" in caplog.text
+
+
+def test_summaries_query_ceiling(django_assert_max_num_queries):
+    tenant = _preisliste(_tenant())
+    with django_assert_max_num_queries(SUMMARY_QUERIES):
+        page_settings.summaries(tenant, [CODE])
 
 
 # ───────────────────────── сводка Студии ─────────────────────────
@@ -167,6 +265,25 @@ def test_hint_link_plain():
     href = re.search(r'href="([^"]+)"', link).group(1)
     assert "block=main" in href and "tab=wie" in href
     assert "hx-" not in link and "onclick" not in link
+
+
+@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
+def test_two_hints_name_their_page():
+    """Ревью 1 №3: без JS видны обе подсказки (каталог и «Alle Kategorien») — текст разный."""
+    html, s = _html(_preisliste(_tenant()))
+    assert {e["page"] for e in s["no_cards"]} >= {"catalog", "category"}
+    texts = re.findall(r'<span id="(stu19-nc-[^"]+)">(.*?)</span>\s*<a', html, re.S)
+    assert len(texts) >= 2
+    seen = [re.sub(r"<[^>]+>|\s+", " ", t).strip() for _id, t in texts]
+    assert len(set(seen)) == len(seen), seen
+    assert len({i for i, _t in texts}) == len(texts)
+    assert all(NO_CARDS in t for t in seen)
+
+
+@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
+def test_arrow_is_decorative():
+    html, _s = _html(_tenant())
+    assert '<span aria-hidden="true">→</span>' in html
 
 
 def test_no_aria_hidden_on_focusable():
