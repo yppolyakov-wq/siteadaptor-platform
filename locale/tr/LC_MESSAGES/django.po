@@ -40898,6 +40898,21 @@ msgstr "fb33-stack-anchor-s15-m5e1b"
 msgid "fb33-stack-anchor-s15-m5e2a"
 msgstr "fb33-stack-anchor-s15-m5e2a"
 
+msgid "Die jeweilige Aktion aus „Aktionen“."
+msgstr "“Kampanyalar” bölümündeki ilgili kampanya."
+
+msgid "Erscheint nur, wenn es freigegebene Bewertungen gibt."
+msgstr "Yalnızca onaylanmış değerlendirmeler varsa görünür."
+
+msgid "Erscheint nur, wenn der Finder eingerichtet ist."
+msgstr "Yalnızca bulucu ayarlanmışsa görünür."
+
+msgid "Erscheint nur, wenn es Kategorien gibt."
+msgstr "Yalnızca kategoriler varsa görünür."
+
+msgid "Erscheint nur, wenn es Sets oder Menüs gibt."
+msgstr "Yalnızca setler veya menüler varsa görünür."
+
 msgid "Preis, Bedingungen und Gutscheincode der Aktion"
 msgstr "Kampanyanın fiyatı, koşulları ve kupon kodu"
 

@@ -41095,6 +41095,21 @@ msgstr "fb33-stack-anchor-s15-m5e1b"
 msgid "fb33-stack-anchor-s15-m5e2a"
 msgstr "fb33-stack-anchor-s15-m5e2a"
 
+msgid "Die jeweilige Aktion aus „Aktionen“."
+msgstr "Відповідна акція з «Акцій»."
+
+msgid "Erscheint nur, wenn es freigegebene Bewertungen gibt."
+msgstr "З’являється, лише якщо є схвалені відгуки."
+
+msgid "Erscheint nur, wenn der Finder eingerichtet ist."
+msgstr "З’являється, лише якщо підбирач налаштовано."
+
+msgid "Erscheint nur, wenn es Kategorien gibt."
+msgstr "З’являється, лише якщо є категорії."
+
+msgid "Erscheint nur, wenn es Sets oder Menüs gibt."
+msgstr "З’являється, лише якщо є набори або меню."
+
 msgid "Preis, Bedingungen und Gutscheincode der Aktion"
 msgstr "Ціна, умови та код купона акції"
 
