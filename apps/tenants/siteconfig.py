@@ -1587,7 +1587,7 @@ def set_page_template(cfg: dict, code_key: str, code: str) -> dict:
         parent.pop(path[1], None)
         out[path[0]] = parent
     norm = normalize(out)
-    if host in ("catalog", "category"):
+    if is_shared_catalog_host(host):
         # шаблон — решение владельца целиком: вид «Kategorien» тоже (строка включается)
         rows = catalog_parts.write_rows(
             page_rows(norm, host), catalog_parts.from_code(code), root=host == "catalog"
@@ -1615,7 +1615,7 @@ def page_template_parts(cfg: dict, code_key: str):
     from apps.core.page_axes_migration import read_old
 
     old = read_old(node) if isinstance(node, str) else ""  # FB-31.7 B3b: ключ не читается
-    if host in ("catalog", "category"):
+    if is_shared_catalog_host(host):
         parts = catalog_parts.effective(cfg, host, code=old)
         if host == "catalog" and parts.head and catalog_parts.legacy_code(parts) == "sets":
             # правило витрины корня: у «sets» шапка видна, только если её включили строкой
@@ -1639,7 +1639,7 @@ def page_template_is(cfg: dict, code_key: str, code: str) -> bool:
 
     host, _path = PAGE_TEMPLATE_HOSTS[code_key]
     parts = page_template_parts(cfg, code_key)
-    if host in ("catalog", "category"):
+    if is_shared_catalog_host(host):
         want = catalog_parts.from_code(code)
         if host == "catalog" and code == "sets":
             want = catalog_parts.Parts(sets="above")  # у корня «sets» шапки не видно
@@ -1661,7 +1661,7 @@ def page_template_code(cfg: dict, code_key: str) -> str:
     from apps.core.page_axes_migration import read_old
 
     old = read_old(node) if isinstance(node, str) else ""  # FB-31.7 B3b: ключ не читается
-    if host in ("catalog", "category"):
+    if is_shared_catalog_host(host):
         parts = catalog_parts.effective(cfg, host, code=old)
         code = catalog_parts.legacy_code(parts)
         if host == "catalog" and parts.sets == "above" and not parts.head:
@@ -1741,12 +1741,18 @@ def _compact_detail_anchors(blocks: list, anchor_keys) -> list:
     return [b for b in blocks if b.get("id") or b.get("key") not in anchor_keys]
 
 
+def is_shared_catalog_host(host) -> bool:
+    """FB-33 стопка 15 M5e-3: ОБЩАЯ страница каталога — корень или «Alle Kategorien» (не своя
+    схема одной категории: у неё нет своего кода шаблона и своего ключа Студии)."""
+    return host in ("catalog", "category")
+
+
 def is_catalog_host(host) -> bool:
     """FB-33 стопка 15 M5e-3: страница каталога — корень (`catalog`), «Alle Kategorien»
     (`category`) или своя схема одной категории (`catalog:<slug>`). Один предикат для строк,
     видов и окон этих страниц (замок `test_one_catalog_predicate`)."""
     return isinstance(host, str) and (
-        host in ("catalog", "category") or bool(_CATEGORY_HOST_RE.match(host))
+        is_shared_catalog_host(host) or bool(_CATEGORY_HOST_RE.match(host))
     )
 
 

@@ -1240,6 +1240,7 @@ def op(
             config.get("block_templates"),
             notes,
             after=after,
+            config=config,  # стопка 15 M5e-3 (A8): сохранённый конфиг — для осей своей категории
         )
     if wanted_scope is not None:
         _take_scope(request, draft, window_ref, wanted_scope)

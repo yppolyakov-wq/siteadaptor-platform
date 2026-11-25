@@ -18,7 +18,7 @@ import uuid
 from dataclasses import dataclass
 from fractions import Fraction
 
-from django.db import DatabaseError, connection, transaction
+from django.db import DatabaseError, transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -828,20 +828,26 @@ def live_promo_groups() -> list[tuple[str, str]]:
     """(ключ, подпись) групп акций для своей схемы: свои рубрики ЛЮБОЙ акции (ревью R6:
     группа без действующих акций — сезонная, на паузе — не теряет свою схему и остаётся
     правимой) и встроенные типы с действующими акциями. До 40 своих + встроенные."""
-    from apps.promotions import promo_types
-    from apps.promotions.models import Promotion
-
     try:
-        own = list(
-            Promotion.objects.exclude(group="")
-            .order_by("group")
-            .values_list("group", flat=True)
-            .distinct()[:PROMO_GROUP_ROWS_MAX]
-        )
-        builtin = promo_types.live_builtin_keys(Promotion.objects.filter(status="active"))
+        return _live_promo_groups()
     except DatabaseError:
         logger.warning("site_schema: promo groups lookup failed", exc_info=True)
         return []
+
+
+def _live_promo_groups() -> list[tuple[str, str]]:
+    """`live_promo_groups` без перехвата сбоя БД (стопка 15 M5e-3: `known_slugs_for` отличает
+    «групп нет» от «не прочиталось»)."""
+    from apps.promotions import promo_types
+    from apps.promotions.models import Promotion
+
+    own = list(
+        Promotion.objects.exclude(group="")
+        .order_by("group")
+        .values_list("group", flat=True)
+        .distinct()[:PROMO_GROUP_ROWS_MAX]
+    )
+    builtin = promo_types.live_builtin_keys(Promotion.objects.filter(status="active"))
     return [(g, g) for g in own] + [(k, str(promo_types.builtin_label(k))) for k in builtin]
 
 
@@ -1042,16 +1048,23 @@ def known_slugs_for(code: str) -> set[str] | None:
     pt = _page_type(code)
     if pt is None:
         return None
-    if pt.code == CATEGORY:
-        from apps.catalog.models import Category
+    try:
+        if pt.code == CATEGORY:
+            from apps.catalog.models import Category
 
-        return set(Category.objects.values_list("slug", flat=True))
-    if pt.code == PROMO_GROUP:
-        return {siteconfig.promo_group_host(k) for k, _l in live_promo_groups()}
-    if pt.code == TEXT:
-        from apps.core.models import ContentPage
+            return set(Category.objects.values_list("slug", flat=True))
+        if pt.code == PROMO_GROUP:
+            return {siteconfig.promo_group_host(k) for k, _l in _live_promo_groups()}
+        if pt.code == TEXT:
+            from apps.core.models import ContentPage
 
-        return set(ContentPage.objects.values_list("slug", flat=True))
+            return set(ContentPage.objects.values_list("slug", flat=True))
+    except DatabaseError:
+        # ревью 1 №2: не прочиталось — None, вызывающий проверяет страницы по одной
+        logger.warning(
+            "site_schema: live pages of %s not loaded - per page", pt.code, exc_info=True
+        )
+        return None
     return None
 
 
@@ -1816,11 +1829,14 @@ def main_list_source(host) -> str:
     base = _main_list_host(host)
     if base in _MAIN_LIST_OWN_NAMES:
         return ""
-    return (
+    source = (
         _MAIN_LIST_SOURCES.get(base)
         or siteconfig.BUILTIN_LIST_SOURCES.get(base)
         or (base if base in siteconfig.LIST_SOURCES else "")
     )
+    if not source:  # ревью 1 №3: новый хост списка без записи в реестрах — видно в журнале
+        logger.debug("site_schema: main list of %s has no source and no own name", host)
+    return source
 
 
 def main_list_name(host, tenant) -> str:
@@ -2645,7 +2661,12 @@ def lift_hero_choice(config: dict, items: list[dict]) -> None:
 def _catalog_code(config: dict, host: str) -> str:
     """Прежний код шаблона страницы каталога/категории (то, что вид блоков перекрывает)."""
     from apps.catalog import category_styles
+    from apps.tenants import siteconfig
 
+    if not siteconfig.is_shared_catalog_host(host):
+        # ревью 1 №4: у своей схемы категории свой код — `catalog_seen_parts`
+        logger.error("site_schema: _catalog_code for %r - not a shared catalog page", host)
+        return ""
     if host == "catalog":
         return category_styles.root_page_style(config.get("catalog_page_style", ""))
     # «Alle Kategorien»: общий шаблон категорий сайта (своя категория — `catalog_seen_parts`)
@@ -2850,8 +2871,10 @@ def _has_combos() -> bool:
 
         return Combo.objects.exists()
     except DatabaseError:  # ревью R5b: только ошибка БД, и не молча
-        logger.warning("site_schema: Combo check failed", exc_info=True)
-        return False
+        # стопка 15 M5e-3 (ревью 1 №3): при сбое строку «Sets & Menüs» показываем — спрятать её
+        # молча значило бы потерять окно у бизнеса с наборами
+        logger.warning("site_schema: Combo check failed - sets row shown", exc_info=True)
+        return True
 
 
 def catalog_seen_parts(config: dict, host: str):
@@ -2861,7 +2884,7 @@ def catalog_seen_parts(config: dict, host: str):
     from apps.catalog import catalog_parts
     from apps.tenants import siteconfig
 
-    if host not in ("catalog", "category"):
+    if not siteconfig.is_shared_catalog_host(host):
         slug = host.removeprefix(siteconfig.CATEGORY_HOST_PREFIX)
         try:
             from apps.catalog.models import Category
@@ -2872,6 +2895,8 @@ def catalog_seen_parts(config: dict, host: str):
             category = None
         if category is not None:
             return catalog_parts.category_parts(config, category)
+        # ревью 1 №3: категорию удалили, а схема в конфиге осталась — не молча
+        logger.warning("site_schema: no category for %s - its own rows only", host)
         return catalog_parts.effective(config, host)
     rows_cfg = config
     if host == "category" and "category" not in (config.get("page_blocks") or {}):
@@ -3553,26 +3578,40 @@ def _insert(items: list[dict], new_blocks: list[dict], after: str, rows_host: st
         raise
 
 
-def _inherit_catalog_axes(items: list[dict], host: str, ref: str):
+def _inherit_catalog_axes(items: list[dict], host: str, ref: str, config: dict | None):
     """A8 (стопка 15 M5e-3): первая ось своей схемы категории переключает витрину на свой хост
     (`catalog_parts.category_host`) — прочие оси, которые посетитель видел из «Alle
     Kategorien», записываются явно (`catalog_parts.write_rows`), свои блоки и порядок остаются.
-    Строки меняются НА МЕСТЕ; ответ — строка `ref` после записи (None — записывать нечего).
-    Оси — из сохранённого конфига бизнеса соединения (то, что видит витрина)."""
+    Строки меняются НА МЕСТЕ; ответ — строка `ref` после записи, None — записывать нечего (не
+    своя схема или в строках уже есть оси).
+
+    Решение координатора (ревью 1): замораживается то, что посетитель видит СЕЙЧАС, — СОХРАНЁННАЯ
+    общая страница категорий и общий шаблон (`config` — сохранённый конфиг бизнеса, его передаёт
+    вызывающий), а не черновики других страниц; свои сохранённые оси не в счёт (их могли снять в
+    черновике) — хост своей схемы из конфига убирается. Нет конфига или категории, строки `ref`
+    после записи — отказ (`SchemaError`), а не тихая потеря осей."""
     from apps.catalog import catalog_parts
+    from apps.catalog.models import Category
     from apps.tenants import siteconfig
 
-    if host in ("catalog", "category") or not siteconfig.is_catalog_host(host):
+    if siteconfig.is_shared_catalog_host(host) or not siteconfig.is_catalog_host(host):
         return None
     if catalog_parts.has_parts(items):
         return None
-    tenant = getattr(connection, "tenant", None)
-    config = getattr(tenant, "site_config", None)
     if not isinstance(config, dict):
-        logger.error("site_schema: no tenant config to inherit catalog axes of %s", host)
-        return None
-    items[:] = catalog_parts.write_rows(items, catalog_seen_parts(config, host))
-    return next((it for it in items if (it.get("id") or it.get("key")) == ref), None)
+        logger.error("site_schema: no config to inherit catalog axes of %s - refused", host)
+        raise SchemaError("op")
+    slug = host.removeprefix(siteconfig.CATEGORY_HOST_PREFIX)
+    category = Category.objects.filter(slug=slug).first()
+    if category is None:
+        raise SchemaError("page")
+    blocks = {k: v for k, v in (config.get("page_blocks") or {}).items() if k != host}
+    shared = {**config, "page_blocks": blocks}
+    items[:] = catalog_parts.write_rows(items, catalog_parts.category_parts(shared, category))
+    row = next((it for it in items if (it.get("id") or it.get("key")) == ref), None)
+    if row is None:
+        raise SchemaError("block")
+    return row
 
 
 def mutate(
@@ -3586,9 +3625,13 @@ def mutate(
     templates: dict | None = None,
     notes: list | None = None,
     after: str = "",
+    config: dict | None = None,
 ) -> str:
     """Одна правка списка блоков НА МЕСТЕ (без записи): общая для немедленной правки
     и черновика. Возвращает ref блока (у `add` — id нового).
+
+    `config` — сохранённый конфиг бизнеса (стопка 15 M5e-3, A8): из него первая ось своей
+    схемы категории берёт унаследованные оси; без него такая правка — отказ.
 
     `after` — у `add`/`add_row` ref строки, ПОСЛЕ которой встаёт новый блок (FB-33 M5c-1;
     пусто — в хвост, как раньше). Позиция — отдельным полем, не `value` (у `add_row` там
@@ -3706,7 +3749,7 @@ def mutate(
         catalog_page = "categories" in siteconfig.page_builtin_keys(rows_host)
         if not pinned or not catalog_page or value not in allowed:
             raise SchemaError("op")
-        item = _inherit_catalog_axes(items, rows_host, ref) or item
+        item = _inherit_catalog_axes(items, rows_host, ref, config) or item
         item["style"] = value
         item["enabled"] = True  # ревью R4: старая скрытая строка снова действует
         return ref
@@ -3717,7 +3760,7 @@ def mutate(
             raise SchemaError("op")
         if value not in ("raster", *MAIN_VIEW_CHOICES):
             raise SchemaError("op")
-        item = _inherit_catalog_axes(items, rows_host, ref) or item
+        item = _inherit_catalog_axes(items, rows_host, ref, config) or item
         for k in ("style", "grid"):
             item.pop(k, None)
         if value != "raster":
@@ -4390,7 +4433,17 @@ def apply(
         tenant.site_config = locked.site_config
         return ref
     items = load_items(config, home, host)
-    ref = mutate(items, code, op, ref, block_type, value, fields, config.get("block_templates"))
+    ref = mutate(
+        items,
+        code,
+        op,
+        ref,
+        block_type,
+        value,
+        fields,
+        config.get("block_templates"),
+        config=config,
+    )
     store_items(config, home, host, items)
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])

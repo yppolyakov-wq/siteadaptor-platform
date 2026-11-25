@@ -26,7 +26,7 @@ from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-REVIEW1 = pytest.mark.xfail(strict=True, reason="M5e-3 ревью 1: ещё не сделано")
+
 
 ROOT = Path(__file__).resolve().parents[3]
 OWN = "catalog:brot"
@@ -329,27 +329,24 @@ def _all_literals(path: Path) -> list[str]:
     return found
 
 
-@REVIEW1
 def test_catalog_literal_only_in_predicates():
-    """Ревью 1 №4: литерал («catalog», «category») — только в двух предикатах siteconfig:
-    «страница каталога» и «общая страница каталога» (не своя схема категории)."""
+    """Ревью 1 №4: литерал («catalog», «category») — только в предикате «общая страница
+    каталога» (не своя схема категории); «страница каталога» строится на нём."""
     left = _all_literals(ROOT / "apps/tenants/siteconfig.py") + _all_literals(
         ROOT / "apps/core/site_schema.py"
     )
-    assert sorted(left) == ["is_catalog_host", "is_shared_catalog_host"], left
+    assert left == ["is_shared_catalog_host"], left  # `is_catalog_host` зовёт его
     assert siteconfig.is_shared_catalog_host("catalog")
     assert siteconfig.is_shared_catalog_host("category")
     assert not siteconfig.is_shared_catalog_host(OWN)
 
 
-@REVIEW1
 def test_no_connection_tenant_in_site_schema():
     """Ревью 1 №1 (b): схема не берёт бизнес из соединения — конфиг передаётся явно."""
     src = (ROOT / "apps/core/site_schema.py").read_text(encoding="utf-8")
     assert "connection.tenant" not in src and 'getattr(connection, "tenant"' not in src
 
 
-@REVIEW1
 def test_a8_uses_passed_config_not_connection(monkeypatch):
     """Ревью 1 №1 (a): правка через черновик (`Browser`) при чужом `connection.tenant` —
     унаследованные оси из конфига бизнеса запроса."""
@@ -373,7 +370,6 @@ def test_a8_uses_passed_config_not_connection(monkeypatch):
         _set_rows(tenant, OWN, [_text_block()])
 
 
-@REVIEW1
 def test_a8_without_config_refuses():
     """Ревью 1 №1: без конфига ось своей схемы не пишется — отказ, а не тихая потеря осей."""
     tenant = _tenant({OWN: [_text_block()]})
@@ -382,7 +378,6 @@ def test_a8_without_config_refuses():
         site_schema.mutate(items, OWN_CODE, "catview", "categories", value="index")
 
 
-@REVIEW1
 def test_a8_freezes_saved_shared_not_saved_own():
     """Ревью 1 №1 (c): своя схема со своими осями в базе, в черновике их сняли — первая ось
     берёт видимое СЕЙЧАС на общей странице категорий (сохранённое), не старые свои оси."""
@@ -401,7 +396,6 @@ def test_a8_freezes_saved_shared_not_saved_own():
     assert parts.head == "titelbild" and parts.categories == "index", items
 
 
-@REVIEW1
 def test_inherit_returns_row_or_raises():
     """Ревью 1 №1: после записи осей строка `ref` находится — иначе отказ."""
     tenant = _tenant()
@@ -413,7 +407,6 @@ def test_inherit_returns_row_or_raises():
         site_schema._inherit_catalog_axes(items, OWN, "nope", tenant.site_config)
 
 
-@REVIEW1
 def test_known_slugs_for_db_error_logs_and_falls_back(monkeypatch, caplog):
     """Ревью 1 №2: сбой загрузки слагов — предупреждение в журнал и None (вызывающий проверяет
     страницу по одной), ссылка живой категории остаётся."""
@@ -437,7 +430,6 @@ def test_known_slugs_for_db_error_logs_and_falls_back(monkeypatch, caplog):
     assert _anchors(_page_part(html, OWN), "Fenster öffnen")
 
 
-@REVIEW1
 def test_live_groups_db_error_falls_back(monkeypatch, caplog):
     """Ревью 1 №2: сбой загрузки групп акций — None и предупреждение, не «все группы мертвы»."""
     import logging
@@ -454,7 +446,6 @@ def test_live_groups_db_error_falls_back(monkeypatch, caplog):
     assert caplog.records
 
 
-@REVIEW1
 def test_deleted_category_parts_warn(caplog):
     """Ревью 1 №3: категории своей схемы нет — свои строки и предупреждение в журнал."""
     import logging
@@ -465,7 +456,6 @@ def test_deleted_category_parts_warn(caplog):
     assert any("catalog:weg" in r.getMessage() for r in caplog.records)
 
 
-@REVIEW1
 def test_has_combos_db_error_shows_row(monkeypatch):
     """Ревью 1 №3: сбой проверки наборов — строка «Sets & Menüs» видна (не прячется молча)."""
     from django.db import DatabaseError
