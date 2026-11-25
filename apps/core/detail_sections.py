@@ -779,6 +779,7 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
             source=ContentSource(
                 "setting",
                 shows=_("Preis, Bedingungen und Gutscheincode der Aktion"),
+                woher=_("Die jeweilige Aktion aus „Aktionen“."),
                 link_text=_("Aktion bearbeiten"),
             ),
         ),
@@ -1026,10 +1027,18 @@ PAGE_SOURCES: dict[str, tuple[DetailSection, ...]] = {
             "reviews",
             _("Customer reviews"),
             content_nav="reviews:list",
-            source=ContentSource("setting"),
+            # условия показа — те же, что у витрины (замок `test_only_if_equals_storefront`)
+            source=ContentSource(
+                "setting", only_if=_("Erscheint nur, wenn es freigegebene Bewertungen gibt.")
+            ),
         ),
         DetailSection(
-            "finder", _("Finder"), content_nav="finder-settings", source=ContentSource("setting")
+            "finder",
+            _("Finder"),
+            content_nav="finder-settings",
+            source=ContentSource(
+                "setting", only_if=_("Erscheint nur, wenn der Finder eingerichtet ist.")
+            ),
         ),
         # запись «Galerie» — вход в Студию на главной у блока галереи (стопка 14 E6)
         DetailSection(
@@ -1049,13 +1058,15 @@ PAGE_SOURCES: dict[str, tuple[DetailSection, ...]] = {
             "categories",
             _("Kategorien"),
             content_nav="catalog:category-list",
-            source=ContentSource("setting"),
+            source=ContentSource("setting", only_if=_("Erscheint nur, wenn es Kategorien gibt.")),
         ),
         DetailSection(
             "combos",
             _("Sets & Menüs"),
             content_nav="catalog:combo-list",
-            source=ContentSource("setting"),
+            source=ContentSource(
+                "setting", only_if=_("Erscheint nur, wenn es Sets oder Menüs gibt.")
+            ),
         ),
     ),
 }

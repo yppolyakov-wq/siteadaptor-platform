@@ -686,6 +686,98 @@ def test_catalog_rows_only_on_catalog_hosts(key):
         assert _content(request, host, key) is None, (host, key)
 
 
+# --- ревью 1, №5: «Erscheint nur, wenn …» = решение витрины --------------------------------------
+
+ONLY_IF = {
+    ("home", "reviews"): "Erscheint nur, wenn es freigegebene Bewertungen gibt.",
+    ("home", "finder"): "Erscheint nur, wenn der Finder eingerichtet ist.",
+    ("home", "gallery"): "Erscheint nur, wenn die Galerie Fotos hat.",
+    ("catalog", "categories"): "Erscheint nur, wenn es Kategorien gibt.",
+    ("catalog", "combos"): "Erscheint nur, wenn es Sets oder Menüs gibt.",
+}
+
+
+@pytest.mark.parametrize("page,key", sorted(ONLY_IF))
+def test_only_if_shown_in_window(page, key):
+    """Ревью 1 №5: у строки с гейтом присутствия витрины фраза «Erscheint nur, wenn …»."""
+    request = _request(_tenant("online_shop", disabled=[]))
+    with translation.override("de"):
+        content = _content(request, "" if page == "home" else page, key)
+        assert content and ONLY_IF[(page, key)] in content["woher"], (page, key, content)
+
+
+def _section_html(template, tenant, **ctx) -> str:
+    req = RequestFactory().get("/")
+    req.tenant = tenant
+    with translation.override("en"):
+        return render_to_string(template, {"request": req, "section_row": {}, **ctx})
+
+
+def test_only_if_reviews_equals_storefront():
+    """Отзывы главной: без отзывов и со скрытым — блока нет; с опубликованным — есть."""
+    import uuid
+
+    from apps.aggregator.models import BusinessReview, PortalUser
+
+    tenant = _tenant()
+    html = lambda: _section_html("storefront/sections/_reviews.html", tenant)  # noqa: E731
+    assert "<section" not in html()
+    kw = {"tenant_schema": connection.schema_name, "tenant_slug": "x", "rating": 5}
+    user = PortalUser.objects.create(email=f"{uuid.uuid4().hex}@kunde.test")
+    BusinessReview.objects.create(author=user, status=BusinessReview.STATUS_HIDDEN, **kw)
+    assert "<section" not in html()
+    user2 = PortalUser.objects.create(email=f"{uuid.uuid4().hex}@kunde.test")
+    BusinessReview.objects.create(author=user2, status=BusinessReview.STATUS_PUBLISHED, **kw)
+    assert "<section" in html()
+
+
+def test_only_if_finder_equals_storefront():
+    """Finder главной: не включён — блока нет; включён — есть."""
+    tenant = _tenant("online_shop", disabled=[])
+    assert "<section" not in _section_html("storefront/sections/_finder.html", tenant)
+    tenant.site_config = {**(tenant.site_config or {}), "finder": {"enabled": True}}
+    tenant.save()
+    assert "<section" in _section_html("storefront/sections/_finder.html", tenant)
+
+
+def _catalog_root(tenant) -> str:
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.promotions import public_views
+
+    req = RequestFactory().get("/sortiment/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    with translation.override("de"):
+        return public_views.product_list(req).content.decode()
+
+
+def test_only_if_categories_equals_storefront():
+    """«Kategorien» каталога: без категорий — направлений нет; с категорией — есть."""
+    from apps.catalog.tests.factories import CategoryFactory, ProductFactory
+
+    tenant = _tenant("online_shop", disabled=[])
+    assert "/sortiment/kaffee/" not in _catalog_root(tenant)
+    cat = CategoryFactory(slug="kaffee", name={"de": "Kaffee"})
+    ProductFactory(name={"de": "Espresso"}, category=cat)
+    assert "/sortiment/kaffee/" in _catalog_root(tenant)
+
+
+def test_only_if_combos_equals_storefront():
+    """«Sets & Menüs» каталога: без наборов — ссылки на наборы нет; с набором — есть."""
+    from decimal import Decimal
+
+    from apps.catalog.models import Combo
+
+    tenant = _tenant("online_shop", disabled=[])
+    combos = reverse("storefront-combos")
+    assert f'href="{combos}"' not in _catalog_root(tenant)
+    Combo.objects.create(name="Menü 1", price=Decimal("9.90"))
+    assert f'href="{combos}"' in _catalog_root(tenant)
+
+
 # --- №16: строки ---------------------------------------------------------------------------------
 
 

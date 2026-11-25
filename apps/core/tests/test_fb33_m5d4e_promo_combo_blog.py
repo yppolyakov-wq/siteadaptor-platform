@@ -61,8 +61,6 @@ MAP = {
 }
 #: код страницы типа → модуль реестра
 PAGES = {"promo": "promo", "combo": "combo", "blog_post": "blog_post"}
-#: FB-33 стопка 15 M5e-2a: фраза «Woher» у «Angebot» ждёт строки в `.po` (координатор)
-NO_WOHER_YET = {("promo", "offer")}
 #: окно у этих строк уже есть — срез их не трогает
 UNTOUCHED = {("combo", "reviews"), ("combo", "cta")}
 LINK_LABELS = {
@@ -174,8 +172,7 @@ def test_source_texts_are_well_formed():
             assert not text or type(text).__name__ == "__proxy__", where
         shows = str(source.shows)
         assert shows and not shows.endswith(".") and "%(" not in shows, where
-        if where not in NO_WOHER_YET:
-            assert str(source.woher).endswith("."), where
+        assert str(source.woher).endswith("."), where
         assert bool(source.only_if) == MAP[where][2], where
         assert not source.only_if or str(source.only_if).endswith("."), where
         if source.kind == "auto":
