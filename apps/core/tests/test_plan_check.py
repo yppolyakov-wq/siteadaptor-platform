@@ -218,18 +218,18 @@ def test_wave_wider_than_the_limit_is_reported():
 
 
 def test_branch_cell_may_carry_its_own_base():
-    # Стопка 14 вела срезы цепочкой и записала «Ветка» как `63421de..origin/claude/…-e8`:
-    # stack_close упал с трассировкой git вместо сверки.
+    # Цепочка срезов: у каждого своя база (`diff_spec` — стопка 13). Замок на оба вида записи.
     mod = _mod()
-    assert mod.diff_range("origin/main", "claude/s-e8") == "origin/main...claude/s-e8"
+    assert mod.diff_spec("origin/main", "claude/s-e8") == "origin/main...claude/s-e8"
     assert (
-        mod.diff_range("origin/main", "63421de..origin/claude/s-e8")
-        == "63421de..origin/claude/s-e8"
+        mod.diff_spec("origin/main", "63421de..origin/claude/s-e8")
+        == "63421de...origin/claude/s-e8"
     )
-    assert mod.diff_range("origin/main", "a...b") == "a...b"
 
 
 def test_unreadable_slice_range_is_a_finding_not_a_crash():
+    # Проверка закрытия стопки 14 из другого клона: ветки срезов не были подтянуты, и
+    # stack_close упал с трассировкой git вместо строки «не читается — git fetch».
     mod = _mod()
     slices = _plan("| A | — | `x.py` | — | 0 | no-such-ref-zz..also-missing-zz |")
     touched, problems = mod.touched_by_slice(slices, "origin/main")

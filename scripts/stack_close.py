@@ -116,11 +116,12 @@ def read_state(
             plan_problems = ["в плане нет проверяемой таблицы срезов (docs/stack-plan-template.md)"]
         else:
             text = pathlib.Path(plan).read_text(encoding="utf-8")
-            touched = {s.name: plan_check._touched(base, s.branch) for s in slices if s.branch}
+            touched, unreadable = plan_check.touched_by_slice(slices, base)
             # И проверка «до кода» тоже: таблица могла измениться после раздачи срезов.
             plan_problems = (
                 plan_check.table_errors(text)
                 + plan_check.check(slices)
+                + unreadable
                 + plan_check.verify(slices, touched)
             )
             missing = [s.name for s in slices if not s.branch]

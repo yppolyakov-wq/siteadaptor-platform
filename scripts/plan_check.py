@@ -318,6 +318,25 @@ def _touched(base: str, ref: str) -> list[str]:
     return [line for line in out.splitlines() if line]
 
 
+def touched_by_slice(slices: list[Slice], base: str) -> tuple[dict[str, list[str]], list[str]]:
+    """(срез → тронутые файлы, расхождения). Ветка, которую git не читает (не подтянута, опечатка),
+    — находка «не проверено», а не падение с трассировкой."""
+    touched: dict[str, list[str]] = {}
+    problems: list[str] = []
+    for s in slices:
+        if not s.branch:
+            continue
+        try:
+            touched[s.name] = _touched(base, s.branch)
+        except subprocess.CalledProcessError as err:
+            why = (err.stderr or "").strip().splitlines()[-1:] or ["git diff не выполнился"]
+            problems.append(
+                f"{s.name}: ветка «{s.branch}» не читается ({why[0][:90]}) — сверка не выполнена; "
+                "подтянуть: git fetch origin 'refs/heads/claude/*:refs/remotes/origin/claude/*'"
+            )
+    return touched, problems
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Проверяемый план стопки (T-14.2 / T-14.3)")
     ap.add_argument("plan")
@@ -336,13 +355,9 @@ def main() -> int:
     for n, wave in enumerate(waves(slices), 1):
         print(f"волна {n}: " + ", ".join(wave))
     if args.verify:
-        touched, skipped = {}, []
-        for s in slices:
-            if not s.branch:
-                skipped.append(s.name)
-                continue
-            touched[s.name] = _touched(args.base, s.branch)
-        found += verify(slices, touched)
+        skipped = [s.name for s in slices if not s.branch]
+        touched, unreadable = touched_by_slice(slices, args.base)
+        found += unreadable + verify(slices, touched)
         if skipped:
             # Срез без ветки сверить нечем — это не «чисто», а «не проверено».
             found.append("нет ветки для сверки (не проверено): " + ", ".join(skipped))
