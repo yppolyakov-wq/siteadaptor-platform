@@ -38,6 +38,7 @@ CFG = {
         {"key": "team", "enabled": True},
         {"key": "testimonials", "enabled": True},
         {"key": "trust", "enabled": True},
+        {"key": "archetypes", "enabled": True},
         {"key": "faq", "enabled": True},
         {"key": "usp_bar", "enabled": True},
         {"key": "stats", "id": "st1", "enabled": True, "data": {"rows": "12 | Jahre"}},
@@ -87,6 +88,12 @@ def _form(panel, form_id=FORM):
 
 def _post(b, ref, **change):
     """Форма «Texte» окна так, как её шлёт браузер, плюс правка."""
+    data = _post_data(b, ref, **change)
+    with translation.override("de"):
+        return b.post(**data)
+
+
+def _post_data(b, ref, **change):
     panel = _get(b, ref)
     data, _p = form_post(panel, FORM)
     assert data, "формы bw-form-hometext нет"
@@ -94,8 +101,7 @@ def _post(b, ref, **change):
     data.setdefault("op", ["update"])  # кнопка «Übernehmen»
     for name, value in change.items():
         data[name] = [value]
-    with translation.override("de"):
-        return b.post(**data)
+    return data
 
 
 def _save(b, **extra):
@@ -141,8 +147,8 @@ def test_repeated_items_fieldset_legend(key, legend):
     b = Browser(_shop())
     form = _form(_get(b, key))
     assert "<legend" in form and f"{legend} 1</legend>" in form
-    count = len(CFG[key]) + 1  # и пустой новый
-    assert f"{legend} {count}</legend>" in form
+    count = len(CFG[key]) + 1  # и пустой новый — с меткой «Hinzufügen» (ревью E)
+    assert f"{legend} {count} – Hinzufügen</legend>" in form
     assert "Text 1" not in form
     for i in range(count):
         for field, _label in home_texts.ITEM_FIELDS[key]:
@@ -215,11 +221,12 @@ def test_texte_lang_only_when_differs():
         assert " lang=" not in tag, tag
 
 
-def test_hero_texte_only_when_title_shown():
-    """Витрина: при выбранных баннерах библиотеки заголовок главной не показывается
-    (`siteui.hero_lead`) — и полей в окне нет."""
+def test_hero_texte_only_when_title_shown(monkeypatch):
+    """Витрина: при показанном баннере библиотеки заголовок главной не показывается
+    (`siteui.hero_lead`) — и полей в окне нет (ревью C: тот же предикат, баннер активен)."""
     b = Browser(_shop())
     assert _form(_get(b, "hero"))
+    _hero_inactive(monkeypatch, active=True)
     b2 = Browser(_shop(hero_banners={"pick": ["0f8d2a4e-6b1c-4d3e-9a2b-1c2d3e4f5a6b"]}))
     assert not _form(_get(b2, "hero"))
 
@@ -474,7 +481,6 @@ R1 = "ревью M5e-1b круг 1"
 BANNER = "0f8d2a4e-6b1c-4d3e-9a2b-1c2d3e4f5a6b"
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: A1 без JS фокус не на неверном поле")
 def test_invalid_field_autofocus_without_anchor():
     b = Browser(_shop())
     resp, _msgs = _post(b, "cta", f_cta_button_url="javascript:alert(1)")
@@ -484,17 +490,21 @@ def test_invalid_field_autofocus_without_anchor():
     assert " autofocus" in field
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: A2 отказ — не alert с именем поля")
 def test_refusal_alert_names_field():
+    from django.contrib.messages import get_messages
+
+    from apps.core.site_schema_views import site_schema_view
+
     b = Browser(_shop())
-    _post(b, "cta", f_cta_button_url="javascript:alert(1)")
+    data = _post_data(b, "cta", f_cta_button_url="javascript:alert(1)")
     with translation.override("de"):
-        html = b.get("?seite=home&block=cta&tab=texte")
-    alerts = re.findall(r'<div role="alert"[^>]*>(.*?)</div>', html, flags=re.S)
-    assert any("Button-Link" in a for a in alerts), alerts
+        req = b._request("post", data)
+        site_schema_view(req)
+        got = [(m.tags, str(m)) for m in get_messages(req)]
+    # уровень error — в разметке `role="alert"` (`site_schema.html`)
+    assert any(tag == "error" and "Button-Link" in text for tag, text in got), got
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: B кривой черновик htx")
 def test_htx_malformed_draft_is_ignored_and_counted_consistently():
     b = Browser(_shop())
     _post(b, "about", f_about_title="Gut")
@@ -521,14 +531,12 @@ def _hero_inactive(monkeypatch, active):
     monkeypatch.setattr(banners, "resolve", lambda pick, *a, **k: [slide])
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: C hero — предикат витрины")
 def test_hero_texte_shown_when_banner_picked_but_inactive(monkeypatch):
     _hero_inactive(monkeypatch, active=False)
     b = Browser(_shop(hero_banners={"pick": [BANNER]}))
     assert _form(_get(b, "hero")), "баннер не показывается — витрина берёт заголовок главной"
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: C один предикат hero (is_htx_edit с config)")
 def test_hero_texte_hidden_when_banner_shown(monkeypatch):
     _hero_inactive(monkeypatch, active=True)
     b = Browser(_shop(hero_banners={"pick": [BANNER]}))
@@ -538,7 +546,6 @@ def test_hero_texte_hidden_when_banner_shown(monkeypatch):
     assert "htx" not in block_i18n.kinds(draft, "hero")
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: D htx вне главной молча")
 def test_htx_for_removed_row_or_nonhome_not_silent(caplog):
     cfg = siteconfig.normalize(CFG)
     notes = []
@@ -547,7 +554,6 @@ def test_htx_for_removed_row_or_nonhome_not_silent(caplog):
     assert cfg["about_title"] == "Über uns" and notes
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: D секция без строки записывается")
 def test_htx_orphan_section_not_committed():
     cfg = siteconfig.normalize(CFG)
     notes = []
@@ -556,7 +562,6 @@ def test_htx_orphan_section_not_committed():
     assert cfg["about_title"] == "Über uns" and notes
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: D конфликт называет одну секцию")
 def test_htx_conflict_lists_all_sections():
     b = Browser(_shop())
     _post(b, "about", f_about_title="A")
@@ -568,21 +573,18 @@ def test_htx_conflict_lists_all_sections():
     assert sum(m.startswith("Die Texte von") for m in msgs) == 2
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: D форма без отпечатка принята")
 def test_htx_missing_fp_refused():
     b = Browser(_shop())
     _resp, msgs = _post(b, "about", f_htx_fp="", f_about_title="Ohne")
     assert "htx" not in _draft(b) and any(m.startswith("Die Texte von") for m in msgs)
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: D ошибка эхом без потолка")
 def test_htx_error_value_capped():
     b = Browser(_shop())
     _post(b, "cta", f_cta_button_url="javascript:" + "x" * 900)
     assert len(b.session[home_texts.ERROR_KEY]["value"]) <= home_texts.URL_MAX
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: D обрезка строк перевода молчит")
 def test_stats_rows_translation_cut_notes():
     b = Browser(_shop())
     data, _p = form_post(_get(b, "st1"), "bw-form-fields")
@@ -593,7 +595,6 @@ def test_stats_rows_translation_cut_notes():
     assert siteconfig.cap_note() in msgs
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: E подсказки поля")
 def test_field_hints_and_link_attrs():
     b = Browser(_shop())
     form = _form(_get(b, "cta"))
@@ -604,7 +605,6 @@ def test_field_hints_and_link_attrs():
     assert "max-h-[60vh]" in _form(_get(b, "about"))
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: E пустой пункт без метки")
 def test_new_item_slot_marked():
     b = Browser(_shop())
     with translation.override("de"):
@@ -612,7 +612,6 @@ def test_new_item_slot_marked():
     assert "Schritt 3 – Hinzufügen</legend>" in form
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: F форма без полей молчит")
 def test_window_op_without_fields_notes():
     b = Browser(_shop())
     with translation.override("de"):
@@ -627,12 +626,13 @@ def test_window_op_without_fields_notes():
     assert msgs
 
 
-@pytest.mark.parametrize("ref,ceiling", [("archetypes", 120), ("process", 120)])
+@pytest.mark.parametrize("ref,ceiling", [("archetypes", 16), ("process", 16)])
 def test_home_window_queries(ref, ceiling, django_assert_max_num_queries):
     """№31: потолок запросов окна (замер стенда тестов + запас)."""
     b = Browser(_shop())
     with django_assert_max_num_queries(ceiling):
-        _get(b, ref)
+        panel = _get(b, ref)
+    assert _form(panel), "окно с «Texte»"
 
 
 def test_storefront_after_commit_with_page_cache(settings):

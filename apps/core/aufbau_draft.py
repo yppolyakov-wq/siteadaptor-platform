@@ -792,8 +792,7 @@ def changes(saved: dict, draft: dict) -> int:
     if "ofaq" in draft:  # FB-33 M2b-2b: свои вопросы объекта — одно изменение
         count += 1
     count += _block_i18n().count(draft)  # FB-33 M3-5c: переводы — одно на окно блока
-    if isinstance(draft.get("htx"), dict):  # стопка 15 M5e-1b: тексты — одно на секцию
-        count += len(draft["htx"])
+    count += len(_home_texts().clean_htx(draft))  # стопка 15 M5e-1b: тексты — одно на секцию
     if isinstance(draft.get(SCOPE_KEY), dict):  # FB-33 M4c: охват вида — одно на блок
         count += len(draft[SCOPE_KEY])
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
@@ -1174,7 +1173,7 @@ def op(
         # FB-33 M4c: «Ansicht gilt für» — поле формы окна, не данные блока
         wanted_scope = str(fields["scope"])
         fields = {k: v for k, v in fields.items() if k != "scope"}
-    if is_htx_edit(draft, ref, op_name, fields):
+    if is_htx_edit(draft, ref, op_name, fields, config):
         # FB-33 стопка 15 M5e-1b: «Texte» секции главной — своя ветка ДО прочих (строка на месте)
         _home_texts().window_op(
             config,
@@ -1424,7 +1423,7 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
         raise site_schema.SchemaError("faq_conflict")
     htx_moved = _home_texts().conflicts(config, draft)  # стопка 15 M5e-1b: до любой записи
     if htx_moved and not force:
-        raise site_schema.SchemaError("htx_conflict", htx_moved[0])
+        raise site_schema.SchemaError("htx_conflict", *htx_moved)
     # FB-33 M3-5c: переводы окна изменили в другом месте — до записи (позже правка немецкого
     # и перестановка уже сдвинули бы сохранённые переводы)
     _block_i18n().check(config, draft, force)
@@ -1519,10 +1518,11 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
             config.pop("about_contact", None)
         else:
             config["about_contact"] = False
-    if "htx" in draft and home:
+    if "htx" in draft:
         # FB-33 стопка 15 M5e-1b: тексты секций главной — тем же писателем, что Студия (снятие
-        # перевода изменённого немецкого поля); переводы, набранные в окне, ложатся ниже
-        _home_texts().commit(config, draft, force, notes)
+        # перевода изменённого немецкого поля); переводы, набранные в окне, ложатся ниже. Не
+        # главная или секции нет среди строк — не пишется, с заметкой (`home_texts.commit`)
+        _home_texts().commit(config, draft, force, notes, home=home)
     # FB-33 M3-5c: переводы текстов блоков, «Seitentitel», «Was passiert jetzt», плашек — после
     # записи блоков и чистки подписей плашек (позиции — по записанным блокам)
     _block_i18n().apply(config, draft, home, host)
@@ -1562,17 +1562,15 @@ def _home_texts():
     return home_texts
 
 
-def is_htx_edit(draft: dict, ref: str, op_name: str, fields) -> bool:
-    """Форма «Texte» секции главной окна (сентинел `htx_present` у полей панели)."""
-    row = _row(draft, ref)
+def is_htx_edit(draft: dict, ref: str, op_name: str, fields, config: dict | None = None) -> bool:
+    """Форма «Texte» секции главной окна (сентинел `htx_present` у полей панели); у строки —
+    «Texte» по тому же правилу, что окно и переводы (`home_texts.has_texte`)."""
     return (
         op_name == "update"
         and bool(draft.get("home"))
         and isinstance(fields, dict)
         and fields.get("htx_present") == "1"
-        and isinstance(row, dict)
-        and not row.get("id")
-        and row.get("key") in _home_texts().FIELDS
+        and _home_texts().has_texte(_row(draft, ref), config)
     )
 
 

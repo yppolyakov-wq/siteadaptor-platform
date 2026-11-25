@@ -91,7 +91,7 @@ def kinds(page: dict, ref: str) -> tuple[str, ...]:
     out = []
     if row.get("id") and _type(row) in TEXT_FIELDS:
         out.append("block")
-    if page.get("home") and not row.get("id") and row.get("key") in _home_texts().FIELDS:
+    if page.get("home") and _home_texts().has_texte(row):
         out.append("htx")  # FB-33 стопка 15 M5e-1b: тексты секции главной (без списков)
     if row.get("id") and _type(row) == "quick_links":
         out.append("tiles")
@@ -389,7 +389,7 @@ def take(
         if key not in valid:
             continue
         text, cut = _clean(key, value, _caps(old_draft, ref, key))
-        capped = capped or cut
+        capped = capped or cut or (key == "rows" and _rows_cut(text))
         if text == shown(saved, old_draft, ref, loc, key):
             continue
         if key.startswith("ofaq."):
@@ -629,10 +629,14 @@ def apply(config: dict, draft: dict, home: bool, host: str) -> None:
                     _set_path(config, loc, ("confirmation_next",), text)
                 elif "htx" in found and home:
                     row = _row(draft, ref) or {}
-                    if _home_texts().translatable(row.get("key") or "", key):
+                    if _htx_allowed(config, draft, row.get("key") or "", key):
                         _set_path(config, loc, _home_texts().tr_path(row["key"], key), text)
+                    else:
+                        logger.debug("block_i18n: %s %s — not a window text, skipped", ref, key)
                 elif at is None:
-                    continue  # блока на странице больше нет — переводить нечего
+                    # блока на странице больше нет — переводить нечего
+                    logger.debug("block_i18n: block %s is gone — translation skipped", ref)
+                    continue
                 elif "block" in found and key in TEXT_FIELDS.get(_type(at[1]), ()):
                     value = _rows_list(text) if key == "rows" else text
                     _set_path(config, loc, (*_block_path(home, host, at[0]), key), value)
@@ -891,3 +895,26 @@ def _rows_list(text: str):
         if value.strip():
             rows.append({"value": value.strip(), "label": label.strip()})
     return rows or ""
+
+
+def _rows_cut(text: str) -> bool:
+    """Перевод строк «Zahlen» длиннее потолков нормализации (значение 12, подпись 40, пар —
+    `siteconfig._MAX_STAT_ITEMS`) — её обрежут: заметка, не молча (ревью M5e-1b D)."""
+    from apps.core import site_schema
+    from apps.tenants import siteconfig
+
+    rows = _rows_list(text) or []
+    return site_schema.stats_capped(text) or len(rows) > siteconfig._MAX_STAT_ITEMS
+
+
+def _htx_allowed(config: dict, draft: dict, section: str, key: str) -> bool:
+    """Перевод поля секции главной: только переводимое поле окна, у тизера — только ключ
+    архетипа, который есть (в сохранённом или в правке черновика)."""
+    ht = _home_texts()
+    if not ht.translatable(section, key):
+        return False
+    if section != "archetypes":
+        return True
+    arch = config.get("archetypes") if isinstance(config.get("archetypes"), dict) else {}
+    known = set(arch) | set(ht.arch_keys_of(ht.pending(draft, "archetypes") or {}))
+    return any(key == f"{p}{k}" for p in ("arch_label_", "arch_blurb_") for k in known)

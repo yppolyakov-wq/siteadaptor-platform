@@ -271,6 +271,9 @@ function aufbauSubmitCopy(form, submitter) {
             el.value = typed;
             el.dispatchEvent(new Event("change", { bubbles: true }));
           }
+          // FB-33 стопка 15 M5e-1b (a11y A1): отказ поля — фокус на первое неверное поле
+          var bad = document.querySelector('[data-schema-panel] [aria-invalid="true"]');
+          if (bad) bad.focus({ preventScroll: false });
         } else {
           swap(doc, "#schema-result");
         }

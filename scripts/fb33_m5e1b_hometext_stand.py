@@ -149,6 +149,19 @@ def negative(rep, pg, out, js):
         f"{tag} негатив: ошибка у поля ссылки (aria-invalid={invalid})",
         code="url-err",
     )
+    active = pg.evaluate("() => document.activeElement && document.activeElement.id")
+    rep.check(
+        active == "schema-f-cta_button_url",
+        f"{tag} негатив: фокус на неверном поле ({active})",
+        code="url-focus",
+    )
+    alert = pg.evaluate(
+        "() => [...document.querySelectorAll('[data-schema-messages] [role=alert]')]"
+        ".map(a => a.innerText).join(' | ')"
+    )
+    rep.check("Button-Link" in alert, f"{tag} негатив: alert называет поле ({alert})", code="alert")
+    if err is not None:
+        err.scroll_into_view_if_needed()
     sl.shot(pg, out, f"negative_url_{tag}")
     if not open_texte(pg, "about", js):
         return
@@ -159,6 +172,21 @@ def negative(rep, pg, out, js):
     pg.keyboard.type("B" * 11)
     size = pg.eval_on_selector(sel, "el => el.value.length")
     rep.check(size <= 2000, f"{tag} негатив: 2001 знак — в поле {size}", code="maxlength")
+
+
+def bottom_shot(rep, pg, out, lang):
+    """320 px, с JS: низ формы команды — самая длинная легенда («… – Hinzufügen») и подписи."""
+    pg.set_viewport_size({"width": 320, "height": 568})
+    t = f"320 {lang} team низ формы"
+    if not rep.check(open_texte(pg, "team", True), f"{t}: окно открыто"):
+        return
+    pg.evaluate(
+        "() => { const f = [...document.querySelectorAll('#bw-form-hometext fieldset')].pop();"
+        " if (f) f.scrollIntoView({block: 'end'}); }"
+    )
+    m = pg.evaluate(MODEL_JS)
+    rep.check(m is not None and m["winOver"] <= 0, f"{t}: без гор. прокрутки окна", code="bottom")
+    sl.shot(pg, out, t.replace(" ", "_"))
 
 
 def discard(pg):
@@ -205,6 +233,8 @@ def main(out):
                                 )
                                 sl.shot(pg, out, t.replace(" ", "_").replace("%", ""))
                     discard(pg)
+                if js:
+                    bottom_shot(rep, pg, out, lang)
                 rep.check(not pg.js_errors, f"{tag}: без ошибок JS ({pg.js_errors[:2]})")
                 pg.context.close()
     rep.finish("M5e-1b Texte")
