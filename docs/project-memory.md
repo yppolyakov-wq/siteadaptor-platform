@@ -15,6 +15,24 @@
 
 ## 1. Открыто сейчас (сводка на 2026-11-13)
 
+### Решения владельца стопки 15 (2026-11-25, артборды M5e на холсте M0 и окно вопросов; план `fb33-stack15-plan-2026-11-25.md` §0.1, §14.3)
+- **Секции главной** (about, cta, process, team, testimonials, trust, archetypes, stats, hero) получают вкладку «Texte»: поля те же, что в Студии, писатель тот же (`home_texts`); Студия остаётся вторым входом к тем же данным.
+- **Содержимое из модели или экрана** (contact, reviews, finder, ★ основной список, combos, акция `offer`, categories, gallery) — часть «Inhalt» на вкладке «Was»: список «Woher» со словами «ausgefüllt/leer», ссылка на экран правки (механизм `ContentSource`, без второго).
+- **«Seitenkopf», вариант A:** H1 и «Einleitung» листингов — на вкладке «Texte» ★-окна у всех листингов, у каталога — `catalog_title`/`catalog_intro`; у категории — ссылка «In der Kategorie bearbeiten». Вариант B не выбран.
+- **Своя схема категории** — те же окна, что у общей страницы; строка «Sets & Menüs» — только если у бизнеса есть наборы.
+- **M1d:** «Kartenform» в Студии — только формы, подходящие виду; схема настроек и ассистент предлагают только их; у вида без карточек — «Diese Ansicht hat keine Karten» и ссылка в окно блока.
+- **Писатель текстов главной:** все пути через `home_texts`; импорт и демо-сидеры — исключения (списком в §3). **Переводы в окне — как у блоков** (`block_i18n`).
+- **Фото команды** не стирается Студией (дефект, исправлено). **Потолки** длин 120 / 2000 / 4000; старое значение режется только при правке.
+- **E8c:** пустой хост `site_search` остаётся пустым, в сводке — «ПУСТО». **«Vorher & nachher»** — без экрана правки, отдельным пунктом в roadmap.
+- **`/catalog/` → экран «Produkte», `/imports/` → «Import starten»** (S14-catalog-500).
+- **Строки «Inhalt»** — по образцу E7 (`SourceField.quote=True`), ссылка с `ContentSource.link_text` («Geschäftsdaten bearbeiten»); «Adresse — ausgefüllt» — с кавычками, как в E7.
+
+### Решения координатора стопки 15 (2026-11-25, §14.5 плана; владелец может поменять)
+- **A8 (своя категория):** первая ось у своей категории копирует видимое посетителю состояние общей страницы и «Design»; черновики других страниц не учитываются (черновик — на одну страницу). Конфигурация передаётся в `site_schema.mutate(..., config=)` явно; без неё — `SchemaError`.
+- **S14-E3-wie:** «Wie anordnen» применяется кнопкой вкладки у FAQ, CTA, «Über uns», отзывов; у `usp_bar` — ссылками (у окна больше одной применяемой части; отступление от §4 плана).
+- **Метка нового пункта:** «neu – leer lassen, wenn nicht benötigt» (вместо «Hinzufügen»).
+- **T-17:** правка ревью M5e-2b тронула `apps/core/views.py` параллельно с M1d; свод без конфликта; `plan_check --verify` ✗ оставлен как история.
+
 ### Решения владельца стопки 12 (2026-11-23…24, артборды M5d-0d на холсте M0 и окно вопросов; план `fb33-stack12-plan-2026-11-23.md` §11)
 - **Окно «Inhalt» для G3/G1/G4:** G3 — как G2, без своих частей; G1 — вариант A: «Inhalt» + строка «Woher», видимость ТЕКСТОМ, скрытие остаётся в «⋯» (галочки в окне нет); G4 — как G1. «Platz», вид и «Vorschau» у этих строк не нужны.
 - **Ссылка у строки типа** — на СПИСОК объектов; у товара — «Sortiment» (`sellable-manage`), новой записи навигации нет. У строки одного объекта — на форму объекта, плашка «nur hier». У общего типа «Veranstaltungen» — две ссылки, «Veranstaltungen» и «Reisen».
@@ -850,6 +868,18 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 - `apps/core/faq_content.py::put_title` — единственный писатель `section_titles["faq"]` (общий заголовок FAQ; Студия и её превью пересобирают только `SECTION_TITLE_KEYS`); `apps/tenants/siteconfig.py::SECTION_TITLE_STORED_KEYS`; строка `faq_title` в `apps/core/aufbau_draft.py::SIDE_PARTS` (черновик: показ в окне и «Vorschau», `commit` без строки FAQ не публикует).
 - Решения владельца 2026-11-24 (E1–E9, сверх блока выше): «Woher» списком полей, «ausgefüllt» — по значениям витрины; E6 — Студия на главной, не `/galerie/`; E9 — «Abbrechen» к якорю строки (меняет решение M5d-2b); E4 — отказ с набранным, «Fotos bitte erneut auswählen»; повторный POST перезаписывает чужую правку `details` осознанно.
 - Миграций нет. Отложено — `docs/roadmap-next-sprints.md`, строки `ст.14 · S14-*`.
+
+### FB-33 стопка 15 (2026-11-25)
+- `apps/core/home_texts.py::put, set_text, has_texte` — один писатель текстов секций главной (Студия, вкладка «Texte» окна блока, правка на канве, мастер); исключения — импорт (`imports/site/apply.py`, `cscart.py`) и демо-сидеры; `FIELDS` — источник, `CONTENT_FIELDS` производный; `has_texte` — предикат показа «Texte» баннера (как `siteui.hero_slides`).
+- `apps/core/aufbau_draft.py::SIDE_PARTS` — части черновика `htx` и `htx_base` (тексты главной, отпечаток; «Abbrechen» своей секции); ключ сессии `htx`.
+- `apps/core/page_title.py::head, put_head` — один писатель шапки листинга и каталога (H1 и «Einleitung»; `<title>` каталога идёт за H1); каталог — своя очистка с переносами строк.
+- `apps/tenants/siteconfig.py::is_catalog_host, is_shared_catalog_host` — признаки хоста каталога (своя схема категории и общий хост).
+- `apps/core/site_schema.py::main_list_source` — публичное разрешение главного списка (вместо закрытых `_main_list_host`, `_MAIN_LIST_SOURCES`); `host_for(code, known_slugs=)` — проверка «страница жива» (призраки Студии, без второго списка).
+- `apps/core/detail_sections.py::PAGE_SOURCES` — источники «Inhalt» у главной и листингов; `ContentSource.link_text` и `subject="tenant"` — имя ссылки и тенантный источник.
+- `apps/core/config_migration.py::is_lock_timeout` — признак «занято» по `sqlstate` (psycopg 3; старая ветка `pgcode` мертва); `apps/core/pagecache.py::bump_storefront_cache` возвращает bool.
+- `apps/core/management/commands/drop_stray_site_search.py` — разовая чистка «Suche» вне 404 (`--dry-run`, `--undo`); шаг `scripts/deploy.sh` после `form_i18n_realign`.
+- `apps/core/page_settings.py::schema()` и `apps/core/assistant_pages.py` — варианты «Kartenform» по виду (`card_forms.forms_for_view`); `choices` без фильтра для сводки и `_clean`.
+- Миграций нет. Отложено — `docs/roadmap-next-sprints.md`, строки `ст.15 · S15-*`.
 
 ## 4. Сырые выписки по периодам: открытое и ops
 
