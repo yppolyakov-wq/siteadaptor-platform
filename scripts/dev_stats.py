@@ -51,7 +51,7 @@ HISTORY_HEAD = """# История снимков статистики разр�
 чем `дифф`, `после мержа` не растёт. «Ревью» — замки и правки по находкам после кода; план и
 его ревью — отдельной колонкой, журнал и документы не считаются.
 
-| Дата | Стопка | Коммитов | Ревью | Доля | Коммитов плана | Находки: план | дифф | после мержа | Красных CI | Расход, $ | Исполнители и агенты |
+| Дата | Стопка | Коммитов | Ревью | Доля | Коммитов плана | Находки: план | дифф | после мержа | Красных CI | Расход, $ | Исполнители и агенты | Отменено CI / после 10 мин |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 """
 
@@ -125,7 +125,14 @@ def journal(text: str) -> dict:
 
 
 def snapshot_row(
-    label: str, commits, found: dict, red_ci: str, today: str, cost: str = "—", agents: str = "—"
+    label: str,
+    commits,
+    found: dict,
+    red_ci: str,
+    today: str,
+    cost: str = "—",
+    agents: str = "—",
+    ci_cancelled: str = "—",
 ) -> str:
     """Строка истории: коммиты диапазона + находки журнала, у которых «Шаг» входит в `label`
     или наоборот (стопка «FB-33 стопка 7» собирает находки шагов, названных в журнале так же)."""
@@ -138,7 +145,8 @@ def snapshot_row(
     plan = sum(kind(s) == "plan" for _, s in commits)
     cells = [today, label.replace("|", "/"), total, review, share, plan]
     # Расход сессии по её записи (T-16): сумма и доля исполнителей — см. docs/skill-feedback.md.
-    cells += [when[w] for w in WHEN] + [red_ci, cost, agents]
+    # Отменённые прогоны CI (T-18): «всего / из них после 10-й минуты» — пуши, перебившие проверку.
+    cells += [when[w] for w in WHEN] + [red_ci, cost, agents, ci_cancelled]
     return "| " + " | ".join(str(c) for c in cells) + " |"
 
 
@@ -152,9 +160,10 @@ def history_rows(text: str) -> list[dict]:
     rows = []
     for line in text.splitlines():
         c = [x.strip() for x in line.strip().strip("|").split("|")]
-        if len(c) not in (10, 12) or not re.match(r"\d{4}-\d\d-\d\d$", c[0]):
+        if len(c) not in (10, 12, 13) or not re.match(r"\d{4}-\d\d-\d\d$", c[0]):
             continue
-        c += ["—"] * (12 - len(c))  # строки до T-16 — без расхода
+        c += ["—"] * (13 - len(c))  # строки до T-16 — без расхода, до T-18 — без отмен CI
+        cancelled, _, late = c.pop().partition("/")
         keys = (
             "commits",
             "review",
@@ -167,7 +176,8 @@ def history_rows(text: str) -> list[dict]:
             "cost",
             "agents",
         )
-        rows.append({"stack": c[1], "date": c[0], **dict(zip(keys, map(num, c[2:]), strict=True))})
+        row = {"stack": c[1], "date": c[0], **dict(zip(keys, map(num, c[2:]), strict=True))}
+        rows.append({**row, "ci_cancelled": num(cancelled), "ci_late": num(late)})
     return rows
 
 
@@ -338,6 +348,8 @@ def main() -> None:
     ap.add_argument(
         "--cost", default="—", help="расход сессии, $ (total_cost_usd её последней записи)"
     )
+    ap.add_argument("--ci-cancelled", default="", help="прогонов CI, отменённых следующим пушем")
+    ap.add_argument("--ci-late", default="0", help="из них отменено после 10-й минуты")
     ap.add_argument(
         "--agents", default="—", help="доля исполнителей и агентов в расходе, напр. «80 %%»"
     )
@@ -359,6 +371,7 @@ def main() -> None:
             datetime.date.today().isoformat(),
             args.cost,
             args.agents,
+            f"{args.ci_cancelled} / {args.ci_late}" if args.ci_cancelled else "—",
         )
         text = HISTORY.read_text(encoding="utf-8") if HISTORY.exists() else HISTORY_HEAD
         HISTORY.write_text(text.rstrip("\n") + "\n" + row + "\n", encoding="utf-8")

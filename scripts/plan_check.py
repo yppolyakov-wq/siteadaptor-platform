@@ -7,15 +7,16 @@
 
     | Срез | Зависит от | Свои файлы | Общие файлы | Эталоны | Ветка |
 
-- «Свои файлы» — в бэктиках через запятую: `путь`, `путь:10-20,40-55` (строки — когда параллельные
-  срезы делят файл по кускам), `шаблон/_bw_*.html`, `+новый/файл.py` (файла ещё нет).
+- «Свои файлы» — в бэктиках через запятую: `путь`, `путь:10-20,40-55` (строки — ориентир, что
+  именно правится), `шаблон/_bw_*.html`, `+новый/файл.py` (файла ещё нет).
 - «Общие файлы» — правит только координатор на верхушке (`static/css/app.css`, общие эталоны, `.po`).
 - «Эталоны» — прогноз: сколько файлов эталонов изменит срез (число; «?» — прогноза нет, это находка).
 - «Ветка» — ветка или коммит среза, нужна для `--verify`; срез на ветке другого среза — диапазоном
   `ветка-предшественника..ветка-среза` (сверяется только своё).
 
 До кода (`check`): зависимости существуют и без циклов; срезы, которые могут идти параллельно, не
-делят файл или его строки; файл координатора не записан срезу; каждый названный файл существует —
+делят файл — даже разными строками (T-17: файл повторяется в срезах → срезы идут по очереди);
+в одной волне не больше `MAX_PARALLEL` срезов; файл координатора не записан срезу; каждый названный файл существует —
 иначе это «предпосылка без проверки по коду». После кода (`verify`): что срез тронул сверх заявленного
 и сколько эталонов изменилось против прогноза. Свои тесты (`*/tests/test_*.py`) срез пишет без записи.
 Замок — `apps/core/tests/test_plan_check.py`.
@@ -172,9 +173,13 @@ def _overlap(a: File, b: File) -> bool:
         return True  # каталог целиком и файл внутри него
     if not (a.matches(b.path) or b.matches(a.path)):
         return False
-    if not a.ranges or not b.ranges:
-        return True
-    return any(x1 <= y2 and y1 <= x2 for x1, x2 in a.ranges for y1, y2 in b.ranges)
+    # T-17: один файл — пересечение и при разных строках. Первый срез сдвигает строки, и
+    # разделение «по номерам» перестаёт быть точным; номера строк в плане остаются как ориентир.
+    return True
+
+
+# Сколько срезов можно вести одновременно: исполнители — главная строка расхода (стопка 13 — ≈ 80 %).
+MAX_PARALLEL = 3
 
 
 def on_disk(path: str) -> bool:
@@ -205,7 +210,7 @@ def check(slices: list[Slice], exists=on_disk) -> list[str]:
             if hits:
                 out.append(
                     f"{a.name} и {b.name} могут идти параллельно и делят {', '.join(hits)} — "
-                    "развести по строкам, поставить зависимость или отдать координатору"
+                    "вести по очереди (зависимость в «Зависит от») или отдать файл координатору"
                 )
     reserved = [(f, s.name) for s in slices for f in s.shared]
     for s in slices:
@@ -231,6 +236,13 @@ def check(slices: list[Slice], exists=on_disk) -> list[str]:
             out.append(
                 f"{s.name}: нет прогноза эталонов — число изменяемых файлов эталонов (0, если не задевает)"
             )
+    if not loop:
+        for n, wave in enumerate(waves(slices), 1):
+            if len(wave) > MAX_PARALLEL:
+                out.append(
+                    f"волна {n}: {len(wave)} срезов одновременно ({', '.join(wave)}) — не больше "
+                    f"{MAX_PARALLEL}: выстроить цепочкой через «Зависит от»"
+                )
     return out
 
 
@@ -306,6 +318,25 @@ def _touched(base: str, ref: str) -> list[str]:
     return [line for line in out.splitlines() if line]
 
 
+def touched_by_slice(slices: list[Slice], base: str) -> tuple[dict[str, list[str]], list[str]]:
+    """(срез → тронутые файлы, расхождения). Ветка, которую git не читает (не подтянута, опечатка),
+    — находка «не проверено», а не падение с трассировкой."""
+    touched: dict[str, list[str]] = {}
+    problems: list[str] = []
+    for s in slices:
+        if not s.branch:
+            continue
+        try:
+            touched[s.name] = _touched(base, s.branch)
+        except subprocess.CalledProcessError as err:
+            why = (err.stderr or "").strip().splitlines()[-1:] or ["git diff не выполнился"]
+            problems.append(
+                f"{s.name}: ветка «{s.branch}» не читается ({why[0][:90]}) — сверка не выполнена; "
+                "подтянуть: git fetch origin 'refs/heads/claude/*:refs/remotes/origin/claude/*'"
+            )
+    return touched, problems
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Проверяемый план стопки (T-14.2 / T-14.3)")
     ap.add_argument("plan")
@@ -324,13 +355,9 @@ def main() -> int:
     for n, wave in enumerate(waves(slices), 1):
         print(f"волна {n}: " + ", ".join(wave))
     if args.verify:
-        touched, skipped = {}, []
-        for s in slices:
-            if not s.branch:
-                skipped.append(s.name)
-                continue
-            touched[s.name] = _touched(args.base, s.branch)
-        found += verify(slices, touched)
+        skipped = [s.name for s in slices if not s.branch]
+        touched, unreadable = touched_by_slice(slices, args.base)
+        found += unreadable + verify(slices, touched)
         if skipped:
             # Срез без ветки сверить нечем — это не «чисто», а «не проверено».
             found.append("нет ветки для сверки (не проверено): " + ", ".join(skipped))
