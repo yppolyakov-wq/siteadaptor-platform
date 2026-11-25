@@ -466,3 +466,197 @@ def test_stats_cap_noted():
 
 def test_stats_translatable():
     assert "stats" in block_i18n.TEXT_FIELDS
+
+
+# ───────────── ревью круга 1 M5e-1b ─────────────
+
+R1 = "ревью M5e-1b круг 1"
+BANNER = "0f8d2a4e-6b1c-4d3e-9a2b-1c2d3e4f5a6b"
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: A1 без JS фокус не на неверном поле")
+def test_invalid_field_autofocus_without_anchor():
+    b = Browser(_shop())
+    resp, _msgs = _post(b, "cta", f_cta_button_url="javascript:alert(1)")
+    assert "#" not in resp["Location"], "якорь отменил бы autofocus"
+    form = _form(_get(b, "cta"))
+    field = re.search(r'<input[^>]*name="f_cta_button_url"[^>]*>', form).group(0)
+    assert " autofocus" in field
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: A2 отказ — не alert с именем поля")
+def test_refusal_alert_names_field():
+    b = Browser(_shop())
+    _post(b, "cta", f_cta_button_url="javascript:alert(1)")
+    with translation.override("de"):
+        html = b.get("?seite=home&block=cta&tab=texte")
+    alerts = re.findall(r'<div role="alert"[^>]*>(.*?)</div>', html, flags=re.S)
+    assert any("Button-Link" in a for a in alerts), alerts
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: B кривой черновик htx")
+def test_htx_malformed_draft_is_ignored_and_counted_consistently():
+    b = Browser(_shop())
+    _post(b, "about", f_about_title="Gut")
+    store = b.session[aufbau_draft.SESSION_KEY]
+    store["home"]["htx"].update({"bogus": {"x": "1"}, "cta": "kaputt"})
+    store["home"]["htx_base"].update({"bogus": "0", "cta": "0"})
+    b.session[aufbau_draft.SESSION_KEY] = store
+    saved = _saved(b)
+    draft = aufbau_draft.get(SimpleReq(b), "home")
+    state = aufbau_draft._saved_state(saved, True, "")
+    assert aufbau_draft.changes(state, draft) == 1
+    assert home_texts.conflicts(saved, draft) == []
+    shown = aufbau_draft.overlay(saved, draft)
+    assert shown["about_title"] == "Gut" and shown["cta"] == saved["cta"]
+    _resp, msgs = _save(b)
+    assert _saved(b)["about_title"] == "Gut"
+    assert any("nicht möglich" in m for m in msgs)
+
+
+def _hero_inactive(monkeypatch, active):
+    from apps.core import banners
+
+    slide = {"title": "B", "image": "/x.jpg", "starts": "2000-01-01" if active else "2999-01-01"}
+    monkeypatch.setattr(banners, "resolve", lambda pick, *a, **k: [slide])
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: C hero — предикат витрины")
+def test_hero_texte_shown_when_banner_picked_but_inactive(monkeypatch):
+    _hero_inactive(monkeypatch, active=False)
+    b = Browser(_shop(hero_banners={"pick": [BANNER]}))
+    assert _form(_get(b, "hero")), "баннер не показывается — витрина берёт заголовок главной"
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: C один предикат hero (is_htx_edit с config)")
+def test_hero_texte_hidden_when_banner_shown(monkeypatch):
+    _hero_inactive(monkeypatch, active=True)
+    b = Browser(_shop(hero_banners={"pick": [BANNER]}))
+    assert not _form(_get(b, "hero"))
+    draft = {"home": True, "items": [{"key": "hero", "data": {"pick": [BANNER]}}]}
+    assert not aufbau_draft.is_htx_edit(draft, "hero", "update", {"htx_present": "1"}, {})
+    assert "htx" not in block_i18n.kinds(draft, "hero")
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: D htx вне главной молча")
+def test_htx_for_removed_row_or_nonhome_not_silent(caplog):
+    cfg = siteconfig.normalize(CFG)
+    notes = []
+    draft = {"home": False, "host": "info", "items": [], "htx": {"about": {"about_title": "X"}}}
+    home_texts.commit(cfg, draft, False, notes, home=False)
+    assert cfg["about_title"] == "Über uns" and notes
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: D секция без строки записывается")
+def test_htx_orphan_section_not_committed():
+    cfg = siteconfig.normalize(CFG)
+    notes = []
+    draft = {"home": True, "items": [{"key": "cta"}], "htx": {"about": {"about_title": "X"}}}
+    home_texts.commit(cfg, draft, False, notes, home=True)
+    assert cfg["about_title"] == "Über uns" and notes
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: D конфликт называет одну секцию")
+def test_htx_conflict_lists_all_sections():
+    b = Browser(_shop())
+    _post(b, "about", f_about_title="A")
+    _post(b, "cta", f_cta_title="B")
+    cfg = _saved(b)
+    cfg["about_title"], cfg["cta"]["title"] = "S1", "S2"
+    Tenant.objects.filter(pk=b.tenant.pk).update(site_config=cfg)
+    _resp, msgs = _save(b)
+    assert sum(m.startswith("Die Texte von") for m in msgs) == 2
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: D форма без отпечатка принята")
+def test_htx_missing_fp_refused():
+    b = Browser(_shop())
+    _resp, msgs = _post(b, "about", f_htx_fp="", f_about_title="Ohne")
+    assert "htx" not in _draft(b) and any(m.startswith("Die Texte von") for m in msgs)
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: D ошибка эхом без потолка")
+def test_htx_error_value_capped():
+    b = Browser(_shop())
+    _post(b, "cta", f_cta_button_url="javascript:" + "x" * 900)
+    assert len(b.session[home_texts.ERROR_KEY]["value"]) <= home_texts.URL_MAX
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: D обрезка строк перевода молчит")
+def test_stats_rows_translation_cut_notes():
+    b = Browser(_shop())
+    data, _p = form_post(_get(b, "st1"), "bw-form-fields")
+    data.update(seite=["home"], wopen=[WOPEN], op=["update"])
+    data["f_tr_rows_en"] = ["1234567890123 | x"]
+    with translation.override("de"):
+        _resp, msgs = b.post(**data)
+    assert siteconfig.cap_note() in msgs
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: E подсказки поля")
+def test_field_hints_and_link_attrs():
+    b = Browser(_shop())
+    form = _form(_get(b, "cta"))
+    assert form.count("bw-htx-hint") == 2, "id подсказки и только у первого поля"
+    field = re.search(r'<input[^>]*name="f_cta_button_url"[^>]*>', form).group(0)
+    assert 'autocapitalize="off"' in field and 'spellcheck="false"' in field
+    assert "z. B. /kontakt oder https://…" in form
+    assert "max-h-[60vh]" in _form(_get(b, "about"))
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: E пустой пункт без метки")
+def test_new_item_slot_marked():
+    b = Browser(_shop())
+    with translation.override("de"):
+        form = _form(_get(b, "process"))
+    assert "Schritt 3 – Hinzufügen</legend>" in form
+
+
+@pytest.mark.xfail(strict=True, reason=f"{R1}: F форма без полей молчит")
+def test_window_op_without_fields_notes():
+    b = Browser(_shop())
+    with translation.override("de"):
+        _resp, msgs = b.post(
+            seite="home",
+            ref="about",
+            op="update",
+            panel_present="1",
+            f_htx_present="1",
+            wopen=WOPEN,
+        )
+    assert msgs
+
+
+@pytest.mark.parametrize("ref,ceiling", [("archetypes", 120), ("process", 120)])
+def test_home_window_queries(ref, ceiling, django_assert_max_num_queries):
+    """№31: потолок запросов окна (замер стенда тестов + запас)."""
+    b = Browser(_shop())
+    with django_assert_max_num_queries(ceiling):
+        _get(b, ref)
+
+
+def test_storefront_after_commit_with_page_cache(settings):
+    """№13: «Speichern» сбрасывает кэш витрины; новый текст на de и во втором языке."""
+    from django.core.cache import cache
+    from django.template.loader import render_to_string
+    from django.test import override_settings
+
+    from apps.core import pagecache
+
+    with override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}},
+        PUBLIC_PAGE_CACHE_TTL=300,
+    ):
+        cache.clear()
+        b = Browser(_shop(i18n={"en": {"about_text": "Since 1998."}}))
+        _post(b, "about", f_about_title="Wer wir sind", f_tr_about_title_en="Who we are")
+        before = pagecache._sf_version(b.tenant.schema_name)
+        _save(b)
+        assert pagecache._sf_version(b.tenant.schema_name) > before
+    cfg = _saved(b)
+    de = render_to_string("storefront/sections/_about.html", {"site": cfg, "section_row": {}})
+    en = render_to_string(
+        "storefront/sections/_about.html",
+        {"site": siteconfig.localize(cfg, "en"), "section_row": {}},
+    )
+    assert "Wer wir sind" in de and "Who we are" in en and "Since 1998." in en
