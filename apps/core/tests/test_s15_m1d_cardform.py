@@ -54,7 +54,6 @@ def _all_keys():
 # ───────────────────────── A7: схема и ассистент ─────────────────────────
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_view_none_keeps_previous_variants():
     """Охранное: у сетки (вид с плитками и строками) — все прежние варианты."""
     st = _state(_tenant())
@@ -67,7 +66,6 @@ def test_choices_from_forms_for_view():
     assert [c.value for c in st.choices] == [k for k, _l, _h in card_forms.forms_for_view("")]
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_schema_variants_by_view():
     st = _state(_preisliste(_tenant()))
     # у прайс-листа карточки нет — предлагать нечего, кроме сохранённого (с пометкой)
@@ -75,14 +73,12 @@ def test_schema_variants_by_view():
     assert st.no_cards
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_saved_form_outside_view_marked():
     st = _state(_preisliste(_tenant(), "deal"))
     assert [c.value for c in st.choices] == ["deal"]
     assert OUTSIDE in str(st.choices[0].label)
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_outside_form_option_text_suffix():
     """Y7: пометка — суффикс текста подписи (не цвет): подпись формы словом + суффикс."""
     st = _state(_preisliste(_tenant(), "deal"))
@@ -105,7 +101,6 @@ def test_design_screen_keeps_all_forms():
     assert [c.value for c in st.choices] == _all_keys()
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_assistant_variants_by_view():
     tenant = _tenant()
     user = _user()
@@ -128,7 +123,6 @@ def test_summary_label_for_form_outside_view():
     assert str(found["value"]) == str(card_forms.label_for("deal"))
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_rows_view_no_cards_hint():
     tenant = _preisliste(_tenant())
     found = page_settings.summaries(tenant, [CODE])[CODE]
@@ -146,7 +140,6 @@ def _html(tenant, lang="de"):
         return render_to_string("tenant/_stu19_summary.html", {"s": s}), s
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_hint_link_names_block_and_underlined():
     html, s = _html(_preisliste(_tenant()))
     entry = next(e for e in s["no_cards"] if e["page"] == "catalog")
@@ -162,13 +155,11 @@ def test_hint_link_names_block_and_underlined():
     assert 'data-stu-page="catalog"' in html
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_hint_in_russian():
     html, _s = _html(_preisliste(_tenant()), "ru")
     assert "У этого вида нет карточек" in html and "Изменить вид в блоке" in html
 
 
-@pytest.mark.xfail(strict=True, reason="M1d: до реализации")
 def test_hint_link_plain():
     """Обычная ссылка без JS: настоящий адрес окна блока, без hx-/onclick."""
     html, _s = _html(_preisliste(_tenant()))

@@ -162,8 +162,19 @@ def current(tenant, code: str) -> str:
     return str(value)
 
 
-def options(tenant, code: str) -> list[tuple[str, str]]:
-    """Доступные варианты настройки для селекта предпросмотра (как на экране кабинета)."""
+def options(tenant, code: str, type_code: str = "") -> list[tuple[str, str]]:
+    """Доступные варианты настройки для селекта предпросмотра (как на экране кабинета). Форма
+    карточки — только те, что примет вид основного списка (M1d, A7): у типа `type_code` или
+    у любой включённой страницы с этой настройкой."""
+    from apps.core import page_settings
+
+    allowed = page_settings.card_form_values(tenant, code, type_code)
+    return [
+        (v, label) for v, label in _all_options(tenant, code) if allowed is None or v in allowed
+    ]
+
+
+def _all_options(tenant, code: str) -> list[tuple[str, str]]:
     from apps.core import page_settings, studio_pages
 
     setting = studio_pages.SETTINGS.get(code)
@@ -182,7 +193,8 @@ def options(tenant, code: str) -> list[tuple[str, str]]:
 
 
 def value_label(tenant, code: str, value: str) -> str:
-    for v, label in options(tenant, code):
+    # M1d: подпись «vorher/nachher» — словом и у формы вне вида
+    for v, label in _all_options(tenant, code):
         if v == value:
             return label
     return str(_("Standard")) if not value else value

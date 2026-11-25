@@ -124,6 +124,8 @@ class SettingState:
     paginates: bool = False
     #: offers "apply this grid to the other listing pages" (catalog/events/stays/services)
     apply_all: bool = False
+    #: FB-33 стопка 15 M1d: card-form setting whose page list view has no cards at all
+    no_cards: bool = False
 
 
 @dataclass(frozen=True)
@@ -377,6 +379,77 @@ def choices(setting: studio_pages.Setting, gate: dict | None = None) -> tuple[Ch
     raise PageSettingError(f"no cabinet spec for setting {code!r}")
 
 
+# ─────────────── FB-33 стопка 15 M1d: формы карточки по виду основного списка ───────────────
+#
+# Решение владельца A7 (план `docs/fb33-stack15-plan-2026-11-25.md` §14.1): схема и ассистент
+# предлагают только формы вида (`card_forms.forms_for_view`); `choices` — без фильтра (сводка
+# Студии и `_clean`: форма сайта действует и на других страницах). Сохранённая форма вне вида
+# видна с пометкой текстом (грабля «select по реестру»), но не предлагается.
+
+#: настройка формы карточки → вид сущности `card_forms`
+CARD_FORM_KINDS = {"product_card_form": card_forms.PRODUCT, "promo_card_form": card_forms.PROMO}
+#: Y7: пометка формы вне вида — суффикс текста подписи, не цвет
+OUTSIDE_VIEW_SUFFIX = _("(passt nicht zur Ansicht)")
+
+
+def main_view(type_code: str, raw: dict, normalized: dict) -> str:
+    """Вид основного списка страницы типа, решающий формы карточки (ключ `card_forms`):
+    вид товаров ★ каталога (`catalog_seen_parts`, как витрина) и сетка страницы (её
+    прайс-виды). Первый вид без карточек побеждает; иначе "" (плитки и строки)."""
+    from apps.core import site_schema
+    from apps.tenants import siteconfig
+
+    views = []
+    try:
+        host = site_schema.host_for(type_code)
+        if host and siteconfig.is_shared_catalog_host(host):
+            views.append(site_schema.catalog_seen_parts(raw, host).products)
+        for s in cabinet_settings(type_code):
+            if kind_of(s) == KIND_LAYOUT:
+                layout, _found = _walk(normalized, (_LAYOUT_KEYS[s.code],))
+                if isinstance(layout, dict):
+                    views.append(layout.get("preset") or "")
+    except Exception:  # noqa: BLE001 — без вида — прежние варианты, но не молча
+        logger.warning("page settings: main view of %s failed", type_code, exc_info=True)
+        return ""
+    return next((v for v in views if not card_forms.view_has_card(v)), "")
+
+
+def _view_values(code: str, view: str) -> frozenset[str]:
+    return frozenset(k for k, _l, _h in card_forms.forms_for_view(view, CARD_FORM_KINDS[code]))
+
+
+def view_choices(code: str, all_choices: tuple[Choice, ...], view: str, value) -> tuple:
+    """Варианты формы карточки, которые вид примет; сохранённая форма вне вида — первой и
+    с пометкой (иначе select показал бы чужое значение и молча переписал его)."""
+    allowed = _view_values(code, view)
+    out = tuple(c for c in all_choices if c.value in allowed)
+    if value in allowed:
+        return out
+    saved = next((c for c in all_choices if c.value == value), None)
+    if saved is None:
+        return out
+    marked = replace(saved, label=format_lazy("{} {}", saved.label, OUTSIDE_VIEW_SUFFIX))
+    return (marked, *out)
+
+
+def card_form_values(tenant, code: str, type_code: str = "") -> frozenset[str] | None:
+    """Формы, которые вид примет (ассистент): у типа `type_code` или у любого включённого
+    типа с этой настройкой. None — настройка не про форму карточки."""
+    from apps.tenants import siteconfig
+
+    if code not in CARD_FORM_KINDS:
+        return None
+    raw = tenant.site_config or {}
+    normalized = siteconfig.normalize(raw)
+    types = (type_code,) if type_code else None
+    out: set[str] = set()
+    for t in active_types(tenant, types):
+        if any(s.code == code for s in cabinet_settings(t)):
+            out |= _view_values(code, main_view(t, raw, normalized))
+    return frozenset(out)
+
+
 # ───────────────────────── reading ─────────────────────────
 
 
@@ -603,6 +676,12 @@ def schema(
                 continue
             value, is_set = current_value(raw, s, normalized)
             layout = None
+            options = choices(s, gate)
+            no_cards = False
+            if s.code in CARD_FORM_KINDS:  # M1d: только формы вида основного списка
+                view = main_view(code, raw, normalized)
+                options = view_choices(s.code, options, view, value)
+                no_cards = not card_forms.view_has_card(view)
             if kind_of(s) == KIND_LAYOUT:
                 layout, _found = _walk(normalized, (_LAYOUT_KEYS[s.code],))
                 layout = dict(layout) if isinstance(layout, dict) else {}
@@ -614,12 +693,13 @@ def schema(
                     kind=kind_of(s),
                     value=value,
                     is_set=is_set,
-                    choices=choices(s, gate),
+                    choices=options,
                     has_object_scope=s.has_object_scope,
                     thumb=_thumb(s),
                     layout=layout,
                     paginates=s.code in PAGINATED_LAYOUTS,
                     apply_all=s.code in APPLY_ALL_LAYOUTS,
+                    no_cards=no_cards,
                 )
             )
         rows.sort(key=lambda r: axis_order.get(r.axis, 99))
@@ -1081,8 +1161,14 @@ def design_schema(tenant) -> list[SettingState]:
         for st in ts.settings:
             if st.code in DESIGN_SETTINGS:
                 found.setdefault(st.code, st)
+    # M1d: форма «Für alle Seiten» действует на всех страницах — вид одной страницы её не сужает
     return [
-        replace(found[c], label=DESIGN_LABELS.get(c, found[c].label))
+        replace(
+            found[c],
+            label=DESIGN_LABELS.get(c, found[c].label),
+            choices=choices(studio_pages.SETTINGS[c]) if c in CARD_FORM_KINDS else found[c].choices,
+            no_cards=False,
+        )
         for c in DESIGN_SETTINGS
         if c in found
     ]
@@ -1097,11 +1183,21 @@ def summaries(tenant, codes=None, types: tuple[str, ...] | None = None) -> dict[
     out: dict[str, dict] = {}
     for ts in schema(tenant, types):
         for st in ts.settings:
-            if st.code not in codes or st.code in out:
+            if st.code not in codes:
+                continue
+            if st.code in out:
+                if st.no_cards:
+                    out[st.code]["no_cards"].append(_no_cards_entry(tenant, ts))
                 continue
             # FB-31 P2 (ревью): у вкл/выкл значение — bool, а плитки — "1"/"0"
             want = ("1" if st.value else "0") if st.kind == KIND_BOOL else st.value
-            label = next((c.label for c in st.choices if c.value == want), st.value)
+            # M1d: подпись — по всем вариантам (схема предлагает только формы вида)
+            all_choices = (
+                choices(studio_pages.SETTINGS[st.code])
+                if st.code in CARD_FORM_KINDS
+                else st.choices
+            )
+            label = next((c.label for c in all_choices if c.value == want), st.value)
             value = label or _("Standard")
             if st.layout and st.layout.get("scroll"):
                 value = format_lazy("{} · {}", value, _("Slider"))
@@ -1111,8 +1207,24 @@ def summaries(tenant, codes=None, types: tuple[str, ...] | None = None) -> dict[
                 "url": design_url(st.code)
                 if st.code in DESIGN_SETTINGS
                 else page_templates.cabinet_url(ts.code),
+                # M1d: страницы, у вида основного списка которых карточек нет
+                "no_cards": [_no_cards_entry(tenant, ts)] if st.no_cards else [],
             }
     return out
+
+
+def _no_cards_entry(tenant, ts: TypeSchema) -> dict:
+    """M1d: подсказка «Diese Ansicht hat keine Karten» страницы `ts` — имя блока ★ и адрес
+    его окна на вкладке «Wie anordnen» (там меняется вид)."""
+    from apps.core import site_schema, window_links
+    from apps.tenants import siteconfig
+
+    name = site_schema.main_list_name(site_schema.host_for(ts.code), tenant) or ts.label
+    return {
+        "page": ts.code,
+        "name": str(name),
+        "url": window_links.block_window_url(ts.code, siteconfig.MAIN_LIST_KEY, "wie"),
+    }
 
 
 def protect_owned(tenant, new_cfg: dict, owned=None) -> dict:
