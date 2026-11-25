@@ -29,8 +29,7 @@ import hashlib
 import json
 import logging
 
-from django.utils.translation import gettext
-from django.utils.translation import gettext_lazy as _l
+from django.utils.translation import gettext, gettext_lazy
 
 logger = logging.getLogger(__name__)
 
@@ -47,36 +46,38 @@ LINE, TEXT, LIST, URL = "line", "text", "list", "url"
 #: `siteconfig.CONTENT_FIELDS` (A14). У архетипов имя — префикс, ключ модуля дописывается.
 FIELDS = {
     "hero": (
-        ("hero_title", _l("Banner heading"), LINE, TITLE_MAX),
-        ("hero_text", _l("Banner text"), TEXT, TEXT_MAX),
+        ("hero_title", gettext_lazy("Banner heading"), LINE, TITLE_MAX),
+        ("hero_text", gettext_lazy("Banner text"), TEXT, TEXT_MAX),
     ),
     "about": (
-        ("about_title", _l("Headline"), LINE, TITLE_MAX),
-        ("about_text", _l("Text"), TEXT, TEXT_MAX),
+        ("about_title", gettext_lazy("Headline"), LINE, TITLE_MAX),
+        ("about_text", gettext_lazy("Text"), TEXT, TEXT_MAX),
     ),
     "cta": (
-        ("cta_title", _l("Headline"), LINE, TITLE_MAX),
-        ("cta_text", _l("Text (optional)"), TEXT, TEXT_MAX),
-        ("cta_button_label", _l("Button text"), LINE, TITLE_MAX),
-        ("cta_button_url", _l("Button link"), URL, URL_MAX),
+        ("cta_title", gettext_lazy("Headline"), LINE, TITLE_MAX),
+        ("cta_text", gettext_lazy("Text (optional)"), TEXT, TEXT_MAX),
+        ("cta_button_label", gettext_lazy("Button text"), LINE, TITLE_MAX),
+        ("cta_button_url", gettext_lazy("Button link"), URL, URL_MAX),
     ),
     "testimonials": (
         (
             "testimonials_text",
-            _l("One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."),
+            gettext_lazy("One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."),
             LIST,
             LIST_MAX,
         ),
     ),
-    "process": (("process_text", _l("One step per line: Title | Description."), LIST, LIST_MAX),),
-    "team": (("team_text", _l("One per line: Name | Role."), LIST, LIST_MAX),),
+    "process": (
+        ("process_text", gettext_lazy("One step per line: Title | Description."), LIST, LIST_MAX),
+    ),
+    "team": (("team_text", gettext_lazy("One per line: Name | Role."), LIST, LIST_MAX),),
     "trust": (
-        ("trust_since", _l("Founded in (year)"), LINE, TITLE_MAX),
-        ("trust_marks", _l("Credentials (one per line)"), LIST, LIST_MAX),
+        ("trust_since", gettext_lazy("Founded in (year)"), LINE, TITLE_MAX),
+        ("trust_marks", gettext_lazy("Credentials (one per line)"), LIST, LIST_MAX),
     ),
     "archetypes": (
-        ("arch_label_", _l("Title"), LINE, TITLE_MAX),
-        ("arch_blurb_", _l("Description"), TEXT, TEXT_MAX),
+        ("arch_label_", gettext_lazy("Title"), LINE, TITLE_MAX),
+        ("arch_blurb_", gettext_lazy("Description"), TEXT, TEXT_MAX),
     ),
 }
 
