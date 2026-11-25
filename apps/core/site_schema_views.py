@@ -38,28 +38,12 @@ def _page_path(tenant, raw, code: str) -> str:
         return ""
     found = site_schema.code_for_path(tenant, raw)
     if found == code:
-        return "" if code == site_schema.TEXT and _own_text_host(tenant, raw) else raw
+        return raw
     if site_schema.is_object_code(found):
         kind = found.split("@", 1)[0]
         if site_schema.OBJECT_PAGE_TYPES.get(kind, kind) == code:
             return raw
     return ""
-
-
-def _own_text_host(tenant, path: str) -> bool:
-    """Ревью E1 (M): своя страница `path` со СВОИМИ блоками (хост `seite:<slug>`) — не
-    страница общего хоста `info`, хотя `code_for_path` даёт ей «text» (правильный разбор —
-    roadmap). Хост — `content_pages.schema_ref`, как у «Seiten»."""
-    from apps.core import content_pages
-
-    slug = site_schema._path_ref(path)
-    if not slug:
-        return False
-    host, row_code = content_pages.schema_ref(slug)
-    if row_code == site_schema.TEXT:
-        return False
-    blocks = (getattr(tenant, "site_config", None) or {}).get("page_blocks") or {}
-    return bool(blocks.get(host))
 
 
 def _keep(source, von: str = "") -> dict:

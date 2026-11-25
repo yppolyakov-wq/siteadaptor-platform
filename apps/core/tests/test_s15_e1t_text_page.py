@@ -20,8 +20,6 @@ from apps.core.tests.test_fb33_e1_von import OWN_BLOCK, _ctx, _q, _req, _studio_
 
 pytestmark = pytest.mark.django_db
 
-RED = pytest.mark.xfail(strict=True, reason="E1t: до кода")
-
 
 def _pages(settings, blocks: dict, *slugs: str):
     from apps.core.models import ContentPage
@@ -35,7 +33,6 @@ def _pages(settings, blocks: dict, *slugs: str):
     return tenant
 
 
-@RED
 @pytest.mark.parametrize("path", ["/x/", "/seite/x/"])
 def test_resolve_page_own_text_host(path):
     """Хост блоков своей страницы — `seite:<slug>` (короткий и старый адрес), не `info`."""
@@ -43,7 +40,6 @@ def test_resolve_page_own_text_host(path):
     assert ctx.code == site_schema.TEXT and ctx.block_host == "seite:x"
 
 
-@RED
 @pytest.mark.parametrize("slug", ["x", "x-2"])
 def test_code_for_own_text_page(settings, slug):
     """№5: своя страница со своими блоками — её строка; соседний адрес — свой код."""
@@ -51,7 +47,6 @@ def test_code_for_own_text_page(settings, slug):
     assert site_schema.code_for_path(tenant, f"/{slug}/") == f"text@seite:{slug}"
 
 
-@RED
 def test_text_page_without_blocks_never_opens_info(settings):
     """A6 / №6: своя страница без своих блоков — тоже её строка, не «Über uns»."""
     tenant = _pages(settings, {}, "foo")
@@ -60,7 +55,6 @@ def test_text_page_without_blocks_never_opens_info(settings):
     assert site_schema.code_for_path(tenant, "/bar/") == "text@seite:bar"
 
 
-@RED
 def test_ghost_text_page_no_link(settings):
     """A6: страницы нет — ссылки нет ("" и экран без выбора), не запасной «Über uns»."""
     tenant = _pages(settings, {"seite:ghost": [OWN_BLOCK]})
@@ -74,7 +68,6 @@ def test_about_page_still_text(settings):
     assert site_schema.code_for_path(tenant, "/ueber-uns/") == site_schema.TEXT
 
 
-@RED
 def test_fallback_branch_removed():
     """№4: запасной ветки `von` для своей страницы (стопка 14) больше нет."""
     src = inspect.getsource(site_schema_views)
@@ -82,7 +75,6 @@ def test_fallback_branch_removed():
     assert not hasattr(site_schema_views, "_own_text_host")
 
 
-@RED
 @pytest.mark.parametrize("blocks", [{"seite:foo": [OWN_BLOCK]}, {}])
 def test_studio_gear_opens_that_page(settings, blocks):
     """Сквозной: ⚙ Студии на `/foo/` → схема `text@seite:foo` с `von=/foo/`; экран принимает
@@ -96,7 +88,6 @@ def test_studio_gear_opens_that_page(settings, blocks):
     assert ctx["preview_url"] == "/foo/"
 
 
-@RED
 def test_about_schema_rejects_own_page_von(settings):
     """Охранный: схема «Über uns» путь своей страницы не принимает (код пути другой)."""
     tenant = _pages(settings, {}, "foo")
