@@ -966,7 +966,9 @@ def site_schema_view(request):
             or ((selected or {}).get("field_langs") or {}).get("lang", ""),
             # FB-27 R7: строка категории — своя схема или блоки каталога
             "category_row": (
-                {"own": any(not b["main"] and not b["fixed"] for b in blocks)}
+                # стопка 15 M5e-3: своя схема — свои блоки; строки каталога («Banner · Fotos
+                # der Seite», «Kategorien», «Sets & Menüs») теперь есть и у неё
+                {"own": any(b["cblock"] for b in blocks)}
                 if code.startswith(f"{site_schema.CATEGORY}@")
                 else None
             ),
