@@ -35,6 +35,10 @@ fi
 COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml $PROFILE_ARGS"
 
 cd "$REPO_DIR"
+# E8c ревью 1: шаги, отработавшие с WARN (деплой их не останавливает), — сводкой в конце,
+# чтобы предупреждение не утонуло в выводе сборки
+DEPLOY_WARNS=()
+warn_step() { DEPLOY_WARNS+=("$1"); }
 
 # FB-33 M3-9b: два деплоя сразу на одном сервере — второй выходит, не начав (раньше оба
 # собирали образ и мигрировали вперемешку). Блокировка — файл на этом сервере; снимается
@@ -224,11 +228,13 @@ fi
 # detach_quick_links --undo --force (только вместе с откатом кода M2c-4).
 step "[6c/8] Quick links: banner tiles -> block (before the new web starts)"
 if ! $COMPOSE run --rm web python manage.py detach_quick_links; then
+	warn_step "detach_quick_links"
 	echo "!!! WARN: detach_quick_links FAILED or skipped some sites (see lines above)."
 	echo "!!! On those sites tiles are NOT shown until detach_quick_links runs; do not save settings on these sites."
 	echo "!!! Re-run: python manage.py detach_quick_links"
 fi
 if ! $COMPOSE run --rm web python manage.py detach_quick_links --residue; then
+	warn_step "detach_quick_links --residue"
 	echo "!!! WARN: detach_quick_links --residue: sites with the old key left or unchecked (see above)."
 	echo "!!! On those sites tiles are NOT shown until detach_quick_links runs; do not save settings on these sites."
 fi
@@ -249,6 +255,7 @@ $COMPOSE exec -T web python manage.py migration_state || true
 # собственные слайды блоков переносятся один раз (повтор ничего не создаёт); сбой
 # переноса деплой не останавливает — сайт показывает прежние слайды.
 if ! $COMPOSE exec -T web python manage.py import_banners; then
+	warn_step "import_banners"
 	echo "!!! WARN: import_banners FAILED for some schemas (see lines above)."
 	echo "!!! The site keeps the old slides there. Re-run: python manage.py import_banners"
 fi
@@ -256,11 +263,13 @@ fi
 # Для каждого сайта вид «до/после» сверяется; расхождение — сайт не трогается (строки
 # «ПРОПУЩЕНО»). Снимок настроек — в базе; откат: python manage.py materialize_page_axes --undo
 if ! $COMPOSE exec -T web python manage.py materialize_page_axes; then
+	warn_step "materialize_page_axes"
 	echo "!!! WARN: materialize_page_axes FAILED for some sites (see lines above)."
 	echo "!!! Those sites keep the old template codes. Re-run: python manage.py materialize_page_axes"
 fi
 # FB-31.7 B3a: остаток перед снятием чтения старых кодов (B3b ждёт «residue: 0»)
 if ! $COMPOSE exec -T web python manage.py materialize_page_axes --residue; then
+	warn_step "materialize_page_axes --residue"
 	echo "!!! WARN: materialize_page_axes --residue could not check some sites (see lines above)."
 fi
 # FB-33 M2i-5b: переводы вариантов «Art der Veranstaltung» — из позиционного оверлея
@@ -270,9 +279,24 @@ fi
 # web до переноса показывает старый оверлей запасным позиционным чтением (окно покрыто).
 # Повтор — no-op; откат — form_i18n_realign --undo (вместе с откатом кода).
 if ! $COMPOSE exec -T web python manage.py form_i18n_realign; then
+	warn_step "form_i18n_realign"
 	echo "!!! WARN: form_i18n_realign FAILED or skipped busy sites (see lines above)."
 	echo "!!! Those sites still show old positional translations of event types; re-run:"
 	echo "!!! python manage.py form_i18n_realign"
+fi
+# FB-33 стопка 15 E8c: блок «Suche» (site_search) живёт только на странице 404; старые конфиги
+# с ним на других страницах снимают его при чтении (лог на каждый запрос). Разовая чистка
+# хранимых списков (переводы едут за своими блоками, страница, где он был один, — «ПУСТО»).
+# Вид сайта не меняется; повтор — no-op; сбой деплой не останавливает.
+if ! $COMPOSE exec -T web python manage.py drop_stray_site_search; then
+	warn_step "drop_stray_site_search"
+	echo "!!! WARN: drop_stray_site_search FAILED or skipped busy sites (see lines above)."
+	echo "!!! Those sites still drop the search block at read time; re-run:"
+	echo "!!! python manage.py drop_stray_site_search"
+fi
+if [ "${#DEPLOY_WARNS[@]}" -gt 0 ]; then
+	echo "!!! WARN summary: ${#DEPLOY_WARNS[@]} step(s) finished with warnings:"
+	for w in "${DEPLOY_WARNS[@]}"; do echo "!!!   - $w"; done
 fi
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then
