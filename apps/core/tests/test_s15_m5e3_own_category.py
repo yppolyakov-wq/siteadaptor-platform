@@ -26,6 +26,7 @@ from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
+REVIEW1 = pytest.mark.xfail(strict=True, reason="M5e-3 ревью 1: ещё не сделано")
 
 ROOT = Path(__file__).resolve().parents[3]
 OWN = "catalog:brot"
@@ -308,3 +309,202 @@ def test_main_list_source_public():
         assert site_schema.main_list_source(host) == source, host
     src = (ROOT / "apps/core/window_parts.py").read_text(encoding="utf-8")
     assert "site_schema._" not in src
+
+
+# --- ревью 1 -----------------------------------------------------------------------------------
+
+
+def _all_literals(path: Path) -> list[str]:
+    """Все места литерала («catalog», «category») в модуле: функция:строка."""
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    found = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.Tuple) and {getattr(e, "value", None) for e in sub.elts} == {
+                    "catalog",
+                    "category",
+                }:
+                    found.append(node.name)
+    return found
+
+
+@REVIEW1
+def test_catalog_literal_only_in_predicates():
+    """Ревью 1 №4: литерал («catalog», «category») — только в двух предикатах siteconfig:
+    «страница каталога» и «общая страница каталога» (не своя схема категории)."""
+    left = _all_literals(ROOT / "apps/tenants/siteconfig.py") + _all_literals(
+        ROOT / "apps/core/site_schema.py"
+    )
+    assert sorted(left) == ["is_catalog_host", "is_shared_catalog_host"], left
+    assert siteconfig.is_shared_catalog_host("catalog")
+    assert siteconfig.is_shared_catalog_host("category")
+    assert not siteconfig.is_shared_catalog_host(OWN)
+
+
+@REVIEW1
+def test_no_connection_tenant_in_site_schema():
+    """Ревью 1 №1 (b): схема не берёт бизнес из соединения — конфиг передаётся явно."""
+    src = (ROOT / "apps/core/site_schema.py").read_text(encoding="utf-8")
+    assert "connection.tenant" not in src and 'getattr(connection, "tenant"' not in src
+
+
+@REVIEW1
+def test_a8_uses_passed_config_not_connection(monkeypatch):
+    """Ревью 1 №1 (a): правка через черновик (`Browser`) при чужом `connection.tenant` —
+    унаследованные оси из конфига бизнеса запроса."""
+    from apps.catalog.models import Category
+
+    other = TenantFactory(business_type="online_shop", disabled_modules=[])
+    tenant = _tenant({OWN: [_text_block()]})
+    _set_rows(
+        tenant,
+        "category",
+        [{"key": siteconfig.CATALOG_HEAD_KEY, "style": "titelbild"}, {"key": "main"}],
+    )
+    for foreign in (other, None):
+        connection.tenant = foreign
+        b = Browser(tenant)
+        b.post(seite=OWN_CODE, op="catview", ref="categories", value="index")
+        b.post(seite=OWN_CODE, op="save")
+        tenant.refresh_from_db()
+        parts = catalog_parts.category_parts(tenant.site_config, Category.objects.get(slug="brot"))
+        assert parts.head == "titelbild" and parts.categories == "index", foreign
+        _set_rows(tenant, OWN, [_text_block()])
+
+
+@REVIEW1
+def test_a8_without_config_refuses():
+    """Ревью 1 №1: без конфига ось своей схемы не пишется — отказ, а не тихая потеря осей."""
+    tenant = _tenant({OWN: [_text_block()]})
+    items = site_schema.load_items(tenant.site_config, False, OWN)
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.mutate(items, OWN_CODE, "catview", "categories", value="index")
+
+
+@REVIEW1
+def test_a8_freezes_saved_shared_not_saved_own():
+    """Ревью 1 №1 (c): своя схема со своими осями в базе, в черновике их сняли — первая ось
+    берёт видимое СЕЙЧАС на общей странице категорий (сохранённое), не старые свои оси."""
+    tenant = _tenant()
+    _set_rows(tenant, "category", [{"key": siteconfig.CATALOG_HEAD_KEY, "style": "titelbild"}])
+    _set_rows(
+        tenant,
+        OWN,
+        [{"key": siteconfig.CATALOG_HEAD_KEY, "style": "aus"}, _text_block()],
+    )
+    items = [{"key": "main"}, {"key": "categories"}, _text_block()]  # черновик без осей
+    site_schema.mutate(
+        items, OWN_CODE, "catview", "categories", value="index", config=tenant.site_config
+    )
+    parts = catalog_parts.from_rows(items)
+    assert parts.head == "titelbild" and parts.categories == "index", items
+
+
+@REVIEW1
+def test_inherit_returns_row_or_raises():
+    """Ревью 1 №1: после записи осей строка `ref` находится — иначе отказ."""
+    tenant = _tenant()
+    items = [{"key": "main"}, _text_block()]
+    row = site_schema._inherit_catalog_axes(items, OWN, "categories", tenant.site_config)
+    assert row is not None and row in items and row["key"] == "categories"
+    items = [{"key": "main"}, _text_block()]
+    with pytest.raises(site_schema.SchemaError):
+        site_schema._inherit_catalog_axes(items, OWN, "nope", tenant.site_config)
+
+
+@REVIEW1
+def test_known_slugs_for_db_error_logs_and_falls_back(monkeypatch, caplog):
+    """Ревью 1 №2: сбой загрузки слагов — предупреждение в журнал и None (вызывающий проверяет
+    страницу по одной), ссылка живой категории остаётся."""
+    import logging
+
+    from django.db import DatabaseError
+
+    from apps.catalog.models import Category
+    from apps.core.tests.test_fb33_e2_studio_links import _anchors, _page_part, _studio
+
+    tenant = _tenant({OWN: [_liste("l2")]})
+
+    def boom(*a, **kw):
+        raise DatabaseError("boom")
+
+    monkeypatch.setattr(Category.objects, "values_list", boom)
+    with caplog.at_level(logging.WARNING, logger="apps.core.site_schema"):
+        assert site_schema.known_slugs_for(OWN_CODE) is None
+        html = _studio(tenant)
+    assert any(r.exc_info for r in caplog.records if r.levelno == logging.WARNING)
+    assert _anchors(_page_part(html, OWN), "Fenster öffnen")
+
+
+@REVIEW1
+def test_live_groups_db_error_falls_back(monkeypatch, caplog):
+    """Ревью 1 №2: сбой загрузки групп акций — None и предупреждение, не «все группы мертвы»."""
+    import logging
+
+    from django.db import DatabaseError
+
+    def boom():
+        raise DatabaseError("boom")
+
+    monkeypatch.setattr(site_schema, "_live_promo_groups", boom)
+    with caplog.at_level(logging.WARNING, logger="apps.core.site_schema"):
+        code = f"{site_schema.PROMO_GROUP}@{siteconfig.promo_group_host('Sale')}"
+        assert site_schema.known_slugs_for(code) is None
+    assert caplog.records
+
+
+@REVIEW1
+def test_deleted_category_parts_warn(caplog):
+    """Ревью 1 №3: категории своей схемы нет — свои строки и предупреждение в журнал."""
+    import logging
+
+    tenant = _tenant()
+    with caplog.at_level(logging.WARNING, logger="apps.core.site_schema"):
+        site_schema.catalog_seen_parts(tenant.site_config, "catalog:weg")
+    assert any("catalog:weg" in r.getMessage() for r in caplog.records)
+
+
+@REVIEW1
+def test_has_combos_db_error_shows_row(monkeypatch):
+    """Ревью 1 №3: сбой проверки наборов — строка «Sets & Menüs» видна (не прячется молча)."""
+    from django.db import DatabaseError
+
+    from apps.catalog.models import Combo
+
+    def boom():
+        raise DatabaseError("boom")
+
+    monkeypatch.setattr(Combo.objects, "exists", boom)
+    assert site_schema._has_combos() is True
+
+
+def test_every_main_list_host_has_source_or_own_name():
+    """Ревью 1 №3: у каждого хоста основного списка — источник «Liste» или своё имя."""
+    for host in siteconfig.MAIN_LIST_HOSTS:
+        assert site_schema.main_list_source(host) or host in site_schema._MAIN_LIST_OWN_NAMES, host
+
+
+def test_catalog_code_only_shared_hosts(monkeypatch):
+    """Ревью 1 №4: `_catalog_code` (код шаблона общей страницы) своей схеме не нужен."""
+    seen = []
+    real = site_schema._catalog_code
+
+    def spy(config, host):
+        seen.append(host)
+        return real(config, host)
+
+    monkeypatch.setattr(site_schema, "_catalog_code", spy)
+    tenant = _tenant({OWN: [_text_block()]})
+    for code in ("catalog", "category", OWN_CODE):
+        site_schema.blocks_for(tenant.site_config, code, tenant=tenant, has_combos=True)
+    assert seen and set(seen) <= {"catalog", "category"}, seen
+
+
+def test_slug_case_kept():
+    """Ревью 1 №4: регистр слага не меняется — хост и категория находят друг друга."""
+    tenant = _tenant({"catalog:Sommer_2026": [_text_block()]}, slugs=("Sommer_2026",))
+    code = "category@catalog:Sommer_2026"
+    assert site_schema.host_for(code) == "catalog:Sommer_2026"
+    assert site_schema.host_for(code, known_slugs=site_schema.known_slugs_for(code))
+    assert "categories" in _refs(tenant, code)
