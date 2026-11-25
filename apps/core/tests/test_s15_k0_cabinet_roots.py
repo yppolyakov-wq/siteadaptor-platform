@@ -207,10 +207,10 @@ def _get(client, path):
         connections["default"].set_schema_to_public()
 
 
-@override_settings(PERMS_STRICT=True)
 def test_content_page_under_cabinet_prefix_404_full_stack(client_for, settings):
     """Ревью 1 №1: префикс без корня (тестовый urlconf) → страница витрины → 404 всем стеком,
     не 500 (`ImproperlyConfigured`) и не 403."""
+    settings.PERMS_STRICT = True
     settings.ROOT_URLCONF = TEST_URLCONF
     client = client_for(_user(Membership.ROLE_OWNER))
     assert resolve("/crm/", urlconf=TEST_URLCONF).view_name == CONTENT_PAGE
@@ -220,10 +220,10 @@ def test_content_page_under_cabinet_prefix_404_full_stack(client_for, settings):
     assert response.status_code == 404
 
 
-@override_settings(PERMS_STRICT=True)
 def test_cabinet_404_full_stack_has_h1_and_back_link(client_for, settings):
     """Ревью 1 №2 (Y10): Http404 из `process_view` → handler404 → простая страница с `<h1>`
     и ссылкой назад, без хрома витрины."""
+    settings.PERMS_STRICT = True
     settings.ROOT_URLCONF = TEST_URLCONF
     response = _get(client_for(_user(Membership.ROLE_OWNER)), "/crm/")
     assert response.status_code == 404
