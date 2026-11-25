@@ -245,7 +245,7 @@ def apply_tenant(tenant, *, dry_run: bool = False) -> Result:
                 )
         except OperationalError as exc:
             # занято — только lock_timeout (55P03); обрыв соединения и пр. — настоящая ошибка
-            if getattr(exc.__cause__, "pgcode", None) != "55P03":
+            if not cm.is_lock_timeout(exc):
                 raise
             return Result(action=BUSY)
         if written is None:

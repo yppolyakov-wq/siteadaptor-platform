@@ -104,7 +104,6 @@ def test_not_found_kept():
     assert f"{tenant.schema_name}:" not in out  # сайт без изменений не перечисляется
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_idempotent():
     tenant = TenantFactory(site_config=_messy())
     _run()
@@ -114,7 +113,6 @@ def test_idempotent():
     assert _summary(out)["сайтов с чисткой"] == 0
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_dry_run_writes_nothing():
     tenant = TenantFactory(site_config=_messy())
     with mock.patch("apps.core.pagecache.bump_storefront_cache") as bump:
@@ -245,7 +243,6 @@ def _lock_timeout(*_a, **_k):
         raise OperationalError("lock timeout") from cause
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_busy_detected_by_sqlstate():
     """п.1: «занято» узнаётся по `sqlstate` — во всех трёх командах переноса."""
     from apps.core import quick_links_migration as qlm
@@ -273,7 +270,6 @@ def _catch(fn):
     raise AssertionError("no exception")
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 @pytest.mark.django_db(transaction=True)
 def test_cache_bump_failure_logged_and_reported(caplog):
     """п.2: сбой сброса кэша виден — в логе со схемой, в итоге и ненулевым выходом."""
@@ -290,7 +286,6 @@ def test_cache_bump_failure_logged_and_reported(caplog):
     assert pagecache.bump_storefront_cache("acme") is True
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_realign_with_unnormalized_stored_sections():
     """п.3: хранимый список не равен нормализованному (мусор между блоками) — по какой
     позиции стоят переводы, не угадываем: переводы не трогаем, строка в выводе и в итоге."""
@@ -308,7 +303,6 @@ def test_realign_with_unnormalized_stored_sections():
     assert _summary(out)["переводов не выровнено"] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_undo_restores_snapshot_and_audit_written():
     """п.4–5: запись — снимком (`--undo` возвращает), событие аудита на каждый сайт."""
     tenant = TenantFactory(site_config=_messy())
@@ -324,7 +318,6 @@ def test_undo_restores_snapshot_and_audit_written():
     assert _cfg(tenant) == _messy()
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_malformed_shapes_reported():
     """п.6: кривые формы конфига — счётчик и строка на сайт; годная часть чистится."""
     bad = [
@@ -346,7 +339,6 @@ def test_malformed_shapes_reported():
     assert _summary(dry) == _summary(out)  # одни поля и те же числа
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_gone_tenant():
     """п.6: сайт исчез во время прогона — «gone», а не «dropped»."""
     assert cmd.apply_tenant(10**9).status == "gone"
@@ -357,7 +349,6 @@ def test_gone_tenant():
         assert cmd.apply_tenant(tenant.pk).status == "gone"
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_dry_run_summary_matches_real_run():
     TenantFactory(site_config=_messy())
     TenantFactory(site_config={"page_blocks": {"cart": [SEARCH]}})
@@ -400,15 +391,15 @@ def test_one_site_fails_others_cleaned():
     assert "geheime" not in err.getvalue() + out.getvalue()
 
 
-@pytest.mark.xfail(strict=True, reason="E8c ревью 1: ещё нет")
 def test_deploy_collects_warn_steps_in_final_summary():
     """п.7: шаги с WARN копятся и печатаются итогом в конце деплоя."""
     from pathlib import Path
 
     sh = Path("scripts/deploy.sh").read_text()
-    warns = sh.count('then\n\techo "!!! WARN:')
+    warns = sh.count('\techo "!!! WARN:')
     assert warns >= 7
-    assert sh.count("\twarn_step ") == warns
+    marked = re.findall(r'then\n\twarn_step "[^"]+"\n\techo "!!! WARN:', sh)
+    assert len(marked) == warns == sh.count("\twarn_step ")
     summary = sh.index('"${DEPLOY_WARNS[@]}"')
     assert summary > sh.index(f"manage.py {CMD}; then")
     assert summary < sh.index('curl -fsS "$HEALTH_URL"')

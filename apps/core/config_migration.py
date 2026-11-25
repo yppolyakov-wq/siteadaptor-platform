@@ -26,6 +26,16 @@ from collections.abc import Callable
 logger = logging.getLogger(__name__)
 
 LOCK_TIMEOUT = "2s"
+#: SQLSTATE «lock_not_available» — строка занята дольше `LOCK_TIMEOUT`
+LOCK_NOT_AVAILABLE = "55P03"
+
+
+def is_lock_timeout(exc) -> bool:
+    """Занято (lock_timeout), а не обрыв соединения и пр. psycopg 3 даёт код в `sqlstate`,
+    psycopg 2 — в `pgcode`; Django кладёт исходное исключение в `__cause__`."""
+    cause = getattr(exc, "__cause__", None)
+    code = getattr(cause, "sqlstate", None) or getattr(cause, "pgcode", None)
+    return code == LOCK_NOT_AVAILABLE
 
 
 def config_hash(cfg) -> str:
@@ -42,14 +52,18 @@ def lock(model, pk):
     return model.objects.select_for_update().get(pk=pk)
 
 
-def bump(schema: str, *, label: str) -> None:
-    """Сброс кэша витрины после записи; сбой — в лог, не сбой переноса (данные записаны)."""
+def bump(schema: str, *, label: str) -> bool:
+    """Сброс кэша витрины после записи; сбой — в лог и `False`, не сбой переноса (данные
+    записаны; команда считает такие сайты и выходит с ошибкой)."""
     from apps.core.pagecache import bump_storefront_cache
 
     try:
-        bump_storefront_cache(schema)
+        ok = bump_storefront_cache(schema)
     except Exception:  # noqa: BLE001
-        logger.warning("%s: cache bump failed for %s", label, schema, exc_info=True)
+        ok = False
+    if not ok:
+        logger.warning("%s: cache bump failed for %s", label, schema)
+    return ok
 
 
 def rolled_back(tenant_pk, reason: str) -> bool:
@@ -69,9 +83,15 @@ def write_with_snapshot(
     touched: tuple[str, ...],
     lock_row: Callable | None = None,
     guard: Callable[[], bool] | None = None,
+    send_signals: bool = True,
 ) -> str | None:
     """Под блокировкой (вызывать внутри `transaction.atomic()`): настройки не менялись —
-    записать `new` и снять снимок ключей `touched`, вернуть схему; менялись — None."""
+    записать `new` и снять снимок ключей `touched`, вернуть схему; менялись — None.
+
+    `send_signals=False` — запись `.update()` мимо `save()`: не срабатывают приёмник SE-5a
+    (сброс кэша витрины ДО коммита — гонка: читатель кладёт старый конфиг под новую версию;
+    вызывающий сбрасывает кэш сам в `on_commit`), приёмник аудита `tenant.updated`
+    (вызывающий пишет своё событие) и `auto_now` у `updated_at`."""
     from apps.tenants.models import SiteConfigSnapshot, Tenant
 
     locked = (lock_row or lock)(Tenant, tenant_pk)
@@ -79,8 +99,11 @@ def write_with_snapshot(
         return None
     if guard is not None and not guard():
         return None
-    locked.site_config = new
-    locked.save(update_fields=["site_config"])
+    if send_signals:
+        locked.site_config = new
+        locked.save(update_fields=["site_config"])
+    else:
+        Tenant.objects.filter(pk=locked.pk).update(site_config=new)
     # хэш — после записи и чтения из базы (JSONB): откат сравнивает то же самое
     locked.refresh_from_db(fields=["site_config"])
     SiteConfigSnapshot.objects.create(

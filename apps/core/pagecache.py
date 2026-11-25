@@ -44,13 +44,16 @@ def _sf_version(schema: str) -> int:
         return 0
 
 
-def bump_storefront_cache(schema: str) -> None:
+def bump_storefront_cache(schema: str) -> bool:
     """SE-5a: сброс кэша витрины тенанта при публикации — инкремент версии в ключе.
-    Старые ключи осиротевают и истекают по TTL (без delete_pattern). Fail-open."""
+    Старые ключи осиротевают и истекают по TTL (без delete_pattern). Fail-open: сбой —
+    в лог (со схемой) и `False`, запрос не падает (E8c ревью 1: раньше сбой был не виден)."""
     try:
         cache.set(f"sfver:{schema}", _sf_version(schema) + 1, None)
     except Exception:  # noqa: BLE001
-        pass
+        logger.warning("storefront cache bump failed for %s", schema, exc_info=True)
+        return False
+    return True
 
 
 def _cache_host(request) -> str:

@@ -56,7 +56,7 @@ def apply_tenant(tenant_pk, *, dry_run: bool = False) -> str:
                     tenant_pk, row, new, reason=REASON, touched=TOUCHED
                 )
         except OperationalError as exc:
-            if getattr(exc.__cause__, "pgcode", None) != "55P03":
+            if not cm.is_lock_timeout(exc):
                 raise
             return "busy"
         if written is None:
