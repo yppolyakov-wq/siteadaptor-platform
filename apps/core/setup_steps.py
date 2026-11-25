@@ -134,11 +134,13 @@ def _i18n_panes(tenant, fields: tuple) -> list[dict]:
 def save_hero(request, tenant) -> None:
     """B.3: сохранить баннер мастера — hero-тексты + опц. загруженное фото (файл).
     AB6.2-lang: + переводы hero-текстов на включённых локалях (оверлей i18n)."""
+    from apps.core import home_texts
     from apps.tenants import siteconfig
 
     config = tenant.site_config if isinstance(tenant.site_config, dict) else {}
-    config["hero_title"] = request.POST.get("hero_title", "").strip()
-    config["hero_text"] = request.POST.get("hero_text", "").strip()
+    # FB-33 стопка 15 M5e-1a: тексты главной — один писатель `home_texts`
+    for name in ("hero_title", "hero_text"):
+        home_texts.set_text(config, "hero", name, request.POST.get(name, ""))
     _save_overlay_fields(request, config, ("hero_title", "hero_text"))
     uploaded = request.FILES.get("hero_image")
     if uploaded:
@@ -573,9 +575,11 @@ def _post_about(request):
 
     tenant = request.tenant
     cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    from apps.core import home_texts
+
     for f in ("about_title", "about_text"):
         if request.POST.get(f) is not None:
-            cfg[f] = request.POST.get(f, "").strip()
+            home_texts.set_text(cfg, "about", f, request.POST.get(f, ""))  # FB-33 стопка 15
     _save_overlay_fields(request, cfg, ("about_title", "about_text"))
     if request.POST.get("about_preset"):
         _page_presets.apply_page_preset(cfg, "info", request.POST.get("about_preset"))

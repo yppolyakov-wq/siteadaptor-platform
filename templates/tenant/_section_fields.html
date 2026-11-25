@@ -4,7 +4,9 @@
 где вид. `name=` не менялись; парсинг на сервере — siteconfig.parse_content_sections
 (гейт: сентинел `content_sections_present`, который рисует форма конструктора).
 Контекст: key + config (cta.*, trust.since), testimonials_text, process_text, team_text,
-trust_marks_text, usp_text, faq_text.{% endcomment %}
+trust_marks_text, usp_text, faq_text; htx_base — отпечатки текстов секций (FB-33 стопка 15 M5e-1a, A3:
+Save устаревшей вкладки секцию с расхождением не пишет).{% endcomment %}
+{% for k, fp in htx_base.items %}{% if k == key %}<input type="hidden" name="htx_base_{{ k }}" value="{{ fp }}">{% endif %}{% endfor %}
 {% if key == "cta" %}
 <div class="space-y-2">
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

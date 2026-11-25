@@ -285,7 +285,6 @@ def test_studio_save_bytes_unchanged():
 # ───────────── A14 / A1: один реестр и один писатель ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: home_texts ещё нет")
 def test_content_fields_derived_from_home_texts():
     from apps.core import home_texts
 
@@ -295,7 +294,6 @@ def test_content_fields_derived_from_home_texts():
     assert extra == {"faq_text", "faq_present", "usp_text"}, "FAQ и полоса — не home_texts"
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: parse_content_section ещё нет")
 def test_parse_content_sections_composes_one_parser():
     import inspect
 
@@ -307,7 +305,6 @@ def test_parse_content_sections_composes_one_parser():
         assert siteconfig.parse_content_section(key, get) == whole[key], key
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: home_texts ещё нет")
 def test_studio_names_equal_registry():
     """Имена полей Студии (`name=`) = реестр `home_texts.FIELDS` (подписи — msgid Студии)."""
     from apps.core import home_texts
@@ -377,7 +374,6 @@ def _writes(path: pathlib.Path):
             yield owner(node.lineno), key, node.lineno
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: Студия, черновик, канва и мастер пишут сами")
 def test_home_texts_writers_ast():
     bad = []
     for path in sorted((ROOT / "apps").rglob("*.py")):
@@ -392,7 +388,6 @@ def test_home_texts_writers_ast():
     assert not bad, "тексты главной пишет только home_texts:\n" + "\n".join(bad)
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: Студия пишет тексты сама")
 def test_one_writer_studio(monkeypatch):
     from apps.core import home_texts
 
@@ -410,7 +405,6 @@ def test_one_writer_studio(monkeypatch):
     assert "archetypes" in seen
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: черновик превью пишет тексты сам")
 def test_one_writer_preview_draft(monkeypatch):
     from apps.core import home_texts
 
@@ -436,7 +430,6 @@ def test_one_writer_preview_draft(monkeypatch):
     assert draft["team"][0]["photo"] == "https://cdn.example/anna.jpg", "черновик не стирает фото"
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: правка на канве пишет сама, без блокировки")
 def test_one_writer_inline_edit(monkeypatch):
     from apps.core import home_texts
 
@@ -475,7 +468,6 @@ def test_one_writer_inline_edit(monkeypatch):
     assert cfg["about_title"] == "Über uns"
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: мастер пишет тексты сам")
 def test_one_writer_wizard(monkeypatch):
     from apps.core import home_texts, setup_steps
 
@@ -499,7 +491,6 @@ def test_one_writer_wizard(monkeypatch):
 # ───────────── A15, realign, старые форматы ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="A15: Студия стирает фото команды")
 def test_studio_keeps_team_photo():
     t = _tenant("s15p1")
     cfg, _m = _save(t, _form(t, team_text="Ben | Meister\nAnna | Chefin\nCleo | Azubi"))
@@ -519,7 +510,6 @@ def test_list_overlays_realigned():
     assert cfg["i18n"]["ru"]["process"] == [{"title": "Забрать"}]
 
 
-@pytest.mark.xfail(strict=True, reason="M5e-1a: home_texts ещё нет")
 @pytest.mark.parametrize(
     "stored",
     [
@@ -545,7 +535,6 @@ def test_old_formats(stored):
 # ───────────── A4 (Студия), A2: переводы ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="§9 №3: правка немецкого пока не снимает перевод")
 def test_german_edit_drops_translation():
     t = _tenant("s15g1", i18n=True)
     cfg, _m = _save(
@@ -611,7 +600,6 @@ def _htx_base(body, key):
     return m.group(1) if m else ""
 
 
-@pytest.mark.xfail(strict=True, reason="A3: у формы Студии нет отпечатка текстов")
 def test_stale_studio_tab_does_not_revert_window_texts():
     t = _tenant("s15s1")
     body = _body(t)
@@ -632,7 +620,6 @@ def test_stale_studio_tab_does_not_revert_window_texts():
     assert cfg["cta"]["title"] == "Neu bestellen", "секция без расхождения записана"
 
 
-@pytest.mark.xfail(strict=True, reason="A3: архетипы пишутся без проверки присутствия")
 def test_archetypes_absent_keys_untouched():
     from apps.tenants import storefront
 
@@ -670,7 +657,6 @@ def test_stale_studio_tab_note():
 # ───────────── §9 №4: потолки и ссылка кнопки ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="§9 №4: потолков у текстов главной нет")
 def test_caps_server():
     from apps.core import home_texts
 
@@ -691,7 +677,6 @@ def test_caps_server():
     assert siteconfig.cap_note() not in msgs
 
 
-@pytest.mark.xfail(strict=True, reason="§9 №4: ссылка кнопки CTA не проверяется")
 @pytest.mark.parametrize("url", ["javascript:alert(1)", "//evil.example", "data:text/html,x"])
 def test_cta_url_rejects_javascript(url):
     t = _tenant("s15u1")

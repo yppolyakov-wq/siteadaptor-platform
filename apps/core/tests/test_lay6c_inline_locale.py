@@ -65,11 +65,12 @@ def test_edit_in_a_translation_writes_the_overlay_not_the_base():
 
 
 def test_edit_in_the_base_locale_still_writes_the_base():
-    """Немецкая правка работает как раньше — паритет."""
+    """Немецкая правка пишет базу. FB-33 стопка 15 M5e-1a (осознанная переписка, решение
+    владельца §9 №3): перевод ИМЕННО изменённого поля снимается — он переводил прежний текст."""
     tenant = _tenant("lay6c2", enabled_locales=["de", "ru"], default_locale="de")
     _edit(tenant, "hero_title", "Servus", locale="de")
     assert tenant.site_config["hero_title"] == "Servus"
-    assert tenant.site_config["i18n"]["ru"]["hero_title"] == "Добро пожаловать", "перевод сбит"
+    assert "hero_title" not in (tenant.site_config.get("i18n") or {}).get("ru", {})
 
 
 def test_missing_locale_falls_back_to_the_base():
