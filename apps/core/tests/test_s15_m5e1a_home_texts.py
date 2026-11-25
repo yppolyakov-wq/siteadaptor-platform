@@ -63,6 +63,8 @@ WRITER_EXCEPTIONS = {
     "apps/tenants/demo_kits.py": None,  # демо-киты (A1)
     "apps/core/design_samples.py": None,  # образцы предпросмотра дизайна, не запись
     "apps/tenants/siteconfig.py": {"normalize", "_normalize_impl"},  # нормализация, не правка
+    # шаблон витрины заполняет ПУСТЫЕ тексты дефолтами (`config[field]`, ключ — переменная)
+    "apps/tenants/sitetemplates.py": {"_apply"},
     "apps/core/views.py": {
         # обложки разделов: intro/hero_image/gallery/кнопка архетипа (не label/blurb)
         "_upload_cover_gallery",
@@ -638,10 +640,6 @@ def test_archetypes_absent_keys_untouched():
         assert cfg["archetypes"][k]["hidden"] is True
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="нужен msgid заметки «Texte … inzwischen an anderer Stelle geändert» (не в P0)",
-)
 def test_stale_studio_tab_note():
     t = _tenant("s15s3")
     base = _htx_base(_body(t), "about")
@@ -707,7 +705,6 @@ def _store(t, **changes):
     t.refresh_from_db()
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №1 пропуск секции не виден")
 def test_two_stale_sections_noted_each():
     t = _tenant("s15r1a")
     body = _body(t)
@@ -722,7 +719,6 @@ def test_two_stale_sections_noted_each():
     assert sum(m.startswith("Die Texte von") for m in msgs) == 2
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №1 put_form не возвращает пропущенные")
 def test_put_form_returns_skipped():
     from apps.core import home_texts
 
@@ -737,7 +733,6 @@ def test_put_form_returns_skipped():
     assert stale == ["about"] and cfg["about_title"] == "Über uns"
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №2 CRLF считается правкой")
 def test_crlf_unchanged_keeps_translation_and_legacy_length():
     t = _tenant("s15r2a", i18n=True)
     legacy = "Zeile\n" + "x" * 2500
@@ -755,7 +750,6 @@ def test_crlf_unchanged_keeps_translation_and_legacy_length():
     assert cfg["about_text"] == "Eins\nZwei\nDrei"
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №3 _menu_href пропускает \\ и пробелы")
 @pytest.mark.parametrize(
     "url", ["/\\evil.example", "/a\\b", "/a\tb", "https://x.de/\nY", "/a b", "/a\x00"]
 )
@@ -769,7 +763,6 @@ def test_home_texts_cta_url_rejects_backslash_and_tab(url):
     assert notes
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №3 _menu_href пропускает \\ и пробелы")
 def test_menu_item_rejects_backslash_and_tab():
     for bad in ("/\\evil.example", "/a\tb", "https:/\\x"):
         node = siteconfig._clean_menu_node({"label": "X", "type": "url", "target": bad}, 0)
@@ -781,7 +774,6 @@ def test_menu_item_rejects_backslash_and_tab():
         )
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №3 normalize хранит javascript: в cta")
 def test_stored_javascript_cta_not_rendered():
     from django.template.loader import render_to_string
 
@@ -798,7 +790,6 @@ def _inline(t, body):
     return views.site_inline_edit(req)
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №4 канва молча режет текст")
 def test_inline_capped_answers_with_stored_value():
     from apps.core import home_texts
 
@@ -811,7 +802,6 @@ def test_inline_capped_answers_with_stored_value():
     assert t.site_config["about_text"] == "A" * home_texts.TEXT_MAX
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №4 set_text не сообщает результат")
 def test_set_text_results():
     from apps.core import home_texts
 
@@ -827,7 +817,6 @@ def test_set_text_results():
     assert home_texts.set_text(cfg, "hero", "hero_title", "H" * 121) == home_texts.CAPPED
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №4/№6 канва: неверный ввод не отвергается")
 def test_inline_rejects_unsafe_and_non_str():
     t = _tenant("s15r4b")
     assert _inline(t, {"field": "about_title", "value": 5}).status_code == 400
@@ -841,7 +830,6 @@ def test_inline_rejects_unsafe_and_non_str():
         home_texts.set_text = real
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №4 мастер молча режет текст")
 def test_wizard_capped_warns():
     from apps.core import home_texts, setup_steps
 
@@ -852,7 +840,6 @@ def test_wizard_capped_warns():
     assert siteconfig.cap_note() in [str(m) for m in get_messages(req)]
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №5 сверка отпечатка вне блокировки")
 def test_fingerprint_checked_under_lock(monkeypatch):
     """Окно блока записало тексты ПОСЛЕ начала запроса Студии — сверка под блокировкой."""
     from apps.core import home_texts
@@ -878,7 +865,6 @@ def test_fingerprint_checked_under_lock(monkeypatch):
     assert _stale_note("Über uns") in msgs
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №5 сентинел htx_base_present")
 def test_missing_fingerprint_stale_only_with_sentinel():
     t = _tenant("s15r5b")
     body = _body(t)
@@ -890,7 +876,6 @@ def test_missing_fingerprint_stale_only_with_sentinel():
     assert _stale_note("Über uns") in msgs
 
 
-@pytest.mark.xfail(strict=True, reason=f"{R1}: №6 исключение не перечислено")
 def test_sitetemplates_listed_in_writer_exceptions():
     """№6: писатель шаблонов витрины с переменным ключом — исключение явно, с причиной."""
     assert WRITER_EXCEPTIONS.get("apps/tenants/sitetemplates.py") == {"_apply"}

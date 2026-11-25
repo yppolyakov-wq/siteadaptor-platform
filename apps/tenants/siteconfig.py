@@ -15,6 +15,7 @@ site_config = {
 
 import logging
 import re
+import unicodedata
 import uuid
 from functools import cache
 
@@ -3576,10 +3577,14 @@ def _menu_href(value) -> str:
     """Ссылка/картинка пункта меню: только http(s)/mailto/tel/относительные (правило
     `siteui.safe_href`); `javascript:`, `data:`, `//host` → "" (узел-url тогда выпадет)."""
     s = _s(value)[:500]
-    if s.startswith("//"):
+    # FB-33 стопка 15 M5e-1a (ревью security №3): управляющие символы, пробелы и `\` внутри
+    # ссылки браузер толкует по-своему (`/\host` — чужой сайт, `java\tscript:`) — не пускаем
+    if any(c.isspace() or c == "\\" or unicodedata.category(c) in ("Cc", "Cf") for c in s):
         return ""
     low = s.lower()
-    if low.startswith(("http://", "https://", "mailto:", "tel:")) or s.startswith(("/", "#")):
+    if low.startswith(("http://", "https://", "mailto:", "tel:")) or s.startswith("#"):
+        return s
+    if s.startswith("/") and not s.startswith("//"):
         return s
     return ""
 
@@ -5847,7 +5852,8 @@ def _normalize_impl(config) -> dict:
         "title": _s(cta.get("title")),
         "text": _s(cta.get("text")),
         "button_label": _s(cta.get("button_label")),
-        "button_url": _s(cta.get("button_url")),
+        # ревью M5e-1a №3: и сохранённое импортом или сидером — только безопасная ссылка
+        "button_url": _menu_href(cta.get("button_url")),
     }
     # Галерея (M20 ⑤b): список FileRef-dict'ов (как Product.images); грузятся
     # через apps.catalog.images.save_product_image, хранятся в site_config.

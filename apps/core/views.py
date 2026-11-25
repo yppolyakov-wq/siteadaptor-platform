@@ -2897,7 +2897,7 @@ def home_builder_view(request):
         # FB-33 стопка 15 M5e-1a: тексты — один писатель `home_texts` (только тизеры, чьи поля
         # пришли в форме; отпечаток секции — A3), видимость — там же
         htx_stored = siteconfig.normalize(request.tenant.site_config)
-        home_texts.put_form(
+        htx_stale, htx_written = home_texts.put_form(
             config,
             request.POST.get,
             ("archetypes",),
@@ -2999,7 +2999,7 @@ def home_builder_view(request):
         # SE-7d / LAY-1a: тексты баннера и «О нас» — presence-guard (POST без полей секции их
         # не стирает, W0); FB-33 стопка 15 M5e-1a: пишет `home_texts` (потолки, снятие перевода
         # изменённого поля, отпечаток секции)
-        home_texts.put_form(
+        _stale, _written = home_texts.put_form(
             config,
             request.POST.get,
             home_texts.SCALAR_KEYS,
@@ -3007,6 +3007,8 @@ def home_builder_view(request):
             translating=translating,
             notes=save_notes,
         )
+        htx_stale += _stale
+        htx_written.update(_written)
         # W11-5: фон баннера по URL (перенос со страницы «Site») — presence-guard.
         if "hero_image" in request.POST:
             config["hero_image"] = request.POST.get("hero_image", "").strip()
@@ -3045,7 +3047,7 @@ def home_builder_view(request):
                     faq_in = (_sections["faq"], None)
                 _sections.pop("faq", None)
                 faq_content.put(config, faq_in[0], faq_in[1] if faq_fp else None, faq_fp or None)
-            home_texts.put_form(
+            _stale, _written = home_texts.put_form(
                 config,
                 request.POST.get,
                 home_texts.CONTENT_KEYS,
@@ -3053,6 +3055,8 @@ def home_builder_view(request):
                 translating=translating,
                 notes=save_notes,
             )
+            htx_stale += _stale
+            htx_written.update(_written)
             config.update(_sections)
         # STU-12g: акцент (Tenant.primary_color) — поле экрана «Design des Shops».
         update_fields = ["site_config", "updated_at"]
@@ -3092,8 +3096,26 @@ def home_builder_view(request):
         with transaction.atomic():
             if _structure_is_stale(request, start_hash):
                 return _redirect_builder(request)
+            # FB-33 стопка 15 M5e-1a (A3, ревью №5): тексты секций главной сверяются со СВЕЖЕЙ
+            # строкой под той же блокировкой — окно блока или канва могли записать их, пока шёл
+            # этот запрос; такая секция и пропущенные остаются как в свежей строке
+            from apps.tenants.models import Tenant
+
+            fresh_row = (
+                Tenant.objects.select_for_update().only("site_config").get(pk=request.tenant.pk)
+            )
+            htx_stale += home_texts.recheck(
+                request.tenant.site_config,
+                siteconfig.normalize(fresh_row.site_config),
+                htx_stale,
+                htx_written,
+            )
             request.tenant.save(update_fields=update_fields)
         messages.success(request, _("Gespeichert."))
+        # ревью №1: пропуск секции виден — заметка на каждую
+        section_labels = {key: label for key, label, _default in siteconfig.SECTIONS}
+        for key in dict.fromkeys(htx_stale):
+            messages.warning(request, home_texts.stale_note(section_labels.get(key, key)))
         for note in dict.fromkeys(save_notes):
             messages.warning(request, note)
         if stale_tab:
@@ -4237,7 +4259,9 @@ def site_inline_edit(request):
         return HttpResponseBadRequest()
     field = data.get("field")
     value = data.get("value", "")
-    value = value.strip() if isinstance(value, str) else ""
+    if not isinstance(value, str):
+        return HttpResponseBadRequest()  # ревью M5e-1a №6: не текст — не «пустая строка»
+    value = value.strip()
     cfg = siteconfig.normalize(request.tenant.site_config)
     # LAY-6c: сначала РАЗБИРАЕМ поле в путь, потом решаем, куда писать — в базу или
     # в перевод. Раньше запись была вшита в каждую ветку, и локаль учесть было негде:
@@ -4258,10 +4282,20 @@ def site_inline_edit(request):
         with transaction.atomic():
             locked = Tenant.objects.select_for_update().get(pk=request.tenant.pk)
             cfg = siteconfig.normalize(locked.site_config)
-            home_texts.set_text(cfg, key, name, value, locale)
+            result = home_texts.set_text(cfg, key, name, value, locale)
+            if result == home_texts.REJECTED:
+                return HttpResponse(status=422)  # небезопасная ссылка — не записано
             locked.site_config = siteconfig.normalize(cfg)
             locked.save(update_fields=["site_config", "updated_at"])
         request.tenant.site_config = locked.site_config
+        if result == home_texts.CAPPED:
+            # ревью №4: обрезанное — ответ с тем, что сохранено (канва показывает правду)
+            from django.http import JsonResponse
+
+            stored = (
+                siteconfig.localize(locked.site_config, locale) if locale else locked.site_config
+            )
+            return JsonResponse({"capped": True, "value": home_texts.values(stored, key)[name]})
         return HttpResponse(status=204)
     if field in siteconfig.TEXT_FIELDS:
         path = (field,)

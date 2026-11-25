@@ -215,6 +215,24 @@ def fingerprints(config: dict) -> dict:
 # ───────────── запись ─────────────
 
 
+#: итог `put` (ложный — секции в присланном нет)
+WRITTEN, STALE, ABSENT = "written", "stale", ""
+#: итог `set_text` (ложный — поля нет в реестре)
+CHANGED, UNCHANGED, CAPPED, REJECTED = "changed", "unchanged", "capped", "rejected"
+
+
+def _nl(value: str) -> str:
+    """Переводы строк формы (`\r\n` браузера, старый `\r`) → `\n` — до сверки, потолка и записи."""
+    return value.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def stale_note(name) -> str:
+    return gettext(
+        "Die Texte von „%(name)s“ wurden inzwischen an anderer Stelle geändert – Ihre Änderung "
+        "daran wurde nicht übernommen."
+    ) % {"name": str(name)}
+
+
 def url_note(label) -> str:
     return gettext("%(field)s: bitte mit https:// beginnen.") % {"field": str(label)}
 
@@ -237,10 +255,10 @@ def _read(key: str, get, current: dict, notes: list | None) -> dict | None:
         return None
     out = dict(current)
     for name, value in posted.items():
-        value = value.strip()
+        value = _nl(value).strip()
         old = current.get(name, "")
-        if value == old:
-            continue
+        if value == _nl(old):
+            continue  # неизменённое (в том числе старое длинное или с `\r\n`) — как было
         _name, label, kind, cap = _spec(key, name)
         if len(value) > cap:
             value = value[:cap].strip()
@@ -265,7 +283,9 @@ def _build(config: dict, key: str, raw: dict, tenant=None):
     if key in CONTENT_KEYS:
         new = siteconfig.parse_content_section(key, lambda name, default="": raw.get(name, default))
         if key == "team":
-            # A15: форма «Name | Rolle» фото не несёт — фото едет за именем (первое вхождение)
+            # A15: форма «Name | Rolle» фото не несёт — фото едет за ИМЕНЕМ (и после перестановки);
+            # у двух участников с одним именем оба получат фото первого, новое имя — без фото,
+            # переименование теряет фото (его снова ставит загрузчик)
             photos = {}
             for m in _items(config.get("team")):
                 photos.setdefault(_s(m.get("name")), _s(m.get("photo")))
@@ -324,7 +344,10 @@ def _drop_changed(config: dict, key: str, old, new) -> None:
         if key not in node:
             continue
         tr = node[key]
-        if field and isinstance(tr, list) and isinstance(new, list):
+        if field and not (isinstance(tr, list) and isinstance(new, list)):
+            logger.warning("home_texts: i18n %s is not a list — translations left as is", key)
+            continue
+        if field:
             by_key = {}
             for item in _items(old):
                 by_key.setdefault(str(item.get(field, "")), item)
@@ -358,13 +381,14 @@ def put(
     """Записать тексты секции `key` из формы (`get(name, default)` — request.POST.get и т. п.).
 
     `base_fp` — отпечаток секции, с которым открыта форма; не совпал с `stored` (сохранённое
-    на начало запроса) — секция не пишется. `translating` — форма на языке перевода: значения
-    ложатся в поля как есть (их разложит `siteconfig.split_translation`), переводы не
-    выравниваются и не снимаются. Мутирует `config`; True — секция записана."""
+    на начало запроса) — секция не пишется (`STALE`). `translating` — форма на языке перевода:
+    значения ложатся в поля как есть (их разложит `siteconfig.split_translation`), переводы не
+    выравниваются и не снимаются. Мутирует `config`; `WRITTEN` — секция записана, `ABSENT` —
+    её полей в присланном нет."""
     from apps.tenants import siteconfig
 
     if key not in FIELDS or not isinstance(config, dict):
-        return False
+        return ABSENT
     if base_fp and stored is not None and base_fp != fingerprint(stored, key):
         from django.db import connection
 
@@ -373,25 +397,27 @@ def put(
             key,
             getattr(connection, "schema_name", ""),
         )
-        return False
+        return STALE
     current = values(config, key, tenant)
     raw = _read(key, get, current, notes)
     if raw is None:
-        return False
+        return ABSENT
     new = _build(config, key, raw, tenant)
     if key in SCALAR_KEYS:
         old = {name: config.get(name) for name in names(key)}
         if not translating:
             _drop_changed(config, key, old, new)
         config.update(new)
-        return True
+        return WRITTEN
     old = copy.deepcopy(config.get(key))
     if not translating:
         if key in siteconfig.LIST_OVERLAY_KEYS:
+            if not isinstance(old, list):
+                logger.warning("home_texts: stored %s is not a list — nothing to realign", key)
             siteconfig.realign_list_overlays(config, {key: new})
         _drop_changed(config, key, old, new)
     config[key] = new
-    return True
+    return WRITTEN
 
 
 def put_teaser_visibility(config: dict, get, tenant) -> None:
@@ -415,20 +441,85 @@ def put_form(
     translating: bool = False,
     notes: list | None = None,
     tenant=None,
-) -> None:
-    """Форма Студии: секции `keys`, у каждой — свой отпечаток `htx_base_<ключ>`."""
+) -> tuple[list[str], dict]:
+    """Форма Студии: секции `keys`, у каждой — свой отпечаток `htx_base_<ключ>`.
+
+    Форма с сентинелом `htx_base_present` без отпечатка присланной секции — устаревшая
+    (секция не пишется); без сентинела (вкладка, открытая до выкладки) — пишется, в лог —
+    сведение. Возвращает (пропущенные секции, {записанная секция: отпечаток}) — второе
+    сверяет `recheck` под блокировкой строки."""
+    stale, written = [], {}
+    sentinel = bool(get("htx_base_present", None))
     for key in keys:
-        base_fp = get(f"htx_base_{key}", None)
-        put(
+        base_fp = _s(get(f"htx_base_{key}", None)) or None
+        if base_fp is None and any(
+            get(name, None) is not None for name in values(config, key, tenant)
+        ):
+            if sentinel:
+                logger.info("home_texts: %s posted without its fingerprint — not written", key)
+                stale.append(key)
+                continue
+            logger.info("home_texts: %s posted by a form without fingerprints (old tab)", key)
+        result = put(
             config,
             key,
             get,
             translating=translating,
             notes=notes,
             tenant=tenant,
-            base_fp=_s(base_fp) or None,
+            base_fp=base_fp,
             stored=stored,
         )
+        if result == STALE:
+            stale.append(key)
+        elif result == WRITTEN:
+            written[key] = base_fp
+    return stale, written
+
+
+def _restore(config: dict, fresh: dict, key: str) -> None:
+    """Тексты секции и их переводы — как в свежей строке (секция не пишется этой формой)."""
+    stores = names(key) if key in SCALAR_KEYS else (key,)
+    for name in stores:
+        if name in fresh:
+            config[name] = copy.deepcopy(fresh[name])
+        else:
+            config.pop(name, None)
+    fresh_i18n = _dict(fresh.get("i18n"))
+    mine = config.get("i18n")
+    if not isinstance(mine, dict):
+        mine = {}
+    for loc in set(mine) | set(fresh_i18n):
+        node = dict(_dict(mine.get(loc)))
+        src = _dict(fresh_i18n.get(loc))
+        for name in stores:
+            if name in src:
+                node[name] = copy.deepcopy(src[name])
+            else:
+                node.pop(name, None)
+        if node:
+            mine[loc] = node
+        else:
+            mine.pop(loc, None)
+    if mine:
+        config["i18n"] = mine
+    else:
+        config.pop("i18n", None)
+
+
+def recheck(config: dict, fresh: dict, stale, written: dict) -> list[str]:
+    """Под блокировкой строки (A3, без гонки): секция, записанная по отпечатку, который уже не
+    совпадает со свежей строкой, и пропущенные секции — как в свежей строке. Возвращает
+    секции, ставшие устаревшими только сейчас."""
+    late = []
+    for key, base_fp in written.items():
+        if base_fp and base_fp != fingerprint(fresh, key):
+            logger.warning("home_texts: %s changed while saving — stale form not written", key)
+            _restore(config, fresh, key)
+            late.append(key)
+    for key in stale:
+        _restore(config, fresh, key)
+    return late
 
 
 def _path(key: str, name: str) -> tuple:
@@ -437,24 +528,35 @@ def _path(key: str, name: str) -> tuple:
     return (name,)
 
 
-def set_text(config: dict, key: str, name: str, value, locale: str = "") -> bool:
+def set_text(config: dict, key: str, name: str, value, locale: str = "") -> str:
     """Одно поле (канва, мастер). На языке перевода — перевод этого поля; на основном — база
-    тем же путём, что `put` (потолки, ссылка, снятие перевода изменённого поля). False —
-    поля нет в реестре (списки и архетипы так не пишутся)."""
+    тем же путём, что `put` (потолки, ссылка, снятие перевода изменённого поля). Итог —
+    `CHANGED`, `UNCHANGED`, `CAPPED` (записано обрезанным) или `REJECTED` (небезопасная ссылка,
+    не записано); "" — поля нет в реестре (списки и архетипы так не пишутся)."""
     from apps.tenants import siteconfig
 
     if key not in SCALAR_KEYS and key not in _NESTED:
-        return False
+        return ""
     spec = _spec(key, name)
     if spec is None or spec[2] == LIST:
-        return False
-    value = _s(value)
+        return ""
+    value = _nl(_s(value))
     if locale:
+        if spec[2] == URL and value and not _clean_url(value):
+            return REJECTED
+        result = CHANGED
         if len(value) > spec[3]:
             value = value[: spec[3]].strip()
+            result = CAPPED
         siteconfig.set_overlay_value(config, locale, _path(key, name), value)
-        return True
-    current = values(config, key)
+        return result
+    before = values(config, key)
+    current = dict(before)
     current[name] = value
-    put(config, key, current.get)
-    return True
+    notes: list = []
+    put(config, key, current.get, notes=notes)
+    if url_note(spec[1]) in notes:
+        return REJECTED
+    if siteconfig.cap_note() in notes:
+        return CAPPED
+    return UNCHANGED if values(config, key) == before else CHANGED

@@ -140,7 +140,11 @@ def save_hero(request, tenant) -> None:
     config = tenant.site_config if isinstance(tenant.site_config, dict) else {}
     # FB-33 стопка 15 M5e-1a: тексты главной — один писатель `home_texts`
     for name in ("hero_title", "hero_text"):
-        home_texts.set_text(config, "hero", name, request.POST.get(name, ""))
+        if (
+            home_texts.set_text(config, "hero", name, request.POST.get(name, ""))
+            == home_texts.CAPPED
+        ):
+            messages.warning(request, siteconfig.cap_note())
     _save_overlay_fields(request, config, ("hero_title", "hero_text"))
     uploaded = request.FILES.get("hero_image")
     if uploaded:
@@ -579,7 +583,8 @@ def _post_about(request):
 
     for f in ("about_title", "about_text"):
         if request.POST.get(f) is not None:
-            home_texts.set_text(cfg, "about", f, request.POST.get(f, ""))  # FB-33 стопка 15
+            if home_texts.set_text(cfg, "about", f, request.POST.get(f, "")) == home_texts.CAPPED:
+                messages.warning(request, siteconfig.cap_note())  # FB-33 стопка 15
     _save_overlay_fields(request, cfg, ("about_title", "about_text"))
     if request.POST.get("about_preset"):
         _page_presets.apply_page_preset(cfg, "info", request.POST.get("about_preset"))
