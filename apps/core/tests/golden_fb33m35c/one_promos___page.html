@@ -18,9 +18,15 @@
     
     
 
+<nav class="mt-3" aria-label="Bereiche des Blocks" data-window-tabs>
+  <ul class="flex flex-wrap gap-1">
+    <li><a href="?seite=promos&amp;block=__page&amp;tab=texte&amp;wopen=W#schema-tab-texte" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 text-gray-800 hover:bg-gray-50" data-window-tab-link="texte">Texte</a></li><li><a href="?seite=promos&amp;block=__page&amp;tab=seite&amp;wopen=W#schema-tab-seite" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-current="page" data-window-tab-link="seite">Seite</a></li>
+  </ul>
+</nav>
 
-<section id="schema-tab-seite" class="scroll-mt-20 focus:outline-none" data-window-tab="seite" tabindex="-1">
-  <h3 class="sr-only">Seite</h3>
+
+<section id="schema-tab-texte" class="scroll-mt-20 focus:outline-none" data-window-tab="texte" hidden>
+  <h3 class="sr-only">Texte</h3>
   <div data-window-part="fields">
 
 
@@ -34,7 +40,7 @@
   <fieldset class="space-y-3"><legend class="text-sm font-bold text-gray-900">Überschrift der Seite</legend>
   
   <div>
-    <label for="schema-f-title" class="block text-sm font-semibold text-gray-700 mb-1">Überschrift</label>
+    <label for="schema-f-title" class="block text-sm font-semibold text-gray-700 mb-1">Überschrift (H1)</label>
     
     <input type="text" id="schema-f-title" name="f_title" value="" maxlength="120" aria-describedby="schema-f-title-max" class="ui-input w-full">
     
@@ -51,16 +57,13 @@
     <p id="schema-f-intro-max" class="mt-1 text-xs text-gray-700">Höchstens 400 Zeichen.</p>
   </div>
   
-  <div>
-    <label for="schema-f-align" class="block text-sm font-semibold text-gray-700 mb-1">Ausrichtung</label>
-    
-    <select id="schema-f-align" name="f_align" class="ui-input w-full">
-      <option value="" selected>Links</option><option value="center">Zentriert</option>
-    </select>
-    
-    
-    
-  </div>
+  <fieldset data-schema-align>
+    <legend class="block text-sm font-semibold text-gray-700 mb-1">Ausrichtung</legend>
+    <div class="flex flex-wrap gap-x-6">
+      <label for="schema-f-align-left" class="inline-flex items-center gap-2 min-h-[44px] text-sm text-gray-700"><input type="radio" id="schema-f-align-left" name="f_align" value="" checked class="h-4 w-4">Links</label>
+      <label for="schema-f-align-center" class="inline-flex items-center gap-2 min-h-[44px] text-sm text-gray-700"><input type="radio" id="schema-f-align-center" name="f_align" value="center" class="h-4 w-4">Mittig</label>
+    </div>
+  </fieldset>
   </fieldset>
   
   <button name="op" value="update" class="ui-btn ui-btn-primary w-full">Übernehmen<span class="sr-only">: Seitentitel</span></button>
@@ -68,8 +71,13 @@
 </form>
 
 
-</div><div data-window-part="settings">
-<h4 class="mt-5 text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">Einstellungen dieser Seitenart</h4>
+</div>
+</section>
+
+<section id="schema-tab-seite" class="scroll-mt-20 focus:outline-none" data-window-tab="seite" tabindex="-1">
+  <h3 class="sr-only">Seite</h3>
+  <div data-window-part="settings">
+
 <div class="mt-4 space-y-2" data-schema-settings>
 
   
