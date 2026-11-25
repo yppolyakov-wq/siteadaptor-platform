@@ -12,7 +12,7 @@
 | `admin.py` | Чистка платформенной админки (public-схема). | 1 | 0 |  |
 | `admin_dashboard.py` | KPI-дашборд платформенной админки (unfold DASHBOARD_CALLBACK). | 0 | 0 |  |
 | `apps.py` | — описания нет | 0 | 0 |  |
-| `archetypes.py` | M20U: «главный товар» по архетипу — primary_item registry. | 26 | 6 | aggregator, booking, catalog, inventory, promotions, tenants |
+| `archetypes.py` | M20U: «главный товар» по архетипу — primary_item registry. | 27 | 6 | aggregator, booking, catalog, inventory, promotions, tenants |
 | `assistant.py` | AIS-A A-0: ядро шторки «✨ Assistent» — без ИИ, только чтение. | 6 | 0 |  |
 | `assistant_actions.py` | AIS A-4a: «KI-Aktionen» — пакет «создать» из помощника с предпросмотром и откатом. | 7 | 0 |  |
 | `assistant_ai.py` | AIS A-2: ИИ-ответ на свободный вопрос в шторке «✨ Assistent». | 8 | 1 | scripts |
@@ -87,10 +87,10 @@
 | `extras.py` | Универсальный движок Extras (#7): доп-услуги к брони на все архетипы. | 11 | 5 | booking, events, finance, stays, tenants |
 | `extras_pages.py` | UX-D D6.1: «Zusatzleistungen» — список строками, «＋ Zusatzleistung» шторкой и страница | 2 | 1 | config |
 | `facets.py` | UB2-1: протокол `FacetProvider` — единый интерфейс фасетов листингов витрины. | 15 | 6 | booking, catalog, events, promotions, stays, tenants |
-| `faq_content.py` | FB-33 M3-5b: вопросы FAQ сайта — один писатель (`site_config["faq"]` и его переводы). | 6 | 0 |  |
+| `faq_content.py` | FB-33 M3-5b: вопросы FAQ сайта — один писатель (`site_config["faq"]` и его переводы). | 7 | 1 | tenants |
 | `faq_views.py` | FB-33 M2b-2a: виды блока FAQ — ЕДИНСТВЕННЫЙ список видов FAQ на всех страницах. | 5 | 1 | tenants |
 | `finder.py` | FD-1: Finder «вопросы → 3 предложения» — rule-based guided selling. | 5 | 2 | promotions, tenants |
-| `folio.py` | KA-12 B2-3: фолио платежей сделки (`core.DealPayment`). | 15 | 6 | booking, events, finance, jobs, orders, stays |
+| `folio.py` | KA-12 B2-3: фолио платежей сделки (`core.DealPayment`). | 16 | 6 | booking, events, finance, jobs, orders, stays |
 | `form_answers.py` | FB-33 M2i: свои вопросы формы и ответы на них — чистое ядро (без моделей и site_config). | 11 | 3 | account, jobs, orders |
 | `form_fields.py` | KA-M2: денежное поле, которое понимает «12,50» на любом языке кабинета. | 6 | 3 | catalog, events, promotions |
 | `form_spec.py` | FB-33 M2i: «Поля форм» — какие поля формы заявки и оформления спрашивать и какие обязательны. | 11 | 3 | jobs, orders, tenants |
@@ -101,6 +101,7 @@
 | `health.py` | Health / readiness endpoints. | 3 | 1 | config |
 | `help_articles.py` | AIS A-1: статьи справки шторки «✨ Assistent» — реестр в коде, поиск без ИИ. | 3 | 0 |  |
 | `hero_tiles.py` | Первый экран «ловит направления» (фидбэк владельца 2026-07-30): плитки-входы | 7 | 1 | tenants |
+| `home_texts.py` | FB-33 стопка 15 M5e-1a: тексты секций главной — один писатель. | 3 | 1 | tenants |
 | `i18n_cabinet.py` | T1 (FB-12): язык КАБИНЕТА (админ-панели) — отдельно от языка витрины. | 7 | 2 | platform_bot, tenants |
 | `i18n_input.py` | L3d: per-locale ввод для моделей с overlay-семантикой i18n. | 23 | 6 | booking, catalog, collections, events, promotions, stays |
 | `i18n_json.py` | Overlay-переводы для ВЛОЖЕННОГО JSON (аудит переводов демо 2026-08-13). | 2 | 2 | events, tenants |
@@ -139,13 +140,13 @@
 | `media_registry.py` | CM-4: карта мест хранения FileRef-медиа + операции реестра. | 4 | 0 |  |
 | `media_views.py` | P0-2 (аудит 2026-09-03 §9.3): раздача /media/ с deny-list'ом приватных префиксов. | 4 | 1 | config |
 | `middleware.py` | Гейтинг модулей кабинета (Track D / D0a): неактивный модуль → 404. | 1 | 0 |  |
-| `models.py` | Базовые абстрактные модели и миксины для всех TENANT-приложений. | 88 | 25 | aggregator, booking, catalog, collections, community, crm |
+| `models.py` | Базовые абстрактные модели и миксины для всех TENANT-приложений. | 87 | 25 | aggregator, booking, catalog, collections, community, crm |
 | `module_presets.py` | AIS-M M-1: замороженные исторические пресеты модулей по типу бизнеса. | 1 | 0 |  |
 | `module_report.py` | AIS-M M-1e: какие живые бизнесы держат исторический пресет модулей. | 1 | 1 | tenants |
 | `modules.py` | Реестр модулей кабинета (Track D / D0a) — только код, без таблиц. | 32 | 5 | crm, imports, orders, promotions, tenants |
 | `money.py` | KA-M2: разбор суммы, введённой человеком, независимо от языка интерфейса. | 25 | 9 | booking, catalog, events, finance, inventory, jobs |
 | `money_contract.py` | KA-MC: денежный контракт сделки — единое чтение «сколько стоит / оплачено / | 27 | 7 | booking, events, finance, jobs, orders, stays |
-| `nav_registry.py` | W8: ЕДИНЫЙ реестр навигации кабинета (план w8-nav-registry-plan-2026-08-05.md). | 10 | 1 | tenants |
+| `nav_registry.py` | W8: ЕДИНЫЙ реестр навигации кабинета (план w8-nav-registry-plan-2026-08-05.md). | 11 | 2 | orders, tenants |
 | `next_steps.py` | AIS W4-5c: карточки «Nächster Schritt» на главной кабинета (мастер v4). | 1 | 0 |  |
 | `not_found_page.py` | FB-33 M5a: страница 404 витрины — хост блоков `not_found` (решение владельца K4, | 2 | 1 | tenants |
 | `not_found_views.py` | FB-33 M5a: страница 404 витрины с блоками владельца и её превью для «Seitenaufbau». | 1 | 1 | config |
@@ -177,7 +178,7 @@
 | `pagination.py` | Keyset (cursor) пагинация. Спецификация: docs/references/patterns/cursor-pagination.md. | 18 | 9 | aggregator, crm, events, finance, inbox, orders |
 | `palette_search.py` | X8: поиск по ДАННЫМ для палитры Ctrl+K (план x8-palette-data-plan-2026-08-19). | 3 | 1 | finance |
 | `payment_cards.py` | FB-30.12b: вкладка «Zahlung» карточками (макет 7, `docs/fb30-plan-2026-11-15.md` §12b). | 1 | 0 |  |
-| `payment_holds.py` | SH-23d (решение владельца Р-4): удержание места без оплаты. | 10 | 6 | billing, booking, events, finance, orders, stays |
+| `payment_holds.py` | SH-23d (решение владельца Р-4): удержание места без оплаты. | 11 | 6 | billing, booking, events, finance, orders, stays |
 | `payment_methods.py` | SH-23 (фидбэк владельца 2026-09-03): «для каждого типа заказа всех архетипов | 23 | 7 | booking, events, finance, jobs, orders, promotions |
 | `payments_page.py` | R7-3: «Zahlungen» — отдельная поверхность оплат (фидбэк владельца 2026-08-24 | 1 | 0 |  |
 | `perm_grants.py` | KA-12 E6.7c-2: единственный писатель прав и ролей команды. | 2 | 0 |  |
