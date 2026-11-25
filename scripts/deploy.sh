@@ -274,6 +274,15 @@ if ! $COMPOSE exec -T web python manage.py form_i18n_realign; then
 	echo "!!! Those sites still show old positional translations of event types; re-run:"
 	echo "!!! python manage.py form_i18n_realign"
 fi
+# FB-33 стопка 15 E8c: блок «Suche» (site_search) живёт только на странице 404; старые конфиги
+# с ним на других страницах снимают его при чтении (лог на каждый запрос). Разовая чистка
+# хранимых списков (переводы едут за своими блоками, страница, где он был один, — «ПУСТО»).
+# Вид сайта не меняется; повтор — no-op; сбой деплой не останавливает.
+if ! $COMPOSE exec -T web python manage.py drop_stray_site_search; then
+	echo "!!! WARN: drop_stray_site_search FAILED or skipped busy sites (see lines above)."
+	echo "!!! Those sites still drop the search block at read time; re-run:"
+	echo "!!! python manage.py drop_stray_site_search"
+fi
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then
 	echo "OK: readiness passed"

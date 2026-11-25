@@ -61,7 +61,6 @@ def _messy():
     }
 
 
-@pytest.mark.xfail(strict=True, reason="E8c: команды ещё нет")
 def test_only_site_search_removed_bytes_else_same():
     """№6: снят только `site_search` вне 404; всё прочее — байт в байт."""
     tenant = TenantFactory(site_config=_messy())
@@ -73,7 +72,6 @@ def test_only_site_search_removed_bytes_else_same():
     assert _cfg(tenant) == expected
 
 
-@pytest.mark.xfail(strict=True, reason="E8c: команды ещё нет")
 def test_not_found_kept():
     tenant = TenantFactory(site_config={"page_blocks": {"not_found": [SEARCH, TEXT]}})
     out = _run()
@@ -81,7 +79,6 @@ def test_not_found_kept():
     assert f"{tenant.schema_name}:" not in out  # сайт без изменений не перечисляется
 
 
-@pytest.mark.xfail(strict=True, reason="E8c: команды ещё нет")
 def test_idempotent():
     tenant = TenantFactory(site_config=_messy())
     _run()
@@ -91,7 +88,6 @@ def test_idempotent():
     assert "сайтов изменено 0" in out
 
 
-@pytest.mark.xfail(strict=True, reason="E8c: команды ещё нет")
 def test_dry_run_writes_nothing():
     tenant = TenantFactory(site_config=_messy())
     with mock.patch("apps.core.pagecache.bump_storefront_cache") as bump:
@@ -102,7 +98,6 @@ def test_dry_run_writes_nothing():
     assert "сайтов к чистке 1" in out
 
 
-@pytest.mark.xfail(strict=True, reason="E8c: команды ещё нет")
 def test_empty_host_reported():
     """№8 (§9 №6): хост, где поиск был единственным, остаётся `[]` и помечен «ПУСТО»."""
     tenant = TenantFactory(
@@ -113,11 +108,23 @@ def test_empty_host_reported():
     line = next(ln for ln in out.splitlines() if ln.startswith(f"{tenant.schema_name}:"))
     assert "cart" in line and "ПУСТО" in line
     assert line.count("ПУСТО") == 1
-    # и показ: пустой список хранится — блоков по умолчанию не появляется
-    assert siteconfig.normalize(_cfg(tenant))["page_blocks"]["cart"] == []
+    # и показ — тот же, что давало снятие при чтении: страница без блоков
+    assert siteconfig.page_rows(siteconfig.normalize(_cfg(tenant)), "cart") == []
 
 
-@pytest.mark.xfail(strict=True, reason="E8c: команды ещё нет")
+@pytest.mark.parametrize("host", ["catalog", "cart", "catalog:x", "seite:x", "product"])
+def test_shown_rows_same_as_read_time_drop(host):
+    """План §1 E8c: вывод тот же, что сейчас (поиск уже снят при чтении)."""
+    raw = {"page_blocks": {host: [SEARCH, TEXT] if host == "catalog" else [SEARCH]}}
+    tenant = TenantFactory(site_config=copy.deepcopy(raw))
+    before = siteconfig.page_rows(siteconfig.normalize(raw), host)
+    _run()
+    assert siteconfig.page_rows(siteconfig.normalize(_cfg(tenant)), host) == before
+    assert siteconfig.has_own_schema(siteconfig.normalize(_cfg(tenant)), host) is (
+        siteconfig.has_own_schema(siteconfig.normalize(raw), host)
+    )
+
+
 def test_under_lock():
     """№9: строка сайта читается и пишется под `select_for_update` внутри транзакции."""
     tenant = TenantFactory(site_config=_messy())
@@ -134,7 +141,6 @@ def test_under_lock():
     assert seen == [(Tenant, tenant.pk, True)]
 
 
-@pytest.mark.xfail(strict=True, reason="E8c: команды ещё нет")
 def test_cache_bumped_on_commit(django_capture_on_commit_callbacks):
     """№13: сброс кэша витрины — после коммита, а не до."""
     tenant = TenantFactory(site_config=_messy())
@@ -148,7 +154,6 @@ def test_cache_bumped_on_commit(django_capture_on_commit_callbacks):
     bump.assert_called_once_with(tenant.schema_name)
 
 
-@pytest.mark.xfail(strict=True, reason="E8c: команды ещё нет")
 def test_cleanup_keeps_translations_on_their_blocks():
     """A5: переводы по позиции (`i18n[loc][sections|page_blocks][host][i]`) едут за своими
     блоками — после снятия поиска перевод «Infotext» стоит у «Infotext», не у соседа."""
@@ -179,3 +184,13 @@ def test_cleanup_keeps_translations_on_their_blocks():
     assert text["data"]["title"] == "Инфо"
     cat = next(b for b in shown["page_blocks"]["catalog"] if b.get("id") == "t1")
     assert cat["data"]["title"] == "Инфо-к"
+
+
+def test_deploy_runs_cleanup_after_form_i18n_realign_with_warn():
+    """План §2 E8c: шаг `deploy.sh` после `form_i18n_realign`, сбой — WARN, не остановка."""
+    from pathlib import Path
+
+    sh = Path("scripts/deploy.sh").read_text()
+    step = sh.index(f"if ! $COMPOSE exec -T web python manage.py {CMD}; then")
+    assert sh.index("manage.py form_i18n_realign; then") < step
+    assert sh.index(f"!!! WARN: {CMD} FAILED", step) > step
