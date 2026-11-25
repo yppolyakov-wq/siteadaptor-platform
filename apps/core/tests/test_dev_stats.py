@@ -220,6 +220,8 @@ def test_history_head_names_the_cancelled_column():
 def test_increment_skill_holds_the_ci_push_rule():
     text = (mod_root() / ".claude/skills/sa-increment/SKILL.md").read_text(encoding="utf-8")
     assert "T-18" in text and "не перебивать" in text and "--ci-cancelled" in text
+    # стопка 15 держала план непушнутым: правило — про отмену прогона, не про запрет пуша
+    assert "План (P0) — граница среза" in text and "Непушнутое теряется" in text
     assert "--ci-cancelled" in (mod_root() / "scripts/stack_close.py").read_text(encoding="utf-8")
 
 
