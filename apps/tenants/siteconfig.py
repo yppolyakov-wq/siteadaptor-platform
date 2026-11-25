@@ -23,7 +23,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.catalog.category_styles import VALID_PAGE_STYLES as _CATEGORY_PAGE_STYLES
 from apps.catalog.category_styles import VALID_ROOT_STYLES as _ROOT_PAGE_STYLES
 from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
-from apps.core import card_forms, detail_sections, faq_content, faq_views
+from apps.core import card_forms, detail_sections, faq_content, faq_views, home_texts
 from apps.promotions.group_styles import VALID_GROUP_STYLES as _GROUP_PAGE_STYLES
 from apps.promotions.group_styles import VALID_PROMO_PAGE_STYLES as _PROMO_PAGE_STYLES
 from apps.promotions.group_styles import (
@@ -4107,18 +4107,13 @@ def text_to_usp(text: str) -> list[dict]:
 
 # Поля контент-секций (CTA/FAQ/Testimonials/Process/Team/Trust), общие для формы
 # «Site» и конструктора главной (M20d). Имена полей едины во всех формах.
-CONTENT_FIELDS = (
-    "cta_title",
-    "cta_text",
-    "cta_button_label",
-    "cta_button_url",
+# FB-33 стопка 15 M5e-1a (A14): источник имён — `home_texts.FIELDS`, здесь — производный
+# кортеж плюс поля, которые пишет не `home_texts` (FAQ — `faq_content`, полоса доверия).
+CONTENT_FIELDS = tuple(
+    name for key in home_texts.CONTENT_KEYS for name in home_texts.names(key)
+) + (
     "faq_text",
     "faq_present",  # LAY-1b: сентинел пар полей FAQ (см. _faq_from_form)
-    "testimonials_text",
-    "process_text",
-    "team_text",
-    "trust_since",
-    "trust_marks",
     "usp_text",
 )
 
@@ -4145,40 +4140,50 @@ def _faq_from_form(get) -> list[dict]:
     return pairs
 
 
-def parse_content_sections(get) -> dict:
-    """M20d: разобрать контент-секции из формы в фрагмент site_config.
-
-    `get(name, default="")` — request.POST.get / data.get (один код на «Site»,
-    билдер и live-preview-черновик). Возвращает {cta, faq, testimonials, process,
-    team, trust} для слияния в config."""
+def parse_content_section(key: str, get):
+    """FB-33 стопка 15 M5e-1a: одна контент-секция из формы — единственный разбор (его зовут
+    `parse_content_sections` и писатель `home_texts.put`). `get(name, default="")`."""
 
     def g(name):
         return get(name, "") or ""
 
-    out = {
-        "cta": {
+    if key == "cta":
+        return {
             "title": g("cta_title"),
             "text": g("cta_text"),
             "button_label": g("cta_button_label"),
             "button_url": g("cta_button_url"),
-        },
-        "faq": _faq_from_form(get),
-        "testimonials": text_to_testimonials(g("testimonials_text")),  # GK-6: 4-part
-        "process": text_to_pairs(g("process_text"), "title", "text"),
-        "team": [
+        }
+    if key == "testimonials":
+        return text_to_testimonials(g("testimonials_text"))  # GK-6: 4-part
+    if key == "process":
+        return text_to_pairs(g("process_text"), "title", "text")
+    if key == "team":
+        return [
             {"name": p["name"], "role": p["text"], "photo": ""}
             for p in text_to_pairs(g("team_text"), "name", "text")
-        ],
-        "trust": {
+        ]
+    if key == "trust":
+        return {
             "since": g("trust_since").strip(),
             "marks": [m.strip() for m in g("trust_marks").splitlines() if m.strip()],
-        },
-    }
+        }
+    raise KeyError(key)
+
+
+def parse_content_sections(get) -> dict:
+    """M20d: разобрать контент-секции из формы в фрагмент site_config.
+
+    `get(name, default="")` — request.POST.get / data.get. Возвращает {cta, faq, testimonials,
+    process, team, trust} (+ usp_bar). Секции главной пишет `home_texts.put` (FB-33 стопка 15
+    M5e-1a) тем же разбором `parse_content_section`; здесь — сборка из него."""
+    out = {key: parse_content_section(key, get) for key in home_texts.CONTENT_KEYS}
+    out["faq"] = _faq_from_form(get)
     # FB-32 S2: пункты полосы доверия правит «Seitenaufbau»; форма Студии их больше не
     # шлёт — пишем, только если поле прислано (демо-киты, старый черновик), иначе Save
     # Студии стёр бы пункты
     if get("usp_text", None) is not None:
-        out["usp_bar"] = text_to_usp(g("usp_text"))
+        out["usp_bar"] = text_to_usp(get("usp_text", "") or "")
     return out
 
 
