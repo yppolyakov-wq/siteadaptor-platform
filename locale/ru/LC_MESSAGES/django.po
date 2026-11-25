@@ -41108,6 +41108,12 @@ msgstr "fb33-stack-anchor-s15-m5e1b"
 msgid "fb33-stack-anchor-s15-m5e2a"
 msgstr "fb33-stack-anchor-s15-m5e2a"
 
+msgid "Preis, Bedingungen und Gutscheincode der Aktion"
+msgstr "Цена, условия и код купона акции"
+
+msgid "Aktion bearbeiten"
+msgstr "Изменить акцию"
+
 msgid "fb33-stack-anchor-s15-m5e2b"
 msgstr "fb33-stack-anchor-s15-m5e2b"
 
