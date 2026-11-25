@@ -1,10 +1,19 @@
+from django.contrib.auth.decorators import login_required
 from django.urls import path
+from django.views.generic import RedirectView
 
 from . import options_views, views
 
 app_name = "catalog"
 
 urlpatterns = [
+    # FB-33 стопка 15 K0: корень префикса — экран товаров (пункт «Produkte» живёт в
+    # «Sortiment», решение владельца §14.3); без него `/catalog/` ловила страница витрины → 500.
+    path(
+        "",
+        login_required(RedirectView.as_view(pattern_name="sellable-manage")),
+        name="index",
+    ),
     path("products/", views.product_list, name="product-list"),
     # Фидбэк 2026-08-04: слияние отдельных товаров в одну карточку с вариантами.
     path("products/merge/", views.products_merge, name="products-merge"),

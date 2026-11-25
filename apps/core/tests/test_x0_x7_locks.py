@@ -73,6 +73,9 @@ EXPECTED_UNLISTED = frozenset(
         "shipping-method-new",
         # [302] FB-33 M4: ⚙ Студии → окно блока «Seitenaufbau» (только переход)
         "site-schema-open",
+        # [302] FB-33 K0: корни /catalog/ и /imports/ — редирект на экран пункта меню
+        "catalog:index",
+        "imports:index",
         # [POST] приёмники и action-роуты
         "billing-checkout",
         "integrations-telegram-activate",  # T-8.29: POST с карточки «Integrationen»
