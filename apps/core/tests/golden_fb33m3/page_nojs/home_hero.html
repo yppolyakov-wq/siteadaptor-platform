@@ -688,7 +688,7 @@
   
   <aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
     
-    <form method="post" class="xl:hidden -mt-1 mb-1 text-right"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W">
+    <form method="post" class="xl:hidden -mt-1 mb-1 text-right"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 <input type="hidden" name="ref" value="hero"><button name="op" value="window_done" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></button></form>
     
     
@@ -704,7 +704,7 @@
   <summary class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 bg-white cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">⋯</span><span class="sr-only">Weitere Aktionen: Begrüßungsbanner</span></summary>
   <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
     <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
-      <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W">
+      <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
       
       <input type="hidden" name="ref" value="hero">
@@ -724,7 +724,7 @@
 
 <nav class="mt-3" aria-label="Bereiche des Blocks" data-window-tabs>
   <ul class="flex flex-wrap gap-1">
-    <li><a href="?seite=home&amp;block=hero&amp;tab=was&amp;wopen=W#schema-tab-was" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-current="page" data-window-tab-link="was">Was</a></li><li><a href="?seite=home&amp;block=hero&amp;tab=seite&amp;wopen=W#schema-tab-seite" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 text-gray-800 hover:bg-gray-50" data-window-tab-link="seite">Seite</a></li>
+    <li><a href="?seite=home&amp;block=hero&amp;tab=was&amp;wopen=W#schema-tab-was" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-current="page" data-window-tab-link="was">Was</a></li><li><a href="?seite=home&amp;block=hero&amp;tab=texte&amp;wopen=W#schema-tab-texte" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 text-gray-800 hover:bg-gray-50" data-window-tab-link="texte">Texte</a></li><li><a href="?seite=home&amp;block=hero&amp;tab=seite&amp;wopen=W#schema-tab-seite" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 text-gray-800 hover:bg-gray-50" data-window-tab-link="seite">Seite</a></li>
   </ul>
 </nav>
 
@@ -752,16 +752,69 @@
 
 
 <form method="post" id="schema-pick-form"><input type="hidden" name="csrfmiddlewaretoken" value="X">
-  <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
   <input type="hidden" name="ref" value="hero">
 </form>
 <form method="get" id="schema-lookup-form" action="#schema-panel">
-  <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
   <input type="hidden" name="block" value="hero">
 </form>
 
+</div>
+</section>
+
+<section id="schema-tab-texte" class="scroll-mt-20 focus:outline-none" data-window-tab="texte" hidden>
+  <h3 class="sr-only">Texte</h3>
+  <div data-window-part="hometext">
+<form method="post" id="bw-form-hometext" class="mt-4 space-y-3" data-schema-fields>
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
+
+  <input type="hidden" name="ref" value="hero">
+  <input type="hidden" name="panel_present" value="1">
+  <input type="hidden" name="f_htx_present" value="1">
+  <input type="hidden" name="f_htx_fp" value="b96afead31c0e6ee">
+  <input type="hidden" name="op_default" value="update">
+  <input type="hidden" name="op" value="update"><button name="op" value="update" class="sr-only" tabindex="-1">Übernehmen</button>
+  <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-langs>
+    <p id="bwtr-lang-title" class="text-sm font-semibold text-gray-800">Übersetzung bearbeiten</p>
+    <div class="flex flex-wrap gap-2" role="group" aria-labelledby="bwtr-lang-title" aria-describedby="bwtr-lang-hint">
+      <button id="schema-tab-lang-en" name="f_sprache" value="en" lang="en" aria-pressed="true" class="ui-btn ui-btn-primary min-h-[44px]" data-form-lang="en"><span aria-hidden="true">✓ </span>English</button>
+    </div>
+    <p id="bwtr-lang-hint" class="text-xs text-gray-700">Leeres Feld: Die Seite zeigt den Text unter „Ohne Übersetzung“.</p><p role="status" aria-atomic="true" class="text-xs font-semibold text-gray-800" data-form-status data-said="" data-prefix="Übersetzung entfernt, weil der deutsche Text geändert wurde: "></p>
+
+  </div>
+  <p id="bw-htx-hint" class="text-xs text-gray-700">Dieselben Felder wie im Studio.</p>
+  <div>
+    <label for="schema-f-hero_title" class="block text-sm font-semibold text-gray-700 mb-1">Banner-Überschrift</label>
+    <input type="text" id="schema-f-hero_title" name="f_hero_title" value="" maxlength="120" aria-describedby="bw-htx-hint" class="ui-input w-full">
+    
+    
+    <div data-i18n-loc="en">
+      <label for="schema-f-hero_title-en" class="mt-1 block text-xs text-gray-700"><span lang="de">„Banner-Überschrift“</span> – Übersetzung (English)</label>
+      <input type="text" id="schema-f-hero_title-en" name="f_tr_hero_title_en" value="" lang="en" maxlength="120" aria-describedby="schema-f-hero_title-en-src bwtr-lang-hint" class="ui-input w-full">
+      <p id="schema-f-hero_title-en-src" class="mt-1 text-xs text-gray-700">Ohne Übersetzung: <span lang="de" class="break-words">—</span></p>
+    </div>
+
+  </div>
+<div>
+    <label for="schema-f-hero_text" class="block text-sm font-semibold text-gray-700 mb-1">Bannertext</label>
+    <textarea id="schema-f-hero_text" name="f_hero_text" rows="3" maxlength="2000" class="ui-input w-full resize-y [field-sizing:content] max-h-[60vh] overflow-y-auto"></textarea>
+    
+    
+    <div data-i18n-loc="en">
+      <label for="schema-f-hero_text-en" class="mt-1 block text-xs text-gray-700"><span lang="de">„Bannertext“</span> – Übersetzung (English)</label>
+      <textarea id="schema-f-hero_text-en" name="f_tr_hero_text_en" rows="4" lang="en" maxlength="2000" aria-describedby="schema-f-hero_text-en-src bwtr-lang-hint" class="ui-input w-full"></textarea>
+      <p id="schema-f-hero_text-en-src" class="mt-1 text-xs text-gray-700">Ohne Übersetzung: <span lang="de" class="break-words">—</span></p>
+    </div>
+
+  </div>
+
+  
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full">Übernehmen</button>
+</form>
 </div>
 </section>
 
@@ -785,7 +838,7 @@
   </summary>
   <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="home_hero" data-pt-setting="home_hero">
     <input type="hidden" name="csrfmiddlewaretoken" value="X">
-    <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W">
+    <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
     <input type="hidden" name="ref" value="hero">
     <input type="hidden" name="op" value="setting">
@@ -875,7 +928,7 @@
 
 <form method="post" class="mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-3" data-window-actions data-wait-error="Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen.">
   <input type="hidden" name="csrfmiddlewaretoken" value="X">
-  <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
   <input type="hidden" name="ref" value="hero">
   <button name="op" value="revert" class="ui-btn ui-btn-secondary min-h-[44px]">Abbrechen</button>

@@ -33,6 +33,12 @@
     
     <p class="mt-3 text-xs text-gray-600" data-schema-family>Gehört zu: Team</p>
     
+<button type="submit" form="bw-form-fields" name="op" value="update" class="sr-only" tabindex="-1" aria-hidden="true" data-window-default>Übernehmen</button><p id="bw-nav-apply" hidden>Ihre Eingaben werden beim Wechsel übernommen.</p><input type="hidden" form="bw-form-fields" name="bw_tabs" value="wie texte">
+<nav class="mt-3" aria-label="Bereiche des Blocks" data-window-tabs>
+  <ul class="flex flex-wrap gap-1">
+    <li><a href="?seite=home&amp;block=team&amp;tab=wie&amp;wopen=W#schema-tab-wie" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-current="true" data-window-tab-link="wie">Wie anordnen</a></li><li><button type="submit" form="bw-form-fields" name="zu_tab" value="texte" formnovalidate aria-describedby="bw-nav-apply" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 text-gray-800 hover:bg-gray-50" data-window-tab-link="texte">Texte</button></li>
+  </ul>
+</nav>
 
 
 <section id="schema-tab-wie" class="scroll-mt-20 focus:outline-none" data-window-tab="wie" tabindex="-1">
@@ -146,6 +152,41 @@
 <p id="schema-width-hint" class="mt-2 text-xs text-gray-600">Auf dem Telefon stehen alle Blöcke untereinander, immer volle Breite. Auf der Website sichtbar nach «Speichern».</p>
 </div>
 
+</div>
+</section>
+
+<section id="schema-tab-texte" class="scroll-mt-20 focus:outline-none" data-window-tab="texte" hidden>
+  <h3 class="sr-only">Texte</h3>
+  <div data-window-part="hometext">
+<form method="post" id="bw-form-hometext" class="mt-4 space-y-3" data-schema-fields>
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="tab" value="wie"><input type="hidden" name="wopen" value="W">
+
+  <input type="hidden" name="ref" value="team">
+  <input type="hidden" name="panel_present" value="1">
+  <input type="hidden" name="f_htx_present" value="1">
+  <input type="hidden" name="f_htx_fp" value="0f0fb5a6680976ae">
+  <input type="hidden" name="op_default" value="update">
+  <p id="bw-htx-hint" class="text-xs text-gray-700">Dieselben Felder wie im Studio.</p>
+  
+  <fieldset class="space-y-2 rounded-lg border border-gray-200 p-3">
+    <legend class="px-1 text-sm font-bold text-gray-900">Mitglied 1 – neu – leer lassen, wenn nicht benötigt</legend>
+    <div>
+    <label for="schema-f-htx_team_0_name" class="block text-sm font-semibold text-gray-700 mb-1">Name</label>
+    <input type="text" id="schema-f-htx_team_0_name" name="f_htx_team_0_name" value="" maxlength="120" aria-describedby="bw-htx-hint" class="ui-input w-full">
+    
+    
+  </div>
+<div>
+    <label for="schema-f-htx_team_0_role" class="block text-sm font-semibold text-gray-700 mb-1">Rolle</label>
+    <input type="text" id="schema-f-htx_team_0_role" name="f_htx_team_0_role" value="" maxlength="120" class="ui-input w-full">
+    
+    
+  </div>
+
+  </fieldset>
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full">Übernehmen</button>
+</form>
 </div>
 </section>
 

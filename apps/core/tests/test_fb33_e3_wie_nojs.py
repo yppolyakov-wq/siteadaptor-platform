@@ -183,6 +183,9 @@ def test_default_submit_is_update():
 # --- охранные --------------------------------------------------------------------------------
 
 
+WIE_LINKS_ONLY = frozenset({"usp_bar"})
+
+
 def _style_render(ref):
     b = Browser(_shop(STYLE_CFG))
     return _normalize(_get(b, f"?seite=home&block={ref}&tab=wie")) + "\n"
@@ -190,7 +193,9 @@ def _style_render(ref):
 
 @pytest.mark.parametrize("ref", STYLE_REFS)
 def test_wie_fields_style_tab_unchanged(ref):
-    """Решение владельца: «Wie» у блоков без вида списка — байт-в-байт (снимок до E3)."""
+    """«Wie» у блоков с видом в форме `fields` — по снимку. Стопка 14 держала здесь ссылки
+    вкладок (решение владельца 2026-11-24 — только списки); стопка 15 S14-E3-wie (план §2,
+    §14.1 A17) применяет и эти формы кнопкой вкладки: `zu_tab` и кнопка по умолчанию есть."""
     got = _style_render(ref)
     path = GOLDEN / f"wie_{ref}.html"
     if os.environ.get("FB33_E3_REGEN") == "1":
@@ -198,7 +203,12 @@ def test_wie_fields_style_tab_unchanged(ref):
         path.write_text(got)
         pytest.fail("регенерация снимков — перезапусти без FB33_E3_REGEN")
     assert got == path.read_text(), path.name
-    assert "zu_tab" not in got and "data-window-default" not in got
+    # `usp_bar` несёт ещё часть «texte» с формой — у окна не одна применяемая часть, вкладки
+    # остаются ссылками (`len(mine) != 1`); у прочих — кнопка вкладки и кнопка по умолчанию.
+    if ref in WIE_LINKS_ONLY:
+        assert "zu_tab" not in got and "data-window-default" not in got
+    else:
+        assert 'name="zu_tab"' in got and "data-window-default" in got
 
 
 @pytest.mark.parametrize("case", [c for c in m33.CASES if c[1] != "l1"], ids="|".join)
