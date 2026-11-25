@@ -340,6 +340,10 @@ def visible_text(pg, scope: str) -> str:
     )
 
 
+#: адрес или путь сайта в подсказке («/kontakt», «https://…»): пример ввода, а не строка интерфейса
+_PATH_OR_URL = re.compile(r"(?<![\w/])(?:https?://\S*|/[\w-]+(?:/[\w-]*)*/?)")
+
+
 class Content:
     """Данные бизнеса: вырезаются из текста до поиска немецкого (это не интерфейс)."""
 
@@ -369,6 +373,7 @@ def german(text: str, content: Content | None, rep: Report | None = None) -> lis
     """Немецкие слова интерфейса в тексте ru (с контекстом строки)."""
     text = _SOURCE_LIST.sub(" ", text)  # до данных: «Без» может оказаться словом содержимого
     text = _LEGAL_QUOTE.sub(" ", text)
+    text = _PATH_OR_URL.sub(" ", text)  # «/kontakt», «https://…» — адрес-пример, не интерфейс
     if content is not None:
         text = content.strip(text)
     found = []
