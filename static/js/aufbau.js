@@ -233,6 +233,9 @@ function aufbauSubmitCopy(form, submitter) {
         // FB-33 M3-7: правка записана — «Vorschau» окна перерисует кадр
         if (!refused) document.dispatchEvent(new CustomEvent("aufbau:saved"));
         if (refused) whole = true;
+        // FB-33 стопка 15 M5e-1b (a11y Y1): ошибка у поля (`aria-invalid`) — панель целиком,
+        // иначе со скриптами владелец не увидел бы, какое поле не принято
+        if (doc.querySelector('[data-schema-panel] [aria-invalid="true"]')) whole = true;
         // ревью C3–C4 (a11y): счётчик черновика — в подменяемом узле; новое значение
         // говорит постоянная живая область вместе с «Übernommen.»
         var noteBefore = draftNote();
@@ -268,6 +271,9 @@ function aufbauSubmitCopy(form, submitter) {
             el.value = typed;
             el.dispatchEvent(new Event("change", { bubbles: true }));
           }
+          // FB-33 стопка 15 M5e-1b (a11y A1): отказ поля — фокус на первое неверное поле
+          var bad = document.querySelector('[data-schema-panel] [aria-invalid="true"]');
+          if (bad) bad.focus({ preventScroll: false });
         } else {
           swap(doc, "#schema-result");
         }

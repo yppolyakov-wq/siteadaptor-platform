@@ -131,7 +131,10 @@ def _items(value) -> list[dict]:
 
 
 def _arch_keys(config: dict, tenant) -> list[str]:
-    """Ключи тизеров формы: активные архетипы тенанта (`storefront.teaser_specs`)."""
+    """Ключи тизеров формы: активные архетипы тенанта (`storefront.teaser_specs`). M5e-1b:
+    вместо тенанта — готовый список ключей (черновик окна знает их по своим полям)."""
+    if isinstance(tenant, (list, tuple)):
+        return list(tenant)
     if tenant is None:
         return []
     from apps.tenants import storefront
@@ -561,3 +564,403 @@ def set_text(config: dict, key: str, name: str, value, locale: str = "") -> str:
     if siteconfig.cap_note() in notes:
         return CAPPED
     return UNCHANGED if values(config, key) == before else CHANGED
+
+
+# ───────────── FB-33 стопка 15 M5e-1b: окно блока «Seitenaufbau», вкладка «Texte» ─────────────
+# Окно — второй вход к тем же данным: те же имена полей, тот же писатель (`put`). Правка — в
+# черновик страницы (`aufbau_draft`: `htx` = {секция: {имя поля Студии: текст}}, `htx_base` =
+# {секция: отпечаток сохранённого на первой правке}); «Speichern» пишет `commit` под
+# блокировкой строки. Пункты списков (шаги, команда, отзывы) — отдельными полями
+# `htx_<секция>_<i>_<поле>`, собираются в ту же строку «A | B», что у Студии.
+
+DRAFT_KEYS = ("htx", "htx_base")
+#: пункт списка: (поле пункта, подпись) — подписи уже есть в каталогах (`Name`, `Titel`, …)
+ITEM_FIELDS = {
+    "process": (("title", gettext_lazy("Titel")), ("text", gettext_lazy("Text"))),
+    "team": (("name", gettext_lazy("Name")), ("role", gettext_lazy("Rolle"))),
+    "testimonials": (("text", gettext_lazy("Zitat")), ("name", gettext_lazy("Name"))),
+}
+#: поле пункта, без которого пункта нет (как у Студии: строка без первой части пропадает)
+_ITEM_KEY = {"process": "title", "team": "name", "testimonials": "name"}
+ITEM_LEGENDS = {
+    "process": gettext_lazy("Schritt %(n)s"),
+    "team": gettext_lazy("Mitglied %(n)s"),
+    "testimonials": gettext_lazy("Stimme %(n)s"),
+}
+#: переводимые в окне поля (кнопки языка — `block_i18n`): тексты, не ссылки и не списки
+_TR_KINDS = (LINE, TEXT)
+#: сессия: ошибка поля окна после отказа (Y1: у поля, набранное видно; один раз)
+ERROR_KEY = "aufbau_htx_error"
+
+
+def hero_from_banner(choice) -> bool:
+    """Баннер главной показывает баннер библиотеки, а не свои заголовок и текст главной — тот
+    же предикат, что у витрины (`siteui.hero_slides` → `siteui.hero_lead`): выбран и сегодня
+    активен. Выбран, но выключен или вне срока — витрина показывает тексты главной."""
+    choice = _dict(choice)
+    if not choice.get("pick"):
+        return False
+    from apps.tenants.templatetags import siteui
+
+    slides = siteui.hero_slides({}, [], choice)
+    return bool(siteui.hero_lead({"hero_banners": choice}, slides)["from_banner"])
+
+
+def has_texte(row: dict | None, config: dict | None = None) -> bool:
+    """Одно правило «у строки есть «Texte» секции главной» — для окна (`window_key`),
+    переводов (`block_i18n.kinds`) и правки (`aufbau_draft.is_htx_edit`). Выбор баннеров —
+    из строки (черновик и сохранённое несут его в `data`, строка окна — в `banner_choice`)."""
+    if not isinstance(row, dict) or row.get("id") or row.get("key") not in FIELDS:
+        return False
+    if row["key"] != "hero":
+        return True
+    if isinstance(row.get("data"), dict):
+        choice = row["data"]
+    elif isinstance(row.get("banner_choice"), dict):
+        choice = row["banner_choice"]
+    else:
+        choice = (config or {}).get("hero_banners")
+    return not hero_from_banner(choice)
+
+
+def window_key(row: dict | None, config: dict, tenant=None) -> str:
+    """Секция главной, у окна которой есть «Texte» ("" — нет): `has_texte` и, у «Unser
+    Angebot», хоть один тизер у бизнеса."""
+    if not has_texte(row, config):
+        return ""
+    key = row["key"]
+    if key == "archetypes" and not _arch_keys(config, tenant):
+        return ""
+    return key
+
+
+def no_change_note() -> str:
+    return gettext("Diese Änderung ist hier nicht möglich.")
+
+
+def clean_htx(draft: dict | None) -> dict:
+    """Тексты черновика, которые можно показать и записать: {секция реестра: {имя: текст}}.
+    Остальное (чужой ключ, не словарь — старый или испорченный черновик) — в лог."""
+    raw = (draft or {}).get("htx")
+    if not isinstance(raw, dict):
+        if raw is not None:
+            logger.warning("home_texts: draft htx is not a dict — ignored")
+        return {}
+    out = {}
+    for key, entry in raw.items():
+        if key in FIELDS and isinstance(entry, dict):
+            out[key] = {n: v for n, v in entry.items() if isinstance(v, str)}
+        else:
+            logger.warning("home_texts: draft htx entry %r ignored", key)
+    return out
+
+
+def dropped(draft: dict | None) -> bool:
+    raw = (draft or {}).get("htx")
+    return isinstance(raw, dict) and len(clean_htx(draft)) != len(raw)
+
+
+def pending(draft: dict | None, key: str) -> dict | None:
+    htx = (draft or {}).get("htx")
+    entry = htx.get(key) if isinstance(htx, dict) else None
+    return dict(entry) if isinstance(entry, dict) else None
+
+
+def arch_keys_of(entry: dict) -> list[str]:
+    """Ключи тизеров по полям записи черновика (`arch_label_<ключ>`)."""
+    return [n[len("arch_label_") :] for n in entry if n.startswith("arch_label_")]
+
+
+def state(config: dict, key: str, draft: dict | None, tenant=None) -> dict:
+    """Тексты секции, которые видит окно: черновика, иначе сохранённые."""
+    mine = pending(draft, key)
+    return mine if mine is not None else values(config, key, tenant)
+
+
+def items(key: str, entry: dict) -> list[dict]:
+    """Пункты списка из записи формы (тем же разбором, что у Студии)."""
+    from apps.tenants import siteconfig
+
+    return siteconfig.parse_content_section(key, lambda n, d="": entry.get(n, d))
+
+
+def _item_text(value) -> str:
+    # «|» — разделитель строки формы Студии: внутри поля пункта он разрезал бы пункт
+    return " ".join(_nl(value if isinstance(value, str) else "").split()).replace("|", "/")
+
+
+def _window_get(key: str, fields: dict, current: dict):
+    """Поля окна → `get` формы Студии. Пункты — `htx_<ключ>_<i>_<поле>`; поле, которого нет в
+    присланном, — прежнее (у отзыва звёзды и фото окно не правит — по номеру пункта)."""
+    if key not in ITEM_FIELDS:
+        return lambda name, default=None: fields.get(name, default)
+    old = items(key, current)
+    rows = []
+    for i in range(len(old) + 1):
+        src = old[i] if i < len(old) else {}
+        got = {field: fields.get(f"htx_{key}_{i}_{field}") for field, _label in ITEM_FIELDS[key]}
+        if all(v is None for v in got.values()):
+            if src:
+                rows.append(src)
+            continue
+        row = dict(src)
+        for field, value in got.items():
+            if value is not None:
+                row[field] = _item_text(value)
+        if row.get(_ITEM_KEY[key]):
+            rows.append(row)
+    if key == "process":
+        text = "\n".join(f"{r.get('title', '')} | {r.get('text', '')}".rstrip(" |") for r in rows)
+    elif key == "team":
+        text = "\n".join(f"{r.get('name', '')} | {r.get('role', '')}".rstrip(" |") for r in rows)
+    else:
+        from apps.tenants import siteconfig
+
+        text = siteconfig.testimonials_to_text(rows)
+    name = names(key)[0]
+    return lambda n, default=None: text if n == name else default
+
+
+def window_op(
+    config: dict, draft: dict, key: str, fields: dict, notes: list | None, tenant=None, session=None
+) -> None:
+    """Форма «Texte» окна → черновик. Отпечаток формы (`htx_fp`) не совпал с сохранённым при
+    первой правке — отказ с заметкой; небезопасная ссылка — ошибка у поля (Y1)."""
+    saved = values(config, key, tenant)
+    current = state(config, key, draft, tenant)
+    if pending(draft, key) is None and _s(fields.get("htx_fp")) != fingerprint(config, key):
+        # ревью D: форма без отпечатка (или со старым) до первой правки — не знаем, с чего
+        # её открыли: отказ, как у устаревшей вкладки
+        if notes is not None:
+            notes.append(stale_note(section_label(key)))
+        return
+    said: list = []
+    raw = _read(key, _window_get(key, fields, current), current, said)
+    if raw is None:
+        logger.info("home_texts: window form of %s carried no fields", key)
+        if notes is not None:
+            notes.append(no_change_note())
+        return
+    for spec in FIELDS[key]:
+        if spec[2] != URL:
+            continue
+        note = url_note(spec[1])
+        if note in said and session is not None:
+            session[ERROR_KEY] = {
+                "key": key,
+                "name": spec[0],
+                "value": _s(fields.get(spec[0]))[:URL_MAX],
+                "msg": note,
+            }
+    if notes is not None:
+        notes.extend(said)
+    htx = dict(draft.get("htx") or {}) if isinstance(draft.get("htx"), dict) else {}
+    base = dict(draft.get("htx_base") or {}) if isinstance(draft.get("htx_base"), dict) else {}
+    if raw == saved:
+        htx.pop(key, None)
+        base.pop(key, None)
+    else:
+        htx[key] = raw
+        base.setdefault(key, fingerprint(config, key))
+    if htx:
+        draft["htx"], draft["htx_base"] = htx, base
+    else:
+        for k in DRAFT_KEYS:
+            draft.pop(k, None)
+
+
+def section_label(key: str) -> str:
+    from apps.tenants import siteconfig
+
+    labels = {k: label for k, label, _default in siteconfig.SECTIONS}
+    return str(labels.get(key, key))
+
+
+def conflicts(config: dict, draft: dict) -> list[str]:
+    """Секции черновика, чьи тексты изменили в другом месте после первой правки (Студия, канва)."""
+    htx = clean_htx(draft)
+    base = draft.get("htx_base") if isinstance(draft.get("htx_base"), dict) else {}
+    return [k for k in htx if base.get(k) != fingerprint(config, k)]
+
+
+def put_shown(config: dict, draft: dict) -> None:
+    """Показ черновика (окно, «Vorschau»): тем же писателем, что «Speichern»."""
+    for key, entry in clean_htx(draft).items():
+        put(config, key, entry.get, tenant=arch_keys_of(entry))
+
+
+def commit(
+    config: dict, draft: dict, force: bool, notes: list | None = None, *, home: bool = True
+) -> None:
+    """«Speichern» (под блокировкой, после проверки `conflicts`): тексты секций — писателем
+    `put`; запись поверх изменённого в другом месте (force) — в лог. Не главная, секции нет
+    среди строк черновика, испорченная запись — не пишется, заметка и лог (не молча)."""
+    htx = clean_htx(draft)
+    skipped = dropped(draft)
+    if not home:
+        if htx or skipped:
+            logger.warning("home_texts: htx in a draft of another page — not written")
+            if notes is not None:
+                notes.append(no_change_note())
+        return
+    rows = {
+        it.get("key")
+        for it in draft.get("items") or ()
+        if isinstance(it, dict) and not it.get("id")
+    }
+    for key in [k for k in htx if k not in rows]:
+        logger.warning("home_texts: section %s is not on the page — texts not written", key)
+        htx.pop(key)
+        skipped = True
+    if skipped and notes is not None:
+        notes.append(no_change_note())
+    moved = conflicts(config, draft)
+    if moved and force:
+        from django.db import connection
+
+        logger.warning(
+            "home_texts: %s changed meanwhile — written over (%s)",
+            ",".join(moved),
+            getattr(connection, "schema_name", ""),
+        )
+    for key, entry in htx.items():
+        put(config, key, entry.get, notes=notes, tenant=arch_keys_of(entry))
+
+
+def snapshot(proto: dict, source: dict, key: str) -> None:
+    """Прообраз текстов секции окна — для «Abbrechen» (только своей секции)."""
+    proto["htx_ref"] = {
+        "key": key,
+        "val": pending(source, key),
+        "base": (source.get("htx_base") or {}).get(key)
+        if isinstance(source.get("htx_base"), dict)
+        else None,
+    }
+
+
+def revert(draft: dict, proto: dict) -> None:
+    entry = proto.get("htx_ref")
+    if not isinstance(entry, dict) or not entry.get("key"):
+        return
+    key = entry["key"]
+    htx = dict(draft.get("htx") or {}) if isinstance(draft.get("htx"), dict) else {}
+    base = dict(draft.get("htx_base") or {}) if isinstance(draft.get("htx_base"), dict) else {}
+    if isinstance(entry.get("val"), dict):
+        htx[key] = copy.deepcopy(entry["val"])
+        base[key] = entry.get("base")
+    else:
+        htx.pop(key, None)
+        base.pop(key, None)
+    if htx:
+        draft["htx"], draft["htx_base"] = htx, base
+    else:
+        for k in DRAFT_KEYS:
+            draft.pop(k, None)
+
+
+def _field(spec, value: str, ident: str, error: dict | None) -> dict:
+    name, label, kind, cap = spec
+    err = error if error and error.get("name") == name else None
+    fmt = f"{ident}-fmt" if kind == URL else ""
+    return {
+        "name": name,
+        "label": str(label),
+        "kind": kind,
+        "value": err["value"] if err else value,
+        "id": ident,
+        # Y1/§9 №4: потолок — атрибутом, но старое длинное значение им не режется
+        "max": cap if len(value) <= cap and kind != LIST else "",
+        "error": err["msg"] if err else "",
+        # E: формат ссылки — видимой подсказкой (тот же msgid, что у кнопки-блока)
+        "fmt": gettext("z. B. /kontakt oder https://…") if fmt else "",
+        "described": " ".join(x for x in (f"{ident}-err" if err else "", fmt) if x),
+    }
+
+
+def decorate(
+    selected: dict | None, saved: dict, draft: dict | None, home: bool, tenant=None, session=None
+) -> None:
+    """Модель части «hometext» окна (`selected["home_texts"]`); у прочих строк — ничего."""
+    if not selected or not home:
+        return
+    key = window_key(selected, saved, tenant)
+    if not key:
+        return
+    error = session.pop(ERROR_KEY, None) if session is not None else None
+    if not isinstance(error, dict) or error.get("key") != key:
+        error = None
+    current = state(saved, key, draft, tenant)
+    fields, groups = [], []
+    if key in ITEM_FIELDS:
+        rows = items(key, current)
+        for i, row in enumerate([*rows, {}]):
+            groups.append(
+                {
+                    # E: пустой пункт для нового — с меткой в легенде (не только пустотой)
+                    "legend": str(ITEM_LEGENDS[key]) % {"n": i + 1}
+                    + (
+                        f" – {gettext('neu – leer lassen, wenn nicht benötigt')}"
+                        if i == len(rows)
+                        else ""
+                    ),
+                    "fields": [
+                        {
+                            "name": f"htx_{key}_{i}_{field}",
+                            "label": str(label),
+                            "kind": TEXT if field == "text" else LINE,
+                            "value": _s(row.get(field)),
+                            "id": f"schema-f-htx_{key}_{i}_{field}",
+                            "max": TEXT_MAX if field == "text" else TITLE_MAX,
+                            "error": "",
+                            "fmt": "",
+                            "described": "",
+                        }
+                        for field, label in ITEM_FIELDS[key]
+                    ],
+                }
+            )
+    elif key == "archetypes":
+        from apps.tenants import storefront
+
+        for spec in storefront.teaser_specs(tenant):
+            k = spec["key"]
+            group = []
+            for prefix, label, kind, cap in FIELDS["archetypes"]:
+                name = f"{prefix}{k}"
+                group.append(
+                    _field(
+                        (name, label, kind, cap), current.get(name, ""), f"schema-f-{name}", error
+                    )
+                )
+            groups.append({"legend": str(spec["default_label"]), "fields": group})
+    else:
+        for spec in FIELDS[key]:
+            fields.append(_field(spec, current.get(spec[0], ""), f"schema-f-{spec[0]}", error))
+    first = next(iter([*fields, *(x for g in groups for x in g["fields"])]), None)
+    if first is not None:  # E: общая подсказка — у первого поля, не у каждого
+        first["described"] = " ".join(x for x in ("bw-htx-hint", first["described"]) if x)
+    selected["home_texts"] = {
+        "key": key,
+        "fields": fields,
+        "groups": groups,
+        "fp": fingerprint(saved, key),
+    }
+
+
+def translatable(key: str, name: str) -> bool:
+    """Поле, перевод которого правится в окне (кнопки языка `block_i18n`)."""
+    spec = _spec(key, name)
+    return spec is not None and spec[2] in _TR_KINDS
+
+
+def tr_path(key: str, name: str) -> tuple:
+    """Путь перевода поля в `i18n[<язык>]` (зеркало базы, `siteconfig.set_overlay_value`)."""
+    if key == "archetypes":
+        for prefix in ("arch_label_", "arch_blurb_"):
+            if name.startswith(prefix):
+                return (
+                    "archetypes",
+                    name[len(prefix) :],
+                    "label" if "label" in prefix else "blurb",
+                )
+    return _path(key, name)

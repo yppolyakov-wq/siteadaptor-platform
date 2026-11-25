@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext as _
 
-from apps.core import block_window, page_settings, site_schema
+from apps.core import block_window, home_texts, page_settings, site_schema
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +132,10 @@ def _linked_refs(request, tenant, code: str) -> set[str]:
     _pt, host, _home = site_schema.resolve(tenant, code)
     blocks = site_schema.blocks_for(config, code, host=host or None, tenant=tenant)
     return {b["ref"] for b in blocks if not b.get("shared")}
+
+
+#: стопка 15 M5e-1b: ошибка поля окна «Texte» в сессии
+_HTX_ERROR = home_texts.ERROR_KEY
 
 
 def _url(code: str, block: str = "", keep: dict | None = None) -> str:
@@ -400,8 +404,13 @@ def site_schema_view(request):
                     # ревью L3: правка строкой — окно этого блока «Abbrechen» её не откатит
                     row_edit=row_form,
                 )
+                # стопка 15 M5e-1b (a11y A2): отказ поля окна — `role="alert"` с именем поля
+                field_error = (request.session.get(_HTX_ERROR) or {}).get("msg")
                 for note in notes:
-                    messages.warning(request, note)
+                    if field_error and note == field_error:
+                        messages.error(request, note)
+                    else:
+                        messages.warning(request, note)
                 # S8: у действий выбора баннера — сообщение (после «убрать» кнопка, на
                 # которой стоял фокус, исчезает; читатель экрана слышит, что произошло).
                 said = _PICK_SAID.get(op)
@@ -465,6 +474,11 @@ def site_schema_view(request):
                 from apps.core import block_i18n
 
                 messages.error(request, block_i18n.conflict_note())
+            elif exc.args and exc.args[0] == "htx_conflict":
+                # FB-33 стопка 15 M5e-1b: тексты секции главной изменили в Студии/на канве —
+                # черновик цел, «Trotzdem speichern» пишет поверх
+                for key in exc.args[1:] or ("",):  # ревью D: каждая секция с расхождением
+                    messages.error(request, home_texts.stale_note(home_texts.section_label(key)))
             elif exc.args and exc.args[0] == "faq_conflict":
                 # FB-33 M3-5b: общие вопросы FAQ изменили в Студии/на канве — черновик цел
                 from apps.core import faq_content
@@ -568,6 +582,9 @@ def site_schema_view(request):
                 target = f"{target.split('#', 1)[0]}#{anchor}"
         if moved:
             target = f"{target.split('#', 1)[0]}#schema-tab-{goto}"
+        if request.session.get(_HTX_ERROR):
+            # a11y A1: без JS фокус — на неверном поле (`autofocus`); якорь его отменил бы
+            target = target.split("#", 1)[0]
         if op == "places" and applied and "#" in target:
             # FB-33 M3-6 (a11y ревью): после кнопки «Wo zeigen» фокус — на её заголовок
             target = f"{target.split('#', 1)[0]}#schema-tab-places"
@@ -733,6 +750,15 @@ def site_schema_view(request):
         current.host if current else "",
         request.session.pop(aufbau_draft.FAQ_OPENED, None) if selected else None,
         user=getattr(request, "user", None),  # FB-33 M2b-2b (ревью): своё право на вопросы
+    )
+    # FB-33 стопка 15 M5e-1b: тексты секции главной («Texte»), те же поля, что в Студии
+    home_texts.decorate(
+        selected,
+        saved,
+        draft,
+        code == "home",
+        tenant,
+        getattr(request, "session", None) if selected else None,
     )
     # FB-33 M3-5c: переводы текстов блока, вопросов FAQ и подписей плашек — в окне (языки
     # бизнеса кнопками; один язык — окно прежнее)

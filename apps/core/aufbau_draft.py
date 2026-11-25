@@ -391,6 +391,8 @@ def overlay(config: dict, draft: dict, *, scope: bool = True) -> dict:
 
     if "ofaq" in draft or _block_i18n().explicit(draft, "ofaq"):  # свои вопросы — в превью
         _object_faq().put_shown(out, draft)
+    if "htx" in draft:  # FB-33 стопка 15 M5e-1b: тексты секций главной — до переводов окна
+        _home_texts().put_shown(out, draft)
     if "btr" in draft:  # FB-33 M3-5c: переводы текстов блока из окна
         _block_i18n().put_shown(out, draft)
     if scope and draft.get(SCOPE_KEY) and not draft.get(SCOPE_OFF):
@@ -575,6 +577,7 @@ SIDE_PARTS = (
     ("show_on", ("show_on", "show_on_base")),  # FB-33 M3-6 «Wo zeigen» баннера (`window_banner`)
     ("btr", ("btr", "btr_base")),  # FB-33 M3-5c переводы текстов блока (`block_i18n`)
     ("scope", ("scope", "scope_base")),  # FB-33 M4c охват вида «Liste» (снимок — по блоку)
+    ("htx", ("htx", "htx_base")),  # FB-33 стопка 15 M5e-1b тексты секций главной (`home_texts`)
 )
 
 # ───────────── FB-33 M4c: «Ansicht gilt für» блока «Liste» в окне блока ─────────────
@@ -789,6 +792,7 @@ def changes(saved: dict, draft: dict) -> int:
     if "ofaq" in draft:  # FB-33 M2b-2b: свои вопросы объекта — одно изменение
         count += 1
     count += _block_i18n().count(draft)  # FB-33 M3-5c: переводы — одно на окно блока
+    count += len(_home_texts().clean_htx(draft))  # стопка 15 M5e-1b: тексты — одно на секцию
     if isinstance(draft.get(SCOPE_KEY), dict):  # FB-33 M4c: охват вида — одно на блок
         count += len(draft[SCOPE_KEY])
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
@@ -813,7 +817,8 @@ def info(request, config: dict, code: str) -> dict:
         or _scope_conflict(config, draft)  # FB-33 M4c
         or faq_conflict(config, draft)
         or title_conflict(config, draft)  # FB-33 E5: экран конфликта с «Trotzdem speichern»
-        or _block_i18n().conflict(config, draft),  # FB-33 M3-5c
+        or _block_i18n().conflict(config, draft)  # FB-33 M3-5c
+        or bool(_home_texts().conflicts(config, draft)),  # стопка 15 M5e-1b
     }
 
 
@@ -947,6 +952,10 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
 
     _object_faq().snapshot(proto, source, items[at] if at is not None else None)  # M2b-2b
     _block_i18n().snapshot(proto, source, ref)  # FB-33 M3-5c: переводы только этого окна
+    row = items[at] if at is not None else None
+    if source.get("home") and isinstance(row, dict) and not row.get("id"):
+        if row.get("key") in _home_texts().FIELDS:  # стопка 15 M5e-1b: тексты этой секции
+            _home_texts().snapshot(proto, source, row["key"])
     _record_codes(source, proto, [*_window_setting_codes(tenant, code, ref), *codes])
     window.pop(ref, None)
     idents = {_ident(it) for it in draft.get("items") or []}
@@ -1039,6 +1048,7 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
             pending.pop(ref, None)
         draft[SCOPE_KEY] = pending
     _block_i18n().revert(draft, ref, proto)  # FB-33 M3-5c: proto["btr_ref"] — только своё
+    _home_texts().revert(draft, proto)  # стопка 15 M5e-1b: proto["htx_ref"] — только своя секция
     codes = proto.get("codes") or []
     if codes:
         pending = {k: v for k, v in _settings(draft).items() if k not in codes}
@@ -1163,7 +1173,18 @@ def op(
         # FB-33 M4c: «Ansicht gilt für» — поле формы окна, не данные блока
         wanted_scope = str(fields["scope"])
         fields = {k: v for k, v in fields.items() if k != "scope"}
-    if (
+    if is_htx_edit(draft, ref, op_name, fields, config):
+        # FB-33 стопка 15 M5e-1b: «Texte» секции главной — своя ветка ДО прочих (строка на месте)
+        _home_texts().window_op(
+            config,
+            draft,
+            _row(draft, ref)["key"],
+            fields,
+            notes,
+            tenant,
+            getattr(request, "session", None),
+        )
+    elif (
         op_name in ("add", "add_row", "adopt")
         and host.startswith(siteconfig.CATEGORY_HOST_PREFIX)
         and siteconfig.category_hosts_full(config, host)
@@ -1400,6 +1421,9 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     if faq_moved and not force:
         # своё сообщение: страницу никто не трогал — изменились общие вопросы (Студия, канва)
         raise site_schema.SchemaError("faq_conflict")
+    htx_moved = _home_texts().conflicts(config, draft)  # стопка 15 M5e-1b: до любой записи
+    if htx_moved and not force:
+        raise site_schema.SchemaError("htx_conflict", *htx_moved)
     # FB-33 M3-5c: переводы окна изменили в другом месте — до записи (позже правка немецкого
     # и перестановка уже сдвинули бы сохранённые переводы)
     _block_i18n().check(config, draft, force)
@@ -1494,6 +1518,11 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
             config.pop("about_contact", None)
         else:
             config["about_contact"] = False
+    if "htx" in draft:
+        # FB-33 стопка 15 M5e-1b: тексты секций главной — тем же писателем, что Студия (снятие
+        # перевода изменённого немецкого поля); переводы, набранные в окне, ложатся ниже. Не
+        # главная или секции нет среди строк — не пишется, с заметкой (`home_texts.commit`)
+        _home_texts().commit(config, draft, force, notes, home=home)
     # FB-33 M3-5c: переводы текстов блоков, «Seitentitel», «Was passiert jetzt», плашек — после
     # записи блоков и чистки подписей плашек (позиции — по записанным блокам)
     _block_i18n().apply(config, draft, home, host)
@@ -1524,6 +1553,25 @@ def _object_faq():
     from apps.core import object_faq
 
     return object_faq
+
+
+def _home_texts():
+    """FB-33 стопка 15 M5e-1b: тексты секций главной (`apps.core.home_texts`, ленивый импорт)."""
+    from apps.core import home_texts
+
+    return home_texts
+
+
+def is_htx_edit(draft: dict, ref: str, op_name: str, fields, config: dict | None = None) -> bool:
+    """Форма «Texte» секции главной окна (сентинел `htx_present` у полей панели); у строки —
+    «Texte» по тому же правилу, что окно и переводы (`home_texts.has_texte`)."""
+    return (
+        op_name == "update"
+        and bool(draft.get("home"))
+        and isinstance(fields, dict)
+        and fields.get("htx_present") == "1"
+        and _home_texts().has_texte(_row(draft, ref), config)
+    )
 
 
 def _block_i18n():
