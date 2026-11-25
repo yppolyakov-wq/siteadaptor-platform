@@ -55,6 +55,7 @@
    "can_down",
    "can_up",
    "catview",
+   "content",
    "enabled",
    "family_label",
    "flex",
@@ -83,6 +84,7 @@
   ],
   "selected": [
    "can_up",
+   "content",
    "enabled",
    "flex",
    "key",
