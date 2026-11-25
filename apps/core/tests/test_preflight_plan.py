@@ -225,3 +225,17 @@ def test_slice_mode_without_own_tests_says_so():
 def test_slice_mode_ignores_deleted_tests(tmp_path):
     p = _mod().slice_plan(["apps/core/tests/test_gone_zz.py"])
     assert "apps/core/tests/test_gone_zz.py" not in p.pytest_targets
+
+
+def test_slice_mode_runs_test_convention_locks_when_tests_change():
+    # FB-33 стопка 14 (E5): срез добавил `@override_settings` рядом с фикстурой `settings`;
+    # замок `test_settings_fixture_guard` был, но `--slice` его не гонял — красный лишь в полном
+    # прогоне верхушки. Статические замки тестов (без БД, секунды) — в наборе среза.
+    mod = _mod()
+    p = mod.slice_plan(["apps/core/tests/test_fb33_x.py"], exists=lambda path: True)
+    for key in mod.FAST_TEST_LOCKS:
+        assert mod.LOCKS[key] in p.pytest_targets
+    assert "apps/core/tests/test_settings_fixture_guard.py" in p.pytest_targets
+    p = mod.slice_plan(["apps/core/form_spec.py"])
+    assert "apps/core/tests/test_settings_fixture_guard.py" not in p.pytest_targets
+    assert any("своих тестов" in n for n in p.notes), "замок конвенций — не «свой тест»"

@@ -42,6 +42,7 @@ LOCKS = {
     "template_a11y": "apps/core/tests/test_a11y_templates.py",
     "template_sweep": "apps/tenants/tests/test_template_sweep.py",
     "preflight": "apps/core/tests/test_preflight_plan.py",
+    "tests_settings_guard": "apps/core/tests/test_settings_fixture_guard.py",
 }
 
 # Источники сборки Tailwind (tailwind.config.js: content + сам конфиг).
@@ -183,6 +184,9 @@ def plan(
 
 # Статические замки шаблонов: без БД, секунды — их исполнитель среза гоняет сам.
 FAST_TEMPLATE_LOCKS = ("template_comments", "template_tags", "template_extends")
+# Статические замки конвенций тестов (ast, без БД): срез с изменённым тестом гоняет их сам —
+# FB-33 стопка 14 (E5): `--slice` не видел `test_settings_fixture_guard`, красный — только на верхушке.
+FAST_TEST_LOCKS = ("tests_settings_guard",)
 SLICE_NOTE = (
     "режим среза: только быстрое и свои тесты. Полный прогон (приложения, эталоны, CSS) — CI на ветке "
     "среза: запушь ветку и заверши ход, не жди — кэш агента живёт 5 минут, ожидание дороже прогона"
@@ -212,6 +216,7 @@ def slice_plan(files: list[str], exists=lambda path: (ROOT / path).is_file()) ->
         name = parts[-1]
         if "/tests/" in f and name.startswith("test_") and name.endswith(".py") and exists(f):
             targets.add(f)
+            targets.update(LOCKS[k] for k in FAST_TEST_LOCKS)
     if not any("/tests/test_" in t and t not in LOCKS.values() for t in targets):
         notes.append(
             "своих тестов в срезе нет — замки первого коммита обязательны (sa-increment, шаг 5)"
