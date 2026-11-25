@@ -87,9 +87,9 @@ def test_title_on_page_ref_goes_through_title_op(monkeypatch):
     calls = []
     real = site_schema.title_op
 
-    def spy(host, draft, op, fields):
+    def spy(host, draft, op, fields, notes=None):  # стопка 15 M5e-2b: + notes («gekürzt»)
         calls.append((host, op))
-        return real(host, draft, op, fields)
+        return real(host, draft, op, fields, notes)
 
     monkeypatch.setattr(site_schema, "title_op", spy)
     old, new = Browser(_shop()), Browser(_shop())
@@ -128,7 +128,8 @@ def test_title_on_page_ref_keeps_other_ops_of_the_page_row():
         site_schema.apply(_shop(), CODE, "update", ref=site_schema.PAGE_REF, fields={"x": "1"})
 
 
-@pytest.mark.parametrize("code", ("cart", "product", "text", "catalog"))
+#: стопка 15 M5e-2b: у каталога шапка своя (`page_title.has_head`) — он больше не «чужой»
+@pytest.mark.parametrize("code", ("cart", "product", "text"))
 def test_foreign_host_title_on_page_ref_rejected(code):
     b = Browser(_shop())
     req = b._request("post", {"wopen": WOPEN})
@@ -146,9 +147,9 @@ def test_foreign_host_title_on_page_ref_rejected(code):
 #: `config["page_titles"] = …` — набор писателей M2d (черновик, переводы, инлайн, нормализация)
 _WRITE_RE = re.compile(r"""\[\s*["']page_titles["']\s*\]\s*=(?!=)|\(\s*["']page_titles["']\s*,""")
 WRITERS = {
-    "apps/core/aufbau_draft.py",  # `_put_title` — «Speichern» черновика и `apply`
-    "apps/core/block_i18n.py",  # переводы заголовка
-    "apps/core/views.py",  # инлайн-правка H1 в Студии
+    # стопка 15 M5e-2b: один писатель шапки `put_head` (черновик зовёт его, переводы —
+    # путём `tr_path`)
+    "apps/core/page_title.py",
     "apps/tenants/siteconfig.py",  # `normalize`
 }
 

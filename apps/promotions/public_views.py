@@ -1627,6 +1627,23 @@ def product_list(request, slug=None):
     # STU-19b: + `?tpl=` — cabinet preview of one page setting (nothing is stored)
     raw_cfg, _prev = page_settings.preview_raw(request)
     cfg = siteconfig.normalize(raw_cfg)
+    from django.utils.translation import get_language
+
+    from apps.core import page_title
+
+    # FB-33 стопка 15 M5e-2b: H1 и вступление каталога — из окна ★-строки (и перевод);
+    # ревью 1 (SEO): одно имя каталога для H1, <title>, корня крошек и BreadcrumbList
+    from apps.core.seo_meta import DESC_MAX as _DESC_MAX
+    from apps.core.seo_meta import TITLE_MAX as _TITLE_MAX
+    from apps.core.seo_meta import clamp as _clamp
+    from apps.tenants.templatetags.siteui import is_menu_business as _is_menu
+
+    _catalog_head = page_title.catalog_shown(cfg, get_language())
+    catalog_head_title = _catalog_head["title"] or (
+        _("Speisekarte") if _is_menu(request.tenant) else _("Our products")
+    )
+    catalog_seo_title = _clamp(catalog_head_title, _TITLE_MAX)
+    catalog_seo_desc = _clamp(" ".join(_catalog_head["intro"].split()), _DESC_MAX)
     # KAT-1/DL-20: шаблон СТРАНИЦЫ категории. Два слоя — своё значение категории
     # побеждает общий дефолт сайта `site_defaults["category_page_style"]`; мусор в
     # любом слое → Standard. Конфиг поднят выше по вьюхе именно ради этого дефолта
@@ -1910,7 +1927,7 @@ def product_list(request, slug=None):
             chain.append(node)
             node = node.parent
         chain.reverse()
-        root_label = (request.tenant.site_config or {}).get("catalog_title") or _("Our products")
+        root_label = catalog_head_title
         catalog_breadcrumbs = [(root_label, reverse("storefront-products"))] + [
             (str(c), reverse("storefront-category", args=[c.slug]) if c != category else "")
             for c in chain
@@ -2205,8 +2222,12 @@ def product_list(request, slug=None):
             "category_combos": category_combos,
             "is_category_page": path_mode,
             # H1.2: кастомные заголовок/интро страницы каталога (инлайн-правка на канве).
-            "catalog_title": cfg.get("catalog_title", ""),
-            "catalog_intro": cfg.get("catalog_intro", ""),
+            # FB-33 стопка 15 M5e-2b (A4): в языке витрины — перевод шапки, иначе немецкий
+            "catalog_title": _catalog_head["title"],
+            "catalog_intro": _catalog_head["intro"],
+            "catalog_head_title": catalog_head_title,
+            "catalog_seo_title": catalog_seo_title,
+            "catalog_seo_desc": catalog_seo_desc,
             "subcategories": subcategories,
             "subcategory_grid": subcategory_grid,
             "subcategories_have_images": subcategories_have_images,

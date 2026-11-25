@@ -1741,18 +1741,24 @@ TITLE_FIELDS = ("title", "intro", "align")
 
 def title_fields(config: dict, host: str) -> list[dict]:
     """Поля «Seitentitel» страницы `host` (тексты и вид; значения — из `config`, черновика).
-    FB-33 M5b-2: их несёт окно ★-строки страницы (`page_window.pseudo_row`)."""
+    FB-33 M5b-2: их несёт окно ★-строки страницы (`page_window.pseudo_row`). Стопка 15
+    M5e-2b (вариант A): вкладка «Texte», подпись «Überschrift (H1)», «Ausrichtung» — радио
+    (`kind="radio"`); у каталога выравнивания нет (§0.3 №3)."""
     from apps.core import page_title
 
-    entry = page_title.clean_one((config.get("page_titles") or {}).get(host))
-    return [
-        {"name": "title", "label": str(_("Überschrift")), "kind": "line",
+    entry = page_title.head(config, host)
+    out = [
+        {"name": "title", "label": str(_("Überschrift (H1)")), "kind": "line",
          "value": entry.get("title", "")},
         {"name": "intro", "label": str(_("Einleitung")), "kind": "area",
          "value": entry.get("intro", "")},
-        {"name": "align", "label": str(_("Ausrichtung")), "kind": "select",
-         "value": entry.get("align", "")},
     ]  # fmt: skip
+    if host in page_title.HEAD_HOSTS:
+        out.append(
+            {"name": "align", "label": str(_("Ausrichtung")), "kind": "radio",
+             "value": entry.get("align", "")}
+        )  # fmt: skip
+    return out
 
 
 def title_hint_at(host: str, blocks: list[dict]) -> int | None:
@@ -1763,6 +1769,8 @@ def title_hint_at(host: str, blocks: list[dict]) -> int | None:
     M2d-0). Метка — только показ: в строки схемы, ряды и цели `move` не входит."""
     from apps.core import detail_parts, page_title
 
+    # стопка 15 M5e-2b (ревью 1): только `HEAD_HOSTS` — у каталога H1 стоит в шапке списка
+    # под «Banner · Fotos der Seite» и метки не требует (своя шапка — `page_title.has_head`)
     if host not in page_title.HEAD_HOSTS:
         return None
     if host in page_title.H1_FIRST:
@@ -2023,22 +2031,34 @@ def siteconfig_key(key: str) -> str:
     return siteconfig.cblock_type(key) or key
 
 
-def title_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
+def title_op(
+    host: str, draft: dict, op: str, fields: dict | None, notes: list | None = None
+) -> str:
     """Правка «Seitentitel» в черновике: только `update` (двигать, скрывать, удалять — нет).
     Присланные поля заменяют прежние, неприсланные остаются (ПАТЧ, как у блоков)."""
     from apps.core import page_title
 
-    if host not in page_title.HEAD_HOSTS:
+    if not page_title.has_head(host):
         raise SchemaError("block")
     if op != "update" or fields is None:
         raise SchemaError("fixed")
-    current = dict(draft.get("title") or {})
+    before = dict(draft.get("title") or {})
+    current = dict(before)
     for name in TITLE_FIELDS:
         if name in fields:
             current[name] = str(fields[name])
+    if host not in page_title.HEAD_HOSTS:
+        # стопка 15 M5e-2b (§0.3 №3): у каталога выравнивания нет — присланное — отказ
+        if current.pop("align", ""):
+            raise SchemaError("fields")
     if current.get("align", "") not in page_title.ALIGNS:
         raise SchemaError("fields")
-    draft["title"] = page_title.clean_one(current)
+    cut: list = []
+    draft["title"] = page_title.clean_head(host, current, before, cut)
+    if cut and notes is not None:
+        from apps.tenants import siteconfig
+
+        notes.append(siteconfig.cap_note())  # ревью 1: обрезанное — не молча
     return PAGE_REF  # FB-33 M5b-2: окно заголовка — ★-строка страницы
 
 
@@ -2076,7 +2096,7 @@ def is_title_row(selected: dict | None, host: str | None = None) -> bool:
         return False
     return (
         selected.get("ref") == PAGE_REF
-        and (host is None or host in page_title.HEAD_HOSTS)
+        and (host is None or page_title.has_head(host))
         and any(f.get("name") in TITLE_FIELDS for f in selected.get("fields") or ())
     )
 
@@ -2153,7 +2173,8 @@ def fill_options(block: dict, host: str) -> None:
             ]
         }
     elif is_title_row(block, host):
-        options = {"align": [("", _("Links")), ("center", _("Zentriert"))]}
+        # стопка 15 M5e-2b (M5eSeitenkopf): радио «Links» / «Mittig»
+        options = {"align": [("", _("Links")), ("center", _("Mittig"))]}
     elif key == "quick_links":
         from apps.core.hero_tiles import link_set_options
 
@@ -4311,7 +4332,7 @@ def page_row_ref(tenant, code: str, blocks: list[dict] | None = None) -> str:
             # мусорный код страницы (адрес, закладка): строки нет — как у экрана, но видно в логе
             logger.debug("page row: page %r not resolved — no settings row", code)
             return ""
-        if not has and host_for(code) not in page_title.HEAD_HOSTS:
+        if not has and not page_title.has_head(host_for(code)):
             return ""
     pt = _page_type(code)
     if pt is None:
@@ -4413,9 +4434,11 @@ def apply(
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
     if is_title_alias(ref) or is_page_title_edit(ref, fields):
-        from apps.core import aufbau_draft
+        from apps.core import aufbau_draft, page_title
 
-        draft = {"title": (config.get("page_titles") or {}).get(host) or {}}
+        # ревью 1 (M5e-2b): основа правки — сохранённая шапка тем же читателем (у каталога
+        # иначе правка только заголовка стёрла бы вступление)
+        draft = {"title": page_title.head(config, host)}
         title_op(host, draft, op, fields)
         aufbau_draft._put_title(config, host, draft["title"])
         locked.site_config = siteconfig.normalize(config)

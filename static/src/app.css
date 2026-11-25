@@ -1769,7 +1769,7 @@ input[type="datetime-local"] {
   .ui-bwin { width: min(760px, calc(100vw - 2rem)); max-width: min(760px, calc(100vw - 2rem)); max-height: calc(100dvh - 4rem); margin: auto; padding: 0; border: 0; border-radius: var(--ui-r-card); background: var(--ui-surface); color: inherit; box-shadow: 0 20px 50px rgba(17, 24, 39, 0.25); display: none; flex-direction: column; overflow: hidden; }
   .ui-bwin[open] { display: flex; }
   .ui-bwin::backdrop { background: rgba(17, 24, 39, 0.35); }
-  .ui-bwin [data-schema-panel] { position: static; inset: auto; z-index: auto; flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; padding: 1rem 4rem 1.25rem 1.25rem; border-radius: 0; box-shadow: none; }
+  .ui-bwin [data-schema-panel] { position: static; inset: auto; z-index: auto; flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; padding: 1rem 4rem 1.25rem 1.25rem; border-radius: 0; box-shadow: none; scroll-padding-bottom: 1.5rem; }
   .ui-bwin-close { position: absolute; top: 0.5rem; right: 0.5rem; z-index: 1; width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 0.75rem; background: #F3F4F6; color: #374151; cursor: pointer; }
   .ui-bwin-close:hover { background: #E5E7EB; }
   .ui-bwin-close:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
@@ -1783,6 +1783,9 @@ input[type="datetime-local"] {
   .ui-bwin-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
   /* цели касания в окне — не ниже 44 px (ссылки внутри строки текста — исключение WCAG 2.5.8) */
   .ui-bwin :is(button, summary, select, [role="tab"], a.ui-btn) { min-height: 2.75rem; }
+  /* FB-33 стопка 15 M5e-2b (ревью 1, a11y): радио «Ausrichtung» — цвет выбора и видимый фокус */
+  [data-schema-align] input[type="radio"] { accent-color: #4F46E5; }
+  [data-schema-align] input[type="radio"]:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
   /* FB-33 M3-9c: без скриптов окна нет — те же цели в самой панели блока (aside#schema-panel
      в «Seitenaufbau»); правило сильнее класса высоты у элемента (min-h-[…]) — как и в окне */
   [data-schema-panel] :is(button, summary, select, [role="tab"], a.ui-btn) { min-height: 2.75rem; }

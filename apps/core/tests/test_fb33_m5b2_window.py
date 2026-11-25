@@ -4,15 +4,16 @@
 (architect: A-H1, A-H2, A-H3, A-M7) и §8.2 (a11y: Y-M1, Y-M2, Y-M5…M9); решения владельца
 2026-11-22 (`project-memory.md` §1 «Решения владельца стопки 10»):
 
-- на «Seite» сверху вниз: `fieldset` «Überschrift der Seite» (Seitentitel · Einleitung ·
-  Ausrichtung — та же форма `bw-form-fields`, переводы заголовка в ней же), `h4` «Einstellungen
-  dieser Seitenart», настройки типа (метки групп — `h5`), строка-ссылка на вид списка;
+- на «Seite» сверху вниз: настройки типа, строка-ссылка на вид списка; стопка 15 M5e-2b
+  (осознанная переписка, вариант A): `fieldset` «Überschrift der Seite» (Überschrift (H1) ·
+  Einleitung · Ausrichtung — та же форма `bw-form-fields`, переводы заголовка в ней же) — на
+  вкладке «Texte», `h4` «Einstellungen dieser Seitenart» снят;
 - «Liste/Raster» листингов — настройки типа на ★-строке; у окна списка без своего вида —
   строка-ссылка туда (окно не пустое); строка «Darstellung … im Block › Wie anordnen» — только
   у списков со своим видом;
 - строка наследования вида категории — в окне ★ категории, вкладка «Wie anordnen»; ссылка на
   форму категории — у ★-строки;
-- подпись ★: «Seitentitel und Seite» только у `page_title.HEAD_HOSTS`, иначе «Einstellungen der
+- подпись ★: «Seitentitel und Seite» только у страниц со своей шапкой (`page_title.has_head`: HEAD_HOSTS и, со стопки 15 M5e-2b, каталог), иначе «Einstellungen der
   Seite».
 """
 
@@ -94,7 +95,7 @@ CATEGORY = "category@catalog:brot"
     ("friseur", "services", "Seitentitel und Seite"),
     ("friseur", "contact", "Seitentitel und Seite"),
     ("online_shop", "promos", "Seitentitel und Seite"),
-    ("online_shop", "catalog", "Einstellungen der Seite"),
+    ("online_shop", "catalog", "Seitentitel und Seite"),  # стопка 15 M5e-2b, ревью 1
     ("online_shop", "product", "Einstellungen der Seite"),  # было и до W1
 ])  # fmt: skip
 def test_page_window_opens_on_seite(bt, code, label):
@@ -105,45 +106,46 @@ def test_page_window_opens_on_seite(bt, code, label):
 
 
 def test_seite_tab_dom_order():
-    """Y-M2: `fieldset`+`legend` «Überschrift der Seite» (Seitentitel / Einleitung /
-    Ausrichtung) → `h4` «Einstellungen dieser Seitenart» → настройки типа (метки групп — `h5`)."""
-    seite = _section(_panel(Browser(_tenant()).get(f"?seite=services&block={PAGE}")), "seite")
+    """Y-M2, стопка 15 M5e-2b: на «Texte» — `fieldset`+`legend` «Überschrift der Seite»
+    (Überschrift (H1) / Einleitung / Ausrichtung); на «Seite» — сразу настройки типа (метки
+    групп — `h3`, заголовка «Einstellungen dieser Seitenart» больше нет)."""
+    panel = _panel(Browser(_tenant()).get(f"?seite=services&block={PAGE}"))
+    texte, seite = _section(panel, "texte"), _section(panel, "seite")
     order = [
-        seite.index("<fieldset"),
-        seite.index("<legend"),
-        seite.index("Überschrift der Seite"),
-        seite.index('id="schema-f-title"'),
-        seite.index('id="schema-f-intro"'),
-        seite.index('id="schema-f-align"'),
-        seite.index("</fieldset>"),
-        seite.index("<h4"),
-        seite.index("Einstellungen dieser Seitenart"),
-        seite.index("data-schema-settings"),
+        texte.index("<fieldset"),
+        texte.index("<legend"),
+        texte.index("Überschrift der Seite"),
+        texte.index('id="schema-f-title"'),
+        texte.index('id="schema-f-intro"'),
+        texte.index('id="schema-f-align-left"'),
+        texte.rindex("</fieldset>"),
     ]
     assert order == sorted(order)
-    assert '<h3 class="text-sm font-bold' not in seite[seite.index("data-schema-settings") :], (
-        "метки групп настроек под h4 — h5"
-    )
+    assert "Einstellungen dieser Seitenart" not in seite and "<h4" not in seite
+    assert "data-schema-settings" in seite and 'id="schema-f-title"' not in seite
 
 
 def test_seite_tab_apply_form_none():
-    """Y-M1: на «Seite» несколько форм — кнопки вкладок не применяют ни одну (ссылки)."""
+    """Y-M1: на «Seite» несколько форм — кнопки вкладок не применяют ни одну (ссылки).
+    Стопка 15 M5e-2b: форма шапки — на «Texte» (одна форма: кнопки вкладок её применяют)."""
     tenant = _tenant("online_shop", CFG)
     html, view, selected = _capture(Browser(tenant), f"?seite=promos&block={PAGE}")
     window = block_window.tabs(selected, view)
     assert any(t["key"] == "seite" and t["active"] for t in window)
+    seite = next(t for t in window if t["key"] == "seite")
+    assert "fields" not in seite["parts"]
     assert block_window.apply_form(window) is None
     panel = _panel(html)
     assert "data-window-default" not in panel and 'name="zu_tab"' not in panel
-    if len(window) > 1:
-        assert "data-window-hint" in panel, "без JS — подсказка «erst übernehmen»"
+    texte = block_window.tabs(selected, view, "texte")
+    assert (block_window.apply_form(texte) or {}).get("form") == "bw-form-fields"
 
 
 def test_title_form_apply_button_named():
-    """Y-M1: «Übernehmen» формы заголовка — с sr-суффиксом «: Seitentitel» (на «Seite» не одна
-    кнопка «Übernehmen»)."""
-    seite = _section(_panel(Browser(_tenant()).get(f"?seite=services&block={PAGE}")), "seite")
-    form = re.search(r'<form [^>]*id="bw-form-fields".*?</form>', seite, re.S).group(0)
+    """Y-M1: «Übernehmen» формы заголовка — с sr-суффиксом «: Seitentitel» (стопка 15 M5e-2b:
+    форма на «Texte»)."""
+    texte = _section(_panel(Browser(_tenant()).get(f"?seite=services&block={PAGE}")), "texte")
+    form = re.search(r'<form [^>]*id="bw-form-fields".*?</form>', texte, re.S).group(0)
     assert re.search(
         r'<button name="op" value="update" class="[^"]*">Übernehmen'
         r'<span class="sr-only">: Seitentitel</span></button>',
@@ -168,23 +170,28 @@ def test_no_duplicate_ids_on_page_tab(code):
 
 
 def test_page_ref_title_fields_on_real_row():
-    """A-H3 на настоящей ★-строке: подписи полей, потолки 120/400, пункты «Ausrichtung»."""
-    seite = _section(_panel(Browser(_tenant()).get(f"?seite=services&block={PAGE}")), "seite")
-    assert re.search(r'<label for="schema-f-title"[^>]*>Überschrift</label>', seite)
-    assert re.search(r'<label for="schema-f-intro"[^>]*>Einleitung</label>', seite)
-    assert re.search(r'<label for="schema-f-align"[^>]*>Ausrichtung</label>', seite)
-    assert re.search(r'id="schema-f-title"[^>]*maxlength="120"', seite)
-    assert re.search(r'id="schema-f-intro"[^>]*maxlength="400"', seite)
-    assert re.search(r'<option value=""( selected)?>Links</option>', seite)
-    assert '<option value="center">Zentriert</option>' in seite
+    """A-H3 на настоящей ★-строке: подписи полей, потолки 120/400, пункты «Ausrichtung».
+    Стопка 15 M5e-2b (вариант A): «Texte», «Überschrift (H1)», радио «Links»/«Mittig»."""
+    texte = _section(_panel(Browser(_tenant()).get(f"?seite=services&block={PAGE}")), "texte")
+    assert re.search(r'<label for="schema-f-title"[^>]*>Überschrift \(H1\)</label>', texte)
+    assert re.search(r'<label for="schema-f-intro"[^>]*>Einleitung</label>', texte)
+    assert re.search(r"<legend[^>]*>Ausrichtung</legend>", texte)
+    assert re.search(r'id="schema-f-title"[^>]*maxlength="120"', texte)
+    assert re.search(r'id="schema-f-intro"[^>]*maxlength="400"', texte)
+    assert re.search(
+        r'<input type="radio" id="schema-f-align-left"[^>]*value=""[^>]*checked', texte
+    )
+    assert re.search(r'<input type="radio" id="schema-f-align-center"[^>]*value="center"', texte)
+    assert ">Links</label>" in texte and ">Mittig</label>" in texte and "Zentriert" not in texte
 
 
 def test_title_translations_on_seite():
-    """Решение владельца: переводы заголовка — той же формой, что немецкое поле, на «Seite»."""
+    """Решение владельца: переводы заголовка — той же формой, что немецкое поле (стопка 15
+    M5e-2b: на «Texte»)."""
     panel = _panel(Browser(_tenant(locales=["de", "en"])).get(f"?seite=services&block={PAGE}"))
-    seite = _section(panel, "seite")
-    assert "f_tr_title_en" in seite
-    assert "f_tr_title_en" not in panel.replace(seite, "")
+    texte = _section(panel, "texte")
+    assert "f_tr_title_en" in texte
+    assert "f_tr_title_en" not in panel.replace(texte, "")
     one = _panel(Browser(_tenant(locales=["de"])).get(f"?seite=services&block={PAGE}"))
     assert "f_tr_title" not in one
 
@@ -198,7 +205,7 @@ def test_title_edit_and_revert_in_page_window():
     assert draft["title"] == {"title": "Termine", "align": "center"}
     assert set(draft[aufbau_draft.WINDOW_KEY]) == {PAGE}
     html = b.get(f"?seite=services&block={PAGE}&wopen=openA1")
-    assert 'value="Termine"' in _section(_panel(html), "seite")
+    assert 'value="Termine"' in _section(_panel(html), "texte")  # стопка 15 M5e-2b
     _resp, msgs = said(*b.post(seite="services", ref=PAGE, op="revert", wopen="openA1"))
     assert "Änderungen an diesem Block zurückgenommen." in msgs
     assert "services" not in (b.session.get(aufbau_draft.SESSION_KEY) or {})

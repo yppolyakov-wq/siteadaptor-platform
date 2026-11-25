@@ -4359,6 +4359,9 @@ TRANSLATABLE_KEYS = (
     "before_after",
     "page_titles",  # FB-33 M2d
     "confirmation_next",  # FB-33 M2h
+    # FB-33 стопка 15 M5e-2b (A4): шапка каталога — перевод в окне ★-строки, как у блоков
+    "catalog_title",
+    "catalog_intro",
 )
 
 # Строковые поля, которые переводу НЕ подлежат: адреса, файлы, служебные коды и

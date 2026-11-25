@@ -99,7 +99,8 @@ def test_title_op_patches_and_refuses_other_ops():
     with pytest.raises(site_schema.SchemaError):
         site_schema.title_op("services", draft, "update", {"align": "right"})
     with pytest.raises(site_schema.SchemaError):
-        site_schema.title_op("catalog", draft, "update", {"title": "x"})
+        # стопка 15 M5e-2b: у каталога шапка теперь есть — чужой хост здесь «cart»
+        site_schema.title_op("cart", draft, "update", {"title": "x"})
 
 
 def test_apply_writes_the_title_directly():

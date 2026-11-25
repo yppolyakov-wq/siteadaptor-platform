@@ -105,9 +105,11 @@ def test_unknown_or_missing_tab_falls_back_without_a_hidden_field():
 
 def test_one_tab_needs_no_tab_bar_and_banner_shows_choice_and_page():
     b = Browser(_shop())
-    # FB-33 M5b-2 W1: заголовок и настройки типа промо — одна вкладка «Seite» ★-строки
+    # FB-33 M5b-2 W1: настройки типа промо — «Seite» ★-строки; стопка 15 M5e-2b (осознанная
+    # переписка, вариант A): шапка страницы — на «Texte», окно открывается на «Seite»
     title = b.get("?seite=promos&block=__page")
-    assert _tabs_of(title) == [("seite", "")] and "data-window-tabs" not in title
+    assert _tabs_of(title) == [("texte", " hidden"), ("seite", "")]
+    assert "data-window-tabs" in title
     hero = b.get("?seite=home&block=hero")
     # стопка 15 M5e-1b (осознанная переписка): у баннера главной — «Texte» (заголовок и текст)
     assert [t for t, _h in _tabs_of(hero)] == ["was", "texte", "seite"]
@@ -115,7 +117,8 @@ def test_one_tab_needs_no_tab_bar_and_banner_shows_choice_and_page():
     # FB-33 M5b-2 W1: настройки типа — у ★-строки; у ★ каталога — вид товаров на «Wie» и
     # (стопка 15 M5e-2a) «Inhalt» на «Was» — где правится список товаров
     assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=main"))] == ["was", "wie"]
-    assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=__page"))] == ["seite"]
+    # стопка 15 M5e-2b: H1 и вступление каталога — на «Texte» ★-строки
+    assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=__page"))] == ["texte", "seite"]
     # FB-33 M3-4: «Kartenform» — своей вкладкой «Karte»
     assert [t for t, _h in _tabs_of(b.get("?seite=home&block=l1"))] == ["was", "wie", "karte"]
     # FB-33 M2h-5: «Was passiert jetzt» — свой текст, одна вкладка «Texte»
