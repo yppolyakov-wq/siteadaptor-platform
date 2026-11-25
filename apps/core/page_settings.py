@@ -392,23 +392,53 @@ CARD_FORM_KINDS = {"product_card_form": card_forms.PRODUCT, "promo_card_form": c
 OUTSIDE_VIEW_SUFFIX = _("(passt nicht zur Ansicht)")
 
 
-def main_view(type_code: str, raw: dict, normalized: dict) -> str:
-    """Вид основного списка страницы типа, решающий формы карточки (ключ `card_forms`):
-    вид товаров ★ каталога (`catalog_seen_parts`, как витрина) и сетка страницы (её
-    прайс-виды). Первый вид без карточек побеждает; иначе "" (плитки и строки)."""
+#: ревью 1 №2: сетка ОСНОВНОГО списка хоста (`siteconfig.has_main_list`) — «вид ★ листинга —
+#: прежняя сетка `*_layout`» (`listing_parts`); у каталога поверх — вид товаров ★
+MAIN_LIST_LAYOUTS = {
+    "catalog": "catalog_layout",
+    "category": "catalog_layout",
+    "promos": "promo_index_layout",
+    "promo_group": "promo_index_layout",
+    "services": "service_layout",
+    "stay_rooms": "stay_layout",
+    "events": "events_layout",
+    "tours": "tours_layout",
+    "combos": "combos_layout",
+    "lookbook": "lookbook_layout",
+    "wishlist": "wishlist_layout",
+    "blog": "blog_index_layout",
+    "reviews": "reviews_page_layout",
+}
+
+
+def main_list_host(type_code: str) -> str:
+    """Хост основного списка страницы типа ("" — у страницы основного списка нет)."""
     from apps.core import site_schema
     from apps.tenants import siteconfig
 
-    views = []
+    host = site_schema.host_for(type_code)
+    return host if siteconfig.has_main_list(host) else ""
+
+
+def main_view(type_code: str, raw: dict, normalized: dict) -> str:
+    """Вид ОСНОВНОГО списка страницы типа, решающий формы карточки (ключ `card_forms`):
+    вид товаров ★ каталога (`catalog_seen_parts`, как витрина), иначе сетка этого списка
+    (её прайс-виды). У страницы без основного списка — "" (плитки и строки)."""
+    from apps.core import site_schema
+    from apps.tenants import siteconfig
+
     try:
-        host = site_schema.host_for(type_code)
-        if host and siteconfig.is_shared_catalog_host(host):
+        host = main_list_host(type_code)
+        if not host:
+            return ""
+        views = []
+        if siteconfig.is_shared_catalog_host(host):
             views.append(site_schema.catalog_seen_parts(raw, host).products)
-        for s in cabinet_settings(type_code):
-            if kind_of(s) == KIND_LAYOUT:
-                layout, _found = _walk(normalized, (_LAYOUT_KEYS[s.code],))
-                if isinstance(layout, dict):
-                    views.append(layout.get("preset") or "")
+        key = MAIN_LIST_LAYOUTS.get(host)
+        if key:
+            layout, _found = _walk(normalized, (_LAYOUT_KEYS[key],))
+            if isinstance(layout, dict):
+                views.append(layout.get("preset") or "")
     except Exception:  # noqa: BLE001 — без вида — прежние варианты, но не молча
         logger.warning("page settings: main view of %s failed", type_code, exc_info=True)
         return ""
@@ -1219,9 +1249,11 @@ def _no_cards_entry(tenant, ts: TypeSchema) -> dict:
     from apps.core import site_schema, window_links
     from apps.tenants import siteconfig
 
-    name = site_schema.main_list_name(site_schema.host_for(ts.code), tenant) or ts.label
+    name = site_schema.main_list_name(main_list_host(ts.code), tenant) or ts.label
     return {
         "page": ts.code,
+        # ревью 1 №3: без JS видны подсказки всех страниц — каждая называет свою
+        "page_label": str(ts.label),
         "name": str(name),
         "url": window_links.block_window_url(ts.code, siteconfig.MAIN_LIST_KEY, "wie"),
     }

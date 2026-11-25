@@ -3553,6 +3553,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // лежат вне строк, а display:none сабмит поля не отменяет (W0).
     document.querySelectorAll("[data-stu-page]:not([data-stu-setting])").forEach(function (el) {
       if (el.classList.contains("hidden")) return;
+      // FB-33 стопка 15 M1d: подсказка «Diese Ansicht hat keine Karten» — текст и ссылка
+      // без поля, но не пустая рамка: её охват решает только `data-stu-page`
+      if (el.hasAttribute("data-stu19-no-cards")) return;
       if (el.querySelector("[data-stu-setting]")) return;
       if (!el.querySelector("input:not([type=hidden]), select, textarea, button")) {
         el.classList.add("hidden");

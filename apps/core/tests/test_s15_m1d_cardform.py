@@ -125,7 +125,6 @@ def _clean_errors(tenant, item):
     return errors
 
 
-@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
 def test_assistant_variants_by_view():
     """Ревью 1 №1: путь продакшена — пункт ассистента несёт тип, варианты берутся по нему."""
     tenant = _tenant()
@@ -140,7 +139,6 @@ def test_assistant_variants_by_view():
     assert assistant_pages.value_label(tenant, CODE, "deal") == str(card_forms.label_for("deal"))
 
 
-@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
 def test_assistant_two_types_different_views():
     """Форма, допустимая только у другого типа, у этого отклоняется (а не по объединению)."""
     tenant = TenantFactory(business_type="online_shop", disabled_modules=[])
@@ -149,7 +147,6 @@ def test_assistant_two_types_different_views():
     assert not _clean_errors(tenant, _page_item("services"))
 
 
-@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
 def test_apply_rejects_form_outside_view():
     tenant = _preisliste(_tenant())
     item = _page_item("catalog")
@@ -267,7 +264,6 @@ def test_hint_link_plain():
     assert "hx-" not in link and "onclick" not in link
 
 
-@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
 def test_two_hints_name_their_page():
     """Ревью 1 №3: без JS видны обе подсказки (каталог и «Alle Kategorien») — текст разный."""
     html, s = _html(_preisliste(_tenant()))
@@ -280,7 +276,6 @@ def test_two_hints_name_their_page():
     assert all(NO_CARDS in t for t in seen)
 
 
-@pytest.mark.xfail(strict=True, reason="M1d ревью 1: до правки")
 def test_arrow_is_decorative():
     html, _s = _html(_tenant())
     assert '<span aria-hidden="true">→</span>' in html
@@ -304,3 +299,20 @@ def test_m1d_msgids_in_all_po():
         for msgid in msgids:
             m = re.search(r'msgid "' + re.escape(msgid) + r'"\nmsgstr "([^"]*)"', po)
             assert m and m.group(1), (lang, msgid)
+
+
+def test_studio_scope_keeps_hint():
+    """Ревью 1 №4: правило Студии «рамка без поля — спрятать» подсказку не прячет (у неё нет
+    поля, только текст и ссылка) — её охват решает `data-stu-page` (стенд: видна одна)."""
+    src = (Path(settings.BASE_DIR) / "templates" / "tenant" / "site_home.html").read_text()
+    rule = src.index('document.querySelectorAll("[data-stu-page]:not([data-stu-setting])")')
+    assert 'el.hasAttribute("data-stu19-no-cards")' in src[rule : rule + 600]
+
+
+def test_main_list_layouts_registry():
+    """Сетка основного списка — только у хостов с ★ и только из сеток кабинета."""
+    from apps.tenants import siteconfig
+
+    for host, key in page_settings.MAIN_LIST_LAYOUTS.items():
+        assert siteconfig.has_main_list(host), host
+        assert key in page_settings._LAYOUT_KEYS, key
