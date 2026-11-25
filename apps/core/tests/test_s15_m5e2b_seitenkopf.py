@@ -1,8 +1,7 @@
 """FB-33 стопка 15 M5e-2b: «Seitenkopf», вариант A — H1 и «Einleitung» листингов на «Texte».
 
 План — `docs/fb33-stack15-plan-2026-11-25.md` §0.2 M5eSeitenkopf (вариант A), §0.3 №3, §2
-«M5e-2b», §4 «M5e-2b», §14.1 A4/A9/A10, §14.2 Y3/Y9. Замки первого коммита: где поведения ещё
-нет — strict xfail.
+«M5e-2b», §4 «M5e-2b», §14.1 A4/A9/A10, §14.2 Y3/Y9. Замки шли первым коммитом (strict xfail), сняты в коммитах реализации.
 
 - Один писатель шапки листинга — `page_title.head(config, host)` / `put_head(config, host,
   entry)`: `page_titles[host]` у `HEAD_HOSTS`, `catalog_title`/`catalog_intro` у каталога;

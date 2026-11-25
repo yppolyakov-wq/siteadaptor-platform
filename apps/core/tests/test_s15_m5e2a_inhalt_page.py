@@ -278,17 +278,11 @@ def _window_word(tenant, item, style=""):
 def test_filled_matches_storefront_gate(case, style):
     """№2/№3, ревью 1 №3/№4: «„X“ — ausgefüllt» ровно тогда, когда витрина рисует этот пункт
     контактов у этого вида блока (поведенческий замок: по выводу `_contact.html`)."""
-    if (case, style) in XFAIL_GATES:
-        pytest.xfail("ревью 1: ещё не сделано")
     item, fields, shown_by = GATES[case]
     assert not shown_by(_storefront(_tenant(**EMPTY), style), style), case
     tenant = _tenant(**{**EMPTY, **fields})
     shown = shown_by(_storefront(tenant, style), style)
     assert _window_word(tenant, item, style) == ("ausgefüllt" if shown else "leer"), (case, shown)
-
-
-#: красные случаи ревью 1 до кода (e-mail, карта, часы текстом у «compact»); после кода — пусто
-XFAIL_GATES: set = set()
 
 
 def test_holiday_hours_match_storefront(monkeypatch):

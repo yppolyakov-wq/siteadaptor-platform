@@ -5,7 +5,7 @@
 категория» и «Ghost», §2 и §4 «M5e-3», §14.1 A8 (первая ось своей схемы не роняет прочие —
 унаследованные оси записываются `catalog_parts.write_rows`), A13 (живая ли страница — через
 `site_schema.host_for(code, known_slugs=)`, второго списка нет). Плюс публичный
-`site_schema.main_list_source(host)` (TODO M5e-2a).
+`site_schema.main_list_source(host)` (из M5e-2a).
 """
 
 import ast
@@ -285,7 +285,7 @@ def test_ghost_check_constant_queries(monkeypatch):
     assert len(slug_reads) == 1
 
 
-# --- TODO M5e-2a: публичный источник основного списка --------------------------------------------
+# --- M5e-2a: публичный источник основного списка --------------------------------------------------
 
 
 def test_main_list_source_public():
