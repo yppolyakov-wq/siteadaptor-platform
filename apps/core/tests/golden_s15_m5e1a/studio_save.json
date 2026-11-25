@@ -1,0 +1,592 @@
+{
+ "archetypes": {
+  "about_text": "Seit 1998.",
+  "about_title": "Über uns",
+  "archetypes": {
+   "booking": {
+    "blurb": "Frisch",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": true,
+    "intro": "",
+    "label": "Unsere Brote"
+   },
+   "catalog": {
+    "blurb": "Frisch",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": true,
+    "intro": "",
+    "label": "Unsere Brote"
+   },
+   "events": {
+    "blurb": "Frisch",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": true,
+    "intro": "",
+    "label": "Unsere Brote"
+   },
+   "jobs": {
+    "blurb": "Frisch",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": true,
+    "intro": "",
+    "label": "Unsere Brote"
+   },
+   "loyalty": {
+    "blurb": "Frisch",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": true,
+    "intro": "",
+    "label": "Unsere Brote"
+   },
+   "orders": {
+    "blurb": "Frisch",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": true,
+    "intro": "",
+    "label": "Unsere Brote"
+   },
+   "stays": {
+    "blurb": "Frisch",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": true,
+    "intro": "",
+    "label": "Unsere Brote"
+   }
+  },
+  "cta": {
+   "button_label": "Los",
+   "button_url": "/termin/",
+   "text": "Wir freuen uns",
+   "title": "Jetzt bestellen"
+  },
+  "faq": [
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   }
+  ],
+  "hero_text": "Frisch aus dem Ofen",
+  "hero_title": "Willkommen",
+  "i18n": {},
+  "process": [
+   {
+    "text": "Im Sortiment",
+    "title": "Wählen"
+   },
+   {
+    "text": "Im Laden",
+    "title": "Abholen"
+   }
+  ],
+  "team": [
+   {
+    "name": "Anna",
+    "photo": "",
+    "role": "Chefin"
+   },
+   {
+    "name": "Ben",
+    "photo": "",
+    "role": "Bäcker"
+   }
+  ],
+  "testimonials": [
+   {
+    "name": "Eva",
+    "stars": 5,
+    "text": "Super!"
+   }
+  ],
+  "trust": {
+   "marks": [
+    "Meisterbetrieb",
+    "Bio"
+   ],
+   "since": "1998"
+  },
+  "usp_bar": []
+ },
+ "de_all_changed": {
+  "about_text": "Seit 1999.",
+  "about_title": "Über uns",
+  "archetypes": {
+   "booking": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "catalog": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "events": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "jobs": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "loyalty": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "orders": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "stays": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   }
+  },
+  "cta": {
+   "button_label": "Los",
+   "button_url": "https://example.com/buchen",
+   "text": "Wir freuen uns",
+   "title": "Tisch reservieren"
+  },
+  "faq": [
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   }
+  ],
+  "hero_text": "Frisch aus dem Ofen",
+  "hero_title": "Hallo",
+  "i18n": {},
+  "process": [
+   {
+    "text": "Im Laden",
+    "title": "Abholen"
+   },
+   {
+    "text": "Online",
+    "title": "Wählen"
+   }
+  ],
+  "team": [
+   {
+    "name": "Ben",
+    "photo": "",
+    "role": "Meister"
+   },
+   {
+    "name": "Anna",
+    "photo": "",
+    "role": "Chefin"
+   },
+   {
+    "name": "Cleo",
+    "photo": "",
+    "role": "Azubi"
+   }
+  ],
+  "testimonials": [
+   {
+    "name": "Eva",
+    "stars": 5,
+    "text": "Super!"
+   },
+   {
+    "name": "Oli",
+    "stars": 4,
+    "text": "Lecker"
+   }
+  ],
+  "trust": {
+   "marks": [
+    "Bio",
+    "Handwerk"
+   ],
+   "since": "2001"
+  },
+  "usp_bar": []
+ },
+ "de_unchanged_with_i18n": {
+  "about_text": "Seit 1998.",
+  "about_title": "Über uns",
+  "archetypes": {
+   "booking": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "catalog": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "events": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "jobs": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "loyalty": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "orders": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "stays": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   }
+  },
+  "cta": {
+   "button_label": "Los",
+   "button_url": "/termin/",
+   "text": "Wir freuen uns",
+   "title": "Jetzt bestellen"
+  },
+  "faq": [
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   }
+  ],
+  "hero_text": "Frisch aus dem Ofen",
+  "hero_title": "Willkommen",
+  "i18n": {
+   "en": {
+    "about_title": "About us",
+    "hero_title": "Welcome"
+   },
+   "ru": {
+    "about_title": "О нас",
+    "cta": {
+     "text": "Ждём вас",
+     "title": "Заказать"
+    },
+    "hero_text": "Прямо из печи",
+    "hero_title": "Добро пожаловать",
+    "process": [
+     {
+      "text": "В ассортименте",
+      "title": "Выбрать"
+     },
+     {
+      "title": "Забрать"
+     }
+    ],
+    "team": [
+     {
+      "role": "Хозяйка"
+     },
+     {
+      "role": "Пекарь"
+     }
+    ],
+    "trust": {
+     "marks": [
+      "Мастер",
+      "Био"
+     ]
+    }
+   }
+  },
+  "process": [
+   {
+    "text": "Im Sortiment",
+    "title": "Wählen"
+   },
+   {
+    "text": "Im Laden",
+    "title": "Abholen"
+   }
+  ],
+  "team": [
+   {
+    "name": "Anna",
+    "photo": "",
+    "role": "Chefin"
+   },
+   {
+    "name": "Ben",
+    "photo": "",
+    "role": "Bäcker"
+   }
+  ],
+  "testimonials": [
+   {
+    "name": "Eva",
+    "stars": 5,
+    "text": "Super!"
+   }
+  ],
+  "trust": {
+   "marks": [
+    "Meisterbetrieb",
+    "Bio"
+   ],
+   "since": "1998"
+  },
+  "usp_bar": []
+ },
+ "ru_translation": {
+  "about_text": "Seit 1998.",
+  "about_title": "Über uns",
+  "archetypes": {
+   "booking": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "catalog": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "events": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "jobs": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "loyalty": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "orders": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   },
+   "stays": {
+    "blurb": "",
+    "button_label": "",
+    "button_url": "",
+    "gallery": [],
+    "hero_image": "",
+    "hidden": false,
+    "intro": "",
+    "label": ""
+   }
+  },
+  "cta": {
+   "button_label": "Los",
+   "button_url": "/termin/",
+   "text": "Wir freuen uns",
+   "title": "Jetzt bestellen"
+  },
+  "faq": [
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   }
+  ],
+  "hero_text": "Frisch aus dem Ofen",
+  "hero_title": "Willkommen",
+  "i18n": {
+   "en": {
+    "about_title": "About us",
+    "hero_title": "Welcome"
+   },
+   "ru": {
+    "about_title": "О нас",
+    "cta": {
+     "text": "Ждём вас",
+     "title": "Забронировать"
+    },
+    "hero_text": "Прямо из печи",
+    "hero_title": "Привет",
+    "process": [
+     {
+      "text": "В ассортименте",
+      "title": "Выбрать"
+     },
+     {
+      "title": "Забрать"
+     }
+    ],
+    "team": [
+     {
+      "role": "Хозяйка"
+     },
+     {
+      "role": "Пекарь"
+     }
+    ]
+   }
+  },
+  "process": [
+   {
+    "text": "Im Sortiment",
+    "title": "Wählen"
+   },
+   {
+    "text": "Im Laden",
+    "title": "Abholen"
+   }
+  ],
+  "team": [
+   {
+    "name": "Anna",
+    "photo": "",
+    "role": "Chefin"
+   },
+   {
+    "name": "Ben",
+    "photo": "",
+    "role": "Bäcker"
+   }
+  ],
+  "testimonials": [
+   {
+    "name": "Eva",
+    "stars": 5,
+    "text": "Super!"
+   }
+  ],
+  "trust": {
+   "marks": [
+    "Мастер",
+    "Био"
+   ],
+   "since": "1998"
+  },
+  "usp_bar": []
+ }
+}
