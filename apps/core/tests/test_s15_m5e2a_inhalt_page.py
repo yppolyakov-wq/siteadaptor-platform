@@ -29,6 +29,7 @@ from apps.core.tests.test_fb33_m3_window_before import _capture, _panel
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
+REVIEW1 = pytest.mark.xfail(strict=True, reason="M5e-2a ревью 1: ещё не сделано")
 
 ROOT = Path(__file__).resolve().parents[3]
 LANGS = ("de", "en", "tr", "ru", "uk")
@@ -48,6 +49,25 @@ HOME = {
     "gallery": "site-home",
 }
 LISTING = {"categories": "catalog:category-list", "combos": "catalog:combo-list"}
+#: ревью 1 (№7): «Kategorien» и «Sets & Menüs» — только у страниц каталога
+CATALOG_HOSTS = ("catalog", "category", "catalog:kaffee")
+#: ревью 1 (№2): хосты основного списка без экрана — у их списка нет источника «Liste»
+NO_SCREEN = {"team", "gallery", "wishlist", "lookbook"}
+#: ревью 1 (№2): источник основного списка → экран его правки
+SOURCE_SCREENS = {
+    "promotions": "promotions:promotion-list",
+    "products": "sellable-manage",
+    "services": "booking:services",
+    "stays": "stays:units",
+    "events": "events:list",
+    "tours": "events:tour-list",
+    "combos": "catalog:combo-list",
+    "categories": "catalog:category-list",
+    "reviews": "reviews:list",
+    "blog": "blog-list",
+}
+#: пункты «Kontakt» (de) — артборд M5eInhalt + ревью 1 №4 (e-mail и карта тоже открывают блок)
+CONTACT_ITEMS = 5
 #: ★ основного списка: хост → экран списка этой сущности
 MAIN_SCREENS = {
     "catalog": "sellable-manage",
@@ -129,15 +149,16 @@ def _content(request, host, key, **row):
 # --- №2: один реестр -----------------------------------------------------------------------------
 
 
+@REVIEW1
 def test_page_sources_in_contentsource():
     """№2: источники страниц — те же `DetailSection` с `ContentSource` в `PAGE_SOURCES` по семье;
     ключей семей нет среди модулей деталей; экран у каждой строки — запись `nav_registry`
     (у ★ — из записи источника, своего `content_nav` нет)."""
     sources = detail_sections.PAGE_SOURCES
-    assert set(sources) == {"home", "list"}
+    assert set(sources) == {"home", "list", "catalog"}
     assert not set(sources) & set(detail_sections.DETAIL_SECTIONS)
     keys = {fam: {s.key for s in rows} for fam, rows in sources.items()}
-    assert keys == {"home": set(HOME), "list": {*LISTING, "main"}}
+    assert keys == {"home": set(HOME), "list": {"main"}, "catalog": {*LISTING, "main"}}
     for fam, rows in sources.items():
         for s in rows:
             assert isinstance(s, detail_sections.DetailSection)
@@ -149,12 +170,13 @@ def test_page_sources_in_contentsource():
     contact = next(s for s in sources["home"] if s.key == "contact")
     assert contact.source.subject == "tenant"
     assert str(contact.source.link_text) == "Geschäftsdaten bearbeiten"
-    assert all(s.source.subject == "" for s in sources["list"])
-    # прежние источники деталей — без новых полей
-    for rows in detail_sections.DETAIL_SECTIONS.values():
+    assert all(s.source.subject == "" for s in (*sources["list"], *sources["catalog"]))
+    # прежние источники деталей — без `subject`; своё имя ссылки — только у «Angebot» акции
+    for module, rows in detail_sections.DETAIL_SECTIONS.items():
         for s in rows:
             if s.source is not None:
-                assert s.source.subject == "" and not s.source.link_text, s.key
+                assert s.source.subject == "", s.key
+                assert bool(s.source.link_text) == ((module, s.key) == ("promo", "offer"))
 
 
 @pytest.mark.parametrize("host", sorted(MAIN_SCREENS))
@@ -166,77 +188,169 @@ def test_main_screen_from_source_record(host):
         assert window_parts.main_list_screen(none) == ""
 
 
+def test_main_list_screen_covers_all_list_sources():
+    """Ревью 1 №2: у каждого хоста основного списка — экран, кроме явного списка без источника;
+    у каждого источника `LIST_SOURCES` — экран."""
+    from apps.tenants import siteconfig
+
+    for host in siteconfig.MAIN_LIST_HOSTS:
+        got = window_parts.main_list_screen(host)
+        assert bool(got) == (host not in NO_SCREEN), (host, got)
+    assert set(SOURCE_SCREENS) == set(siteconfig.LIST_SOURCES)
+
+
+@REVIEW1
+@pytest.mark.parametrize("source", sorted(SOURCE_SCREENS))
+def test_main_list_screen_expected_url_per_source(source):
+    """Ревью 1 №2: экран источника — по таблице (точный модуль раньше «ядра»)."""
+    assert window_parts.list_source_screen(source) == SOURCE_SCREENS[source]
+
+
+@REVIEW1
+def test_main_section_without_screen_logged(monkeypatch, caplog):
+    """Ревью 1 №2: у настоящего источника экран не нашёлся — предупреждение в журнал."""
+    monkeypatch.setattr(window_parts, "list_source_screen", lambda source: "")
+    request = _request(_tenant("online_shop", disabled=[]))
+    with caplog.at_level(logging.WARNING, logger="apps.core.window_parts"):
+        assert _content(request, "catalog", "main") is None
+    assert any("no screen" in r.getMessage() for r in caplog.records)
+
+
 # --- №2/№3: «ausgefüllt» = гейт витрины -----------------------------------------------------------
 
 
-def _storefront(tenant) -> str:
+def _storefront(tenant, style="") -> str:
     req = RequestFactory().get("/")
     req.tenant = tenant
     with translation.override("de"):
         return render_to_string(
-            "storefront/sections/_contact.html", {"section_row": {}, "request": req}
+            "storefront/sections/_contact.html", {"section_row": {"style": style}, "request": req}
         )
 
 
-#: пункт → (поля бизнеса, при которых витрина его рисует; как узнать по выводу витрины)
+def _hours_shown(html, style):
+    return ("Heute: " in html) if style == "compact" else ("Öffnungszeiten</p>" in html)
+
+
+def _map_shown(html, _style):
+    return "sf-contact-map" in html or "maps.example" in html
+
+
+#: случай → (пункт окна, поля бизнеса, «рисует ли витрина пункт» по её выводу)
 GATES = {
-    "Adresse": ({"address": "Hauptstr. 1, 42651 Solingen"}, "Hauptstr. 1"),
-    "Telefon": ({"contact_phone": "+49 212 123456"}, 'href="tel:'),
-    # структурные часы без текста: витрина рисует «Öffnungszeiten» по `open_status` —
-    # по имени поля `opening_hours` окно сказало бы «leer»
-    "Öffnungszeiten": (
-        {"opening_hours_structured": {"0": ["08:00", "18:00"]}},
-        "Öffnungszeiten</p>",
+    "address": ("Adresse", {"address": "Hauptstr. 1, Solingen"}, lambda h, s: "Hauptstr. 1" in h),
+    "phone": ("Telefon", {"contact_phone": "+49 212 1"}, lambda h, s: 'href="tel:' in h),
+    # телефон владельца, когда своего нет (`public_phone`)
+    "owner-phone": ("Telefon", {"owner_phone": "+49 212 2"}, lambda h, s: 'href="tel:' in h),
+    "email": ("E-Mail", {"contact_email": "a@b.de"}, lambda h, s: 'href="mailto:' in h),
+    # структурные часы без текста: витрина рисует по `open_status`
+    "hours-structured": (
+        "Öffnungszeiten",
+        {"opening_hours_structured": {str(d): ["00:00", "23:59"] for d in range(7)}},
+        _hours_shown,
     ),
+    # часы текстом: у вида «compact» витрина их НЕ рисует (только «Heute» по статусу)
+    "hours-text": ("Öffnungszeiten", {"opening_hours": "Mo–Fr 8–18"}, _hours_shown),
+    "map-link": ("Karten-Link", {"map_url": "https://maps.example/x"}, _map_shown),
+    # точка на карте без ссылки: карта рисуется у всех видов, кроме «compact»
+    "map-point": ("Karten-Link", {"latitude": "51.1", "longitude": "7.08"}, _map_shown),
+}
+EMPTY = {"owner_phone": "", "owner_email": ""}
+
+
+def _window_word(tenant, item, style=""):
+    if style:
+        tenant.site_config = {
+            **(tenant.site_config or {}),
+            "sections": [{"key": "contact", "enabled": True, "style": style}],
+        }
+        tenant.save()
+    with translation.override("de"):
+        part, _selected = _inhalt(tenant, "?seite=home&block=contact")
+    text = _text(part)
+    found = re.search(rf"„{re.escape(item)}“ — (ausgefüllt|leer)", text)
+    return found.group(1) if found else text
+
+
+@pytest.mark.parametrize("style", ["", "compact"])
+@pytest.mark.parametrize("case", sorted(GATES))
+def test_filled_matches_storefront_gate(case, style):
+    """№2/№3, ревью 1 №3/№4: «„X“ — ausgefüllt» ровно тогда, когда витрина рисует этот пункт
+    контактов у этого вида блока (поведенческий замок: по выводу `_contact.html`)."""
+    if (case, style) in XFAIL_GATES:
+        pytest.xfail("ревью 1: ещё не сделано")
+    item, fields, shown_by = GATES[case]
+    assert not shown_by(_storefront(_tenant(**EMPTY), style), style), case
+    tenant = _tenant(**{**EMPTY, **fields})
+    shown = shown_by(_storefront(tenant, style), style)
+    assert _window_word(tenant, item, style) == ("ausgefüllt" if shown else "leer"), (case, shown)
+
+
+#: заполняется до кода (красные случаи ревью 1); после кода — пусто
+XFAIL_GATES: set = {
+    ("email", ""),
+    ("email", "compact"),
+    ("map-link", ""),
+    ("map-link", "compact"),
+    ("map-point", ""),
+    ("map-point", "compact"),
+    ("hours-text", "compact"),
 }
 
 
-@pytest.mark.parametrize("item", sorted(GATES))
-def test_filled_matches_storefront_gate(item):
-    """№2/№3: «„X“ — ausgefüllt» ровно тогда, когда витрина рисует этот пункт контактов
-    (поведенческий замок: по выводу `_contact.html`, не по именам полей)."""
-    fields, marker = GATES[item]
-    for case in ({}, fields):
-        tenant = _tenant(owner_phone="", **case)
-        shown = marker in _storefront(tenant)
-        assert shown == bool(case), (item, case)
-        with translation.override("de"):
-            part, _selected = _inhalt(tenant, "?seite=home&block=contact")
-        word = "ausgefüllt" if shown else "leer"
-        assert f"„{item}“ — {word}" in _text(part), (item, case, _text(part))
+def test_holiday_hours_match_storefront(monkeypatch):
+    """Ревью 1 №3: каникулы без часов — витрина рисует «Heute: …» (статус «закрыто»); окно
+    говорит то же."""
+    from datetime import date
+
+    from apps.core import closures
+
+    rng = {"von": date(2026, 12, 24), "bis": date(2026, 12, 27), "reason": ""}
+    monkeypatch.setattr(closures, "closed_range_for", lambda tenant, day: rng)
+    for style in ("", "compact"):
+        tenant = _tenant(**EMPTY)
+        shown = _hours_shown(_storefront(tenant, style), style)
+        assert _window_word(tenant, "Öffnungszeiten", style) == (
+            "ausgefüllt" if shown else "leer"
+        ), style
 
 
+@REVIEW1
 def test_zero_two_three_of_three():
     """№14: итог «N von M ausgefüllt» считает пункты (0, 2 и 3 из 3); значок — украшение,
     состояние — словом."""
+    m = CONTACT_ITEMS
     cases = (
-        ({"owner_phone": ""}, 0),
-        ({"address": "Markt 2", "contact_phone": "0212 1", "owner_phone": ""}, 2),
+        ({}, 0),
+        ({"address": "Markt 2", "contact_phone": "0212 1"}, 2),
         (
             {
                 "address": "Markt 2",
                 "contact_phone": "0212 1",
                 "opening_hours": "Mo–Fr 8–18",
+                "contact_email": "a@b.de",
+                "map_url": "https://maps.example/x",
             },
-            3,
+            m,
         ),
     )
     for fields, n in cases:
         with translation.override("de"):
-            part, selected = _inhalt(_tenant(**fields), "?seite=home&block=contact")
+            part, selected = _inhalt(_tenant(**EMPTY, **fields), "?seite=home&block=contact")
         text = _text(part)
-        assert f"{n} von 3 ausgefüllt" in text, (n, text)
-        assert text.count("— ausgefüllt") == n and text.count("— leer") == 3 - n, text
+        assert f"{n} von {m} ausgefüllt" in text, (n, text)
+        assert text.count("— ausgefüllt") == n and text.count("— leer") == m - n, text
         assert "Die Angaben kommen aus Ihren Geschäftsdaten." in text
         assert "aria-live" not in part and 'role="status"' not in part  # Y4: статичный итог
 
 
+@REVIEW1
 def test_state_word_not_icon_only():
     """Y4: значок состояния `aria-hidden`, слово — в тексте пункта."""
     with translation.override("de"):
         part, _selected = _inhalt(_tenant(address="Markt 2"), "?seite=home&block=contact")
     items = re.findall(r"<li data-inhalt-woher-item>(.*?)</li>", part, re.S)
-    assert len(items) == 3
+    assert len(items) == CONTACT_ITEMS
     for it in items:
         assert re.match(r'<span aria-hidden="true">[✓–]</span> ', it), it
         assert re.search(r"— (ausgefüllt|leer)$", _text(it)), it
@@ -293,6 +407,7 @@ def test_unknown_family_no_part():
 # --- №8: проба незнакомая — в журнал --------------------------------------------------------------
 
 
+@REVIEW1
 def test_probe_unknown_logged(monkeypatch, caplog):
     """№8: незнакомая проба — ошибка в журнал, состояние «неизвестно» (пункт без слова),
     экран не падает."""
@@ -315,8 +430,8 @@ def test_probe_unknown_logged(monkeypatch, caplog):
             part, _selected = _inhalt(_tenant(address="Markt 2"), "?seite=home&block=contact")
     assert any("unknown probe 'nope'" in r.getMessage() for r in caplog.records)
     text = _text(part)
-    assert "„Adresse“ — " not in text and "2 von 2 ausgefüllt" not in text
-    assert "von 2 ausgefüllt" in text  # неизвестное не считается
+    assert "„Adresse“ — " not in text
+    assert f"von {CONTACT_ITEMS - 1} ausgefüllt" in text  # неизвестное не считается
 
 
 # --- №13: подписи на языке окна -------------------------------------------------------------------
@@ -325,10 +440,21 @@ def test_probe_unknown_logged(monkeypatch, caplog):
 @pytest.mark.parametrize(
     "lang,words",
     [
-        ("de", ("„Adresse“", "„Telefon“", "„Öffnungszeiten“", "Geschäftsdaten bearbeiten")),
-        ("ru", ("Адрес", "Телефон", "Часы работы")),
+        (
+            "de",
+            (
+                "„Adresse“",
+                "„Telefon“",
+                "„Öffnungszeiten“",
+                "„E-Mail“",
+                "„Karten-Link“",
+                "Geschäftsdaten bearbeiten",
+            ),
+        ),
+        ("ru", ("Адрес", "Телефон", "Часы работы", "Электронная почта", "Ссылка на карту")),
     ],
 )
+@REVIEW1
 def test_labels_ru_de(lang, words):
     """№13: подписи пунктов — те же msgid, что на форме «Mein Geschäft», на языке окна."""
     with translation.override(lang):
@@ -448,6 +574,131 @@ def test_inhalt_page_queries(monkeypatch):
         monkeypatch.setattr(window_parts, "content_part", real)
         _part_html, selected = _inhalt(tenant, query)
         assert selected["content"]["sourced"], query
+
+
+# --- ревью 1 -----------------------------------------------------------------------------------
+
+
+@REVIEW1
+def test_offer_part_links_to_promotions():
+    """Ревью 1 №0: «Angebot» деталей акции (строка типа) — «Inhalt»: что показывает и ссылка
+    «Aktion bearbeiten» на экран акций; у строки одной акции части нет (как раньше)."""
+    with translation.override("de"):
+        part, selected = _inhalt(_tenant(disabled=[]), "?seite=promo&block=offer")
+    text = _text(part)
+    assert "Dieser Block zeigt: Preis, Bedingungen und Gutscheincode der Aktion." in text
+    link = re.search(r'<a href="([^"]+)"[^>]*data-inhalt-link[^>]*>(.*?)</a>', part, re.S)
+    assert link and _text(link.group(2)) == "Aktion bearbeiten", part
+    assert link.group(1).startswith(reverse("promotions:promotion-list"))
+
+
+@REVIEW1
+@pytest.mark.parametrize(
+    "query", ["?seite=home&block=contact", "?seite=catalog&block=main", "?seite=promo&block=offer"]
+)
+def test_inhalt_link_target_44(query):
+    """Ревью 1 №1 (a11y): ссылка части — цель ≥ 44 px (`inline-flex min-h-[44px]
+    items-center`), подпись — один `<span>` с переносом длинного слова."""
+    with translation.override("de"):
+        part, _selected = _inhalt(_tenant("online_shop", disabled=[]), query)
+    tag = re.search(r"<a [^>]*data-inhalt-link[^>]*>", part).group(0)
+    for cls in ("inline-flex", "min-h-[44px]", "items-center"):
+        assert cls in tag.split('class="')[1].split('"')[0].split(), (cls, tag)
+    span = re.search(r"<a [^>]*data-inhalt-link[^>]*>(<span[^>]*>)", part).group(1)
+    assert "min-w-0" in span and "[overflow-wrap:anywhere]" in span, span
+
+
+@pytest.mark.parametrize(
+    "query", ["?seite=home&block=contact", "?seite=catalog&block=main", "?seite=home&block=finder"]
+)
+def test_no_live_region_in_part(query):
+    """Ревью 1 №1: в части нет живой области — итог статичный (Y4)."""
+    with translation.override("de"):
+        part, _selected = _inhalt(_tenant("online_shop", disabled=[]), query)
+    assert part
+    assert "aria-live" not in part and 'role="status"' not in part and 'role="alert"' not in part
+
+
+def test_no_link_when_reason():
+    """Ревью 1 №1: при причине — ни одной `<a data-inhalt-link>`."""
+    with translation.override("de"):
+        part, selected = _inhalt(_tenant(disabled=["reviews"]), "?seite=home&block=reviews")
+    assert selected["content"]["reason"]
+    assert "data-inhalt-link" not in part
+
+
+def test_link_text_has_no_interpolation():
+    """Ревью 1 №1: `link_text` — целая строка без подстановок имён (имя не меняет язык)."""
+    rows = [s for fam in detail_sections.PAGE_SOURCES.values() for s in fam]
+    rows += [s for fam in detail_sections.DETAIL_SECTIONS.values() for s in fam]
+    for s in rows:
+        if s.source is not None and s.source.link_text:
+            text = str(s.source.link_text)
+            assert "%(" not in text and "{" not in text, s.key
+
+
+@REVIEW1
+def test_combos_summary_uses_business_label():
+    """Ревью 1 №5: «Sets & Menüs» — имя источника по типу бизнеса (`source_label`)."""
+    from apps.core import list_blocks
+
+    tenant = _tenant("restaurant", disabled=[])
+    request = _request(tenant)
+    with translation.override("de"):
+        content = _content(request, "catalog", "combos")
+        want = list_blocks.source_label("combos", tenant)
+    assert content and content["summary"] == str(want)
+
+
+@REVIEW1
+def test_gallery_only_if_presence():
+    """Ревью 1 №5: галерея главной рисуется только с фото — у «Woher» это сказано."""
+    with translation.override("de"):
+        part, _selected = _inhalt(_tenant(disabled=[]), "?seite=home&block=gallery")
+    assert "Erscheint nur, wenn die Galerie Fotos hat." in _text(part)
+
+
+def test_tenant_list_missing_label_logged(monkeypatch, caplog):
+    """Ревью 1 №6: пункт без подписи — ошибка в журнал с путём поля, без списка."""
+    import dataclasses
+
+    rows = detail_sections.PAGE_SOURCES["home"]
+    contact = next(s for s in rows if s.key == "contact")
+    fields = tuple(
+        dataclasses.replace(f, label="", field="") if f.path == "address" else f
+        for f in contact.source.fields
+    )
+    bad = dataclasses.replace(contact, source=dataclasses.replace(contact.source, fields=fields))
+    monkeypatch.setitem(
+        detail_sections.PAGE_SOURCES, "home", tuple(bad if s.key == "contact" else s for s in rows)
+    )
+    with caplog.at_level(logging.ERROR, logger="apps.core.window_parts"):
+        with translation.override("de"):
+            part, selected = _inhalt(_tenant(), "?seite=home&block=contact")
+    assert any("'address'" in r.getMessage() for r in caplog.records), caplog.text
+    assert not selected["content"]["woher_list"] and "data-inhalt-woher-item" not in part
+
+
+@REVIEW1
+def test_page_family_unknown_host_empty(caplog):
+    """Ревью 1 №6: хост None — не главная: части нет, ошибка в журнал."""
+    request = _request(_tenant())
+    selected = {"key": "contact", "ref": "contact", "enabled": True}
+    with caplog.at_level(logging.ERROR, logger="apps.core.window_parts"):
+        window_parts.content_part(selected, None, request, code="home")
+    assert "content" not in selected
+    assert any("no host" in r.getMessage() for r in caplog.records)
+
+
+@REVIEW1
+@pytest.mark.parametrize("key", sorted(LISTING))
+def test_catalog_rows_only_on_catalog_hosts(key):
+    """Ревью 1 №7: «Kategorien» и «Sets & Menüs» — у страниц каталога, не у других листингов."""
+    request = _request(_tenant("online_shop", disabled=[]))
+    for host in CATALOG_HOSTS:
+        assert _content(request, host, key), (host, key)
+    for host in ("services", "promos", "events", "blog"):
+        assert _content(request, host, key) is None, (host, key)
 
 
 # --- №16: строки ---------------------------------------------------------------------------------
