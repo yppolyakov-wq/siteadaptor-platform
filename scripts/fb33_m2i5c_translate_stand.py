@@ -92,14 +92,22 @@ def fake_draft(route):
     url = route.request.url
     host = re.match(r"https?://([^/]+)", url).group(1)
     headers = {**route.request.all_headers(), "host": host}
-    resp = route.fetch(url=url.replace(host.split(":")[0], "127.0.0.1", 1), headers=headers)
+    local = host.split(":")[0]
+    resp = route.fetch(url=url.replace(local, "127.0.0.1", 1), headers=headers, max_redirects=0)
+    if resp.status in (301, 302, 303):  # PRG: страницу после записи берём сами (тот же хост)
+        nxt = resp.headers.get("location", "")
+        nxt = nxt if nxt.startswith("http") else f"http://{host}{nxt}"
+        get = {
+            k: v for k, v in headers.items() if k.lower() not in ("content-type", "content-length")
+        }
+        resp = route.fetch(url=nxt.replace(local, "127.0.0.1", 1), method="GET", headers=get)
     body = re.sub(
         r"(<[^>]*data-schema-messages[^>]*>)",
         r'\1<p role="alert">T4-Ablehnung</p>',
         resp.text(),
         count=1,
     )
-    route.fulfill(response=resp, body=body)
+    route.fulfill(status=200, content_type="text/html; charset=utf-8", body=body)
 
 
 def check(c, label):
@@ -487,9 +495,10 @@ def t4_flow(pg, tag, loc):
     btn.click()
     queue_done(pg)
     st = status_text(pg, SCOPE)
+    done_1 = sum(1 for t in SENT[0][1] if t != "Firmenfeier") if SENT else -1
     check(
-        st == f"{fmt(M['partFail'], 2, 2)} {M['quota']}",
-        f"{tag}: quota во 2-й — строка части ({st!r})",
+        st == f"{fmt(M['partFail'], 2, 2)} {M['quota']} · {done_1} {M['done']}",
+        f"{tag}: quota во 2-й — строка части и сколько переведено ({st!r})",
     )
     check(len(DRAFTS) == 1, f"{tag}: quota — один POST черновика ({len(DRAFTS)})")
     check(
@@ -626,7 +635,8 @@ def t4_flow(pg, tag, loc):
     PEND["n"] = 0
     st = status_text(pg, SCOPE)
     check(
-        st == fmt(M["partFail"], 2, 2), f"{tag}: подмена панели — остановка строкой части ({st!r})"
+        st.startswith(fmt(M["partFail"], 2, 2) + " · ") and M["done"] in st,
+        f"{tag}: подмена панели — остановка строкой части ({st!r})",
     )
     check(any("panel replaced" in x for x in logs), f"{tag}: остановка — console.error")
     focus = pg.evaluate(
@@ -702,7 +712,8 @@ def t4_flow(pg, tag, loc):
         try:
             pg.wait_for_function(
                 """(s) => { const b = document.querySelector(s + ' [data-i18n-translate]');
-                  return !b.hasAttribute('aria-disabled'); }""",
+                  const st = document.querySelector(s + ' [data-i18n-translate-status]');
+                  return !b.hasAttribute('aria-disabled') && st && st.textContent; }""",
                 arg=SCOPE,
                 timeout=45000,
             )

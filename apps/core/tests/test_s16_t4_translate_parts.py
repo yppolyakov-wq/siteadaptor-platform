@@ -228,7 +228,6 @@ def test_part_change_is_quiet_in_aufbau():
 # --- 7. ревью T4 круг 1 (a11y 2/4, S2/D1, S3, S4) ---------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="ревью T4 круг 1: правка ещё не сделана")
 def test_review_round1_client_guards():
     html = _client()
     # a11y 2: живая область не переключается в aria-live=off; «Teil N» — свой узел без live
@@ -240,7 +239,6 @@ def test_review_round1_client_guards():
     assert "AbortController" in html and "AbortError" in html
 
 
-@pytest.mark.xfail(strict=True, reason="ревью T4 круг 1: правка ещё не сделана")
 def test_review_round1_aufbau_quiet_stop():
     js = AUFBAU.read_text()
     # S4: тихая правка при отказе/обрыве не уходит со страницы, а сообщает клиенту причину

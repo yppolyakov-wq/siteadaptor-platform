@@ -196,6 +196,32 @@ function aufbauSubmitCopy(form, submitter) {
 
   // FB-33 стопка 16 T4: quiet — правку прислал клиент перевода (часть «Übersetzen»); итог
   // говорит его живая область — «Übernommen» и сообщения языка здесь не озвучиваются
+  // FB-33 стопка 16 T4 (ревью S4): тихая правка не записалась (отказ сервера, поле с ошибкой,
+  // обрыв) — без запасной отправки (она увела бы со страницы посреди очереди): событие
+  // "aufbau:quiet-stop" с причиной, клиент перевода останавливает очередь и называет её.
+  function quietStop(text) {
+    var box = document.querySelector("[data-schema-messages]");
+    text = text || (box && box.getAttribute("data-schema-error")) || "";
+    document.dispatchEvent(new CustomEvent("aufbau:quiet-stop", { detail: { text: text } }));
+  }
+
+  // текст ошибки поля (aria-describedby) из ответа сервера
+  function fieldError(doc, field) {
+    var ids = (field.getAttribute("aria-describedby") || "").split(" ").filter(Boolean);
+    for (var i = 0; i < ids.length; i++) {
+      var n = doc.getElementById(ids[i]);
+      if (n && n.textContent.trim()) return n.textContent.trim();
+    }
+    return "";
+  }
+
+  // FB-33 стопка 16 T4 (ревью D2): после тихой правки устаревший текст живой области «Felder»
+  // снимается молча; область, куда пишет клиент перевода (data-status), не трогаем.
+  function staleNote() {
+    var fs = felderStatus();
+    if (fs && !fs.box.hasAttribute("data-i18n-translate-said")) fs.box.textContent = "";
+  }
+
   function apply(form, target, quiet) {
     var data = new FormData(form);
     // у настройки типа страницы своя операция (`op=setting` в скрытом поле формы)
@@ -237,7 +263,12 @@ function aufbauSubmitCopy(form, submitter) {
         if (refused) whole = true;
         // FB-33 стопка 15 M5e-1b (a11y Y1): ошибка у поля (`aria-invalid`) — панель целиком,
         // иначе со скриптами владелец не увидел бы, какое поле не принято
-        if (doc.querySelector('[data-schema-panel] [aria-invalid="true"]')) whole = true;
+        var invalid = doc.querySelector('[data-schema-panel] [aria-invalid="true"]');
+        if (invalid) whole = true;
+        if (quiet && (refused || invalid)) {
+          var alertNode = doc.querySelector('[data-schema-messages] [role="alert"]');
+          quietStop(alertNode ? alertNode.textContent.trim() : fieldError(doc, invalid));
+        }
         // ревью C3–C4 (a11y): счётчик черновика — в подменяемом узле; новое значение
         // говорит постоянная живая область вместе с «Übernommen.»
         var noteBefore = draftNote();
@@ -275,11 +306,13 @@ function aufbauSubmitCopy(form, submitter) {
           }
           // FB-33 стопка 15 M5e-1b (a11y A1): отказ поля — фокус на первое неверное поле
           var bad = document.querySelector('[data-schema-panel] [aria-invalid="true"]');
-          if (bad) bad.focus({ preventScroll: false });
+          // ревью T4 a11y 4: посреди перевода частями фокус остаётся у «Übersetzen»
+          if (bad && !quiet) bad.focus({ preventScroll: false });
         } else {
           swap(doc, "#schema-result");
         }
         if (!quiet) langNote();
+        else staleNote();
         var live = liveRegion();
         if (refused) {
           // Отказ читает сам role="alert"; на телефоне лист не должен его закрывать.
@@ -305,7 +338,10 @@ function aufbauSubmitCopy(form, submitter) {
         // ревью M3-2 (M6): причина — в консоль; ответ уже показан — правка записана, без
         // запасной отправки и без «nicht gespeichert»
         if (window.console) console.error("aufbau: Änderung", err);
-        if (!swapped) fallback(form);
+        if (!swapped) {
+          if (quiet) quietStop("");
+          else fallback(form);
+        }
       })
       .then(function () { pending -= 1; busy(); });
   }
