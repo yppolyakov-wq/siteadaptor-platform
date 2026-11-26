@@ -239,3 +239,41 @@ def test_slice_mode_runs_test_convention_locks_when_tests_change():
     p = mod.slice_plan(["apps/core/form_spec.py"])
     assert "apps/core/tests/test_settings_fixture_guard.py" not in p.pytest_targets
     assert any("своих тестов" in n for n in p.notes), "замок конвенций — не «свой тест»"
+
+
+# --- T-19 (2026-11-26): срез гоняет тесты изменённых файлов, а не только изменённые тесты ------
+
+
+def test_slice_takes_tests_of_changed_files_from_the_code_map():
+    # Стопка 15: 4 красных CI из 9 — тест существовал, но срез его не менял и `--slice` не взял.
+    mod = _mod()
+    related = lambda files: {  # noqa: E731
+        "apps/core/home_texts.py": {"apps/core/tests/test_home_texts.py"},
+        "apps/core/views.py": {f"apps/core/tests/test_{n}.py" for n in range(200)},
+    }
+    p = mod.slice_plan(["apps/core/home_texts.py", "apps/core/views.py"], related=related)
+    assert "pytest" in p.steps and "apps/core/tests/test_home_texts.py" in p.pytest_targets
+    # файл, у которого тестов больше потолка, срез не гоняет — и говорит об этом, а не молчит
+    assert "apps/core/tests/test_0.py" not in p.pytest_targets
+    assert any("apps/core/views.py" in n and "200" in n for n in p.notes)
+
+
+def test_slice_without_the_code_map_keeps_the_old_set():
+    assert _mod().slice_plan(["apps/core/form_spec.py"]).pytest_targets == []
+
+
+def test_related_tests_follow_a_template_to_the_tests_of_code_that_names_it():
+    mod = _mod()
+    index = {
+        "templates/storefront/x.html": {"__strings__": {"apps/catalog/views_x.py"}},
+    }
+    tests = {
+        "templates/storefront/x.html": set(),
+        "apps/catalog/views_x.py": {"apps/catalog/tests/test_views_x.py"},
+    }
+    got = mod.related_tests(
+        ["templates/storefront/x.html", "docs/a.md", "apps/core/tests/test_a.py"],
+        tests_of=lambda path: tests.get(path, set()),
+        named_by=lambda path: sorted(index.get(path, {}).get("__strings__", ())),
+    )
+    assert got == {"templates/storefront/x.html": {"apps/catalog/tests/test_views_x.py"}}

@@ -225,5 +225,17 @@ def test_increment_skill_holds_the_ci_push_rule():
     assert "--ci-cancelled" in (mod_root() / "scripts/stack_close.py").read_text(encoding="utf-8")
 
 
+def test_increment_skill_holds_the_stack15_rules():
+    # T-19: красные CI от эталонов, круги правок старым исполнителем, координатор читает сам.
+    text = (mod_root() / ".claude/skills/sa-increment/SKILL.md").read_text(encoding="utf-8")
+    for needle in (
+        "T-19",
+        "plan_check.py <план> --add",
+        "Эталоны своего среза",
+        "свежим исполнителем",
+    ):
+        assert needle in text, needle
+
+
 def mod_root():
     return _mod().ROOT

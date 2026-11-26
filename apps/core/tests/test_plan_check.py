@@ -234,3 +234,37 @@ def test_unreadable_slice_range_is_a_finding_not_a_crash():
     slices = _plan("| A | — | `x.py` | — | 0 | no-such-ref-zz..also-missing-zz |")
     touched, problems = mod.touched_by_slice(slices, "origin/main")
     assert touched == {} and any("A" in p and "не читается" in p for p in problems)
+
+
+# --- T-19 (2026-11-26): разбор стопки 15 -----------------------------------------------------
+
+
+def test_branch_is_read_from_origin_when_there_is_no_local_one():
+    # Колонка «Ветка» пишется без `origin/`; из чужого клона локальной ветки нет (стопка 15).
+    m = _mod()
+    only_remote = lambda ref: ref.startswith("origin/")  # noqa: E731
+    assert m.diff_spec("P0", "claude/s-k0", exists=only_remote) == "P0...origin/claude/s-k0"
+    assert (
+        m.diff_spec("P0", "claude/s-k0..claude/s-e8c", exists=only_remote)
+        == "origin/claude/s-k0...origin/claude/s-e8c"
+    )
+    # локальная есть — берём её; нет нигде — имя как записано (git сам скажет «не читается»)
+    assert m.diff_spec("P0", "claude/s-k0", exists=lambda ref: True) == "P0...claude/s-k0"
+    assert m.diff_spec("P0", "claude/s-k0", exists=lambda ref: False) == "P0...claude/s-k0"
+
+
+def test_review_fix_batch_is_checked_against_the_plan_table():
+    # Стопка 15: пачка правок ревью добавила `views.py` срезу M5e-2b, параллельному M1d, который
+    # правил тот же файл; план после проверки не трогали — T-17 обойдён без единого сообщения.
+    m = _mod()
+    slices = _plan(
+        "| M1d | — | `apps/core/views.py` | — | 0 | — |",
+        "| M5e-2b | — | `apps/core/site_schema.py` | — | 0 | — |",
+        "| E1t | M1d | `apps/core/forms.py` | — | 0 | — |",
+    )
+    found = m.would_add(slices, "M5e-2b", ["apps/core/views.py"], exists=lambda path: True)
+    assert len(found) == 1 and "M1d" in found[0] and "apps/core/views.py" in found[0]
+    # срез, идущий после M1d, тот же файл взять может; свой файл повторно — не находка
+    assert m.would_add(slices, "E1t", ["apps/core/views.py"], exists=lambda path: True) == []
+    assert m.would_add(slices, "M1d", ["apps/core/views.py"], exists=lambda path: True) == []
+    assert "нет" in m.would_add(slices, "ZZ", ["a.py"], exists=lambda path: True)[0]
