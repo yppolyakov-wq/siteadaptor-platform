@@ -294,11 +294,9 @@ def test_usp_overlay_key_is_label():
 # вопрос), — тот же пункт, что стоял на этом месте, если длина списка не изменилась.
 # Добавление и удаление пунктов — как раньше (по ключу).
 
-_RED = pytest.mark.xfail(strict=True, reason="D9 ревью: узнавание по месту и дубли — ещё нет")
 USP_EN = [{"label": "Fast", "text": "In 1 day"}, {"label": "Fresh"}]
 
 
-@_RED
 def test_studio_ru_usp_label_rename_goes_to_translation():
     tenant = _tenant(
         {"usp_bar": USP_DE, "i18n": {"ru": {"usp_bar": USP_RU}, "en": {"usp_bar": USP_EN}}}
@@ -315,7 +313,6 @@ TRUST_DE = {"since": "1990", "marks": ["Meisterbetrieb", "Bio"]}
 TRUST_RU = {"marks": ["Мастерская", "Био"]}
 
 
-@_RED
 def test_studio_ru_trust_mark_rename_goes_to_translation():
     tenant = _tenant({"trust": TRUST_DE, "i18n": {"ru": {"trust": TRUST_RU}}})
     cfg = _studio_save(
@@ -344,7 +341,6 @@ def _process_tenant():
     )
 
 
-@_RED
 def test_studio_ru_process_title_rename_goes_to_translation():
     tenant = _process_tenant()
     text = "Позвонить нам | Коротко\nПрийти | Долго"
@@ -367,7 +363,6 @@ def test_studio_ru_process_rename_with_new_step_is_a_new_item():
     assert cfg["i18n"]["ru"]["process"][1] == PROCESS_RU[1]
 
 
-@_RED
 @pytest.mark.parametrize(
     "key,base,ru,new,expect_ru",
     [
@@ -406,7 +401,6 @@ def test_split_renamed_key_same_length_by_place(key, base, ru, new, expect_ru):
 # --- одинаковые и пустые ключи: k-й дубль ↔ k-й дубль ------------------------------------
 
 
-@_RED
 def test_studio_ru_save_keeps_duplicate_before_after():
     base = [
         {"before": "/b.jpg", "after": "/a.jpg", "text": "Vorher A"},
@@ -419,7 +413,6 @@ def test_studio_ru_save_keeps_duplicate_before_after():
     assert cfg["i18n"]["ru"]["before_after"] == ru
 
 
-@_RED
 def test_split_keeps_empty_label_items_apart():
     """Пустой `label` (`normalize` такие отбрасывает, разбор — нет): каждый со своей базой."""
     base = [{"icon": "a", "label": "", "text": "Eins"}, {"icon": "b", "label": "", "text": "Zwei"}]
@@ -430,7 +423,6 @@ def test_split_keeps_empty_label_items_apart():
     assert payload["i18n"]["ru"]["usp_bar"] == [{"text": "Один"}, {"text": "Два"}]
 
 
-@_RED
 def test_split_blocks_without_id_do_not_collapse():
     """Блоки без id/key (`t:`) не садятся все на первый блок базы."""
     base = [{"data": {"title": "Hallo A"}}, {"data": {"title": "Hallo B"}}]

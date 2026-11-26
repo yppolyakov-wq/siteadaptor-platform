@@ -4431,6 +4431,10 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         # FB-33 M3-3d (ревью): сторона и скругление фото блока — коды оформления
         "side",
         "rounded",
+        # FB-33 стопка 16 D9: фото кейса «Vorher / Nachher» — адреса, не текст (узнанный по
+        # месту кейс с новым фото иначе увёз бы фото в перевод, немецкая база — старое)
+        "before",
+        "after",
     }
 )
 
@@ -4456,6 +4460,34 @@ def _item_identity(item, field: str) -> str:
         if item.get(k):
             return f"{k}:{item[k]}"
     return "t:" + str(item.get(field, ""))
+
+
+def _match_items(new_idents, old_idents, by_place: bool = False) -> list:
+    """Индекс старого элемента для каждого нового (`None` — новый элемент).
+
+    `old_idents[i]` — личности i-го старого элемента (`_item_identity`). Одинаковые личности
+    (два кейса с одним фото, пустой ключ `t:`) сопоставляются по порядку вхождения: k-й
+    дубль ↔ k-й дубль; старый элемент достаётся не больше чем одному новому.
+    `by_place` (решение владельца 2026-11-26, D9): не узнанный по ключу элемент — тот, что
+    стоял на этом месте, если длина списка не изменилась (переименовали сам ключ: метку,
+    вопрос, заголовок шага); добавление и удаление элементов — только по ключу.
+    """
+    slots: dict = {}
+    for i, idents in enumerate(old_idents):
+        for ident in dict.fromkeys(idents):
+            slots.setdefault(ident, []).append(i)
+    used, out = set(), []
+    for ident in new_idents:
+        idx = next((i for i in slots.get(ident, ()) if i not in used), None) if ident else None
+        if idx is not None:
+            used.add(idx)
+        out.append(idx)
+    if by_place and len(new_idents) == len(old_idents):
+        for j, idx in enumerate(out):
+            if idx is None and j not in used:
+                out[j] = j
+                used.add(j)
+    return out
 
 
 def _split_node(new, old, field: str, old_overlay=None):
@@ -4489,15 +4521,18 @@ def _split_node(new, old, field: str, old_overlay=None):
         old_overlay = old_overlay if isinstance(old_overlay, list) else []
         # личность старого элемента: сперва по переводу (владелец правит переведённый
         # текст), затем по базе — иначе элемент «не узнаётся» и терял бы перевод.
-        index_of = {}
+        old_idents = []
         for i, item in enumerate(old):
             tr = old_overlay[i] if i < len(old_overlay) else None
-            for ident in (_item_identity(tr, field), _item_identity(item, field)):
-                if ident and ident not in ("t:", ""):
-                    index_of.setdefault(ident, i)
+            shown = _item_identity(tr, field)
+            shown = "" if shown == "t:" else shown  # ключа в переводе нет — показан базой
+            own = _item_identity(item, field)
+            old_idents.append([x for x in (shown, own) if x and not (shown and x == "t:")])
+        matched = _match_items(
+            [_item_identity(item, field) for item in new], old_idents, by_place=True
+        )
         base, ov, any_tr = [], [], False
-        for item in new:
-            idx = index_of.get(_item_identity(item, field))
+        for item, idx in zip(new, matched, strict=True):
             if idx is None:
                 base.append(item)  # новый элемент: базы у него нет (§12.4)
                 ov.append({} if isinstance(item, dict) else item)
@@ -4575,14 +4610,13 @@ def _split_blocks(new, old, old_overlay):
         return new, None
     old = old if isinstance(old, list) else []
     old_overlay = old_overlay if isinstance(old_overlay, list) else []
-    index_of = {}
-    for i, item in enumerate(old):
-        ident = _item_identity(item, "title")
-        if ident:
-            index_of.setdefault(ident, i)
+    # блоки без id/key (`t:`) и с одинаковым key — по порядку вхождения, а не все на первый
+    matched = _match_items(
+        [_item_identity(item, "title") for item in new],
+        [[_item_identity(item, "title")] for item in old],
+    )
     base, ov, any_tr = [], [], False
-    for item in new:
-        idx = index_of.get(_item_identity(item, "title"))
+    for item, idx in zip(new, matched, strict=True):
         if idx is None or not isinstance(item, dict):
             base.append(item)
             ov.append({})
@@ -4752,9 +4786,9 @@ def localize(config: dict, locale: str | None) -> dict:
         # `/anfrage/` и хранит заявка: всегда на основном языке. Их перевод показа —
         # `form_spec.event_type_choices` (ключом по тексту; старый позиционный оверлей
         # `i18n.<язык>.anfrage` читается только там, до переноса `form_i18n_realign`)
-        # FB-33 стопка 16 D9: `seo` — тоже не оверлей показа: перевод SEO страницы витрина
-        # читает только через `content_pages.page_seo(locale)`, а наложенный здесь он ушёл бы
-        # Save Студии на языке перевода в немецкую базу (`split_translation` его не разбирает)
+        # FB-33 стопка 16 D9: `seo` — тоже не оверлей показа: ключ `seo` хранит переводы
+        # T1b, показ — через писателя T1b; наложенный здесь он ушёл бы Save Студии на языке
+        # перевода в немецкую базу (`split_translation` его не разбирает)
         _deep_overlay(base, {k: v for k, v in ov.items() if k not in _NOT_SHOWN_OVERLAY})
     return base
 
