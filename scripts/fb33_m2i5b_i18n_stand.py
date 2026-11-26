@@ -4,6 +4,10 @@
 в DOM скрытыми → ввод перевода подписи, варианта события и своего выбора → смена языка кнопкой и
 «Übernehmen» не теряют язык и введённое → Fertig + Speichern → витрина /anfrage/ на ru показывает
 переводы, value вариантов — немецкие; на de — немецкие подписи. Без JS — то же серверными кнопками.
+Стопка 16 T2: бизнес с основным русским (`default_locale=ru`, языки de/en/ru) — «Русский» первой
+кнопкой и выбран (✓), «Deutsch (Ausgangstext)» у своей подписи и «Frage 1», «Ihre Seite zeigt
+zuerst Русский.» в блоке языков (id, aria-describedby группы), `?sprache=en` помнится; негативный
+контроль — бизнес с de: подписи и подсказки нет, порядок ru/en прежний.
 
 Запуск:
     uv run python scripts/text_pages_stand.py --setup        # один раз (тенант ptx, owner@ptx.test)
@@ -22,7 +26,8 @@ import sys
 SETUP = """
 from apps.tenants.models import Tenant
 t = Tenant.objects.get(schema_name="ptx")
-t.enabled_locales = ["de", "ru", "en"]
+t.enabled_locales = LOCALES
+t.default_locale = DEFAULT
 cfg = dict(t.site_config or {})
 cfg["anfrage"] = {"fields": ["event_type"], "event_types": ["Hochzeit", "Firmenfeier"]}
 cfg["form_fields"] = {"anfrage": {"custom": [{"id": "q1", "type": "choice", "label": "Raum",
@@ -31,16 +36,17 @@ i18n = dict(cfg.get("i18n") or {})
 i18n["ru"] = {**(i18n.get("ru") or {}), "anfrage": {"event_types": ["Свадьба (стар.)"]}}
 cfg["i18n"] = i18n
 t.site_config = cfg
-t.save(update_fields=["enabled_locales", "site_config"])
+t.save(update_fields=["enabled_locales", "default_locale", "site_config"])
 print("READY", t.active_locales)
 """
 
 
-def setup() -> bool:
+def setup(default: str = "de", locales=("de", "ru", "en")) -> bool:
     """Языки ptx и форма заявки с позиционным переводом (Django — через `uv run`: сам стенд
-    идёт в окружении playwright без проекта)."""
+    идёт в окружении playwright без проекта). Стопка 16 T2: `default` — язык бизнеса."""
     cmd = ["uv", "run", "python", "manage.py", "shell", "--settings=config.settings.stand"]
-    out = subprocess.run([*cmd, "-c", SETUP], capture_output=True, text=True, check=False)
+    code = f"LOCALES = {list(locales)!r}\nDEFAULT = {default!r}\n" + SETUP
+    out = subprocess.run([*cmd, "-c", code], capture_output=True, text=True, check=False)
     print(out.stdout.strip() or out.stderr[-800:])
     return "READY" in out.stdout
 
@@ -207,6 +213,89 @@ def storefront(pg, tag):
     )
 
 
+BASE_NOTE = {"de": "Deutsch (Ausgangstext)", "ru": "Немецкий (исходный текст)"}
+FIRST = {
+    "de": "Ihre Seite zeigt zuerst Русский.",
+    "ru": "Ваш сайт сначала показывает язык: Русский.",
+}
+
+
+def business_language(pg, tag, cab, js=True):
+    """Стопка 16 T2: язык бизнеса (ru) первым и выбран, подпись немецкого поля и подсказка."""
+    scope = f"{DLG} [data-form-felder]" if js else "[data-site-schema] [data-form-felder]"
+    pg.goto(WINDOW)
+    settle(pg, js)
+    pressed = pg.eval_on_selector_all(
+        f"{scope} button[name=f_sprache]",
+        "bs => bs.map(b => [b.value, b.getAttribute('aria-pressed'), b.innerText.includes('✓')])",
+    )
+    check(
+        pressed == [["ru", "true", True], ["en", "false", False]],
+        f"{tag}: язык бизнеса ru — первой кнопкой, выбран, с ✓ ({pressed})",
+    )
+    check(
+        visible(pg, scope, "f_label_phone_ru") and not visible(pg, scope, "f_label_phone_en"),
+        f"{tag}: при открытии видны поля ru",
+    )
+    note = pg.locator(f"{scope} [data-langs-first]")
+    text = note.inner_text() if note.count() == 1 else ""
+    check(text == FIRST[cab], f"{tag}: подсказка «{FIRST[cab]}» в блоке языков ({text!r})")
+    described = pg.locator(f"{scope} [data-form-langs] [role=group]").get_attribute(
+        "aria-describedby"
+    )
+    check(
+        note.count() == 1 and note.get_attribute("id") in (described or "").split(),
+        f"{tag}: группа кнопок ссылается на подсказку ({described!r})",
+    )
+    check(
+        note.get_attribute("role") is None and note.get_attribute("aria-live") is None,
+        f"{tag}: подсказка — не живая область",
+    )
+    label = pg.locator(f"{scope} label[for=ff-label-phone]").inner_text()
+    check(BASE_NOTE[cab] in label, f"{tag}: «{BASE_NOTE[cab]}» у своей подписи ({label!r})")
+    q = pg.locator(f"{scope} label[for=ff-q-q1-label]").inner_text()
+    check(BASE_NOTE[cab] in q, f"{tag}: «{BASE_NOTE[cab]}» у «Frage 1» ({q!r})")
+    sw = pg.evaluate("[document.documentElement.scrollWidth, innerWidth]")
+    check(sw[0] <= sw[1], f"{tag}: без горизонтальной прокрутки ({sw})")
+    pg.screenshot(path=f"{OUT}/s16_t2_felder_ru_business_{tag}.png", full_page=not js)
+    with pg.expect_navigation():
+        pg.click(f"{scope} button[name=f_sprache][value=en]")
+    settle(pg, js)
+    check(
+        "sprache=en" in pg.url
+        and pg.locator(f"{scope} button[name=f_sprache][value=en]").get_attribute("aria-pressed")
+        == "true"
+        and visible(pg, scope, "f_label_phone_en"),
+        f"{tag}: «English» кнопкой — выбран en, язык в адресе",
+    )
+    pg.goto(WINDOW + "&sprache=en")
+    settle(pg, js)
+    check(
+        pg.locator(f"{scope} button[name=f_sprache][value=en]").get_attribute("aria-pressed")
+        == "true",
+        f"{tag}: ?sprache=en помнится при открытии",
+    )
+    if js:
+        pg.click(f"{DLG} [data-window-actions] button[value=window_done]")
+        pg.wait_for_url(lambda u: "block=" not in u, timeout=20000)
+        pg.wait_for_load_state()
+
+
+def german_business(pg, tag, js=True):
+    """Негативный контроль: бизнес с de — подписи и подсказки нет, порядок прежний."""
+    scope = f"{DLG} [data-form-felder]" if js else "[data-site-schema] [data-form-felder]"
+    pg.goto(WINDOW)
+    settle(pg, js)
+    order = pg.eval_on_selector_all(f"{scope} button[name=f_sprache]", "bs => bs.map(b => b.value)")
+    check(order == ["ru", "en"], f"{tag}: бизнес de — порядок прежний ({order})")
+    check(
+        pg.locator(f"{scope} [data-langs-first]").count() == 0
+        and "Ausgangstext" not in pg.locator(scope).inner_text()
+        and "исходный текст" not in pg.locator(scope).inner_text(),
+        f"{tag}: бизнес de — без подписи и подсказки",
+    )
+
+
 with sync_playwright() as p:
     b = p.chromium.launch(
         executable_path="/opt/pw-browsers/chromium",
@@ -226,6 +315,12 @@ with sync_playwright() as p:
         check(setup(), f"{tag}: стенд сброшен к позиционному оверлею")
         tab_flow(pg, tag, js)
         storefront(pg, tag)
+        german_business(pg, tag, js)
+        discard(pg)
+        check(setup("ru", ("de", "en", "ru")), f"{tag}: язык бизнеса — ru")
+        business_language(pg, tag, locale[:2], js)
+        discard(pg)
+        check(setup(), f"{tag}: язык бизнеса снова de")
         ctx.close()
     b.close()
 print(f"{ok} ✓, {len(fail)} ✗")

@@ -721,6 +721,7 @@ def site_schema_view(request):
             selected["form_spec"],
             i18n_input.extra_locales(tenant),
             request.GET.get("sprache", ""),
+            getattr(tenant, "default_locale", ""),  # стопка 16 T2: язык бизнеса первым
         )
     # FB-33 M3-5b: вопросы FAQ («Texte») и плашки Schnellzugriff («Was») окна блока
     from apps.core import window_parts
