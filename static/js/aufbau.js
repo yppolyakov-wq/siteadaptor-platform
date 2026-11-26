@@ -194,7 +194,9 @@ function aufbauSubmitCopy(form, submitter) {
     guard();
   }
 
-  function apply(form, target) {
+  // FB-33 стопка 16 T4: quiet — правку прислал клиент перевода (часть «Übersetzen»); итог
+  // говорит его живая область — «Übernommen» и сообщения языка здесь не озвучиваются
+  function apply(form, target, quiet) {
     var data = new FormData(form);
     // у настройки типа страницы своя операция (`op=setting` в скрытом поле формы)
     if (!form.matches("[data-schema-setting]")) data.set("op", "update");
@@ -277,7 +279,7 @@ function aufbauSubmitCopy(form, submitter) {
         } else {
           swap(doc, "#schema-result");
         }
-        langNote();
+        if (!quiet) langNote();
         var live = liveRegion();
         if (refused) {
           // Отказ читает сам role="alert"; на телефоне лист не должен его закрывать.
@@ -285,7 +287,7 @@ function aufbauSubmitCopy(form, submitter) {
           if (live) live.textContent = "";
           var box = (win && win.querySelector("[data-bwin-msgs]")) || document.querySelector("[data-schema-messages]");
           if (box) box.scrollIntoView({ block: "start" });
-        } else if (live) {
+        } else if (live && !quiet) {
           // Тот же текст подряд диктор не повторяет — сначала очищаем.
           live.textContent = "";
           var said = live.getAttribute("data-done") || "";
@@ -366,7 +368,7 @@ function aufbauSubmitCopy(form, submitter) {
       radioTimer = setTimeout(radioFire, 350);
       return;
     }
-    apply(form, target);
+    apply(form, target, form.hasAttribute("data-i18n-quiet"));
   });
 
   // Пока правка в пути, «Speichern» и другие действия ждут её — иначе запись могла бы

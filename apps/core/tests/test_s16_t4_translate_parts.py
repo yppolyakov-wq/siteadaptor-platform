@@ -51,7 +51,6 @@ def _client(lang="de"):
 # --- 1. потолки клиента — из сервера -----------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T4: клиент частями ещё не написан")
 def test_client_limits_come_from_server_constants(monkeypatch):
     monkeypatch.setattr(it, "MAX_ITEMS", 37)
     monkeypatch.setattr(it, "ITEM_MAX", 1234)
@@ -122,7 +121,6 @@ def test_next_part_not_busy_after_done(monkeypatch):
 # --- 4. строки частей = msgid §5.2 ---------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T4: клиент частями ещё не написан")
 def test_part_status_strings_are_plan_msgids():
     source = CLIENT.read_text()
     blocks = re.findall(r"\{% blocktrans ([^%]*)%\}(.*?)\{% endblocktrans %\}", source, re.S)
@@ -159,8 +157,15 @@ def test_part_status_strings_are_plan_msgids():
 
 def _server_codes() -> set[str]:
     codes: set[str] = set()
-    for rel in ("apps/core/translate_views.py", "apps/core/i18n_translate.py"):
-        tree = ast.parse((ROOT / rel).read_text())
+    views = ast.parse((ROOT / "apps/core/translate_views.py").read_text())
+    roots = [  # в translate_views — и AIS-7 «Text vorschlagen»: только эндпоинты перевода
+        n
+        for n in views.body
+        if isinstance(n, ast.FunctionDef) and n.name.startswith("i18n_translate_")
+    ]
+    assert len(roots) == 2
+    roots.append(ast.parse((ROOT / "apps/core/i18n_translate.py").read_text()))
+    for tree in roots:
         for node in ast.walk(tree):
             if isinstance(node, ast.Dict):
                 for key, value in zip(node.keys, node.values, strict=False):
@@ -177,7 +182,12 @@ def _server_codes() -> set[str]:
                 and isinstance(node.args[0], ast.Constant)
             ):
                 codes.add(node.args[0].value)
-            if isinstance(node, ast.BoolOp):  # `getattr(exc, "code", "") or "unavailable"`
+            if (  # `getattr(exc, "code", "") or "unavailable"`
+                isinstance(node, ast.BoolOp)
+                and isinstance(node.values[0], ast.Call)
+                and getattr(node.values[0].func, "id", "") == "getattr"
+                and "code" in [a.value for a in node.values[0].args if isinstance(a, ast.Constant)]
+            ):
                 codes |= {v.value for v in node.values if isinstance(v, ast.Constant) and v.value}
     from apps.ai import errors
 
@@ -187,7 +197,6 @@ def _server_codes() -> set[str]:
     return {c for c in codes if isinstance(c, str)}
 
 
-@pytest.mark.xfail(strict=True, reason="T4: клиент частями ещё не написан")
 def test_client_handles_every_server_error_code():
     codes = _server_codes()
     assert {"quota", "error", "busy", "forbidden", "unavailable", "bad", "disabled"} <= codes
@@ -202,13 +211,15 @@ def test_client_handles_every_server_error_code():
     assert "unknown translate code" in html
 
 
-# --- 6. одна озвучка: правка частей в черновик — «тихая» --------------------------------------
+# --- 6. одна озвучка: правка частей в черновик — «тихая» (data-i18n-quiet) ---------------
 
 
-@pytest.mark.xfail(strict=True, reason="T4: клиент частями ещё не написан")
 def test_part_change_is_quiet_in_aufbau():
     html = _client()
-    assert 'new CustomEvent("change", { bubbles: true, detail: { quiet: true } })' in html
+    assert 'btn.form.setAttribute("data-i18n-quiet", "")' in html
+    assert 'last.dispatchEvent(new Event("change", { bubbles: true }));' in html
+    assert 'btn.form.removeAttribute("data-i18n-quiet")' in html
     js = AUFBAU.read_text()
-    assert "e.detail && e.detail.quiet" in js
+    assert 'apply(form, target, form.hasAttribute("data-i18n-quiet"))' in js
     assert re.search(r"function apply\(form, target, quiet\)", js)
+    assert "if (!quiet) langNote();" in js and "} else if (live && !quiet) {" in js
