@@ -4,7 +4,7 @@ L13 кнопки языка — общий партиал `_bw_langs.html` (aria
 языков в DOM, имя — только у выбранного языка, первая кнопка формы — невидимая «Übernehmen»
 (Enter не переключает язык), id в окне не повторяются, прежней подсказки со ссылкой нет.
 L14 основной язык бизнеса не de — он первой кнопкой и выбран, немецкое поле «Deutsch
-(Grundtext)», подсказка «Ihre Seite zeigt zuerst …». L15 язык помнится после действия
+(Ausgangstext)» (стопка 16 T1b, T5), подсказка «Ihre Seite zeigt zuerst …». L15 язык помнится после действия
 (`sprache`, фокус на кнопке), тексты экранированы.
 """
 
@@ -59,9 +59,9 @@ def test_business_language_first_and_german_marked_as_base():
     _html, form = _form(Browser(_shop(locales=("de", "en", "ru"), default="ru")))
     assert re.findall(r'name="f_sprache" value="(\w+)"', form) == ["ru", "en"]
     assert re.findall(r'value="(\w+)" lang="\w+" aria-pressed="true"', form) == ["ru"]
-    assert "Deutsch (Grundtext)" in form and "Ihre Seite zeigt zuerst Русский." in form
+    assert "Deutsch (Ausgangstext)" in form and "Ihre Seite zeigt zuerst Русский." in form
     _html, plain = _form(Browser(_shop()))
-    assert "Deutsch (Grundtext)" not in plain and "Ihre Seite zeigt zuerst" not in plain
+    assert "Deutsch (Ausgangstext)" not in plain and "Ihre Seite zeigt zuerst" not in plain
 
 
 def test_language_is_remembered_and_focus_goes_to_its_button():

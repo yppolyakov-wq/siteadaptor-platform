@@ -175,7 +175,6 @@ def _host_tenant(host, seo, ru, noindex_ru=False):
     return tenant
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 @pytest.mark.parametrize("host", ["info", "versand", "seite:zahlung"])
 def test_page_seo_title_in_visitor_language(host):
     tenant = _host_tenant(host, DE, RU, noindex_ru=True)
@@ -213,7 +212,6 @@ BROKEN = {
 }
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 @pytest.mark.parametrize("case", sorted(BROKEN))
 def test_broken_seo_overlay_storefront_200(case, caplog):
     tenant = _shop(seo=DE)
@@ -229,7 +227,6 @@ def test_broken_seo_overlay_storefront_200(case, caplog):
     assert 1 <= len(warned) <= 3, "одно предупреждение на чтение (title/description/robots)"
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_seo_overlay_orphan_after_host_removed():
     from apps.core.models import ContentPage
 
@@ -248,7 +245,6 @@ def test_seo_overlay_orphan_after_host_removed():
 # ───────────── окно: поля и запись ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_seo_translation_fields_not_title():
     assert set(block_i18n._SEO_TR) == set(page_window.SEO_FIELDS)
     assert not set(block_i18n._SEO_TR) & set(block_i18n._TITLE_FIELDS)
@@ -263,7 +259,6 @@ def test_seo_translation_fields_not_title():
     assert cfg == {"i18n": {"ru": {"seo": {"pages": {"info": {"title": "Заголовок"}}}}}}
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_window_translation_saved_and_shown():
     b = Browser(_shop(seo=DE))
     _html, form = _form(b)
@@ -297,7 +292,6 @@ def _seiten_post(tenant, **data):
     return [str(m) for m in get_messages(req)]
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_seiten_german_save_drops_changed_translation():
     tenant = _shop(seo=DE, ru=RU)
     msgs = _seiten_post(tenant, seo_title="Neuer Titel", seo_description=DE["description"])
@@ -320,7 +314,6 @@ def test_noindex_only_save_keeps_translations():
     assert _tr(cfg) == RU and not any("Übersetzung entfernt" in m for m in msgs)
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_put_shown_and_commit_drop_by_field():
     base = {"seo": {"pages": {"info": dict(DE)}}, "i18n": {"ru": {"seo": {"pages": {"info": RU}}}}}
     same = copy.deepcopy(base)
@@ -334,7 +327,6 @@ def test_put_shown_and_commit_drop_by_field():
     assert _tr(moved) == {"description": RU["description"]}
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_commit_order_german_then_translation():
     b = Browser(_shop(seo=DE, ru=RU))
     _edit(b, title="Neu", f_tr_seo_title_ru="Новый")
@@ -344,7 +336,6 @@ def test_commit_order_german_then_translation():
     assert _tr(cfg) == {"title": "Новый", "description": RU["description"]}
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_german_edit_without_translation_drops_it_in_draft_with_note():
     b = Browser(_shop(seo=DE, ru=RU))
     _resp, msgs = _edit(b, title="Neu")
@@ -353,7 +344,6 @@ def test_german_edit_without_translation_drops_it_in_draft_with_note():
     assert re.search(r'id="bw-seo-title-ru"[^>]*value=""', form)
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 @pytest.mark.parametrize("loc", ["ru", "en"])
 def test_page_rename_moves_seo_translations(loc):
     from apps.core.models import ContentPage
@@ -374,7 +364,6 @@ def test_page_rename_moves_seo_translations(loc):
     assert _tr(cfg, loc, "seite:bezahlen") == RU and _tr(cfg, loc, "seite:zahlung") is None
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_page_rename_moves_translation_without_german():
     """Перевод при пустом немецком (решение владельца) — тоже едет за адресом."""
     tenant = _shop(ru=RU, host="seite:zahlung")
@@ -387,7 +376,6 @@ def test_page_rename_moves_translation_without_german():
     assert _tr(_cfg(tenant), host="seite:bezahlen") == RU
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_page_delete_drops_seo_translations():
     tenant = _shop(seo=DE, ru=RU, host="seite:zahlung")
     cfg = _cfg(tenant)
@@ -404,7 +392,6 @@ def test_page_delete_drops_seo_translations():
     assert "seo" not in (cfg.get("i18n") or {}).get("ru", {})
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_seo_translation_conflict():
     b = Browser(_shop(seo=DE, ru=RU))
     _edit(b, f_tr_seo_title_ru="Мой")
@@ -440,7 +427,6 @@ def _member():
     return user
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_window_preview_shows_draft_seo_translation():
     b = Browser(_shop(seo=DE))
     _edit(b, f_tr_seo_title_ru="Черновик")
@@ -451,7 +437,6 @@ def test_window_preview_shows_draft_seo_translation():
     assert _title(_render(b.tenant, "info", "ru")) == DE["title"], "на сайте — ещё нет"
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_seo_translation_caps_and_whitespace():
     b = Browser(_shop(seo=DE))
     _html, form = _form(b)
@@ -468,7 +453,6 @@ def test_seo_translation_caps_and_whitespace():
     assert siteconfig.cap_note() in msgs, msgs
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_seo_empty_text_flagged_ui():
     b = Browser(_shop())
     _html, form = _form(b)
@@ -487,7 +471,6 @@ def test_seo_empty_text_flagged_ui():
     assert t["empty_ui"] is False and t["empty_lang"] == "de" and t["empty"] == "Tee"
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_one_rule_for_window_languages():
     """«Texte» и «Felder» — одно правило `i18n_input.window_langs`; «Grundtext» нет."""
     from apps.core import i18n_input
@@ -519,7 +502,6 @@ def test_one_rule_for_window_languages():
             assert "Grundtext" not in path.read_text(encoding="utf-8"), path
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_usp_and_seo_forms_ids_unique():
     b = Browser(_shop(seo=DE, ru=RU))
     html, form = _form(b)
@@ -533,7 +515,6 @@ def test_usp_and_seo_forms_ids_unique():
     assert resp.url.endswith("#schema-tab-lang-seo-en"), resp.url
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_default_button_before_language_buttons():
     _html, form = _form(Browser(_shop(seo=DE)))
     first = re.search(r"<button[^>]*>", form).group(0)
@@ -542,7 +523,6 @@ def test_default_button_before_language_buttons():
     assert form.index(first) < form.index('name="f_sprache"')
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_storefront_usp_untranslated_lang_de():
     from django.template.loader import render_to_string
 
@@ -597,7 +577,6 @@ def test_studio_ru_save_keeps_german_seo_base():
     assert _tr(cfg) == RU
 
 
-@pytest.mark.xfail(strict=True, reason="T1b: до кода")
 def test_seo_and_head_hosts_disjoint():
     from apps.core import page_title
 

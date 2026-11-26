@@ -75,9 +75,8 @@ def _gettext_calls(text: str) -> list[str]:
 
 def test_window_langs_owns_note_strings():
     assert _gettext_calls(BASE_NOTE) == ["apps/core/i18n_input.py"]
-    # «Texte» (block_i18n) держит свою подсказку до T1b — других мест нет
-    assert set(_gettext_calls(FIRST)) <= {"apps/core/i18n_input.py", "apps/core/block_i18n.py"}
-    assert "apps/core/i18n_input.py" in _gettext_calls(FIRST)
+    # стопка 16 T1b: «Texte» (block_i18n) зовёт то же правило — подсказка только там
+    assert _gettext_calls(FIRST) == ["apps/core/i18n_input.py"]
     tree = ast.parse((ROOT / "apps/core/form_spec.py").read_text(encoding="utf-8"))
     func = next(n for n in tree.body if getattr(n, "name", "") == "with_locales")
     called = {getattr(n.func, "id", "") for n in ast.walk(func) if isinstance(n, ast.Call)}

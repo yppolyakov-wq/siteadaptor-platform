@@ -168,38 +168,151 @@ def retarget_menus(old: str, new: str) -> int:
 
 
 def _move_seo(config: dict, src: str, dst: str | None) -> bool:
-    """FB-27 «Seiten»: запись SEO страницы едет за её адресом (и уходит с удалением)."""
+    """FB-27 «Seiten»: запись SEO страницы едет за её адресом (и уходит с удалением).
+    Стопка 16 T1b: и переводы SEO этой страницы у всех языков (`seo_tr_path`)."""
+    moved = False
     seo = config.get("seo")
     pages = seo.get("pages") if isinstance(seo, dict) else None
-    if not isinstance(pages, dict) or src not in pages:
-        return False
-    entry = pages.pop(src)
-    if dst:
-        pages[dst] = entry
-    return True
+    if isinstance(pages, dict) and src in pages:
+        entry = pages.pop(src)
+        if dst:
+            pages[dst] = entry
+        moved = True
+    for node in _i18n_nodes(config):
+        tr = _seo_tr_pages(node)
+        if tr is None or src not in tr:
+            continue
+        entry = tr.pop(src)
+        if dst:
+            tr[dst] = entry
+        _prune_seo_tr(node)
+        moved = True
+    return moved
 
 
-def page_seo(tenant, host: str) -> dict:
-    """Свои заголовок/описание/noindex страницы (`{}` — не заданы)."""
+#: стопка 16 T1b: поля SEO страницы, у которых есть перевод (`noindex` — только база)
+SEO_TR_FIELDS = ("title", "description")
+
+
+def seo_tr_path(host: str, field: str) -> tuple:
+    """Путь перевода поля SEO страницы в `i18n[<язык>]` (как `page_title.tr_path`): по ключу
+    хоста, не по позиции. `seo` не в `TRANSLATABLE_KEYS` и `localize` его не накладывает
+    (D9) — читает только `page_seo`, пишет только `block_i18n` (окно) и снимает `put_page_seo`."""
+    return ("seo", "pages", host, field)
+
+
+def _i18n_nodes(config: dict) -> list:
+    root = config.get("i18n")
+    return [n for n in root.values() if isinstance(n, dict)] if isinstance(root, dict) else []
+
+
+def _seo_tr_pages(node):
+    seo = node.get("seo") if isinstance(node, dict) else None
+    pages = seo.get("pages") if isinstance(seo, dict) else None
+    return pages if isinstance(pages, dict) else None
+
+
+def _prune_seo_tr(node: dict) -> None:
+    pages = _seo_tr_pages(node)
+    if pages is None:
+        return
+    for host in [h for h, v in pages.items() if v in ({}, None)]:
+        pages.pop(host)
+    if not pages:
+        node["seo"].pop("pages", None)
+    if not node["seo"]:
+        node.pop("seo", None)
+
+
+def _seo_overlay(config: dict, locale: str, host: str) -> dict:
+    """Перевод SEO страницы на `locale` ({title?, description?}) — с проверкой формы:
+    `_clean_i18n` пропускает любой словарь, `normalize_seo` чистит только базу. Битый оверлей
+    (строка, список, чужой хост, больше `_MAX_SEO_PAGES` хостов) — пусто и одно предупреждение
+    в лог: витрина показывает немецкое, а не 500."""
+    import logging
+
     from apps.tenants import siteconfig
 
-    seo = (getattr(tenant, "site_config", None) or {}).get("seo")
+    root = config.get("i18n") if isinstance(config, dict) else None
+    node = root.get(locale) if isinstance(root, dict) else None
+    if not isinstance(node, dict) or "seo" not in node:
+        return {}
+    seo = node.get("seo")
     pages = seo.get("pages") if isinstance(seo, dict) else None
-    entry = (
-        pages.get(host) if isinstance(pages, dict) and siteconfig.is_seo_page_host(host) else None
-    )
-    return siteconfig.clean_seo_page(entry)
+    entry = pages.get(host) if isinstance(pages, dict) else None
+    if (
+        not isinstance(pages, dict)
+        or len(pages) > siteconfig._MAX_SEO_PAGES
+        or not all(siteconfig.is_seo_page_host(h) for h in pages)
+        or (entry is not None and not isinstance(entry, dict))
+    ):
+        logging.getLogger(__name__).warning(
+            "page_seo: broken seo overlay ignored (%s, %s)", locale, host
+        )
+        return {}
+    clean = siteconfig.clean_seo_page(entry)
+    return {k: v for k, v in clean.items() if k in SEO_TR_FIELDS}
+
+
+def page_seo(tenant, host: str, locale: str = "", config: dict | None = None) -> dict:
+    """Свои заголовок/описание/noindex страницы (`{}` — не заданы). Стопка 16 T1b: `locale`
+    (язык посетителя) — перевод поверх немецкого по полю, `noindex` — всегда из базы;
+    `config` — показываемый конфиг (черновик в превью), иначе сохранённый."""
+    from django.conf import settings
+
+    from apps.tenants import siteconfig
+
+    if config is None:
+        config = getattr(tenant, "site_config", None) or {}
+    if not siteconfig.is_seo_page_host(host):
+        return {}
+    seo = config.get("seo") if isinstance(config, dict) else None
+    pages = seo.get("pages") if isinstance(seo, dict) else None
+    entry = siteconfig.clean_seo_page(pages.get(host) if isinstance(pages, dict) else None)
+    loc = (locale or "")[:2]
+    if loc and loc != settings.LANGUAGE_CODE[:2] and loc in siteconfig.overlay_locales():
+        entry.update(_seo_overlay(config, loc, host))
+    return entry
+
+
+def seo_tr_locales(config: dict, host: str, fields) -> list[str]:
+    """Языки, у которых есть перевод одного из полей `fields` SEO страницы `host`."""
+    out = []
+    root = config.get("i18n") if isinstance(config.get("i18n"), dict) else {}
+    for loc, node in sorted(root.items()):
+        entry = (_seo_tr_pages(node) or {}).get(host)
+        if isinstance(entry, dict) and any(entry.get(f) for f in fields):
+            out.append(loc)
+    return out
+
+
+def _drop_seo_tr(config: dict, host: str, fields) -> None:
+    for node in _i18n_nodes(config):
+        entry = (_seo_tr_pages(node) or {}).get(host)
+        if not isinstance(entry, dict):
+            continue
+        for field in fields:
+            entry.pop(field, None)
+        _prune_seo_tr(node)
 
 
 def put_page_seo(config: dict, host: str, values) -> dict:
     """FB-33 M3-6: запись SEO одной страницы в `config` (на месте, без базы) — один писатель
     для вкладки «Suchmaschinen» (`save_page_seo`) и «Speichern» черновика «Seitenaufbau»
-    (тот держит блокировку строки сам). Пустая запись — ключа нет."""
+    (тот держит блокировку строки сам). Пустая запись — ключа нет.
+
+    Стопка 16 T1b: изменённое немецкое ПОЛЕ снимает перевод этого поля у всех языков —
+    сравнение по полю (`noindex` и запись без правки переводов не трогают); перевод, введённый
+    в той же форме окна, пишет `block_i18n.apply` ПОСЛЕ (порядок «Speichern»)."""
     from apps.tenants import siteconfig
 
     entry = siteconfig.clean_seo_page(values)
     seo = dict(config.get("seo") or {}) if isinstance(config.get("seo"), dict) else {}
     pages = dict(seo.get("pages") or {}) if isinstance(seo.get("pages"), dict) else {}
+    old = siteconfig.clean_seo_page(pages.get(host))
+    changed = [f for f in SEO_TR_FIELDS if old.get(f, "") != entry.get(f, "")]
+    if changed:
+        _drop_seo_tr(config, host, changed)
     if entry:
         pages[host] = entry
     else:
@@ -215,9 +328,10 @@ def put_page_seo(config: dict, host: str, values) -> dict:
     return entry
 
 
-def save_page_seo(tenant, host: str, values: dict) -> dict:
+def save_page_seo(tenant, host: str, values: dict, dropped: list | None = None) -> dict:
     """Точечная запись SEO одной страницы под блокировкой строки: остальной `site_config`
-    не трогается (экран открыт долго — целиком конфиг писать нельзя)."""
+    не трогается (экран открыт долго — целиком конфиг писать нельзя). `dropped` — языки, у
+    которых правка немецкого сняла перевод (для сообщения экрана «Seiten»)."""
     from apps.tenants import siteconfig
     from apps.tenants.models import Tenant
 
@@ -227,10 +341,15 @@ def save_page_seo(tenant, host: str, values: dict) -> dict:
     with transaction.atomic():
         fresh = Tenant.objects.select_for_update().get(pk=tenant.pk)
         config = copy.deepcopy(fresh.site_config or {})
+        old = page_seo(fresh, host, config=config)
+        changed = [f for f in SEO_TR_FIELDS if old.get(f, "") != entry.get(f, "")]
+        gone = seo_tr_locales(config, host, changed) if changed else []
         put_page_seo(config, host, entry)
         fresh.site_config = config
         fresh.save(update_fields=["site_config"])
         tenant.site_config = config
+    if dropped is not None:
+        dropped.extend(gone)
     return entry
 
 

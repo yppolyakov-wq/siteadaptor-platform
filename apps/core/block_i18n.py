@@ -3,8 +3,9 @@
 План — scratchpad `m35c-plan.md` (planner, 2026-11-21), решения владельца 2026-11-21:
 1) правка немецкого текста СНИМАЕТ перевод этого поля (сообщение со списком языков; перевод,
    введённый в той же форме, остаётся; до «Speichern» откатывают «Abbrechen»/«Verwerfen»);
-2) основной язык бизнеса не de — немецкое поле подписано «Deutsch (Grundtext)», язык бизнеса —
-   первой кнопкой и выбран по умолчанию;
+2) основной язык бизнеса не de — немецкое поле подписано «Deutsch (Ausgangstext)», язык бизнеса —
+   первой кнопкой и выбран по умолчанию (стопка 16 T1b: одно правило `i18n_input.window_langs`,
+   как у «Felder»);
 3) у нового вопроса FAQ поля перевода — после «Speichern» (ключ — индекс источника `src`),
    перевод подписи плашки — только при своей немецкой подписи.
 
@@ -20,7 +21,11 @@
 - пункты полосы доверия (стопка 16 T1a): `usp.<src>.label|text` → `i18n[<язык>]["usp_bar"]
   [<позиция пункта>]`; `src` — место пункта в сохранённом списке, едет с пунктом при ↑/↓/✕
   (`usp_items`); ключ пункта — не его немецкий `label` (сам переводимый текст), поле формы — по
-  позиции показа (`before`), как номер вопроса FAQ.
+  позиции показа (`before`), как номер вопроса FAQ;
+- SEO страницы (стопка 16 T1b, ★ текстовой страницы `siteconfig.is_seo_page_host`): поля
+  `seo_title`/`seo_description` (имена `page_window.SEO_FIELDS`, не `title` — тот у
+  «Seitentitel») → `i18n[<язык>]["seo"]["pages"][<хост>]["title"|"description"]`
+  (`content_pages.seo_tr_path`); немецкое — черновик `seo` окна, его пишет `put_page_seo`.
 
 Черновик: `draft["btr"] = {ref: {язык: {ключ: текст}}}` ("" — снять перевод) и
 `draft["btr_base"] = {ref: отпечаток сохранённых переводов на первой правке}` — вне
@@ -62,7 +67,11 @@ _USP_FIELDS = ("label", "text")
 USP_CAPS = {"label": 120, "text": 200}
 #: пространства id блоков языков окна (`_bw_langs.html` с `ns`): якорь кнопки языка после POST
 USP_NS = "usp"
-LANG_NAMESPACES = (USP_NS,)
+#: стопка 16 T1b: блок языков формы SEO ★-строки текстовой страницы
+SEO_NS = "seo"
+LANG_NAMESPACES = (USP_NS, SEO_NS)
+#: стопка 16 T1b: поле окна (`page_window.SEO_FIELDS`) → поле записи SEO (`seo_tr_path`)
+_SEO_TR = {"seo_title": "title", "seo_description": "description"}
 
 
 def _locales() -> list[str]:
@@ -98,7 +107,11 @@ def kinds(page: dict, ref: str) -> tuple[str, ...]:
         # FB-33 M5b-2: после слияния переводы заголовка — в окне ★-строки страницы; отпечаток
         # тот же, что у прежнего `__title` (открытые до деплоя черновики — без конфликта)
         # стопка 15 M5e-2b (A4): и шапка каталога (`page_title.has_head`)
-        return ("title",) if page_title.has_head(host) else ()
+        if page_title.has_head(host):
+            return ("title",)
+        # стопка 16 T1b: у ★ текстовой страницы — её SEO (хосты со своим заголовком другие,
+        # `test_seo_and_head_hosts_disjoint`: у ★ одна форма с переводами)
+        return ("seo",) if _seo_host(host) else ()
     if ref == site_schema.NEXT_REF:
         return ("next",) if host == confirmation_page.HOST else ()
     row = _row(page, ref)
@@ -124,6 +137,22 @@ def _object(host: str):
     from apps.core import object_faq
 
     return object_faq._object(host)
+
+
+def _seo_host(host: str) -> bool:
+    from apps.tenants import siteconfig
+
+    return siteconfig.is_seo_page_host(host)
+
+
+def _seo_german(config: dict, page: dict) -> dict:
+    """Немецкое SEO окна: черновика (`seo`), иначе сохранённое (черновик до SEO в окне)."""
+    from apps.core import page_window
+    from apps.tenants import siteconfig
+
+    if isinstance(page.get(page_window.SEO_KEY), dict):
+        return siteconfig.clean_seo_page(page[page_window.SEO_KEY])
+    return page_window.saved_seo(config, str(page.get("host") or ""))
 
 
 # ───────────── немецкие тексты и сохранённые переводы ─────────────
@@ -160,6 +189,10 @@ def german(config: dict, page: dict, ref: str) -> dict:
             out[field] = _s(entry.get(field))
     if "next" in found:
         out[_NEXT_FIELD] = _s(page.get("next"))
+    if "seo" in found:
+        entry = _seo_german(config, page)
+        for name, field in _SEO_TR.items():
+            out[name] = entry.get(field, "")
     if "tiles" in found:
         for key, text in (hero_tiles.clean_data(row.get("data") or {}).get("labels") or {}).items():
             out[f"label.{key}"] = text
@@ -255,6 +288,11 @@ def saved_for(config: dict, page: dict, ref: str) -> dict:
                 for field in _USP_FIELDS:
                     if isinstance(entry, dict) and _s(entry.get(field)):
                         mine[f"usp.{s}.{field}"] = _s(entry[field])
+        if "seo" in found:
+            for name, field in _SEO_TR.items():
+                text = _at(node, _content_pages().seo_tr_path(host, field))
+                if text:
+                    mine[name] = text
         if "next" in found and _s(node.get("confirmation_next")):
             mine[_NEXT_FIELD] = _s(node["confirmation_next"])
         lists = {"faq": node.get("faq"), "ofaq": obj_tr.get(loc)}
@@ -331,6 +369,12 @@ def _caps(page: dict, ref: str, key: str) -> int:
 
     if key.startswith("label."):
         return hero_tiles.LABEL_MAX
+    if key in _SEO_TR:  # стопка 16 T1b: 70/200, как немецкие поля (`clean_seo_page`)
+        return (
+            siteconfig.SEO_PAGE_TITLE_MAX
+            if key == "seo_title"
+            else siteconfig.SEO_PAGE_DESCRIPTION_MAX
+        )
     if key.startswith("usp."):
         return USP_CAPS.get(key.rsplit(".", 1)[-1], 200)
     if key.startswith(("faq.", "ofaq.")):
@@ -357,8 +401,12 @@ def _caps(page: dict, ref: str, key: str) -> int:
 
 def _clean(key: str, value, cap: int) -> tuple[str, bool]:
     text = value.replace("\r\n", "\n").replace("\r", "\n") if isinstance(value, str) else ""
-    text = " ".join(text.split()) if key.startswith("label.") else text.strip()
-    return (text[:cap], True) if len(text) > cap else (text, False)
+    # стопка 16 T1b: SEO — пробелы схлопнуты, как у немецкого (`clean_seo_page`)
+    text = " ".join(text.split()) if key.startswith("label.") or key in _SEO_TR else text.strip()
+    if len(text) <= cap:
+        return text, False
+    # стопка 16 T1b: обрезанное SEO — без пробела в хвосте (как `clean_seo_page` при чтении)
+    return (text[:cap].rstrip() if key in _SEO_TR else text[:cap]), True
 
 
 def _posted(page: dict, ref: str, fields, post, before_src: dict) -> dict:
@@ -673,6 +721,13 @@ def apply(config: dict, draft: dict, home: bool, host: str) -> None:
                     _set_path(config, loc, _page_title().tr_path(host, key), text)
                 elif "next" in found and key == _NEXT_FIELD:
                     _set_path(config, loc, ("confirmation_next",), text)
+                elif "seo" in found and key in _SEO_TR:
+                    # стопка 16 T1b: после `page_window.commit` (немецкое и снятие перевода
+                    # изменённого поля) — перевод, введённый в той же форме, остаётся
+                    if text and not _seo_room(config, loc, host):
+                        logger.warning("block_i18n: seo translation hosts full — skipped")
+                        continue
+                    _set_path(config, loc, _content_pages().seo_tr_path(host, _SEO_TR[key]), text)
                 elif "htx" in found and home:
                     row = _row(draft, ref) or {}
                     if _htx_allowed(config, draft, row.get("key") or "", key):
@@ -695,6 +750,19 @@ def apply(config: dict, draft: dict, home: bool, host: str) -> None:
                         _set_path(
                             config, loc, (*_block_path(home, host, at[0]), "labels", tile), text
                         )
+
+
+def _seo_room(config: dict, loc: str, host: str) -> bool:
+    """Потолок хостов перевода SEO — `_MAX_SEO_PAGES` (больше читатель `page_seo` считает
+    оверлей битым и показывает немецкое)."""
+    from apps.tenants import siteconfig
+
+    root = config.get("i18n") if isinstance(config.get("i18n"), dict) else {}
+    seo = root.get(loc, {}).get("seo") if isinstance(root.get(loc), dict) else None
+    pages = seo.get("pages") if isinstance(seo, dict) else None
+    if not isinstance(pages, dict):
+        return True
+    return host in pages or len(pages) < siteconfig._MAX_SEO_PAGES
 
 
 def _block_path(home: bool, host: str, idx: int) -> tuple:
@@ -876,14 +944,18 @@ def check(config: dict, draft: dict, force: bool) -> None:
 # ───────────── окно: модель полей перевода ─────────────
 
 
-def _empty_text(key: str, german_text: str):
+def _empty_text(key: str, german_text: str) -> tuple[str, bool]:
+    """Что покажет сайт без перевода и служебная ли это строка интерфейса (`empty_ui`: без
+    `lang` бизнеса, a11y №10) — немецкий текст бизнеса служебным не бывает."""
     from django.utils.translation import gettext
 
     if german_text:
-        return german_text
+        return german_text, False
+    if key in _SEO_TR:  # стопка 16 T1b: пустое немецкое SEO — «Leer = automatisch»
+        return gettext("automatisch"), True
     if key in _TITLE_FIELDS or key == _NEXT_FIELD:
-        return gettext("Standardtext der Seite")
-    return "—"
+        return gettext("Standardtext der Seite"), True
+    return "—", False
 
 
 def decorate(
@@ -903,16 +975,19 @@ def decorate(
     if not selected:
         return
     from django.conf import settings
-    from django.utils.translation import gettext
+    from django.utils.translation import get_language
 
-    from apps.core import aufbau_draft
+    from apps.core import aufbau_draft, i18n_input
 
     allowed = set(_locales())
-    locs = [loc for loc in locales or () if loc in allowed]
+    # стопка 16 T1b (T2/T5): одно правило языков окна с «Felder» — порядок, выбранный язык,
+    # «Deutsch (Ausgangstext)» и «Ihre Seite zeigt zuerst …»
+    rule = i18n_input.window_langs(
+        [loc for loc in locales or () if loc in allowed], default_locale, wanted
+    )
+    locs = rule["locs"]
     if not locs:
         return
-    if default_locale in locs:
-        locs = [default_locale, *[loc for loc in locs if loc != default_locale]]
     ref = selected.get("ref") or ""
     page = draft
     if not page:
@@ -924,14 +999,16 @@ def decorate(
     found = kinds(page, ref)
     if not found:
         return
-    lang = wanted if wanted in locs else locs[0]
+    lang = rule["lang"]
     names = dict(settings.LANGUAGES)
     base = settings.LANGUAGE_CODE[:2]
+    ui = (get_language() or base)[:2]
     saved = saved_for(saved_config, page, ref)
     texts = german(saved_config, page, ref)
 
     def inputs(key: str, name, ident: str, area: bool = False, hint: str = HINT_ID) -> list[dict]:
         cap = _caps(page, ref, key)
+        empty, empty_ui = _empty_text(key, texts.get(key, ""))
         return [
             {
                 "loc": loc,
@@ -940,8 +1017,10 @@ def decorate(
                 "id": f"{ident}-{loc}",
                 "value": shown(saved, page, ref, loc, key),
                 "shown": loc == lang,
-                "empty": _empty_text(key, texts.get(key, "")),
-                "empty_lang": base,
+                "empty": empty,
+                # служебная строка — на языке кабинета, текст бизнеса — немецкий (a11y №10)
+                "empty_ui": empty_ui,
+                "empty_lang": ui if empty_ui else base,
                 "area": area,
                 "limit": cap if cap <= 2000 else "",
                 "hint": hint,
@@ -1028,9 +1107,26 @@ def decorate(
                 for t in it[f"tr_{field}"]:
                     t["of"] = f"f_usp_{i}_{field}"  # источник текста для «Übersetzen» (T3)
             part = "usp"
+    seo = (selected.get("seo") or {}) if not part else {}  # ревью A5: одна форма окна
+    if "seo" in found and seo:
+        # стопка 16 T1b: переводы SEO ★ текстовой страницы — и при пустом немецком (решение
+        # владельца: тогда «Ohne Übersetzung: automatisch»)
+        for name in _SEO_TR:
+            field = name.removeprefix("seo_")
+            seo[f"tr_{field}"] = inputs(
+                name,
+                lambda loc, n=name: f"f_tr_{n}_{loc}",
+                f"bw-seo-{field}",
+                area=field == "description",
+                hint=f"{SEO_NS}-lang-hint",
+            )
+            for t in seo[f"tr_{field}"]:
+                t["of"] = f"schema-f-{name}"  # источник текста для «Übersetzen» (T3)
+                t["max_id"] = f"{t['id']}-max"
+                t["hint"] = f"{t['hint']} {t['max_id']}"  # «Höchstens N Zeichen.» (артборд)
+        part = "seo"
     if not part:
         return
-    first = default_locale if default_locale in locs and default_locale != base else ""
     selected["field_langs"] = {
         "part": part,
         "lang": lang,
@@ -1039,17 +1135,14 @@ def decorate(
         ],
         "title_id": TITLE_ID,
         "hint_id": HINT_ID,
-        "base_note": gettext("Deutsch (Grundtext)") if first else "",
-        "first_note": (
-            gettext("Ihre Seite zeigt zuerst %(lang)s.") % {"lang": names.get(first, first)}
-            if first
-            else ""
-        ),
+        "base_note": rule["base_note"],
+        "first_note": rule["first_note"],
     }
-    if part == "usp":
-        # стопка 16 T1a (a11y №4): блок языков формы USP — своё пространство id (`_bw_langs` ns)
+    if part in ("usp", "seo"):
+        # стопка 16 T1a/T1b (a11y №4): блок языков формы USP и SEO — своё пространство id
+        ns = USP_NS if part == "usp" else SEO_NS
         selected["field_langs"].update(
-            ns=USP_NS, title_id=f"{USP_NS}-lang-title", hint_id=f"{USP_NS}-lang-hint"
+            ns=ns, title_id=f"{ns}-lang-title", hint_id=f"{ns}-lang-hint"
         )
 
 
@@ -1098,6 +1191,12 @@ def _page_title():
     from apps.core import page_title
 
     return page_title
+
+
+def _content_pages():
+    from apps.core import content_pages
+
+    return content_pages
 
 
 def _rows_text(value) -> str:

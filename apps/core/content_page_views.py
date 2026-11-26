@@ -164,6 +164,9 @@ def _form(request, page, *, created: bool):
         host = content_pages.schema_ref(schema_slug)[0]
         tenant = getattr(request, "tenant", None)
         if request.method == "POST" and request.POST.get("seo_present") == "1":
+            # стопка 16 T1b: здесь — только немецкое; переводы правятся в окне «Seitenaufbau»,
+            # изменённое немецкое поле снимает их (`put_page_seo`) — об этом сообщение
+            dropped: list = []
             try:
                 content_pages.save_page_seo(
                     tenant,
@@ -173,11 +176,16 @@ def _form(request, page, *, created: bool):
                         "description": request.POST.get("seo_description", ""),
                         "noindex": request.POST.get("seo_noindex") == "1",
                     },
+                    dropped=dropped,
                 )
             except content_pages.PageError as exc:
                 messages.error(request, str(exc))
             else:
                 messages.success(request, _("Gespeichert."))
+                if dropped:
+                    from apps.core import block_i18n
+
+                    messages.info(request, block_i18n.dropped_note(dropped))
             return redirect(f"{request.path}?tab=suche")
         from apps.core.richtext import to_plain
         from apps.tenants import siteconfig
