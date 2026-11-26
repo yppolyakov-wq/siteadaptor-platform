@@ -287,3 +287,158 @@ def test_usp_overlay_key_is_label():
     new = [USP_DE[1], {"icon": "check", "label": "Neu"}, USP_DE[0]]
     siteconfig.realign_list_overlays(cfg, {"usp_bar": new})
     assert cfg["i18n"]["ru"]["usp_bar"] == [USP_RU[1], {}, USP_RU[0]]
+
+
+# --- решение владельца 2026-11-26: переименованный ключ узнаём по месту ------------------
+# Пункт, не узнанный по ключу (изменили сам текст-ключ: `label`, метку, заголовок шага,
+# вопрос), — тот же пункт, что стоял на этом месте, если длина списка не изменилась.
+# Добавление и удаление пунктов — как раньше (по ключу).
+
+_RED = pytest.mark.xfail(strict=True, reason="D9 ревью: узнавание по месту и дубли — ещё нет")
+USP_EN = [{"label": "Fast", "text": "In 1 day"}, {"label": "Fresh"}]
+
+
+@_RED
+def test_studio_ru_usp_label_rename_goes_to_translation():
+    tenant = _tenant(
+        {"usp_bar": USP_DE, "i18n": {"ru": {"usp_bar": USP_RU}, "en": {"usp_bar": USP_EN}}}
+    )
+    usp_text = "clock | Очень быстро | За 1 день\nbio | Свежо"
+    cfg = _studio_save(tenant, {"content_sections_present": "1", "usp_text": usp_text})
+    assert cfg["usp_bar"] == USP_DE
+    assert cfg["i18n"]["ru"]["usp_bar"][0] == {"label": "Очень быстро", "text": "За 1 день"}
+    assert cfg["i18n"]["ru"]["usp_bar"][1] == {"label": "Свежо"}
+    assert cfg["i18n"]["en"]["usp_bar"] == USP_EN
+
+
+TRUST_DE = {"since": "1990", "marks": ["Meisterbetrieb", "Bio"]}
+TRUST_RU = {"marks": ["Мастерская", "Био"]}
+
+
+@_RED
+def test_studio_ru_trust_mark_rename_goes_to_translation():
+    tenant = _tenant({"trust": TRUST_DE, "i18n": {"ru": {"trust": TRUST_RU}}})
+    cfg = _studio_save(
+        tenant,
+        {
+            "content_sections_present": "1",
+            "trust_since": "1990",
+            "trust_marks": "Мастерская мастера\nБио",
+        },
+    )
+    assert cfg["trust"]["marks"] == TRUST_DE["marks"]
+    assert cfg["i18n"]["ru"]["trust"]["marks"] == ["Мастерская мастера", "Био"]
+
+
+PROCESS_DE = [{"title": "Anrufen", "text": "Kurz"}, {"title": "Kommen", "text": "Lang"}]
+PROCESS_RU = [{"title": "Позвонить", "text": "Коротко"}, {"title": "Прийти", "text": "Долго"}]
+PROCESS_EN = [{"title": "Call", "text": "Short"}, {"title": "Come", "text": "Long"}]
+
+
+def _process_tenant():
+    return _tenant(
+        {
+            "process": PROCESS_DE,
+            "i18n": {"ru": {"process": PROCESS_RU}, "en": {"process": PROCESS_EN}},
+        }
+    )
+
+
+@_RED
+def test_studio_ru_process_title_rename_goes_to_translation():
+    tenant = _process_tenant()
+    text = "Позвонить нам | Коротко\nПрийти | Долго"
+    cfg = _studio_save(tenant, {"content_sections_present": "1", "process_text": text})
+    assert cfg["process"] == PROCESS_DE
+    assert cfg["i18n"]["ru"]["process"] == [
+        {"title": "Позвонить нам", "text": "Коротко"},
+        PROCESS_RU[1],
+    ]
+    assert cfg["i18n"]["en"]["process"] == PROCESS_EN
+
+
+def test_studio_ru_process_rename_with_new_step_is_a_new_item():
+    """Длина изменилась — по месту не узнаём: непризнанный шаг — новый (прежнее поведение)."""
+    tenant = _process_tenant()
+    text = "Позвонить нам | Коротко\nПрийти | Долго\nОплатить | Сразу"
+    cfg = _studio_save(tenant, {"content_sections_present": "1", "process_text": text})
+    assert cfg["process"][0] == {"title": "Позвонить нам", "text": "Коротко"}
+    assert cfg["process"][1] == PROCESS_DE[1]
+    assert cfg["i18n"]["ru"]["process"][1] == PROCESS_RU[1]
+
+
+@_RED
+@pytest.mark.parametrize(
+    "key,base,ru,new,expect_ru",
+    [
+        (
+            "faq",
+            [{"q": "Parkplatz?", "a": "Ja."}, {"q": "Hunde?", "a": "Nein."}],
+            [{"q": "Парковка?", "a": "Да."}, {"q": "Собаки?", "a": "Нет."}],
+            [{"q": "Где парковка?", "a": "Да."}, {"q": "Собаки?", "a": "Нет."}],
+            {"q": "Где парковка?", "a": "Да."},
+        ),
+        (
+            "team",
+            [{"name": "Max", "role": "Bäcker", "photo": ""}],
+            [{"name": "Макс", "role": "Пекарь"}],
+            [{"name": "Максим", "role": "Пекарь", "photo": ""}],
+            {"name": "Максим", "role": "Пекарь"},
+        ),
+        (
+            "before_after",
+            [{"before": "/b.jpg", "after": "/a.jpg", "text": "Vorher"}],
+            [{"text": "До"}],
+            [{"before": "/b2.jpg", "after": "/a.jpg", "text": "До и после"}],
+            {"text": "До и после"},
+        ),
+    ],
+)
+def test_split_renamed_key_same_length_by_place(key, base, ru, new, expect_ru):
+    payload = {key: copy.deepcopy(new), "i18n": {"ru": {key: copy.deepcopy(ru)}}}
+    siteconfig.split_translation(payload, {key: copy.deepcopy(base)}, "ru")
+    for got, want, sent in zip(payload[key], base, new, strict=True):
+        # текст — немецкий из базы, структура (фото) — из формы
+        assert got == {**want, **{f: v for f, v in sent.items() if f in ("before", "photo")}}
+    assert payload["i18n"]["ru"][key][0] == expect_ru
+
+
+# --- одинаковые и пустые ключи: k-й дубль ↔ k-й дубль ------------------------------------
+
+
+@_RED
+def test_studio_ru_save_keeps_duplicate_before_after():
+    base = [
+        {"before": "/b.jpg", "after": "/a.jpg", "text": "Vorher A"},
+        {"before": "/b.jpg", "after": "/c.jpg", "text": "Vorher B"},
+    ]
+    ru = [{"text": "До А"}, {"text": "До Б"}]
+    tenant = _tenant({"before_after": base, "i18n": {"ru": {"before_after": ru}}})
+    cfg = _studio_save(tenant, {})
+    assert cfg["before_after"] == base
+    assert cfg["i18n"]["ru"]["before_after"] == ru
+
+
+@_RED
+def test_split_keeps_empty_label_items_apart():
+    """Пустой `label` (`normalize` такие отбрасывает, разбор — нет): каждый со своей базой."""
+    base = [{"icon": "a", "label": "", "text": "Eins"}, {"icon": "b", "label": "", "text": "Zwei"}]
+    new = [{"icon": "a", "label": "", "text": "Один"}, {"icon": "b", "label": "", "text": "Два"}]
+    payload = {"usp_bar": new}
+    siteconfig.split_translation(payload, {"usp_bar": copy.deepcopy(base)}, "ru")
+    assert payload["usp_bar"] == base
+    assert payload["i18n"]["ru"]["usp_bar"] == [{"text": "Один"}, {"text": "Два"}]
+
+
+@_RED
+def test_split_blocks_without_id_do_not_collapse():
+    """Блоки без id/key (`t:`) не садятся все на первый блок базы."""
+    base = [{"data": {"title": "Hallo A"}}, {"data": {"title": "Hallo B"}}]
+    new = [{"data": {"title": "Привет А"}}, {"data": {"title": "Привет Б"}}]
+    payload = {"sections": new}
+    siteconfig.split_translation(payload, {"sections": copy.deepcopy(base)}, "ru")
+    assert payload["sections"] == base
+    assert payload["i18n"]["ru"]["sections"] == [
+        {"data": {"title": "Привет А"}},
+        {"data": {"title": "Привет Б"}},
+    ]
