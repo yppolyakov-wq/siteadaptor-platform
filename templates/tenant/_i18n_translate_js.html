@@ -200,12 +200,14 @@ FB-33 стопка 16 T4: одно нажатие — пустые поля де
       else btn.form.removeAttribute("aria-busy");
     }
   }
-  // Кнопка того же языка в новой панели (aufbau.js подменил панель) или null.
+  // Кнопка того же языка в новой панели (aufbau.js подменил панель) или null. По языку и id
+  // пометки ИИ (data-note — одна на окно): подпись экрана (data-screen) новая при каждой отрисовке.
   function trTwin(btn, loc) {
     var all = document.querySelectorAll('[data-i18n-translate][data-loc="' + loc + '"]');
     for (var i = 0; i < all.length; i++) {
-      if (all[i].getAttribute("data-screen") === btn.getAttribute("data-screen")) return all[i];
+      if (all[i].getAttribute("data-note") === btn.getAttribute("data-note")) return all[i];
     }
+    console.error("translate: no button after panel replace");
     return null;
   }
   // Итог — в живую область той кнопки, что сейчас на странице. Панель подменили — фокус на
