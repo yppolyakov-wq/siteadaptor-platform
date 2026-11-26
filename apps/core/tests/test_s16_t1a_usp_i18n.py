@@ -371,3 +371,109 @@ def test_usp_open_drafts_fingerprint_unchanged():
     _resp, msgs = _save(b)
     assert "Gespeichert." in msgs
     assert _shown(_saved(b), "ru") == [("Местное", "из Золингена"), ("Свежо", "Каждый день")]
+
+
+# --- ревью T1a круг 1: a11y A2–A5, django D1 ---------------------------------------------------
+
+USP3 = USP + [{"icon": "check", "label": "Handgemacht", "text": "seit 1950"}]
+RU3 = RU + [{"label": "Ручная работа", "text": "с 1950"}]
+
+
+def test_usp_three_items_two_langs_ids_unique_and_described():
+    """A2: 3 пункта × 2 языка перевода — id в форме без повторов (вкл. `-src`, заголовок и
+    подсказку блока языков, кнопки `schema-tab-lang-usp-*`), каждый `aria-describedby`
+    указывает на существующий id, подсказка поля перевода — подсказка блока языков USP."""
+    html, form = _form(_browser(usp=USP3, ru=RU3))
+    panel = _panel(html)
+    ids = Counter(re.findall(r'\bid="([^"]+)"', form))
+    assert [i for i, n in ids.items() if n > 1] == []
+    for i in range(3):
+        for loc in ("ru", "en"):
+            assert f'id="bw-usp-{i}-label-{loc}"' in form
+            assert f'id="bw-usp-{i}-label-{loc}-src"' in form
+    for need in ("usp-lang-title", "usp-lang-hint", "schema-tab-lang-usp-ru"):
+        assert ids[need] == 1
+    panel_ids = set(re.findall(r'\bid="([^"]+)"', panel))
+    described = re.findall(r'aria-describedby="([^"]+)"', form)
+    assert described
+    for value in described:
+        for token in value.split():
+            assert token in panel_ids, token
+    tr = re.findall(r'id="bw-usp-\d-(?:label|text)-(?:ru|en)"[^>]*aria-describedby="([^"]+)"', form)
+    tr += re.findall(
+        r'aria-describedby="([^"]+)"[^>]*id="bw-usp-\d-(?:label|text)-(?:ru|en)"', form
+    )
+    assert len(tr) >= 6 and all(v.split()[-1] == "usp-lang-hint" for v in tr)
+
+
+def test_usp_lang_click_anchor_lands_on_pressed_button():
+    """A3: без JS после кнопки языка — якорь на кнопку `schema-tab-lang-usp-<код>`; на
+    открытой по этому адресу странице такая кнопка есть и нажата."""
+    b = _browser()
+    resp, _msgs = _post(b, f_sprache="en", lang_ns="usp")
+    url, anchor = resp["Location"].split("#", 1)
+    assert anchor == "schema-tab-lang-usp-en"
+    with translation.override("de"):
+        html = b.get("?" + url.split("?", 1)[1])
+    button = re.search(rf'<button[^>]*id="{anchor}"[^>]*>', html)
+    assert button and 'aria-pressed="true"' in button.group(0)
+
+
+def test_usp_cap_note_in_live_region(settings):
+    """A4: сообщение об обрезке перевода — на перерисованной странице в живой области
+    (`role="status"` в `data-schema-messages`; оттуда его берёт и окно со скриптом)."""
+    from django.contrib.messages.middleware import MessageMiddleware
+
+    from apps.core.site_schema_views import site_schema_view
+
+    settings.MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
+    b = _browser()
+    data = {
+        "seite": "home",
+        "op": "update",
+        "ref": "usp_bar",
+        "panel_present": "1",
+        "wopen": WOPEN,
+        "f_tr_usp_0_label_ru": "Л" * 130,
+    }
+    for i, it in enumerate(USP):
+        data.update({f"f_usp_{i}_icon": it["icon"], f"f_usp_{i}_label": it["label"]})
+        data[f"f_usp_{i}_text"] = it["text"]
+    req = b._request("post", data)
+    resp = site_schema_view(req)
+    MessageMiddleware(lambda r: None).process_response(req, resp)
+    url = resp["Location"].split("#", 1)[0]
+    with translation.override("de"):
+        html = b.get("?" + url.split("?", 1)[1])
+    box = html[html.index("data-schema-messages") :]
+    box = box[: box.index("</div>\n</div>") + 6] if "</div>\n</div>" in box else box[:3000]
+    note = str(siteconfig.cap_note())
+    status = re.findall(r'<div role="status"[^>]*>(.*?)</div>', box, flags=re.S)
+    assert any(note in s for s in status)
+
+
+@pytest.mark.xfail(strict=True, reason="A5: подпись перевода — длинный label не урезан")
+def test_usp_long_label_truncated_in_translation_label():
+    """A5: в подписи поля перевода «„…“ – Übersetzung» немецкий заголовок урезан, как текст."""
+    long = "Sehr frisch gebackenes Brot aus eigener Backstube"  # 49 знаков
+    usp = [{"icon": "bio", "label": long, "text": "Jeden Tag"}]
+    _html, form = _form(_browser(usp=usp, ru=[{"label": "Свежо"}]))
+    label = re.search(r'<label for="bw-usp-0-label-ru"[^>]*>(.*?)</label>', form, flags=re.S)
+    assert label and long not in label.group(1) and "…" in label.group(1)
+
+
+@pytest.mark.xfail(strict=True, reason="D1: устаревшая вкладка приписывает чужое место src")
+def test_usp_stale_tab_keeps_translations_on_their_items():
+    """D1: две вкладки одного окна. В первой ✕ «Frisch»; вторая (показана до этого) жмёт
+    «Übernehmen» со старым составом — её пункты узнаются по ключу (снимок `usp_of`), перевод
+    «Regional» остаётся на «Regional», перевод из второй вкладки садится на свой пункт."""
+    b = _browser()
+    _html, form = _form(b)
+    m = re.search(r'name="f_usp_of" value="([^"]*)"', form)
+    stale_of = m.group(1) if m else ""
+    _post(b, f_usp_remove="0")  # первая вкладка
+    _post(b, items=USP, f_usp_of=stale_of, f_tr_usp_1_text_ru="из Золингена!")  # вторая
+    _save(b)
+    cfg = _saved(b)
+    assert [u["label"] for u in cfg["usp_bar"]] == ["Frisch", "Regional"]
+    assert _shown(cfg, "ru") == [("Frisch", "Jeden Tag"), ("Местное", "из Золингена!")]
