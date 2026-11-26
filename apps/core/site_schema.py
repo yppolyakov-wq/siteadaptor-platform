@@ -2253,6 +2253,10 @@ def _is_hero_row(item: dict) -> bool:
     return isinstance(item, dict) and item.get("key") == "hero" and not item.get("id")
 
 
+def _nl(value: str) -> str:
+    return value.replace("\r\n", "\n").replace("\r", "\n")
+
+
 def _is_usp_row(item: dict) -> bool:
     return isinstance(item, dict) and item.get("key") == "usp_bar" and not item.get("id")
 
@@ -2275,6 +2279,7 @@ USP_ICON_LABELS = {
 
 def usp_panel(config: dict, item: dict) -> dict:
     """Пункты полосы доверия для панели: сохранённые + одна пустая строка «＋ Punkt»."""
+    from apps.core import block_i18n
     from apps.tenants import siteconfig
 
     data = item.get("data") if isinstance(item.get("data"), dict) else {}
@@ -2284,6 +2289,7 @@ def usp_panel(config: dict, item: dict) -> dict:
         "items": items,
         "free": len(items) < siteconfig._MAX_USP,
         "max": siteconfig._MAX_USP,
+        "of": block_i18n.usp_fp(items),  # ревью T1a D1: снимок для устаревшей вкладки
         # a11y-ревью: скринридеру — понятное имя значка, не технический ключ
         "icons": [
             (k, sym, str(USP_ICON_LABELS.get(k, k))) for k, sym in siteconfig.USP_ICONS.items()
@@ -2302,6 +2308,7 @@ def _update_usp(item: dict, fields: dict) -> bool:
     (`usp_remove=i`), перестановка (`usp_move=i:up|down`), вид (`style`). Пустой заголовок —
     пункт убирается; без строк пунктов (запрос в обход формы) пункты не трогаются (ревью).
     True — изменилось."""
+    from apps.core import block_i18n
     from apps.tenants import siteconfig
 
     slots = {}
@@ -2309,10 +2316,16 @@ def _update_usp(item: dict, fields: dict) -> bool:
         if f"usp_{i}_label" in fields:
             slots[i] = {
                 "icon": str(fields.get(f"usp_{i}_icon", "")),
-                "label": str(fields.get(f"usp_{i}_label", "")).strip()[:120],
-                "text": str(fields.get(f"usp_{i}_text", "")).strip()[:200],
+                # стопка 16 T1a: `\r\n` формы — `\n` до потолка (как `maxlength` и переводы)
+                "label": _nl(str(fields.get(f"usp_{i}_label", ""))).strip()[:120],
+                "text": _nl(str(fields.get(f"usp_{i}_text", ""))).strip()[:200],
             }
     before = (copy.deepcopy(item.get("data")), item.get("style"))
+    data = item.get("data") if isinstance(item.get("data"), dict) else {}
+    # стопка 16 T1a: место пункта в сохранённом списке едет с пунктом (ключ его переводов)
+    cur_items, src = block_i18n.usp_items(data)
+    # ревью T1a D1: форма показана до правки в другой вкладке — место по ключу пункта
+    src = block_i18n.usp_slot_src(cur_items, src, fields)
     if slots:
         remove = str(fields.get("usp_remove", ""))
         if remove.isdecimal() and remove.isascii():
@@ -2324,7 +2337,13 @@ def _update_usp(item: dict, fields: dict) -> bool:
             other = pos - 1 if way == "up" else pos + 1 if way == "down" else -1
             if 0 <= other < len(order):
                 order[pos], order[other] = order[other], order[pos]
-        item["data"] = {"items": siteconfig.clean_usp([slots[i] for i in order])}
+        kept = [
+            (slots[i], src[i] if i < len(src) else None)
+            for i in order
+            if siteconfig._s(slots[i]["label"])
+        ][: siteconfig._MAX_USP]
+        items = siteconfig.clean_usp([slot for slot, _src in kept])
+        item["data"] = block_i18n.usp_data(data, cur_items, items, [s for _slot, s in kept])
     if "style" in fields:
         style = str(fields["style"]).strip()
         if style == "":
@@ -2663,7 +2682,12 @@ def lift_hero_choice(config: dict, items: list[dict]) -> None:
     for item in items:
         if _is_usp_row(item) and isinstance(item.get("data"), dict):
             # FB-32 S2: пункты полосы доверия — обратно в `usp_bar` (одно место хранения)
-            usp = siteconfig.clean_usp(item.pop("data").get("items"))
+            data = item.pop("data")
+            usp = siteconfig.clean_usp(data.get("items"))
+            # стопка 16 T1a: переводы пунктов — за своим пунктом, изменённый немецкий — без них
+            from apps.core import block_i18n
+
+            block_i18n.realign_usp(config, data, usp)
             if usp:
                 config["usp_bar"] = usp
             else:

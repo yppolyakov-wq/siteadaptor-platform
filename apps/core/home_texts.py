@@ -325,12 +325,21 @@ def _drop_node(old, new, ov):
         return out or None
     if isinstance(new, list) or isinstance(old, list):
         return ov if old == new else None
-    return ov if _s(old) == _s(new) else None
+    return ov if _same(old, new) else None
 
 
-def _drop_changed(config: dict, key: str, old, new) -> None:
+def _same(old, new) -> bool:
+    """Немецкий текст не менялся: сверка после `_nl` (стопка 16 T1a, architect №11: `\r\n` из
+    формы не снимает перевод ложно)."""
+    return _nl(_s(old)) == _nl(_s(new))
+
+
+def drop_changed(config: dict, key: str, old, new, aligned: list | None = None) -> None:
     """§9 №3: правка немецкого снимает перевод именно изменённого поля у всех языков. Списки
-    — после `realign_list_overlays`: перевод пункта j сверяется с пунктом-источником."""
+    — после `realign_list_overlays`: перевод пункта j сверяется с пунктом-источником.
+    `aligned` (стопка 16 T1a, полоса доверия окна) — пункт-источник для каждого нового пункта
+    уже известен (по месту в сохранённом списке, а не по ключу: ключ пункта — сам переводимый
+    текст); `None` в нём — новый пункт."""
     from apps.tenants import siteconfig
 
     overlay = config.get("i18n")
@@ -342,7 +351,7 @@ def _drop_changed(config: dict, key: str, old, new) -> None:
             continue
         if key in SCALAR_KEYS:
             for name in names(key):
-                if name in node and _s(old.get(name)) != _s(new.get(name)):
+                if name in node and not _same(old.get(name), new.get(name)):
                     node.pop(name)
             continue
         if key not in node:
@@ -358,7 +367,10 @@ def _drop_changed(config: dict, key: str, old, new) -> None:
             moved = []
             for j, item in enumerate(new):
                 entry = tr[j] if j < len(tr) else {}
-                src = by_key.get(str(item.get(field, "")))
+                if aligned is not None:
+                    src = aligned[j] if j < len(aligned) else None
+                else:
+                    src = by_key.get(str(item.get(field, "")))
                 if isinstance(entry, dict) and src is not None:
                     entry = _drop_node(src, item, entry) or {}
                 moved.append(entry)
@@ -410,7 +422,7 @@ def put(
     if key in SCALAR_KEYS:
         old = {name: config.get(name) for name in names(key)}
         if not translating:
-            _drop_changed(config, key, old, new)
+            drop_changed(config, key, old, new)
         config.update(new)
         return WRITTEN
     old = copy.deepcopy(config.get(key))
@@ -419,7 +431,7 @@ def put(
             if not isinstance(old, list):
                 logger.warning("home_texts: stored %s is not a list — nothing to realign", key)
             siteconfig.realign_list_overlays(config, {key: new})
-        _drop_changed(config, key, old, new)
+        drop_changed(config, key, old, new)
     config[key] = new
     return WRITTEN
 

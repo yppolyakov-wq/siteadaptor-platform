@@ -1,2 +1,2 @@
 {% load i18n %}{% comment %}FB-33 M3-1: часть «Texte» — пункты полосы доверия.{% endcomment %}
-{% if selected.usp %}{% include "tenant/_schema_usp.html" with usp=selected.usp ref=selected.ref %}{% endif %}
+{% if selected.usp %}{% include "tenant/_schema_usp.html" with usp=selected.usp ref=selected.ref fl=selected.field_langs %}{% endif %}

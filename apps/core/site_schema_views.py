@@ -542,7 +542,12 @@ def site_schema_view(request):
         if "#" in target and lang and _keep({"f_sprache": lang}).get("sprache") == lang:
             # FB-33 M2i-5b (ревью a11y): после кнопки языка фокус — на ней (`#schema-tab-…`
             # ставит фокус по id и окно, и страница без окна; без JS — прокрутка к ней)
-            target = f"{target.split('#', 1)[0]}#schema-tab-lang-{lang}"
+            # стопка 16 T1a: у блока языков со своим `ns` (форма USP) — id его кнопок
+            from apps.core import block_i18n
+
+            ns = request.POST.get("lang_ns", "")
+            ns = f"{ns}-" if ns in block_i18n.LANG_NAMESPACES else ""
+            target = f"{target.split('#', 1)[0]}#schema-tab-lang-{ns}{lang}"
         felder = applied and not notes and "#" in target and request.POST.get("f_do")
         if felder:
             # FB-33 M3-5a (a11y M2i-5): после ↑/↓/Entfernen/«+ Frage» — фокус на вопрос
