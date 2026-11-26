@@ -20,6 +20,7 @@
 
 import argparse
 import dataclasses
+import importlib.util
 import os
 import pathlib
 import shutil
@@ -193,7 +194,49 @@ SLICE_NOTE = (
 )
 
 
-def slice_plan(files: list[str], exists=lambda path: (ROOT / path).is_file()) -> Plan:
+# Тесты изменённого файла по справке `codemap` (T-19). Файл, у которого их больше потолка
+# (`apps/core/views.py` — 191), срез не гоняет: это уже не «свои тесты», их проверит CI.
+SLICE_FILE_CAP = 40
+
+
+def _codemap():
+    spec = importlib.util.spec_from_file_location("codemap", ROOT / "scripts" / "codemap.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault("codemap", mod)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _is_test_file(path: str) -> bool:
+    return "/tests/" in path and path.rsplit("/", 1)[-1].startswith("test_")
+
+
+def related_tests(files: list[str], tests_of=None, named_by=None) -> dict[str, set[str]]:
+    """Изменённый файл кода или шаблон → тесты, которые его импортируют или называют.
+
+    Шаблон тесты по имени почти не называют — идём на шаг дальше: тесты кода, где шаблон назван
+    строкой. Стопка 15: 4 красных CI из 9 — тест был, но срез его не менял и `--slice` не взял.
+    """
+    if tests_of is None:
+        cm = _codemap()
+        index = cm.build_index()
+        tests_of = lambda path: cm._tests_of(ROOT, index, path)[0]  # noqa: E731
+        named_by = lambda path: cm.string_refs(index, path)  # noqa: E731
+    out: dict[str, set[str]] = {}
+    for f in files:
+        is_html = f.endswith(".html")
+        is_code = f.endswith(".py") and f.split("/")[0] in ("apps", "config")
+        if "/tests/" in f or not (is_html or is_code):
+            continue
+        found = {t for t in tests_of(f) if _is_test_file(t)}
+        for src in named_by(f) if is_html else ():
+            found |= {t for t in ([src] if "/tests/" in src else tests_of(src)) if _is_test_file(t)}
+        if found:
+            out[f] = found
+    return out
+
+
+def slice_plan(files: list[str], exists=lambda path: (ROOT / path).is_file(), related=None) -> Plan:
     """Набор исполнителя среза (T-16): линт, переводы, изменённые тесты и статические замки шаблонов.
 
     Запись расхода стопки 13: 47 % счёта — перезапись контекста агентов, ждавших тесты дольше
@@ -221,6 +264,13 @@ def slice_plan(files: list[str], exists=lambda path: (ROOT / path).is_file()) ->
         notes.append(
             "своих тестов в срезе нет — замки первого коммита обязательны (sa-increment, шаг 5)"
         )
+    for f, tests in sorted((related(files) if related else {}).items()):
+        if len(tests) > SLICE_FILE_CAP:
+            notes.append(
+                f"{f}: {len(tests)} тестов — больше {SLICE_FILE_CAP}, срез их не гоняет: проверит CI"
+            )
+        else:
+            targets.update(tests)
     if targets:
         steps.append("pytest")
     return Plan(steps, sorted(targets), False, notes)
@@ -300,7 +350,9 @@ def _css() -> tuple[bool, str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Финальный гейт перед пушем (T-13.1)")
-    ap.add_argument("--base", default="origin/main")
+    # Срез в стопке: база — коммит P0 или ветка предыдущего среза (`PREFLIGHT_BASE` в брифе),
+    # иначе в набор попадают файлы всех уже влитых срезов (T-19).
+    ap.add_argument("--base", default=os.environ.get("PREFLIGHT_BASE", "origin/main"))
     ap.add_argument("--fast", action="store_true", help="без pytest")
     ap.add_argument(
         "--slice",
@@ -314,7 +366,7 @@ def main() -> int:
     args = ap.parse_args()
 
     files = changed_files(args.base)
-    p = slice_plan(files) if args.slice else plan(files)
+    p = slice_plan(files, related=related_tests) if args.slice else plan(files)
     print(f"preflight: {len(files)} изменённых путей относительно {args.base}")
     print("  шаги: " + ", ".join(p.steps))
     if p.pytest_targets:

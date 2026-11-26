@@ -268,3 +268,9 @@ def test_review_fix_batch_is_checked_against_the_plan_table():
     assert m.would_add(slices, "E1t", ["apps/core/views.py"], exists=lambda path: True) == []
     assert m.would_add(slices, "M1d", ["apps/core/views.py"], exists=lambda path: True) == []
     assert "нет" in m.would_add(slices, "ZZ", ["a.py"], exists=lambda path: True)[0]
+    # расхождение уже записано в плане (файл вписали, зависимость — нет): ответ не «можно отдавать»
+    clash = _plan(
+        "| M1d | — | `apps/core/views.py` | — | 0 | — |",
+        "| M5e-2b | — | `apps/core/views.py` | — | 0 | — |",
+    )
+    assert m.would_add(clash, "M5e-2b", ["apps/core/views.py"], exists=lambda path: True)

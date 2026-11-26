@@ -246,6 +246,32 @@ def check(slices: list[Slice], exists=on_disk) -> list[str]:
     return out
 
 
+def would_add(slices: list[Slice], name: str, paths: list[str], exists=on_disk) -> list[str]:
+    """Что сломает в плане пачка правок, если срез `name` получит ещё и `paths` (T-19).
+
+    Стопка 15: ревью добавило срезу файл, который правил параллельный срез; таблицу не трогали,
+    `check` заново не гоняли — правило T-17 обойдено молча. Пустой список — файлы можно отдавать
+    (и вписать в строку среза); иначе — отдать правку срезу-владельцу файла или вести по очереди.
+    """
+    if name not in [s.name for s in slices]:
+        return [f"{name}: такого среза в плане нет"]
+    before = set(check(slices, exists))
+    grown = [
+        dataclasses.replace(
+            s, own=s.own + [File(p, []) for p in paths if p not in [f.path for f in s.own]]
+        )
+        if s.name == name
+        else s
+        for s in slices
+    ]
+    # Расхождение, которое в плане уже записано, для этих файлов — всё равно расхождение.
+    return [
+        found
+        for found in check(grown, exists)
+        if found not in before or (name in found and any(p in found for p in paths))
+    ]
+
+
 def waves(slices: list[Slice]) -> list[list[str]]:
     """Волны: срезы одной волны можно вести параллельно, следующая ждёт предыдущую."""
     done: set[str] = set()
@@ -298,13 +324,26 @@ def verify(slices: list[Slice], touched: dict[str, list[str]]) -> list[str]:
     return out
 
 
-def diff_spec(base: str, ref: str) -> str:
+def _ref_exists(ref: str) -> bool:
+    cmd = ["git", "rev-parse", "--verify", "--quiet", ref + "^{commit}"]
+    return subprocess.run(cmd, cwd=ROOT, capture_output=True).returncode == 0
+
+
+def _resolve(ref: str, exists) -> str:
+    """Имя ветки как в плане; локальной нет, а `origin/<имя>` есть — берём её (T-19: в плане ветки
+    пишут без `origin/`, из чужого клона сверка и закрытие стопки их не читали)."""
+    if exists(ref) or not exists("origin/" + ref):
+        return ref
+    return "origin/" + ref
+
+
+def diff_spec(base: str, ref: str, exists=_ref_exists) -> str:
     """Что сверять: колонка «Ветка» — ветка (от `--base`) или диапазон `откуда..куда` для среза,
     чья ветка построена на ветке другого среза (иначе срезу достаются файлы предшественника)."""
     if ".." in ref:
         start, _, end = ref.partition("..")
-        return f"{start}...{end.lstrip('.')}"
-    return f"{base}...{ref}"
+        return f"{_resolve(start, exists)}...{_resolve(end.lstrip('.'), exists)}"
+    return f"{base}...{_resolve(ref, exists)}"
 
 
 def _touched(base: str, ref: str) -> list[str]:
@@ -342,6 +381,12 @@ def main() -> int:
     ap.add_argument("plan")
     ap.add_argument("--verify", action="store_true", help="сверить факт с планом (после кода)")
     ap.add_argument("--base", default="origin/main", help="коммит P0 или база стопки для --verify")
+    ap.add_argument(
+        "--add",
+        nargs="+",
+        metavar="СРЕЗ_ФАЙЛ",
+        help="срез и файлы пачки правок: можно ли отдать их этому срезу, не ломая план",
+    )
     args = ap.parse_args()
     text = pathlib.Path(args.plan).read_text(encoding="utf-8")
     slices = parse(text)
@@ -351,6 +396,17 @@ def main() -> int:
             "✗ в плане нет таблицы «| Срез | Зависит от | Свои файлы | Общие файлы | Эталоны | Ветка |»"
         )
         return 1
+    if args.add:
+        name, paths = args.add[0], args.add[1:]
+        clash = would_add(slices, name, paths)
+        for p in clash:
+            print("✗ " + p)
+        print(
+            "правку отдать срезу-владельцу файла или вести после него"
+            if clash
+            else f"{name}: {', '.join(paths)} — можно отдавать; впиши файлы в строку среза в плане"
+        )
+        return 1 if clash else 0
     found = broken + check(slices)
     for n, wave in enumerate(waves(slices), 1):
         print(f"волна {n}: " + ", ".join(wave))
