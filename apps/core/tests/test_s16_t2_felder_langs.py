@@ -27,7 +27,6 @@ pytestmark = pytest.mark.django_db
 ROOT = Path(__file__).resolve().parents[3]
 BASE_NOTE = "Deutsch (Ausgangstext)"
 FIRST = "Ihre Seite zeigt zuerst"
-TODO = pytest.mark.xfail(strict=True, reason="T2: до кода")
 
 
 @pytest.fixture(autouse=True)
@@ -74,19 +73,17 @@ def _gettext_calls(text: str) -> list[str]:
     return out
 
 
-@TODO
 def test_window_langs_owns_note_strings():
     assert _gettext_calls(BASE_NOTE) == ["apps/core/i18n_input.py"]
     # «Texte» (block_i18n) держит свою подсказку до T1b — других мест нет
     assert set(_gettext_calls(FIRST)) <= {"apps/core/i18n_input.py", "apps/core/block_i18n.py"}
     assert "apps/core/i18n_input.py" in _gettext_calls(FIRST)
-    src = (ROOT / "apps/core/form_spec.py").read_text(encoding="utf-8")
-    func = src[src.index("def with_locales") :]
-    func = func[: func.index("\ndef ", 1)]
-    assert "window_langs(" in func
+    tree = ast.parse((ROOT / "apps/core/form_spec.py").read_text(encoding="utf-8"))
+    func = next(n for n in tree.body if getattr(n, "name", "") == "with_locales")
+    called = {getattr(n.func, "id", "") for n in ast.walk(func) if isinstance(n, ast.Call)}
+    assert "window_langs" in called
 
 
-@TODO
 def test_window_langs_rule():
     from apps.core.i18n_input import window_langs
 
@@ -107,7 +104,6 @@ def test_window_langs_rule():
     }
 
 
-@TODO
 @pytest.mark.parametrize("default", ["ru"])
 def test_felder_business_language_first_and_selected(default):
     _html, part = _part(_browser(default))
@@ -147,7 +143,6 @@ def test_felder_unchanged_for_german_business(monkeypatch):
     assert _part(b)[1] == _old_part(monkeypatch, b)
 
 
-@TODO
 def test_felder_base_note_on_custom_label_and_question():
     _html, part = _part(_browser())
     assert re.search(
@@ -162,7 +157,6 @@ def test_felder_base_note_on_custom_label_and_question():
     assert part.index('name="f_sprache"', start) < note < part.index("data-form-field=", start)
 
 
-@TODO
 def test_first_note_described_by_group():
     _html, part = _part(_browser())
     m = re.search(r'<p id="([^"]+)"[^>]*>Ihre Seite zeigt zuerst Русский\.</p>', part)
@@ -179,7 +173,6 @@ def _langs(**kw):
         return render_to_string("tenant/_bw_langs.html", {"locales": LOCALES, **kw})
 
 
-@TODO
 def test_langs_block_ids_namespaced():
     doc = _langs(ns="usp", first_note="Ihre Seite zeigt zuerst Русский.") + _langs(
         ns="seo", first_note="Ihre Seite zeigt zuerst Русский."
@@ -218,7 +211,6 @@ def test_ausgangstext_msgid_in_all_po():
         assert entry.msgstr and "fuzzy" not in entry.flags, loc
 
 
-@TODO
 def test_first_note_not_a_second_live_region():
     _html, part = _part(_browser())
     _html, plain = _part(_browser("de"))

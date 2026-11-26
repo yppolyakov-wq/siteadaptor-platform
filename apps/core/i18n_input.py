@@ -26,6 +26,35 @@ def extra_locales(tenant) -> list[str]:
         return []
 
 
+def window_langs(locales, default_locale: str = "", wanted: str = "") -> dict:
+    """FB-33 стопка 16 T2: одно правило языков переводов окна блока («Felder», «Texte»).
+
+    `locales` — языки перевода (без основного). Порядок — язык бизнеса (`default_locale`)
+    первым, если он среди них; выбранный — `wanted`, иначе первый (то есть язык бизнеса).
+    У бизнеса с основным языком не de — подпись немецкого поля `base_note` и подсказка
+    `first_note`; иначе обе пусты и порядок прежний (вкладка байт-в-байт)."""
+    from django.utils.translation import gettext
+
+    locs = list(locales or ())
+    first = default_locale if default_locale in locs else ""
+    if first:
+        locs = [first, *(loc for loc in locs if loc != first)]
+    lang = wanted if wanted in locs else (locs[0] if locs else "")
+    if first == settings.LANGUAGE_CODE[:2]:
+        first = ""
+    return {
+        "locs": locs,
+        "lang": lang,
+        "base_note": gettext("Deutsch (Ausgangstext)") if first else "",
+        "first_note": (
+            gettext("Ihre Seite zeigt zuerst %(lang)s.")
+            % {"lang": dict(settings.LANGUAGES).get(first, first)}
+            if first
+            else ""
+        ),
+    }
+
+
 #: M21.8: overlay-поля длинного текста (визуальный редактор) — санитайз при записи.
 RICH_OVERLAY_FIELDS = frozenset({"description", "bio", "house_rules", "body"})
 

@@ -1231,23 +1231,31 @@ def set_event_translations(config: dict, translations: dict, overwrite: bool = F
         config["form_fields"] = ff
 
 
-def with_locales(fs: dict, locales, wanted: str = "") -> dict:
+def with_locales(fs: dict, locales, wanted: str = "", default_locale: str = "") -> dict:
     """FB-33 M2i-5b: поля переводов вкладки «Felder» на языки бизнеса `locales` (без основного;
     пусто — вкладка прежняя байт-в-байт). Группы всех языков — в DOM, видна одна: `wanted`, если
     он из `locales`, иначе первая; выбор — серверными кнопками `f_sprache` (без скриптов, язык
     помнится). Имя (`name`) — только у полей ВЫБРАННОГО языка (ревью: предел числа полей формы
-    `DATA_UPLOAD_MAX_NUMBER_FIELDS`); не присланное не трогается (presence-guard разбора)."""
+    `DATA_UPLOAD_MAX_NUMBER_FIELDS`); не присланное не трогается (presence-guard разбора).
+    Стопка 16 T2: порядок, выбранный язык и подписи — общее правило окна
+    `i18n_input.window_langs` (язык бизнеса `default_locale` первым, как во «Texte»)."""
     from django.conf import settings
     from django.utils import translation
+
+    from apps.core.i18n_input import window_langs
 
     names = dict(settings.LANGUAGES)
     base = settings.LANGUAGE_CODE[:2]
     allowed = set(form_answers.overlay_locales())
-    locs = [loc for loc in locales or () if loc in allowed]
+    rule = window_langs([loc for loc in locales or () if loc in allowed], default_locale, wanted)
+    locs = rule["locs"]
     if not locs:
         return fs
-    lang = wanted if wanted in locs else locs[0]
+    lang = rule["lang"]
     fs["lang"] = lang
+    if rule["first_note"]:  # основной язык бизнеса не de (иначе ключей нет — вид прежний)
+        fs["base_note"] = rule["base_note"]
+        fs["first_note"] = rule["first_note"]
     fs["lang_label"] = names.get(lang, lang)
     fs["locales"] = [
         {"code": loc, "label": names.get(loc, loc), "shown": loc == lang} for loc in locs
