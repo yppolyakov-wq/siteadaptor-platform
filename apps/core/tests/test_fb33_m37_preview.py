@@ -266,8 +266,10 @@ def test_frame_sandbox_has_no_scripts_forms_or_top_navigation():
 def test_aufbau_js_gets_exactly_three_new_events():
     src = (JS / "aufbau.js").read_text()
     names = set(re.findall(r'new CustomEvent\("([^"]+)"', src))
-    assert names == {"aufbau:panel", "aufbau:window-open", "aufbau:window-close", "aufbau:saved"}
-    assert src.count("dispatchEvent(new CustomEvent(") == 4
+    # FB-33 стопка 16 T4: «aufbau:quiet-stop» — тихая запись перевода частью отклонена
+    names_t4 = {"aufbau:panel", "aufbau:window-open", "aufbau:window-close", "aufbau:saved"}
+    assert names == names_t4 | {"aufbau:quiet-stop"}
+    assert src.count("dispatchEvent(new CustomEvent(") == 5
 
 
 def test_preview_texts_are_translated():
