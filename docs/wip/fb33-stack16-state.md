@@ -13,3 +13,9 @@
 - T1b не сделал schema_ref(versand) -> seite:versand при выключенных заказах (нужен E10): отдельная правка после свода E10, замок через вьюхи «Blöcke» и «Suchmaschinen» (content_page_views:110,:164, studio_pages:900).
 - T1b → T3: подпись поля перевода (what) внутри _bw_tr.html идёт с lang бизнеса — это строка интерфейса; empty_ui у пустого перевода уже есть.
 - T1b: битый оверлей seo — предупреждение в журнал на каждое чтение тега (1–3 на страницу), не одно.
+- T3 готов (ветка t3, e027120, база 61154a8): preflight --slice 118 ✓, связанный набор 1058 ✓, стенд 550 ✓; эталоны 0. Ревью не было: django-reviewer, a11y-architect (файлы в scratchpad), e2e-runner.
+- T3: правил литералы «Ihre Seite zeigt zuerst» в test_s16_t2_felder_langs.py (2) и test_fb33_m35c_window.py (1) — вне строки; T1b правил тот же test_fb33_m35c_window.py:62-64 — при своде T1b+T3 конфликт возможен, брать обе правки.
+- T3 предлагает: _bw_tiles.html и _schema_usp.html явно передают first_note, убрать запасной путь fl.first_note в _bw_langs.html (plan_check --add).
+- Кнопки ИИ у USP и SEO нет: _schema_usp.html/_bw_seo.html не задают tr — после свода T3 (разметка of/field готова); её стенд — на верхушке.
+- T3 не гонял стенд m2i5c (нет тенанта ptx), 844×390 и prefers-reduced-motion.
+Порядок свода волны 3: E10 → T1b → T3 (общий test_fb33_m35c_window.py), каждый по зелёному CI своей ветки; затем schema_ref(versand) и кнопка ИИ у USP/SEO — мелкими срезами; волна 4 K1, T6 от верхушки.
