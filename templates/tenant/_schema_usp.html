@@ -1,12 +1,12 @@
-{% load i18n %}{% comment %}FB-32 S2 (макет S2): пункты полосы доверия в панели — иконка кнопками, заголовок, текст; удалить, выше/ниже, «＋ Punkt»; вид — выпадающим списком со схемами. Одна форма, всё в черновик страницы; без скриптов.{% endcomment %}
+{% load i18n %}{% comment %}FB-32 S2 (макет S2): пункты полосы доверия в панели — иконка кнопками, заголовок, текст; удалить, выше/ниже, «＋ Punkt»; вид — выпадающим списком со схемами. Одна форма, всё в черновик страницы; без скриптов. Стопка 16 T1a (артборд M16UspTexte): fl — кнопки языка переводов (block_i18n.decorate, ns «usp»), у пункта — поля перевода «Titel»/«Text» (_bw_tr.html); у нового пункта — после «Speichern».{% endcomment %}
 <form method="post" id="bw-form-usp" class="mt-4 space-y-3" data-schema-fields data-schema-usp>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
   <input type="hidden" name="ref" value="{{ ref }}">
   <input type="hidden" name="panel_present" value="1">
   <input type="hidden" name="op" value="update">
-  {% comment %}Enter в поле — «Übernehmen», а не первая кнопка пункта (↓/✕) — ревью FB-32.{% endcomment %}
-  <button name="op" value="update" class="sr-only" tabindex="-1" aria-hidden="true">{% trans "Übernehmen" %}</button>
+  {% comment %}Enter в поле (и в поле перевода) — «Übernehmen», а не первая кнопка пункта (↓/✕) или кнопка языка — ревью FB-32; вне Tab, без aria-hidden (решение M3-5c; стопка 16 T1a, a11y №12).{% endcomment %}
+  <button name="op" value="update" class="sr-only" tabindex="-1">{% trans "Übernehmen" %}</button>
   <div>
     <p id="schema-usp-style-label" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Display style" %}</p>
     <details class="rounded-xl border border-gray-500" data-schema-style-pick>
@@ -17,6 +17,7 @@
     </details>
   </div>
   <h3 class="text-sm font-bold text-gray-900">{% trans "Punkte" %} <span class="font-normal text-gray-600">({{ usp.items|length }}/{{ usp.max }})</span></h3>
+  {% if fl.part == "usp" %}<input type="hidden" name="lang_ns" value="{{ fl.ns }}">{% include "tenant/_bw_langs.html" with locales=fl.locales ns=fl.ns after_tpl="tenant/_bw_tr_note.html" %}{% endif %}
   {% for it in usp.items %}
   <fieldset class="rounded-xl border border-gray-400 p-3 space-y-2" data-schema-usp-item="{{ forloop.counter0 }}">
     <legend class="px-1 text-sm font-semibold">{% blocktrans with n=forloop.counter %}Punkt {{ n }}{% endblocktrans %}</legend>
@@ -25,7 +26,7 @@
       {% if not forloop.last %}<button name="f_usp_move" value="{{ forloop.counter0 }}:down" class="min-h-[44px] min-w-[44px] rounded border border-gray-500 text-sm" aria-label="{% trans 'Nach unten' %}: {{ it.label|default:forloop.counter }}">↓</button>{% endif %}
       <button name="f_usp_remove" value="{{ forloop.counter0 }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-500 text-sm" aria-label="{% trans 'Entfernen' %}: {{ it.label|default:forloop.counter }}">✕</button>
     </div>
-    {% include "tenant/_schema_usp_fields.html" with i=forloop.counter0 icon=it.icon label=it.label text=it.text %}
+    {% include "tenant/_schema_usp_fields.html" with i=forloop.counter0 icon=it.icon label=it.label text=it.text base_note=fl.base_note tr_label=it.tr_label tr_text=it.tr_text %}
   </fieldset>
   {% endfor %}
   {% if usp.free %}

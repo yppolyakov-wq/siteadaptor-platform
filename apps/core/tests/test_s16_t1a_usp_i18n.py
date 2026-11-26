@@ -22,10 +22,7 @@ from apps.core.tests.test_fb33_m3_window_before import _panel
 from apps.tenants import siteconfig
 from apps.tenants.models import Tenant
 
-pytestmark = [
-    pytest.mark.django_db,
-    pytest.mark.xfail(strict=True, reason="T1a: переводы USP в окне — ещё нет"),
-]
+pytestmark = pytest.mark.django_db
 
 USP = [
     {"icon": "bio", "label": "Frisch", "text": "Jeden Tag"},

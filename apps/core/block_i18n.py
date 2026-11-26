@@ -16,7 +16,11 @@
 - «Was passiert jetzt»: `text` → `i18n[<язык>]["confirmation_next"]`;
 - плашки «Schnellzugriff»: `label.<ключ>` → `…["data"]["labels"][<ключ>]`;
 - общие вопросы FAQ: `faq.<src>.q|a` → `i18n[<язык>]["faq"]` (пишет `faq_content.put(explicit=)`);
-- свои вопросы объекта: `ofaq.<src>.q|a` → объект (`object_faq.put(explicit=)` под блокировкой).
+- свои вопросы объекта: `ofaq.<src>.q|a` → объект (`object_faq.put(explicit=)` под блокировкой);
+- пункты полосы доверия (стопка 16 T1a): `usp.<src>.label|text` → `i18n[<язык>]["usp_bar"]
+  [<позиция пункта>]`; `src` — место пункта в сохранённом списке, едет с пунктом при ↑/↓/✕
+  (`usp_items`); ключ пункта — не его немецкий `label` (сам переводимый текст), поле формы — по
+  позиции показа (`before`), как номер вопроса FAQ.
 
 Черновик: `draft["btr"] = {ref: {язык: {ключ: текст}}}` ("" — снять перевод) и
 `draft["btr_base"] = {ref: отпечаток сохранённых переводов на первой правке}` — вне
@@ -49,6 +53,14 @@ _NEXT_FIELD = "text"
 #: имя поля перевода формы «fields»/плашек: f_tr_<поле>_<язык> (в `fields` — без «f_»)
 _FIELD_RE = re.compile(r"tr_([A-Za-z0-9_]+?)_([a-z]{2})")
 _FAQ_RE = re.compile(r"faq_(\d{1,3})_([qa])_([a-z]{2})")
+#: стопка 16 T1a: поле перевода пункта полосы доверия (без «f_tr_» и языка): usp_<позиция>_<поле>
+_USP_RE = re.compile(r"usp_(\d{1,2})_(label|text)")
+_USP_FIELDS = ("label", "text")
+#: потолки ввода пункта — те же, что у немецких полей окна (`site_schema._update_usp`)
+USP_CAPS = {"label": 120, "text": 200}
+#: пространства id блоков языков окна (`_bw_langs.html` с `ns`): якорь кнопки языка после POST
+USP_NS = "usp"
+LANG_NAMESPACES = (USP_NS,)
 
 
 def _locales() -> list[str]:
@@ -91,6 +103,8 @@ def kinds(page: dict, ref: str) -> tuple[str, ...]:
     if not isinstance(row, dict):
         return ()
     out = []
+    if _is_usp(page, row):
+        out.append("usp")  # стопка 16 T1a: пункты полосы доверия
     if row.get("id") and _type(row) in TEXT_FIELDS:
         out.append("block")
     if page.get("home") and _home_texts().has_texte(row):
@@ -147,6 +161,12 @@ def german(config: dict, page: dict, ref: str) -> dict:
     if "tiles" in found:
         for key, text in (hero_tiles.clean_data(row.get("data") or {}).get("labels") or {}).items():
             out[f"label.{key}"] = text
+    if "usp" in found:
+        items, src = usp_items(row.get("data"), config)
+        for item, s in zip(items, src, strict=False):
+            if isinstance(s, int):
+                for field in _USP_FIELDS:
+                    out[f"usp.{s}.{field}"] = _s(item.get(field))
     for kind in ("faq", "ofaq"):
         if kind in found:
             items, src = _faq_state(config, page, kind)
@@ -228,6 +248,11 @@ def saved_for(config: dict, page: dict, ref: str) -> dict:
                 text = _at(node, _home_texts().tr_path(key, name))
                 if text:
                     mine[name] = text
+        if "usp" in found and isinstance(node.get("usp_bar"), list):
+            for s, entry in enumerate(node["usp_bar"]):
+                for field in _USP_FIELDS:
+                    if isinstance(entry, dict) and _s(entry.get(field)):
+                        mine[f"usp.{s}.{field}"] = _s(entry[field])
         if "next" in found and _s(node.get("confirmation_next")):
             mine[_NEXT_FIELD] = _s(node["confirmation_next"])
         lists = {"faq": node.get("faq"), "ofaq": obj_tr.get(loc)}
@@ -304,6 +329,8 @@ def _caps(page: dict, ref: str, key: str) -> int:
 
     if key.startswith("label."):
         return hero_tiles.LABEL_MAX
+    if key.startswith("usp."):
+        return USP_CAPS.get(key.rsplit(".", 1)[-1], 200)
     if key.startswith(("faq.", "ofaq.")):
         kind, _s_, field = key.split(".")
         if kind == "ofaq":
@@ -342,6 +369,15 @@ def _posted(page: dict, ref: str, fields, post, before_src: dict) -> dict:
         if not match or match.group(2) not in allowed_locs:
             continue
         field, loc = match.groups()
+        usp = _USP_RE.fullmatch(field)
+        if usp:
+            # стопка 16 T1a: позиция пункта в окне при показе → его место в сохранённом списке
+            src = before_src.get("usp") or []
+            i = int(usp.group(1))
+            s = src[i] if i < len(src) else None
+            if isinstance(s, int):
+                out[(loc, f"usp.{s}.{usp.group(2)}")] = value
+            continue
         key = f"label.{field[6:]}" if field.startswith("label_") else field
         out[(loc, key)] = value
     scope = "ofaq" if (post or {}).get("faq_scope") == "object" else "faq"
@@ -363,6 +399,8 @@ def before(config: dict, draft: dict, ref: str) -> dict:
     for kind in ("faq", "ofaq"):
         if kind in kinds(draft, ref):
             src[kind] = list(_faq_state(config, draft, kind)[1])
+    if "usp" in kinds(draft, ref):
+        src["usp"] = usp_items((_row(draft, ref) or {}).get("data"), config)[1]
     return {"german": german(config, draft, ref), "src": src, "draft": copy.deepcopy(draft)}
 
 
@@ -634,6 +672,8 @@ def apply(config: dict, draft: dict, home: bool, host: str) -> None:
                         _set_path(config, loc, _home_texts().tr_path(row["key"], key), text)
                     else:
                         logger.debug("block_i18n: %s %s — not a window text, skipped", ref, key)
+                elif "usp" in found and home and key.startswith("usp."):
+                    _put_usp(config, draft, ref, loc, key, text)
                 elif at is None:
                     # блока на странице больше нет — переводить нечего
                     logger.debug("block_i18n: block %s is gone — translation skipped", ref)
@@ -652,6 +692,118 @@ def apply(config: dict, draft: dict, home: bool, host: str) -> None:
 
 def _block_path(home: bool, host: str, idx: int) -> tuple:
     return ("sections", idx, "data") if home else ("page_blocks", host, idx, "data")
+
+
+# ───────────── стопка 16 T1a: пункты полосы доверия ─────────────
+
+
+def _is_usp(page: dict, row) -> bool:
+    from apps.core import site_schema
+
+    return bool(page.get("home")) and site_schema._is_usp_row(row)
+
+
+def _valid_src(src, n: int) -> bool:
+    if not isinstance(src, list) or len(src) != n:
+        return False
+    ints = [s for s in src if s is not None]
+    return all(type(s) is int and s >= 0 for s in ints) and len(set(ints)) == len(ints)
+
+
+def usp_items(data, config: dict | None = None) -> tuple[list, list]:
+    """Пункты строки USP черновика и место каждого в сохранённом списке (`None` — новый пункт).
+    Без `src` (не правили или черновик до T1a) — пункты на своих местах."""
+    from apps.tenants import siteconfig
+
+    data = data if isinstance(data, dict) else {}
+    items = siteconfig.clean_usp(
+        data["items"] if "items" in data else (config or {}).get("usp_bar")
+    )
+    src = data.get("src")
+    return items, list(src) if _valid_src(src, len(items)) else list(range(len(items)))
+
+
+def usp_fp(items) -> str:
+    return fingerprint({"usp": items or []})
+
+
+def usp_data(data: dict, cur_items: list, items: list, src: list) -> dict:
+    """Данные строки USP после правки окна: `src` и отпечаток списка, на который он указывает
+    (`src_of`), — только когда пункты не совпадают с ним как есть (черновик «как сохранено»
+    остаётся без лишних ключей: отпечаток и «чистый» черновик прежние)."""
+    of = data.get("src_of") if "src" in data and isinstance(data.get("src_of"), str) else ""
+    of = of or usp_fp(cur_items)
+    if src == list(range(len(items))) and usp_fp(items) == of:
+        return {"items": items}
+    return {"items": items, "src": src, "src_of": of}
+
+
+def realign_usp(config: dict, data: dict, new: list) -> None:
+    """Подъём USP (`site_schema.lift_hero_choice`, до замены `usp_bar`): переводы пунктов —
+    за своим пунктом (`src`), удалённый уносит свои, у нового их нет; перевод поля, чей
+    немецкий текст изменился, снимается (`home_texts.drop_changed`). `src` указывает не на
+    этот список (его тем временем изменили, «Trotzdem speichern»; черновик до T1a) — пункты
+    узнаются по ключу правилом D9 (`siteconfig._match_items`)."""
+    from apps.core import home_texts
+    from apps.tenants import siteconfig
+
+    overlay = config.get("i18n")
+    if not isinstance(overlay, dict) or not overlay:
+        return
+    old = siteconfig.clean_usp(config.get("usp_bar"))
+    items, src = usp_items(data)
+    has_src = _valid_src(data.get("src"), len(items)) and len(items) == len(new)
+    if has_src and data.get("src_of") == usp_fp(old):
+        pass
+    elif not has_src and usp_fp(new) == usp_fp(old):
+        return  # пункты как сохранено — переводам двигаться некуда
+    else:
+        src = siteconfig._match_items(
+            [siteconfig._item_identity(it, "label") for it in new],
+            [[siteconfig._item_identity(it, "label")] for it in old],
+            by_place=True,
+        )
+
+    def full(item):
+        return {f: _s(item.get(f)) for f in _USP_FIELDS} if isinstance(item, dict) else None
+
+    for node in overlay.values():
+        if not isinstance(node, dict) or not isinstance(node.get("usp_bar"), list):
+            continue
+        tr = node["usp_bar"]
+        node["usp_bar"] = [
+            copy.deepcopy(tr[s])
+            if isinstance(s, int) and s < len(tr) and isinstance(tr[s], dict)
+            else {}
+            for s in src
+        ]
+    aligned = [full(old[s]) if isinstance(s, int) and s < len(old) else None for s in src]
+    home_texts.drop_changed(
+        config, "usp_bar", [full(it) for it in old], [full(it) for it in new], aligned=aligned
+    )
+    for loc in list(overlay):
+        node = overlay[loc]
+        if not isinstance(node, dict) or not isinstance(node.get("usp_bar"), list):
+            continue
+        rows = node["usp_bar"]
+        while rows and rows[-1] in ({}, None):
+            rows.pop()
+        if not rows:
+            node.pop("usp_bar")
+
+
+def _put_usp(config: dict, draft: dict, ref: str, loc: str, key: str, text: str) -> None:
+    """Перевод пункта из окна — на место пункта в записанном списке (после подъёма USP)."""
+    _kind, s, field = (key.split(".") + ["", ""])[:3]
+    if not s.isdigit() or field not in _USP_FIELDS:
+        return
+    _items, src = usp_items((_row(draft, ref) or {}).get("data"), config)
+    if int(s) not in src:
+        logger.debug("block_i18n: usp item %s is gone — translation skipped", s)
+        return
+    j = src.index(int(s))
+    if j < len(config.get("usp_bar") or []):
+        _set_path(config, loc, ("usp_bar", j, field), text)
 
 
 def put_shown(config: dict, draft: dict) -> None:
@@ -742,7 +894,7 @@ def decorate(
     saved = saved_for(saved_config, page, ref)
     texts = german(saved_config, page, ref)
 
-    def inputs(key: str, name, ident: str, area: bool = False) -> list[dict]:
+    def inputs(key: str, name, ident: str, area: bool = False, hint: str = HINT_ID) -> list[dict]:
         cap = _caps(page, ref, key)
         return [
             {
@@ -756,7 +908,7 @@ def decorate(
                 "empty_lang": base,
                 "area": area,
                 "limit": cap if cap <= 2000 else "",
-                "hint": HINT_ID,
+                "hint": hint,
             }
             for loc in locs
         ]
@@ -816,6 +968,30 @@ def decorate(
                 key, lambda loc, k=r["key"]: f"f_tr_label_{k}_{loc}", f"bw-tile-{r['key']}"
             )
             part = "tiles"
+    usp = (selected.get("usp") or {}) if not part else {}  # ревью A5: одна форма окна
+    if "usp" in found and usp.get("items"):
+        # стопка 16 T1a: поле перевода — по позиции пункта в окне, ключ — его место в
+        # сохранённом списке; у нового пункта полей нет (после «Speichern»)
+        _items, src = usp_items((_row(page, ref) or {}).get("data"), saved_config)
+        for i, it in enumerate(usp["items"]):
+            s = src[i] if i < len(src) else None
+            if not isinstance(s, int):
+                continue
+            for field in _USP_FIELDS:
+                key = f"usp.{s}.{field}"
+                if field == "text" and not (
+                    texts.get(key) or any(key in v for v in saved.values())
+                ):
+                    continue  # без немецкого текста переводить нечего
+                it[f"tr_{field}"] = inputs(
+                    key,
+                    lambda loc, i=i, fl=field: f"f_tr_usp_{i}_{fl}_{loc}",
+                    f"bw-usp-{i}-{field}",
+                    hint=f"{USP_NS}-lang-hint",
+                )
+                for t in it[f"tr_{field}"]:
+                    t["of"] = f"f_usp_{i}_{field}"  # источник текста для «Übersetzen» (T3)
+            part = "usp"
     if not part:
         return
     first = default_locale if default_locale in locs and default_locale != base else ""
@@ -834,6 +1010,11 @@ def decorate(
             else ""
         ),
     }
+    if part == "usp":
+        # стопка 16 T1a (a11y №4): блок языков формы USP — своё пространство id (`_bw_langs` ns)
+        selected["field_langs"].update(
+            ns=USP_NS, title_id=f"{USP_NS}-lang-title", hint_id=f"{USP_NS}-lang-hint"
+        )
 
 
 #: id заголовка и подсказки кнопок языка окна (одна такая форма на окно; у «Felder» — свои)
