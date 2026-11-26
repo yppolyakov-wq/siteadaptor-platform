@@ -41137,3 +41137,53 @@ msgstr "fb33-stack-anchor-s15-e1t"
 
 msgid "fb33-stack-anchor-s15-e8c"
 msgstr "fb33-stack-anchor-s15-e8c"
+
+
+msgid "fb33-stack-anchor-s16-t1a"
+msgstr "fb33-stack-anchor-s16-t1a"
+
+msgid "fb33-stack-anchor-s16-t1b"
+msgstr "fb33-stack-anchor-s16-t1b"
+
+msgid "fb33-stack-anchor-s16-t2"
+msgstr "fb33-stack-anchor-s16-t2"
+
+msgid "fb33-stack-anchor-s16-t3"
+msgstr "fb33-stack-anchor-s16-t3"
+
+msgid "fb33-stack-anchor-s16-t4"
+msgstr "fb33-stack-anchor-s16-t4"
+
+msgid "fb33-stack-anchor-s16-t6"
+msgstr "fb33-stack-anchor-s16-t6"
+
+msgid "fb33-stack-anchor-s16-e10"
+msgstr "fb33-stack-anchor-s16-e10"
+
+msgid "fb33-stack-anchor-s16-k1"
+msgstr "fb33-stack-anchor-s16-k1"
+
+msgid "Deutsch (Ausgangstext)"
+msgstr "Німецька (вихідний текст)"
+
+#, python-format
+msgid "Teil %(n)s von %(m)s wird übersetzt …"
+msgstr "Перекладається частина %(n)s з %(m)s …"
+
+#, python-format
+msgid "Teil %(n)s von %(m)s nicht übersetzt. Bereits übersetzte Felder bleiben erhalten — bitte erneut versuchen."
+msgstr "Частину %(n)s з %(m)s не перекладено. Уже перекладені поля збережено — спробуйте ще раз."
+
+msgid "übersprungen: zu lang für die automatische Übersetzung"
+msgstr "пропущено: задовго для автоперекладу"
+
+#, python-format
+msgid "Übersprungen, zu lang für die automatische Übersetzung: %(n)s"
+msgstr "Пропущено, задовго для автоперекладу: %(n)s"
+
+#, python-format
+msgid "(Sprache: %(lang)s)"
+msgstr "(мова: %(lang)s)"
+
+msgid "Name wird nicht übersetzt."
+msgstr "Ім’я не перекладається."
