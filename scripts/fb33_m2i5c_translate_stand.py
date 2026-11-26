@@ -75,6 +75,31 @@ JOBS = {}  # T4: ответ через задачу (job → опрос), ина
 ASYNC = {"on": False}
 PEND = {"n": 0}  # T4: сколько опросов задачи отвечают «pending» (окно для подмены панели)
 DRAFTS = []  # T4: POST черновика окна (правка части → aufbau.js)
+HUNG = []  # ревью T4 S3: запросы перевода без ответа
+POLLS = []  # ревью T4 S8: адреса опроса задачи
+DRAFT_MODE = {"mode": ""}  # ревью T4 S4: "alert" — отказ сервера в ответе, "abort" — обрыв
+
+
+def fake_draft(route):
+    """Черновик окна — настоящий сервер; по режиму — отказ (role=alert) или обрыв запроса."""
+    if route.request.method != "POST" or not DRAFT_MODE["mode"]:
+        route.fallback()
+        return
+    if DRAFT_MODE["mode"] == "abort":
+        route.abort()
+        return
+    # запрос — из Python, не из браузера: адрес поддомена ведём на 127.0.0.1 сами
+    url = route.request.url
+    host = re.match(r"https?://([^/]+)", url).group(1)
+    headers = {**route.request.all_headers(), "host": host}
+    resp = route.fetch(url=url.replace(host.split(":")[0], "127.0.0.1", 1), headers=headers)
+    body = re.sub(
+        r"(<[^>]*data-schema-messages[^>]*>)",
+        r'\1<p role="alert">T4-Ablehnung</p>',
+        resp.text(),
+        count=1,
+    )
+    route.fulfill(response=resp, body=body)
 
 
 def check(c, label):
@@ -92,7 +117,12 @@ def fake_translate(route):
     target = re.search(r'name="target"\r\n\r\n(\w+)\r\n', body).group(1)
     SENT.append((target, [i["text"] for i in items]))
     code = MODE["code"] or (PLAN.pop(0) if PLAN else "")
-    if code:
+    if code == "hang":  # ревью T4 S3: эндпоинт не отвечает
+        HUNG.append(route)
+        return
+    if code == "pending":  # ревью T4 S8: «pending» без job
+        data = {"state": "pending"}
+    elif code:
         data = {"code": code}
     else:
         got = {
@@ -107,6 +137,7 @@ def fake_translate(route):
 
 
 def fake_result(route):
+    POLLS.append(route.request.url)
     job = route.request.url.rstrip("/").rsplit("/", 1)[-1]
     entry = JOBS.get(job)
     if entry and entry[0] > 0:
@@ -333,15 +364,29 @@ def inject(pg, loc, texts):
 
 
 def observe(pg):
-    """Что озвучила живая область (смены текста при aria-live ≠ off)."""
+    """Что говорила живая область: непустые тексты, смены атрибутов (ревью a11y 2 — область
+    всегда role=status aria-live=polite) и время каждой смены текста."""
     pg.evaluate(
         """(scope) => { const st = document.querySelector(scope + ' [data-i18n-translate-status]');
-          window.__t4said = [];
-          new MutationObserver(() => {
-            if (st.getAttribute('aria-live') !== 'off' && st.textContent) window.__t4said.push(st.textContent);
-          }).observe(st, {childList: true, characterData: true, subtree: true}); }""",
+          window.__t4said = []; window.__t4attr = []; window.__t4times = [];
+          new MutationObserver((list) => {
+            list.forEach(m => { if (m.type === 'attributes') window.__t4attr.push(m.attributeName + '=' + st.getAttribute(m.attributeName)); });
+            window.__t4times.push([performance.now(), st.textContent]);
+            if (st.textContent && window.__t4said[window.__t4said.length - 1] !== st.textContent) window.__t4said.push(st.textContent);
+          }).observe(st, {childList: true, characterData: true, subtree: true, attributes: true,
+                          attributeFilter: ['aria-live', 'role']}); }""",
         SCOPE,
     )
+
+
+def live_ok(pg, tag):
+    """Ревью a11y 2: атрибуты живой области не менялись; итог — после очистки через ≥ 90 мс."""
+    attr, times = pg.evaluate("[window.__t4attr, window.__t4times]")
+    check(not attr, f"{tag}: живая область не меняет aria-live/role ({attr[:3]})")
+    texts = [t for _, t in times]
+    last = max((i for i, t in enumerate(texts) if t), default=-1)
+    gap = times[last][0] - times[last - 1][0] if last > 0 and not texts[last - 1] else -1
+    check(gap >= 90, f"{tag}: итог после очистки через {gap:.0f} мс (≥ 90)")
 
 
 def queue_done(pg):
@@ -376,8 +421,20 @@ def t4_flow(pg, tag, loc):
     DRAFTS.clear()
     ASYNC["on"] = True
     observe(pg)
+    # ревью D2: устаревший текст живой области «Felder» после очереди не остаётся
+    pg.evaluate(
+        "(s) => { document.querySelector(s + ' [data-form-status]').textContent = 'STALE-T4'; }",
+        SCOPE,
+    )
     btn.click()
     queue_done(pg)
+    stale = pg.evaluate(
+        "(s) => document.querySelector(s + ' [data-form-status]').textContent", SCOPE
+    )
+    check(stale != "STALE-T4", f"{tag}: «Felder»-статус после очереди обновлён ({stale!r})")
+    live_ok(pg, tag)
+    longs = pg.locator(f"{SCOPE} [data-i18n-tr-long]").count()
+    check(longs == 1, f"{tag}: пометок «zu lang» столько же, сколько в итоге ({longs})")
     first = [list(t) for _, t in SENT]
     check(len(SENT) == 2, f"{tag}: 80 полей — 2 части ({len(SENT)})")
     check(
@@ -458,10 +515,28 @@ def t4_flow(pg, tag, loc):
     big = [(f"Satz {k} " * (lim["item"] // 8))[: lim["item"] - 100].strip() for k in range(13)]
     inject(pg, loc, big)
     SENT.clear()
+    DRAFTS.clear()
     observe(pg)
     url = pg.url
+    pg.evaluate(
+        "(s) => { window.__t4btn = document.querySelector(s + ' [data-i18n-translate]'); }", SCOPE
+    )
     btn.click()
     wait_sent(pg, 2)
+    pg.wait_for_timeout(100)
+    prog = pg.evaluate(
+        """(s) => { const p = document.querySelector(s + ' [data-i18n-translate-progress]');
+          const st = document.querySelector(s + ' [data-i18n-translate-status]');
+          return p ? [p.textContent, p.hasAttribute('aria-live') || p.getAttribute('role') === 'status', st.textContent] : null; }""",
+        SCOPE,
+    )
+    check(
+        bool(prog)
+        and prog[0].startswith(fmt(M["part"], 2, "").split("{")[0][:6])
+        and not prog[1]
+        and prog[2] == "",
+        f"{tag}: «Teil 2» — отдельный узел без live, живая область пуста ({prog})",
+    )
     state = pg.evaluate(
         """(scope) => { const b = document.querySelector(scope + ' [data-i18n-translate]');
           const langs = [...b.form.querySelectorAll('[data-form-lang]')];
@@ -477,6 +552,9 @@ def t4_flow(pg, tag, loc):
     btn.focus()
     pg.keyboard.press("Enter")
     pg.keyboard.press(" ")
+    pg.wait_for_timeout(200)
+    st = status_text(pg, SCOPE)
+    check(st == M["busy"], f"{tag}: нажатие по занятой кнопке — «läuft schon» ({st!r})")
     other = "en" if loc == "ru" else "ru"
     # force: Playwright ждёт снятия aria-disabled — клик нужен именно по занятой кнопке
     pg.click(f"{SCOPE} button[name=f_sprache][value={other}]", force=True, no_wait_after=True)
@@ -497,6 +575,17 @@ def t4_flow(pg, tag, loc):
         SCOPE,
     )
     check(after == [False, False], f"{tag}: после очереди aria-busy и aria-disabled сняты {after}")
+    # ревью a11y 1: тихий change частей панель НЕ подменяет — та же кнопка, все части применены
+    same_btn = pg.evaluate("window.__t4btn.isConnected")
+    st = status_text(pg, SCOPE)
+    total = sum(len(t) for _, t in SENT)
+    check(same_btn, f"{tag}: {m} частей — панель не подменена (кнопка та же)")
+    check(
+        st.startswith(f"{total - 1} {M['done']}") and len(DRAFTS) == m,
+        f"{tag}: все {m} части применены, {len(DRAFTS)} POST черновика ({st[:60]!r})",
+    )
+    gone = pg.locator(f"{SCOPE} [data-i18n-translate-progress]").count()
+    check(gone == 0, f"{tag}: узел «Teil N» после очереди снят ({gone})")
     # D. подмена панели посреди очереди → остановка, console.error, фокус и итог — новая кнопка
     t4_open(pg, loc)
     inject(pg, loc, [f"Feld {k}" for k in range(1, 81)])
@@ -545,6 +634,101 @@ def t4_flow(pg, tag, loc):
         SCOPE,
     )
     check(focus, f"{tag}: фокус на новой кнопке «Übersetzen»")
+    # ревью S1: одна часть, панель подменили во время запроса — живая область не пустая
+    t4_open(pg, loc)
+    SENT.clear()
+    PEND["n"] = 3
+    pg.evaluate(
+        "(s) => { window.__t4old = document.querySelector(s + ' [data-i18n-translate]'); }", SCOPE
+    )
+    btn.click()
+    wait_sent(pg, 1)
+    pg.evaluate(
+        """() => { const r = window.__t4old.form.querySelector('input[type=radio][name^=f_mode_]:not(:checked)');
+          r.checked = true; r.dispatchEvent(new Event('change', {bubbles: true})); }"""
+    )
+    try:
+        pg.wait_for_function(
+            """(s) => { const st = document.querySelector(s + ' [data-i18n-translate-status]');
+              return !window.__t4old.isConnected && st && st.textContent; }""",
+            arg=SCOPE,
+            timeout=20000,
+        )
+    except Exception:  # noqa: BLE001 — таймаут Playwright: итог — в проверке ниже
+        pass
+    busy_done(pg)
+    PEND["n"] = 0
+    st = status_text(pg, SCOPE)
+    check(st == M["nothing"], f"{tag}: одна часть + подмена панели — итог не пустой ({st!r})")
+    at = pg.evaluate("document.activeElement && document.activeElement.tagName")
+    check(at not in (None, "BODY"), f"{tag}: после очереди фокус не на body ({at})")
+    # ревью S4: отказ черновика посреди очереди — итог называет причину, со страницы не уходим
+    for mode in ("alert", "abort"):
+        t4_open(pg, loc)
+        inject(pg, loc, [f"Feld {k}" for k in range(1, 81)])
+        SENT.clear()
+        pg.evaluate("window.__t4stay = 1")
+        DRAFT_MODE["mode"] = mode
+        btn.click()
+        try:
+            pg.wait_for_function(
+                """(s) => { const b = document.querySelector(s + ' [data-i18n-translate]');
+                  const st = document.querySelector(s + ' [data-i18n-translate-status]');
+                  return b && !b.hasAttribute('aria-busy') && st && st.textContent; }""",
+                arg=SCOPE,
+                timeout=40000,
+            )
+        except Exception:  # noqa: BLE001 — таймаут/переход: итог — в проверках ниже
+            pass
+        DRAFT_MODE["mode"] = ""
+        stay = pg.evaluate("window.__t4stay === 1")
+        check(stay, f"{tag}: черновик {mode} — страница не ушла (requestSubmit не было)")
+        if stay:
+            busy_done(pg)
+            st = status_text(pg, SCOPE)
+            why = (
+                "T4-Ablehnung"
+                if mode == "alert"
+                else pg.evaluate(
+                    "document.querySelector('[data-schema-messages]').getAttribute('data-schema-error') || ''"
+                )
+            )
+            check(bool(why) and why in st, f"{tag}: черновик {mode} — итог с причиной ({st!r})")
+    # ревью S3: эндпоинт не отвечает — «Dauert zu lange» и кнопка снова свободна
+    if tag.startswith("t4_1440"):
+        t4_open(pg, loc)
+        MODE["code"] = "hang"
+        btn.click()
+        try:
+            pg.wait_for_function(
+                """(s) => { const b = document.querySelector(s + ' [data-i18n-translate]');
+                  return !b.hasAttribute('aria-disabled'); }""",
+                arg=SCOPE,
+                timeout=45000,
+            )
+        except Exception:  # noqa: BLE001 — таймаут: проверка ниже
+            pass
+        MODE["code"] = ""
+        st = status_text(pg, SCOPE)
+        check(st == M["slow"], f"{tag}: запрос без ответа — «slow» и разблокировка ({st!r})")
+        for r in HUNG:
+            try:
+                r.abort()
+            except Exception:  # noqa: BLE001 — запрос уже снят страницей
+                pass
+        HUNG.clear()
+    # ревью S8: «pending» без job — ошибка, без опроса …/undefined/
+    t4_open(pg, loc)
+    POLLS.clear()
+    MODE["code"] = "pending"
+    btn.click()
+    wait_status(pg, SCOPE)
+    MODE["code"] = ""
+    st = status_text(pg, SCOPE)
+    check(
+        st == M["error"] and not any("undefined" in u for u in POLLS),
+        f"{tag}: «pending» без job — ошибка ({st!r}, {POLLS[:1]})",
+    )
     # E. data-status — статус в чужую живую область, своя пустая
     t4_open(pg, loc)
     pg.evaluate(
@@ -617,6 +801,7 @@ with sync_playwright() as p:
             ctx.add_cookies([{"name": "django_language", "value": cab, "url": U}])
             ctx.route("**/dashboard/uebersetzen/", fake_translate)
             ctx.route("**/dashboard/uebersetzen/*/", fake_result)
+            ctx.route("**/dashboard/site/aufbau/**", fake_draft)
             pg = ctx.new_page()
             pg.on(
                 "request",

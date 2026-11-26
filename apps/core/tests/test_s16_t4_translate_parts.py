@@ -223,3 +223,28 @@ def test_part_change_is_quiet_in_aufbau():
     assert 'apply(form, target, form.hasAttribute("data-i18n-quiet"))' in js
     assert re.search(r"function apply\(form, target, quiet\)", js)
     assert "if (!quiet) langNote();" in js and "} else if (live && !quiet) {" in js
+
+
+# --- 7. ревью T4 круг 1 (a11y 2/4, S2/D1, S3, S4) ---------------------------------------------
+
+
+@pytest.mark.xfail(strict=True, reason="ревью T4 круг 1: правка ещё не сделана")
+def test_review_round1_client_guards():
+    html = _client()
+    # a11y 2: живая область не переключается в aria-live=off; «Teil N» — свой узел без live
+    assert '"aria-live", "off"' not in html
+    assert "data-i18n-translate-progress" in html
+    # S2/D1: слушатели снимаются в конце очереди, а не таймером от старта
+    assert "removeEventListener" in html and "}, 20000);" not in html
+    # S3: у запросов перевода есть таймаут (AbortController → «slow»)
+    assert "AbortController" in html and "AbortError" in html
+
+
+@pytest.mark.xfail(strict=True, reason="ревью T4 круг 1: правка ещё не сделана")
+def test_review_round1_aufbau_quiet_stop():
+    js = AUFBAU.read_text()
+    # S4: тихая правка при отказе/обрыве не уходит со страницы, а сообщает клиенту причину
+    assert js.count('"aufbau:quiet-stop"') >= 2
+    assert "if (quiet) quietStop(" in js
+    # a11y 4: отказ поля посреди очереди не отнимает фокус у «Übersetzen»
+    assert "if (bad && !quiet)" in js
