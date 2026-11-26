@@ -29,7 +29,6 @@ from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
-_RED = pytest.mark.xfail(strict=True, reason="D9: перевод уходит в немецкую базу")
 
 _N = itertools.count()
 
@@ -173,7 +172,6 @@ def _base_of(cfg: dict, key: str):
 # --- №1/№13: пункты полосы доверия ---------------------------------------------------
 
 
-@_RED
 def test_studio_ru_save_keeps_german_usp_base():
     tenant = _tenant({"usp_bar": USP_DE, "i18n": {"ru": {"usp_bar": USP_RU}}})
     cfg = _studio_save(tenant, {})
@@ -181,7 +179,6 @@ def test_studio_ru_save_keeps_german_usp_base():
     assert cfg["i18n"]["ru"]["usp_bar"] == USP_RU
 
 
-@_RED
 def test_studio_ru_usp_edit_goes_to_translation():
     """Пункты прислала форма (старый черновик, демо-кит) в ru: правка — в перевод, база цела."""
     tenant = _tenant({"usp_bar": USP_DE, "i18n": {"ru": {"usp_bar": USP_RU}}})
@@ -195,13 +192,7 @@ def test_studio_ru_usp_edit_goes_to_translation():
 # --- класс: ни один ключ с переводом не уходит в базу ---------------------------------
 
 
-@pytest.mark.parametrize(
-    "key",
-    [
-        pytest.param(k, marks=_RED) if k in ("before_after", "seo", "trust", "usp_bar") else k
-        for k in sorted(CASES)
-    ],
-)
+@pytest.mark.parametrize("key", sorted(CASES))
 def test_studio_ru_save_without_edits_keeps_every_base(key):
     tenant = _case_tenant(key)
     before = _stored(tenant)
@@ -268,7 +259,6 @@ def test_every_overlay_key_has_a_case():
 # --- localize и реестр ключей пунктов ---------------------------------------------------
 
 
-@_RED
 def test_localize_skips_seo():
     cfg = siteconfig.normalize(
         {
@@ -291,7 +281,6 @@ def test_localize_skips_seo():
     assert "i18n" not in shown
 
 
-@_RED
 def test_usp_overlay_key_is_label():
     assert siteconfig.LIST_OVERLAY_KEYS["usp_bar"] == "label"
     cfg = {"usp_bar": copy.deepcopy(USP_DE), "i18n": {"ru": {"usp_bar": copy.deepcopy(USP_RU)}}}

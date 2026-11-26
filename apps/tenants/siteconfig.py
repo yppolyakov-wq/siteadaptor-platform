@@ -4331,8 +4331,18 @@ def set_overlay_value(config: dict, locale: str, path, value) -> None:
 # ПОЗИЦИОННО. Пока владелец добавляет в конец, это работает; удалит второй вопрос
 # или поменяет порядок — переводы садятся на чужие элементы (русский ответ под
 # немецким вопросом, к которому не относится). Ключ, по которому узнаём «тот же
-# элемент», — главное текстовое поле записи.
-LIST_OVERLAY_KEYS = {"faq": "q", "testimonials": "name", "process": "title", "team": "name"}
+# элемент», — главное текстовое поле записи. FB-33 стопка 16 D9: у пункта полосы доверия
+# это `label` (поля `title` у него нет), у кейса «Vorher / Nachher» — фото `before`; без
+# записи здесь `split_translation` не узнавал пункт, и Save Студии на языке перевода
+# уносил переведённый текст в немецкую базу.
+LIST_OVERLAY_KEYS = {
+    "faq": "q",
+    "testimonials": "name",
+    "process": "title",
+    "team": "name",
+    "usp_bar": "label",
+    "before_after": "before",
+}
 
 
 # LAY-6b: ключи site_config, которые несут ПЕРЕВОДИМЫЙ контент. Реестр появился в
@@ -4435,7 +4445,11 @@ def _is_translatable_field(name) -> bool:
 
 
 def _item_identity(item, field: str) -> str:
-    """Ключ сопоставления элемента списка: свой id/key, иначе главное текстовое поле."""
+    """Ключ сопоставления элемента списка: свой id/key, иначе главное текстовое поле.
+    Элемент-строка (метки `trust.marks`) — сам свой ключ (D9: иначе переведённая метка
+    не узнавалась и уходила в базу)."""
+    if isinstance(item, str):
+        return "s:" + item if item else ""
     if not isinstance(item, dict):
         return ""
     for k in ("id", "key"):
@@ -4717,6 +4731,10 @@ def realign_block_overlays(
                 node.pop("page_blocks")
 
 
+# ключи `i18n.<язык>`, которые `localize` не накладывает (их перевод читает свой модуль)
+_NOT_SHOWN_OVERLAY = frozenset({"anfrage", "seo"})
+
+
 def localize(config: dict, locale: str | None) -> dict:
     """Свернуть нормализованный site_config к строкам текущей локали.
 
@@ -4734,7 +4752,10 @@ def localize(config: dict, locale: str | None) -> dict:
         # `/anfrage/` и хранит заявка: всегда на основном языке. Их перевод показа —
         # `form_spec.event_type_choices` (ключом по тексту; старый позиционный оверлей
         # `i18n.<язык>.anfrage` читается только там, до переноса `form_i18n_realign`)
-        _deep_overlay(base, {k: v for k, v in ov.items() if k != "anfrage"})
+        # FB-33 стопка 16 D9: `seo` — тоже не оверлей показа: перевод SEO страницы витрина
+        # читает только через `content_pages.page_seo(locale)`, а наложенный здесь он ушёл бы
+        # Save Студии на языке перевода в немецкую базу (`split_translation` его не разбирает)
+        _deep_overlay(base, {k: v for k, v in ov.items() if k not in _NOT_SHOWN_OVERLAY})
     return base
 
 
