@@ -153,13 +153,17 @@ def test_felder_base_note_on_custom_label_and_question():
     assert re.search(r">Frage 1 <span[^>]*>– Deutsch \(Ausgangstext\)</span></label>", part)
     # подсказка — внутри блока языков: после кнопок, до первого поля формы
     start = part.index("data-form-langs")
-    note = part.index("Ihre Seite zeigt zuerst Русский.")
+    note = part.index(
+        'Ihre Seite zeigt zuerst <span lang="ru">Русский</span>.'
+    )  # T3: эндоним с lang
     assert part.index('name="f_sprache"', start) < note < part.index("data-form-field=", start)
 
 
 def test_first_note_described_by_group():
     _html, part = _part(_browser())
-    m = re.search(r'<p id="([^"]+)"[^>]*>Ihre Seite zeigt zuerst Русский\.</p>', part)
+    m = re.search(
+        r'<p id="([^"]+)"[^>]*>Ihre Seite zeigt zuerst <span lang="ru">Русский</span>\.</p>', part
+    )
     assert m, "у подсказки свой id"
     group = re.search(r'role="group" aria-labelledby="[^"]+" aria-describedby="([^"]+)"', part)
     assert group.group(1).split() == ["ff-lang-hint", m.group(1)]

@@ -106,7 +106,6 @@ def _name(html):
 # --- №19: кнопка в «Texte» ----------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T3: кнопки ИИ во «Texte» ещё нет")
 @pytest.mark.parametrize("part", sorted(PARTS))
 def test_texte_ai_button_only_with_tr_and_langs(monkeypatch, part):
     m2i5c._ai(monkeypatch)
@@ -141,7 +140,6 @@ def test_tiles_have_no_ai_button(monkeypatch):
 # --- №22 (a11y №4): id пометки ИИ ---------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T3: кнопки ИИ во «Texte» ещё нет")
 def test_texte_note_id_differs_from_felder(monkeypatch):
     m2i5c._ai(monkeypatch)
     panel, form = _texte("fields")
@@ -168,7 +166,6 @@ def test_texte_note_id_differs_from_felder(monkeypatch):
 # --- источник текста ----------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T3: data-i18n-of у полей «Texte» ещё нет")
 @pytest.mark.parametrize("part", sorted(PARTS))
 def test_texte_translation_inputs_have_source(monkeypatch, part):
     m2i5c._ai(monkeypatch)
@@ -188,7 +185,6 @@ def test_texte_translation_inputs_have_source(monkeypatch, part):
 # --- a11y №8: имя кнопки ------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T3: имени с языком у кнопки ещё нет")
 def test_translate_button_name_has_language(monkeypatch):
     m2i5c._ai(monkeypatch)
     _panel_html, form = _texte("fields")
@@ -208,7 +204,6 @@ def test_translate_button_name_has_language(monkeypatch):
 # --- a11y №3: одна живая область ----------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T3: кнопки ИИ во «Texte» ещё нет")
 def test_one_live_region_per_translate_event(monkeypatch):
     m2i5c._ai(monkeypatch)
     _panel_html, form = _texte("fields")
@@ -226,7 +221,6 @@ def test_one_live_region_per_translate_event(monkeypatch):
 # --- a11y №5: видимая пометка ИИ ----------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T3: видимой пометки у поля ещё нет")
 def test_ai_note_visible_and_described(monkeypatch):
     m2i5c._ai(monkeypatch)
     _panel_html, form = _texte("fields")
@@ -263,7 +257,6 @@ def _tr(**t):
         return render_to_string("tenant/_bw_tr.html", {"t": {**base, **t}})
 
 
-@pytest.mark.xfail(strict=True, reason="T3: empty_ui ещё в lang бизнеса")
 def test_empty_ui_text_has_no_business_lang():
     plain = _tr()
     assert '<span lang="de" class="break-words">Hallo</span>' in plain
@@ -275,7 +268,6 @@ def test_empty_ui_text_has_no_business_lang():
 # --- «Ihre Seite zeigt zuerst …» (T2 → T3, ревью T2 LOW) ----------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T3: подсказка ещё в _bw_tr_note.html")
 def test_first_note_moved_to_langs_block():
     panel, form = _texte("fields", default="ru")
     assert "data-tr-first" not in panel
@@ -289,7 +281,6 @@ def test_first_note_moved_to_langs_block():
     assert "zeigt zuerst" not in doc
 
 
-@pytest.mark.xfail(strict=True, reason="T3: эндоним подсказки ещё без lang")
 def test_felder_first_note_endonym_has_lang():
     from apps.core.tests.test_s16_t2_felder_langs import _browser, _part
 
@@ -343,7 +334,6 @@ def test_felder_de_unchanged_since_before_t2(monkeypatch):
 # --- ревью T1a A1: подпись поля перевода называет поле ------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="T3: параметра field у _bw_tr.html ещё нет")
 def test_usp_translation_labels_differ_for_empty_item():
     def tr(f):
         return {
