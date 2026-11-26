@@ -53,13 +53,11 @@ def _q(url: str) -> dict:
 # --- S15-versand -----------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E10: до правки")
 def test_versand_route_block_host():
     """Хост блоков `/versand/` — тот, что рисует витрина (`versand`), не общий `info`."""
     assert studio_pages.resolve_page("/versand/").block_host == "versand"
 
 
-@pytest.mark.xfail(strict=True, reason="E10: до правки")
 def test_versand_gear_opens_versand_schema():
     """№6: ⚙ на `/versand/` — схема `text@versand`, его свой блок — окно этой строки."""
     tenant = _shop({"versand": [OWN_BLOCK]})
@@ -85,7 +83,6 @@ def test_about_and_info_hosts_unchanged():
 # --- S15-versand-gear ------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E10: до правки")
 def test_versand_slug_page_gear_when_orders_off():
     """№6: без заказов своя страница `versand` живёт на `/seite/versand/` с блоками
     `seite:versand` — ⚙ её строки, не «Diesen Block finden Sie … nicht»."""
@@ -99,7 +96,6 @@ def test_versand_slug_page_gear_when_orders_off():
     assert not list(req._messages)
 
 
-@pytest.mark.xfail(strict=True, reason="E10: до правки")
 def test_versand_slug_page_with_orders_is_versand():
     """Охранный: с заказами `/seite/versand/` уходит 301 на `/versand/` — там `text@versand`."""
     tenant = _shop({}, "versand")
@@ -109,7 +105,6 @@ def test_versand_slug_page_with_orders_is_versand():
 # --- S15-upper-slug --------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="E10: до правки")
 @pytest.mark.parametrize("slug", ["Ueber_Uns", "x_2", "ABC"])
 def test_upper_slug_page_gear(slug):
     """№5: слаг с заглавными и «_» (алфавит `SlugField`) — ⚙ есть и ведёт на свою строку."""
@@ -120,7 +115,6 @@ def test_upper_slug_page_gear(slug):
     assert _q(url)["block"] == [OWN_BLOCK["id"]]
 
 
-@pytest.mark.xfail(strict=True, reason="E10: до правки")
 def test_upper_slug_host_kept_by_normalize():
     """№5: блоки и SEO хоста `seite:Ueber_Uns` переживают `normalize`; соседи `x`/`x_2`
     не путаются."""
@@ -140,7 +134,6 @@ def test_upper_slug_host_kept_by_normalize():
     assert out["seo"]["pages"]["seite:Ueber_Uns"]["title"] == "Wir"
 
 
-@pytest.mark.xfail(strict=True, reason="E10: до правки")
 @pytest.mark.parametrize(
     "host", ["seite:", "seite:a b", "seite:a/b", "seite:ü", "seite:a:b", "seite:a\n", "seite"]
 )
@@ -173,7 +166,6 @@ def _compiled_patterns(path: pathlib.Path):
             yield names, node.value.args[0].value
 
 
-@pytest.mark.xfail(strict=True, reason="E10: до правки")
 def test_one_content_page_host_regex():
     """Хост `seite:<slug>` проверяет ОДИН регэксп (`siteconfig.is_content_page_host`);
     копий в других модулях нет. Писатель слага — исключение с причиной (выше)."""
