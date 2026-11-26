@@ -452,7 +452,6 @@ def test_usp_cap_note_in_live_region(settings):
     assert any(note in s for s in status)
 
 
-@pytest.mark.xfail(strict=True, reason="A5: подпись перевода — длинный label не урезан")
 def test_usp_long_label_truncated_in_translation_label():
     """A5: в подписи поля перевода «„…“ – Übersetzung» немецкий заголовок урезан, как текст."""
     long = "Sehr frisch gebackenes Brot aus eigener Backstube"  # 49 знаков
@@ -462,7 +461,6 @@ def test_usp_long_label_truncated_in_translation_label():
     assert label and long not in label.group(1) and "…" in label.group(1)
 
 
-@pytest.mark.xfail(strict=True, reason="D1: устаревшая вкладка приписывает чужое место src")
 def test_usp_stale_tab_keeps_translations_on_their_items():
     """D1: две вкладки одного окна. В первой ✕ «Frisch»; вторая (показана до этого) жмёт
     «Übernehmen» со старым составом — её пункты узнаются по ключу (снимок `usp_of`), перевод

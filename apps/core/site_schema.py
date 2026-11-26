@@ -2279,6 +2279,7 @@ USP_ICON_LABELS = {
 
 def usp_panel(config: dict, item: dict) -> dict:
     """Пункты полосы доверия для панели: сохранённые + одна пустая строка «＋ Punkt»."""
+    from apps.core import block_i18n
     from apps.tenants import siteconfig
 
     data = item.get("data") if isinstance(item.get("data"), dict) else {}
@@ -2288,6 +2289,7 @@ def usp_panel(config: dict, item: dict) -> dict:
         "items": items,
         "free": len(items) < siteconfig._MAX_USP,
         "max": siteconfig._MAX_USP,
+        "of": block_i18n.usp_fp(items),  # ревью T1a D1: снимок для устаревшей вкладки
         # a11y-ревью: скринридеру — понятное имя значка, не технический ключ
         "icons": [
             (k, sym, str(USP_ICON_LABELS.get(k, k))) for k, sym in siteconfig.USP_ICONS.items()
@@ -2322,6 +2324,8 @@ def _update_usp(item: dict, fields: dict) -> bool:
     data = item.get("data") if isinstance(item.get("data"), dict) else {}
     # стопка 16 T1a: место пункта в сохранённом списке едет с пунктом (ключ его переводов)
     cur_items, src = block_i18n.usp_items(data)
+    # ревью T1a D1: форма показана до правки в другой вкладке — место по ключу пункта
+    src = block_i18n.usp_slot_src(cur_items, src, fields)
     if slots:
         remove = str(fields.get("usp_remove", ""))
         if remove.isdecimal() and remove.isascii():

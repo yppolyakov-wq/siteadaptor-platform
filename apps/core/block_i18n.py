@@ -55,6 +55,8 @@ _FIELD_RE = re.compile(r"tr_([A-Za-z0-9_]+?)_([a-z]{2})")
 _FAQ_RE = re.compile(r"faq_(\d{1,3})_([qa])_([a-z]{2})")
 #: стопка 16 T1a: поле перевода пункта полосы доверия (без «f_tr_» и языка): usp_<позиция>_<поле>
 _USP_RE = re.compile(r"usp_(\d{1,2})_(label|text)")
+#: ревью T1a D1: немецкое поле строки формы USP (`usp_<i>_label`) — число строк формы
+_USP_SLOT_RE = re.compile(r"usp_(\d{1,2})_label")
 _USP_FIELDS = ("label", "text")
 #: потолки ввода пункта — те же, что у немецких полей окна (`site_schema._update_usp`)
 USP_CAPS = {"label": 120, "text": 200}
@@ -364,6 +366,7 @@ def _posted(page: dict, ref: str, fields, post, before_src: dict) -> dict:
     платформы; номер вопроса FAQ — позиция в окне ДО правки (`before_src`)."""
     allowed_locs = set(_locales())
     out: dict = {}
+    usp_src = None
     for name, value in (fields or {}).items():
         match = _FIELD_RE.fullmatch(str(name))
         if not match or match.group(2) not in allowed_locs:
@@ -372,8 +375,11 @@ def _posted(page: dict, ref: str, fields, post, before_src: dict) -> dict:
         usp = _USP_RE.fullmatch(field)
         if usp:
             # стопка 16 T1a: позиция пункта в окне при показе → его место в сохранённом списке
-            src = before_src.get("usp") or []
-            i = int(usp.group(1))
+            if usp_src is None:
+                usp_src = usp_slot_src(
+                    before_src.get("usp_items") or [], before_src.get("usp") or [], fields
+                )
+            src, i = usp_src, int(usp.group(1))
             s = src[i] if i < len(src) else None
             if isinstance(s, int):
                 out[(loc, f"usp.{s}.{usp.group(2)}")] = value
@@ -400,7 +406,8 @@ def before(config: dict, draft: dict, ref: str) -> dict:
         if kind in kinds(draft, ref):
             src[kind] = list(_faq_state(config, draft, kind)[1])
     if "usp" in kinds(draft, ref):
-        src["usp"] = usp_items((_row(draft, ref) or {}).get("data"), config)[1]
+        items, usp_src = usp_items((_row(draft, ref) or {}).get("data"), config)
+        src["usp"], src["usp_items"] = usp_src, items
     return {"german": german(config, draft, ref), "src": src, "draft": copy.deepcopy(draft)}
 
 
@@ -725,6 +732,35 @@ def usp_items(data, config: dict | None = None) -> tuple[list, list]:
 
 def usp_fp(items) -> str:
     return fingerprint({"usp": items or []})
+
+
+def usp_slot_src(items: list, src: list, fields) -> list:
+    """Место в сохранённом списке для каждой строки формы USP (`usp_<i>_…`). Форма несёт
+    снимок пунктов при показе (`usp_of`); не совпал с черновиком (пункты тем временем правили
+    в другой вкладке) — строка узнаёт свой пункт по ключу (немецкий `label`, правило D9
+    `siteconfig._match_items`), не узнала — новый пункт (ревью T1a D1). Без снимка (запрос в
+    обход формы, форма до правки) — по номеру строки, как прежде."""
+    from apps.tenants import siteconfig
+
+    of = str((fields or {}).get("usp_of", ""))
+    if not of or of == usp_fp(items):
+        return src
+    n = 1 + max(
+        (int(m.group(1)) for m in map(_USP_SLOT_RE.fullmatch, map(str, fields or ())) if m),
+        default=-1,
+    )
+    labels = [
+        siteconfig._item_identity(
+            {"label": _clean("usp", fields.get(f"usp_{i}_label"), 120)[0]}, "label"
+        )
+        if f"usp_{i}_label" in fields
+        else ""
+        for i in range(n)
+    ]
+    found = siteconfig._match_items(
+        labels, [[siteconfig._item_identity(it, "label")] for it in items]
+    )
+    return [src[j] if isinstance(j, int) and j < len(src) else None for j in found]
 
 
 def usp_data(data: dict, cur_items: list, items: list, src: list) -> dict:

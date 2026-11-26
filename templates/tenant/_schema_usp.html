@@ -5,6 +5,7 @@
   <input type="hidden" name="ref" value="{{ ref }}">
   <input type="hidden" name="panel_present" value="1">
   <input type="hidden" name="op" value="update">
+  {% comment %}Ревью T1a D1: снимок пунктов при показе — устаревшая вкладка узнаёт свои пункты по ключу (block_i18n.usp_slot_src).{% endcomment %}<input type="hidden" name="f_usp_of" value="{{ usp.of }}">
   {% comment %}Enter в поле (и в поле перевода) — «Übernehmen», а не первая кнопка пункта (↓/✕) или кнопка языка — ревью FB-32; вне Tab, без aria-hidden (решение M3-5c; стопка 16 T1a, a11y №12).{% endcomment %}
   <button name="op" value="update" class="sr-only" tabindex="-1">{% trans "Übernehmen" %}</button>
   <div>
