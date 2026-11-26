@@ -1,7 +1,11 @@
-{% load i18n %}{% comment %}FB-33 M2i-5c: клиент «🌐 Übersetzen» (AIS-5) — вынесен дословно из _i18n_switch.html (его включают формы кабинета) и подключён на «Seitenaufbau» (кнопка вкладки «Felder» окна блока). Кнопка с data-loc переводит на свой язык поля своей формы и без скриптов не видна (раскрывается здесь при загрузке и по событию aufbau:panel).{% endcomment %}
+{% load i18n cabinet %}{% comment %}FB-33 M2i-5c: клиент «🌐 Übersetzen» (AIS-5) — вынесен дословно из _i18n_switch.html (его включают формы кабинета) и подключён на «Seitenaufbau» (кнопка вкладки «Felder» окна блока). Кнопка с data-loc переводит на свой язык поля своей формы и без скриптов не видна (раскрывается здесь при загрузке и по событию aufbau:panel).
+FB-33 стопка 16 T4: одно нажатие — пустые поля делятся на части по потолкам сервера (TR_LIM — тег i18n_translate_limits из констант i18n_translate, второго списка чисел нет) и уходят по очереди; переведённое каждой части применяется сразу и в окне уходит в черновик (change); ошибка части останавливает очередь, переведённое остаётся. Поле длиннее потолка — не отправляется, пометка у поля. Кнопка с data-status="<id>" пишет статус в эту живую область.{% endcomment %}{% i18n_translate_limits as tr_lim %}
+{% blocktrans asvar tr_part_work with n="{n}" m="{m}" %}Teil {{ n }} von {{ m }} wird übersetzt …{% endblocktrans %}{% blocktrans asvar tr_part_fail with n="{n}" m="{m}" %}Teil {{ n }} von {{ m }} nicht übersetzt. Bereits übersetzte Felder bleiben erhalten — bitte erneut versuchen.{% endblocktrans %}{% blocktrans asvar tr_long_sum with n="{n}" %}Übersprungen, zu lang für die automatische Übersetzung: {{ n }}{% endblocktrans %}
 <style>
   [data-ai-filled] { outline: 2px dashed #4f46e5; outline-offset: 1px; }
-  [data-i18n-translate][aria-disabled=true] { opacity: .6; cursor: progress; }
+  [data-i18n-translate][aria-disabled=true], [data-form-lang][aria-disabled=true] { opacity: .6; cursor: progress; }
+  [data-i18n-translate-progress] { margin-left: .5rem; font-size: .875rem; color: #374151; }
+  [data-i18n-tr-long] { display: block; margin-top: .25rem; font-size: .75rem; color: #374151; }
 </style>
 <script>
 (function () {
@@ -22,8 +26,41 @@
     slow: "{{ _('Dauert zu lange — bitte erneut versuchen.')|escapejs }}",
     work: "{{ _('Wird übersetzt …')|escapejs }}",
     forbidden: "{{ _('Bitte laden Sie die Seite neu und versuchen Sie es erneut.')|escapejs }}",
-    nothing: "{{ _('Nichts übersetzt')|escapejs }}"
+    nothing: "{{ _('Nichts übersetzt')|escapejs }}",
+    // T4: части (msgid §5.2 плана; {n}/{m} подставляет клиент)
+    part: "{{ tr_part_work|escapejs }}",
+    partFail: "{{ tr_part_fail|escapejs }}",
+    long: "{{ _('übersprungen: zu lang für die automatische Übersetzung')|escapejs }}",
+    longSum: "{{ tr_long_sum|escapejs }}"
   };
+  // T4: код отказа сервера (translate_views, i18n_translate, apps.ai.errors) → сообщение
+  var TR_CODE = {
+    quota: TR_MSG.quota,
+    rate_limited: TR_MSG.quota,
+    too_large: TR_MSG.too_large,
+    busy: TR_MSG.busy,
+    slow: TR_MSG.slow,
+    forbidden: TR_MSG.forbidden,
+    bad: TR_MSG.forbidden,
+    error: TR_MSG.error,
+    unavailable: TR_MSG.error,
+    disabled: TR_MSG.error,
+    schema: TR_MSG.error,
+    config: TR_MSG.error,
+    refused: TR_MSG.error
+  };
+  // T4: потолки одной части — из констант сервера (тег i18n_translate_limits)
+  var TR_LIM = { items: {{ tr_lim.items }}, item: {{ tr_lim.item }}, total: {{ tr_lim.total }} };
+  var trActive = null;  // идущая очередь (одна на страницу: сервер держит одну задачу)
+
+  function trFmt(text, n, m) {
+    return text.replace("{n}", String(n)).replace("{m}", String(m));
+  }
+  function trCodeMsg(code) {
+    if (Object.prototype.hasOwnProperty.call(TR_CODE, code)) return TR_CODE[code];
+    console.error("unknown translate code", code);
+    return TR_MSG.error;
+  }
   function trBase(el, loc, base) {
     if (el.hasAttribute("data-i18n-base")) return el.getAttribute("data-i18n-base");
     var form = el.form, name = el.getAttribute("name") || "";
@@ -55,15 +92,21 @@
     var wrap = el.nextElementSibling;
     return wrap && wrap.querySelector ? wrap.querySelector(".rte-area") : null;
   }
+  function trDesc(el, id, on) {
+    var desc = (el.getAttribute("aria-describedby") || "").split(" ").filter(function (x) {
+      return x && x !== id;
+    });
+    if (on) desc.push(id);
+    if (desc.length) el.setAttribute("aria-describedby", desc.join(" "));
+    else el.removeAttribute("aria-describedby");
+  }
   function trFill(el, value, note) {
     el.value = value;
     // M2i-5c: id пометки «Automatisch übersetzt» — у кнопки (data-note), иначе прежний; в
     // значении data-ai-filled — чтобы при правке владельца снять ту же ссылку
     note = note || "i18n-ai-note";
     el.setAttribute("data-ai-filled", note);
-    var desc = (el.getAttribute("aria-describedby") || "").split(" ").filter(Boolean);
-    if (desc.indexOf(note) === -1) desc.push(note);
-    el.setAttribute("aria-describedby", desc.join(" "));
+    trDesc(el, note, true);
     var area = trArea(el);
     // иначе submit перетрёт значение старым редактором. HTML — только у rich-базы (сервер
     // прогнал его через sanitize); плоский текст — textContent, не innerHTML.
@@ -80,18 +123,132 @@
     }
     el.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  function trSay(box, text) {
-    var st = box && box.querySelector("[data-i18n-translate-status]");
+  // T4: пометка «zu lang» у поля — словом, поле ссылается на неё aria-describedby (a11y №6)
+  var trLongN = 0;
+  function trLongMark(el) {
+    var id = "i18n-tr-long-" + (++trLongN);
+    var note = document.createElement("span");
+    note.id = id;
+    note.setAttribute("data-i18n-tr-long", "");
+    note.textContent = TR_MSG.long;
+    var after = trArea(el) ? el.nextElementSibling : el;
+    after.insertAdjacentElement("afterend", note);
+    el.setAttribute("data-i18n-tr-long-id", id);
+    trDesc(el, id, true);
+  }
+  function trLongClear(scope) {
+    (scope || document).querySelectorAll("[data-i18n-tr-long-id]").forEach(function (el) {
+      var id = el.getAttribute("data-i18n-tr-long-id");
+      var note = document.getElementById(id);
+      if (note) note.remove();
+      el.removeAttribute("data-i18n-tr-long-id");
+      trDesc(el, id, false);
+    });
+  }
+  // T4: детерминированно и жадно, по порядку полей в DOM (повтор нажатия — те же части,
+  // сервер отвечает из кэша). Длина — String.length (UTF-16): не меньше len у Python.
+  function trParts(items) {
+    var parts = [], cur = [], size = 0;
+    items.forEach(function (item) {
+      var len = item.text.length;
+      if (cur.length && (cur.length >= TR_LIM.items || size + len > TR_LIM.total)) {
+        parts.push(cur);
+        cur = [];
+        size = 0;
+      }
+      cur.push(item);
+      size += len;
+    });
+    if (cur.length) parts.push(cur);
+    return parts;
+  }
+  // Живая область кнопки: своя `data-i18n-translate-status` или чужая по data-status (T3).
+  function trStatus(btn) {
+    var id = btn && btn.getAttribute("data-status");
+    if (id) return document.getElementById(id);
+    var box = btn && btn.closest("[data-i18n-translate-box]");
+    return box ? box.querySelector("[data-i18n-translate-status]") : null;
+  }
+  // Живая область всегда role=status aria-live=polite (ревью a11y 2): атрибуты не трогаем;
+  // повтор того же текста тоже озвучивается — сначала очистка, текст — через 100 мс.
+  function trSay(st, text) {
     if (!st) return;
-    st.textContent = "";  // повтор того же текста тоже озвучивается
-    if (text) setTimeout(function () { st.textContent = text; }, 50);
+    clearTimeout(st.__trTimer);
+    st.setAttribute("data-i18n-translate-said", "");
+    st.textContent = "";
+    if (text) st.__trTimer = setTimeout(function () { st.textContent = text; }, 100);
   }
   function trCsrf() {
     var m = document.querySelector("input[name=csrfmiddlewaretoken]");
     return m ? m.value : "";
   }
+  // Ревью S3: запрос перевода (POST или опрос) не висит дольше TR_WAIT — обрыв → «slow».
+  var TR_WAIT = 20000;
+  function trFetch(url, opts) {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = ctl ? setTimeout(function () { ctl.abort(); }, TR_WAIT) : 0;
+    opts = opts || {};
+    opts.credentials = "same-origin";
+    if (ctl) opts.signal = ctl.signal;
+    return fetch(url, opts).then(
+      function (r) { clearTimeout(timer); return r; },
+      function (err) { clearTimeout(timer); throw err; }
+    );
+  }
+  function trFailMsg(err) {
+    return err && err.name === "AbortError" ? TR_MSG.slow : TR_MSG.error;
+  }
+  function trLock(btn, on) {
+    var scope = btn.form || document;
+    var list = [btn];
+    scope.querySelectorAll("[data-form-lang]").forEach(function (b) { list.push(b); });
+    list.forEach(function (b) {
+      if (on) b.setAttribute("aria-disabled", "true");
+      else b.removeAttribute("aria-disabled");
+    });
+    if (on) btn.setAttribute("aria-busy", "true");
+    else btn.removeAttribute("aria-busy");
+    if (btn.form) {
+      if (on) btn.form.setAttribute("aria-busy", "true");
+      else btn.form.removeAttribute("aria-busy");
+    }
+  }
+  // Кнопка той же формы на странице сейчас (aufbau.js подменил панель) или null. Кнопка окна —
+  // по языку и id пометки ИИ (data-note — одна на окно; подпись экрана data-screen новая при
+  // каждой отрисовке); кнопка выпадашки формы — первая без data-loc (ревью D3).
+  function trTwin(btn, loc, fixed) {
+    var all = document.querySelectorAll(
+      fixed ? '[data-i18n-translate][data-loc="' + loc + '"]' : "[data-i18n-translate]:not([data-loc])"
+    );
+    for (var i = 0; i < all.length; i++) {
+      if (!fixed || all[i].getAttribute("data-note") === btn.getAttribute("data-note")) return all[i];
+    }
+    console.error("translate: no button after panel replace");
+    return null;
+  }
+  // Итог — в живую область кнопки, что сейчас на странице; фокус — на ней, если он потерян
+  // (body или отцепленный узел; ревью a11y 3). aufbau.js мог поставить свой — не трогаем.
+  function trTell(run, text) {
+    var btn = run.btn;
+    if (!btn.isConnected) btn = trTwin(btn, run.loc, run.fixed);
+    if (!btn) return;
+    var at = document.activeElement;
+    if (!at || at === document.body || !at.isConnected) btn.focus({ preventScroll: true });
+    trSay(trStatus(btn), text);
+  }
+  // Конец очереди — когда и правки в черновик (aufbau.js, data-schema-busy) дошли: итог тогда
+  // знает отказ черновика, а подменённая панель уже на месте (ревью S2/S4). Не дольше 15 с.
+  function trIdle(cb) {
+    var t0 = Date.now();
+    (function wait() {
+      var busy = +document.documentElement.getAttribute("data-schema-busy");
+      if (!busy || Date.now() - t0 > 15000) return cb();
+      setTimeout(wait, 150);
+    })();
+  }
   function trRun(btn) {
-    var box = btn.closest("[data-i18n-translate-box]");
+    // вторая очередь не стартует (Enter/Space, кнопка новой панели) — одна фраза (ревью a11y 5)
+    if (trActive) { trSay(trStatus(btn), TR_MSG.busy); return; }
     // M2i-5c: у кнопки со своим языком (вкладка «Felder» окна блока) — data-loc и поля
     // только её формы; иначе — язык выпадашки формы и поля всей страницы (AIS-5).
     var fixed = btn.getAttribute("data-loc") || "";
@@ -99,40 +256,90 @@
     var loc = fixed || (sel ? sel.value : ""), base = btn.getAttribute("data-base");
     if (!loc || loc === base) return;
     if (fixed && !btn.form) return;  // кнопка со своим языком — только в своей форме
-    var byId = {}, items = [], n = 0;
-    trFields(loc, fixed ? btn.form : null).forEach(function (el) {
+    var scope = fixed ? btn.form : null;
+    var byId = {}, items = [], n = 0, long = 0;
+    trLongClear(scope);
+    trFields(loc, scope).forEach(function (el) {
       if (!trEmpty(el)) return;
       var text = trBase(el, loc, base).trim();
       if (!text) return;
+      if (text.length > TR_LIM.item) { trLongMark(el); long++; return; }
       var id = "t" + (++n);
       byId[id] = { el: el, text: text };
       var max = parseInt(el.getAttribute("maxlength") || "0", 10) || 0;
       items.push({ id: id, text: text, max: max });
     });
-    if (!items.length) { trSay(box, TR_MSG.none); return; }
-    var body = new FormData();
-    body.append("csrfmiddlewaretoken", trCsrf());
-    body.append("screen", btn.getAttribute("data-screen"));
-    body.append("target", loc);
-    body.append("items", JSON.stringify(items));
-    // aria-disabled, а не disabled: фокус остаётся на кнопке (ревью a11y)
-    btn.setAttribute("aria-disabled", "true");
-    btn.setAttribute("aria-busy", "true");
-    trSay(box, TR_MSG.work);
-    function finish(msg) {
-      btn.removeAttribute("aria-disabled");
-      btn.removeAttribute("aria-busy");
-      trSay(box, msg);
+    var st = trStatus(btn);
+    var longMsg = long ? trFmt(TR_MSG.longSum, long) : "";
+    if (!items.length) {
+      trSay(st, long ? TR_MSG.nothing + " · " + longMsg : TR_MSG.none);
+      return;
     }
-    function apply(data) {
-      var got = data.items || {}, filled = 0, last = null;
+    var parts = trParts(items), m = parts.length;
+    var run = { btn: btn, fixed: fixed, loc: loc, stop: "" };
+    var filled = 0, returned = 0, over = false, progress = null;
+    trActive = run;
+    // aria-disabled, а не disabled: фокус остаётся на кнопке (ревью a11y)
+    trLock(btn, true);
+    // ревью S4: тихая правка части не записалась (отказ сервера, поле с ошибкой, обрыв) —
+    // aufbau.js не уходит со страницы, а называет причину; очередь останавливается.
+    function onStop(e) { run.stop = (e.detail && e.detail.text) || TR_MSG.error; }
+    document.addEventListener("aufbau:quiet-stop", onStop);
+    // промежуточная часть — видимо, отдельным узлом без live; живая область пуста (a11y 2)
+    function show(k) {
+      if (!progress && st) {
+        progress = document.createElement("span");
+        progress.setAttribute("data-i18n-translate-progress", "");
+        st.insertAdjacentElement("afterend", progress);
+      }
+      if (st) { clearTimeout(st.__trTimer); st.textContent = ""; }
+      if (progress) progress.textContent = trFmt(TR_MSG.part, k + 1, m);
+    }
+    function end(text, ok) {
+      if (over) return;
+      over = true;
+      trIdle(function () {
+        document.removeEventListener("aufbau:quiet-stop", onStop);
+        if (progress) progress.remove();
+        trActive = null;
+        if (btn.isConnected) trLock(btn, false);
+        // отказ черновика пришёл после последней части — итог называет его
+        trTell(run, ok && run.stop ? run.stop : text);
+      });
+    }
+    function success() {
+      var skipped = returned - filled;
+      var msg = filled ? filled + " " + TR_MSG.done : TR_MSG.nothing;
+      if (skipped) msg += " · " + skipped + " " + TR_MSG.skipped;
+      if (longMsg) msg += " · " + longMsg;
+      end(msg, true);
+    }
+    function failed(k, reason) {
+      // ревью S1: одна часть — итог не пустой; ревью S7: сколько уже переведено
+      if (m === 1) return end(reason || TR_MSG.nothing);
+      var msg = trFmt(TR_MSG.partFail, k + 1, m);
+      if (reason && reason !== TR_MSG.error) msg += " " + reason;
+      if (filled) msg += " · " + filled + " " + TR_MSG.done;
+      end(msg);
+    }
+    // язык тот же и кнопка на месте (панель не подменили)
+    function same() {
+      return fixed ? btn.isConnected && btn.getAttribute("data-loc") === loc : (sel && sel.value) === loc;
+    }
+    function apply(k, data) {
+      var got = data.items || {}, last = null;
+      returned += parts[k].length;
+      if (run.stop) return failed(k, run.stop);
+      if (!same()) {
+        console.error("translate: panel replaced, part " + (k + 1) + " of " + m + " not applied");
+        return failed(k, "");
+      }
       // Применяем только туда, где за время ожидания ничего не изменилось: поле на месте
-      // и пустое, язык тот же, базовый текст тот же, что был отправлен.
-      // (кнопка со своим языком: панель не подменили — язык тот же)
-      var same = fixed ? btn.isConnected && btn.getAttribute("data-loc") === loc : (sel && sel.value) === loc;
-      Object.keys(got).forEach(function (id) {
-        var hit = byId[id], el = hit && hit.el;
-        if (!same || !el || !el.isConnected || !trEmpty(el)) return;
+      // и пустое, базовый текст тот же, что был отправлен.
+      parts[k].forEach(function (item) {
+        var id = item.id, hit = byId[id], el = hit && hit.el;
+        if (!Object.prototype.hasOwnProperty.call(got, id)) return;
+        if (!el || !el.isConnected || !trEmpty(el)) return;
         if (trBase(el, loc, base).trim() !== hit.text) return;
         trFill(el, got[id], btn.getAttribute("data-note"));
         filled++;
@@ -142,43 +349,78 @@
         if (fold) fold.open = true;
       });
       // M2i-5c: окно блока со скриптами применяет правку по change (aufbau.js — та же
-      // запись, что «Übernehmen»: вся форма в черновик); одно событие — после всех полей.
-      if (fixed && last) last.dispatchEvent(new Event("change", { bubbles: true }));
-      var skipped = items.length - filled;
-      var msg = filled ? filled + " " + TR_MSG.done : TR_MSG.nothing;
-      if (skipped) msg += " · " + skipped + " " + TR_MSG.skipped;
-      finish(msg);
-    }
-    function handle(data, started) {
-      if (data.state === "done") return apply(data);
-      if (data.code) {
-        var key = data.code === "bad" ? "forbidden" : data.code;
-        return finish(TR_MSG[key] || TR_MSG.error);
+      // запись, что «Übernehmen»: вся форма в черновик). T4: после КАЖДОЙ части — иначе
+      // ошибка следующей, «Abbrechen» или подмена панели потеряли бы переведённое; «тихо» —
+      // aufbau.js не озвучивает «Übernommen», итог говорит эта живая область. Правка текста
+      // панель не подменяет (стенд: 5 частей — та же кнопка), подменяет только отказ.
+      // (data-i18n-quiet на форме — на время синхронной обработки change в aufbau.js).
+      if (fixed && last) {
+        btn.form.setAttribute("data-i18n-quiet", "");
+        try {
+          last.dispatchEvent(new Event("change", { bubbles: true }));
+        } finally {
+          btn.form.removeAttribute("data-i18n-quiet");
+        }
       }
-      if (!data.job && data.state !== "pending") return finish(TR_MSG.error);
-      var job = data.job || started;
-      if (Date.now() - t0 > 90000) return finish(TR_MSG.slow);
-      setTimeout(function () {
-        fetch(btn.getAttribute("data-result") + job + "/", { credentials: "same-origin" })
-          .then(function (r) { if (!r.ok || r.redirected) throw r; return r.json(); })
-          .then(function (d) { handle(d, job); })
-          .catch(function (err) { console.error("translate poll", err); finish(TR_MSG.error); });
-      }, 1500);
+      if (k + 1 < m) return part(k + 1);
+      success();
     }
-    var t0 = Date.now();
-    fetch(btn.getAttribute("data-url"), { method: "POST", body: body, credentials: "same-origin" })
-      .then(function (r) {
-        if (r.redirected) { finish(TR_MSG.forbidden); return null; }  // сессия истекла
-        if (!r.ok) throw r;
-        return r.json();
-      })
-      .then(function (d) { if (d) handle(d, d.job); })
-      .catch(function (err) { console.error("translate", err); finish(TR_MSG.error); });
+    function part(k) {
+      if (run.stop) return failed(k, run.stop);
+      if (!same()) {
+        console.error("translate: panel replaced before part " + (k + 1) + " of " + m);
+        return failed(k, "");
+      }
+      // одна часть — как прежде; несколько — «Teil 1 von M» озвучивается, дальше — видимо
+      if (k === 0) trSay(st, m === 1 ? TR_MSG.work : trFmt(TR_MSG.part, 1, m));
+      else show(k);
+      var body = new FormData();
+      body.append("csrfmiddlewaretoken", trCsrf());
+      body.append("screen", btn.getAttribute("data-screen"));
+      body.append("target", loc);
+      body.append("items", JSON.stringify(parts[k]));
+      var t0 = Date.now();  // 90 с — на часть, не на нажатие
+      function handle(data, started) {
+        if (data.state === "done") return apply(k, data);
+        if (data.code) return failed(k, trCodeMsg(data.code));
+        var job = data.job || started;
+        // ревью S8: «pending» без задачи — ошибка, а не опрос …/undefined/
+        if (!job || (!data.job && data.state !== "pending")) {
+          console.error("translate: unexpected answer", data);
+          return failed(k, TR_MSG.error);
+        }
+        if (Date.now() - t0 > 90000) return failed(k, TR_MSG.slow);
+        setTimeout(function () {
+          trFetch(btn.getAttribute("data-result") + job + "/")
+            .then(function (r) { if (!r.ok || r.redirected) throw r; return r.json(); })
+            .then(function (d) { handle(d, job); })
+            .catch(function (err) { console.error("translate poll", err); failed(k, trFailMsg(err)); });
+        }, 1500);
+      }
+      trFetch(btn.getAttribute("data-url"), { method: "POST", body: body })
+        .then(function (r) {
+          if (r.redirected) { failed(k, TR_MSG.forbidden); return null; }  // сессия истекла
+          if (!r.ok) throw r;
+          return r.json();
+        })
+        .then(function (d) { if (d) handle(d, d.job); })
+        .catch(function (err) { console.error("translate", err); failed(k, trFailMsg(err)); });
+    }
+    part(0);
   }
   document.addEventListener("click", function (e) {
-    var btn = e.target.closest && e.target.closest("[data-i18n-translate]");
-    if (btn && btn.getAttribute("aria-disabled") !== "true") { e.preventDefault(); trRun(btn); }
-  });
+    var hit = e.target.closest && e.target.closest("[data-i18n-translate], [data-form-lang]");
+    if (!hit) return;
+    // T4: пока идёт очередь, кнопки языка заняты — панель не перерисовывается; занятая
+    // «Übersetzen» говорит одну фразу (ревью a11y 5)
+    if (hit.getAttribute("aria-disabled") === "true") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (hit.hasAttribute("data-i18n-translate")) trSay(trStatus(hit), TR_MSG.busy);
+      return;
+    }
+    if (hit.hasAttribute("data-i18n-translate")) { e.preventDefault(); trRun(hit); }
+  }, true);
   document.addEventListener("input", function (e) {
     // правка в rich-редакторе приходит на .rte-area, а пометка — на textarea перед ним
     var area = e.isTrusted && e.target.closest && e.target.closest(".rte-area");
@@ -191,11 +433,7 @@
       var note = e.target.getAttribute("data-ai-filled");
       if (note === "1" || !note) note = "i18n-ai-note";
       e.target.removeAttribute("data-ai-filled");
-      var rest = (e.target.getAttribute("aria-describedby") || "").split(" ").filter(function (x) {
-        return x && x !== note;
-      });
-      if (rest.length) e.target.setAttribute("aria-describedby", rest.join(" "));
-      else e.target.removeAttribute("aria-describedby");
+      trDesc(e.target, note, false);
     }
   });
 
