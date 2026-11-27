@@ -145,9 +145,9 @@ def test_repeated_items_fieldset_legend(key, legend):
     """Y2: пункт — fieldset с legend «Schritt N», видимые метки полей; новый пункт — пустой."""
     b = Browser(_shop())
     form = _form(_get(b, key))
-    # стопка 16 T6 (a11y №11): у пункта с переводами — цитата немецкого ключа в legend
+    # стопка 16 T6 (a11y №11, ревью D5): у пункта с переводами — цитата ключа в legend
     assert "<legend" in form and re.search(
-        rf"{legend} 1(?: · <span lang=\"de\">„[^<]+“</span>)?</legend>", form
+        rf"{legend} 1 · <span lang=\"de\">„[^<]+“</span></legend>", form
     )
     count = len(CFG[key]) + 1  # и пустой новый пункт с меткой (ревью E)
     assert f"{legend} {count} – neu – leer lassen, wenn nicht benötigt</legend>" in form

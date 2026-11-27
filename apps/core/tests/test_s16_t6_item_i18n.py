@@ -390,11 +390,6 @@ def test_translate_button_source(monkeypatch):
 # --- a11y №14: витрина ru ------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="T6: признак «без перевода» — тег siteui (T1b, apps/tenants/templatetags/siteui.py "
-    "вне строки T6 плана §3) — нужен plan_check --add",
-)
 def test_storefront_items_untranslated_lang_de(rf):
     from django.template.loader import render_to_string
 
@@ -413,7 +408,33 @@ def test_storefront_items_untranslated_lang_de(rf):
             request=req,
         )
     assert re.search(r'<h3[^>]*lang="de"[^>]*>Abholen', html)
-    assert not re.search(r'<h3[^>]*lang="de"[^>]*>Выбрать', html)
+    assert re.search(r'<p[^>]*lang="de"[^>]*>Laden', html)
+    assert not re.search(r'lang="de"[^>]*>(?:Выбрать|Онлайн)', html)
+    cfg["i18n"]["ru"]["team"][0] = {}
+    cfg["i18n"]["ru"]["testimonials"][1] = {}
+    tenant.site_config = cfg
+    tenant.save()
+    req.tenant = Tenant.objects.get(pk=tenant.pk)
+    shown = siteconfig.localize(copy.deepcopy(cfg), "ru")
+    with translation.override("ru"):
+        team = render_to_string(
+            "storefront/sections/_team.html", {"site": shown, "section_row": {}}, request=req
+        )
+        testi = render_to_string(
+            "storefront/sections/_testimonials.html",
+            {"site": shown, "section_row": {}},
+            request=req,
+        )
+        de = None
+    assert re.search(r'lang="de"[^>]*>Chefin', team)
+    assert not re.search(r'lang="de"[^>]*>Пекарь', team)
+    assert re.search(r'lang="de"[^>]*>“Lecker”', testi)
+    assert not re.search(r'lang="de"[^>]*>“Супер!”', testi)
+    with translation.override("de"):
+        de = render_to_string(
+            "storefront/sections/_team.html", {"site": cfg, "section_row": {}}, request=req
+        )
+    assert 'lang="' not in de, "на основном языке — без lang"
 
 
 # --- стенд T6: перестановка, потом переименование того же шага ------------------------------
@@ -446,3 +467,155 @@ def test_move_then_rename_keeps_typed_and_text_translation():
         ("Забрать", "В магазине"),
         ("Подобрать", "Онлайн"),
     ]
+
+
+# --- ревью T6 круг 1 -----------------------------------------------------------------------
+
+
+def test_name_hint_linked_and_present():
+    """A1: «Name wird nicht übersetzt.» — в DOM и в aria-describedby поля имени."""
+    b = _browser()
+    for key in ("team", "testimonials"):
+        form = _form(_get(b, key))
+        tag = re.search(rf'<input[^>]*name="f_htx_{key}_0_name"[^>]*>', form).group(0)
+        described = re.search(r'aria-describedby="([^"]+)"', tag).group(1).split()
+        nt = f"schema-f-htx_{key}_0_name-nt"
+        assert nt in described and f'id="{nt}"' in form
+
+
+def _legend_html(quote, quote_lang):
+    from django.template.loader import render_to_string
+
+    selected = {
+        "ref": "process",
+        "home_texts": {
+            "key": "process",
+            "fp": "x",
+            "fields": [],
+            "groups": [
+                {"legend": "Schritt 1", "quote": quote, "quote_lang": quote_lang, "fields": []}
+            ],
+        },
+    }
+    html = render_to_string("tenant/_bw_hometext.html", {"selected": selected})
+    return re.search(r"<legend[^>]*>.*?</legend>", html, flags=re.S).group(0)
+
+
+def test_legend_quote_lang_only_when_set():
+    """A2: пустой язык цитаты — без `lang=""`."""
+    assert 'lang=""' not in _legend_html("Wählen", "")
+    assert '<span lang="de">„Wählen“</span>' in _legend_html("Wählen", "de")
+
+
+def test_legend_quote_truncated():
+    """A3: длинный ключ пункта в legend — урезан."""
+    legend = _legend_html("W" * 200, "de")
+    assert "W" * 61 not in legend and "…" in legend
+
+
+def test_every_item_translation_label_in_fieldset_with_legend():
+    """A4: каждое поле «… – Übersetzung (…)» пункта — внутри fieldset с legend."""
+    b = _browser()
+    for key in ("process", "team", "testimonials"):
+        form = _form(_get(b, key))
+        sets = re.findall(r"<fieldset\b.*?</fieldset>", form, flags=re.S)
+        inside = {
+            lab
+            for fs in sets
+            if "<legend" in fs
+            for lab in re.findall(r'<label for="(schema-f-htx_[^"]+-ru)"', fs)
+        }
+        every = set(re.findall(r'<label for="(schema-f-htx_[^"]+-ru)"', form))
+        assert every and every == inside, key
+
+
+def test_translation_only_lands_by_key_after_studio_reorder():
+    """D1: перевод пункта без правки немецкого; Студия тем временем переставила шаги —
+    перевод не ложится на чужой шаг (конфликт с заметкой; «Trotzdem» — за своим шагом)."""
+    b = _browser(ru=False)
+    _post(b, "process", f_tr_htx_process_1_text_ru="В магазине")
+    tenant = Tenant.objects.get(pk=b.tenant.pk)
+    cfg = siteconfig.normalize(tenant.site_config)
+    cfg["process"] = list(reversed(cfg["process"]))  # [Abholen, Wählen]
+    tenant.site_config = cfg
+    tenant.save()
+    _resp, msgs = _save(b)
+    assert block_i18n.conflict_note() in msgs
+    assert "i18n" not in _saved(b) or not _saved(b)["i18n"].get("ru", {}).get("process")
+    _resp, msgs = _save(b, force="1")
+    assert _ru(_saved(b), "process", "title", "text") == [
+        ("Abholen", "В магазине"),
+        ("Wählen", "Online"),
+    ]
+
+
+@pytest.mark.parametrize(
+    "old,new",
+    [
+        (["A", "B"], ["B", "A"]),
+        (["A", "B"], ["A", "X"]),
+        (["A", "B", "C"], ["B", "X", "A"]),
+        (["A", "B"], ["B", "A", "N"]),
+        (["A", "B", "C"], ["C", "A"]),
+        (["A", "A", "B"], ["B", "A", "A"]),
+        (["A", "B"], ["X", "Y"]),
+    ],
+)
+def test_window_and_studio_match_items_alike(old, new):
+    """D2: одно правило сопоставления пунктов — окно (`item_src`) и Студия
+    (`split_translation`) на одних данных сопоставляют одинаково."""
+    olds = [{"title": t, "text": f"t{i}"} for i, t in enumerate(old)]
+    news = [{"title": t, "text": f"t{old.index(t)}" if t in old else "n"} for t in new]
+    window = home_texts.item_src("process", news, olds)
+    payload = {"process": copy.deepcopy(news)}
+    base = siteconfig.split_translation(payload, {"process": olds}, "ru")["process"]
+    studio = []
+    used = set()
+    for j, item in enumerate(base):
+        if j < len(news) and item["title"] == news[j]["title"] and news[j]["title"] not in old:
+            studio.append(None)  # новый пункт — база из формы
+            continue
+        idx = next(i for i, o in enumerate(olds) if o["title"] == item["title"] and i not in used)
+        used.add(idx)
+        studio.append(idx)
+    assert window == studio
+
+
+def test_stale_tab_renamed_item_translation_not_silent():
+    """D3: устаревшая вкладка (снимок `htx_of` другой) и переименование ключа в той же форме —
+    перевод не узнан: заметка, не молча."""
+    b = _browser()
+    data, _p = form_post(_panel(_get(b, "process")), FORM)
+    data["seite"], data["wopen"], data["op"] = ["home"], [WOPEN], ["update"]
+    _post(b, "process", f_htx_process_2_title="Neu")  # другая вкладка добавила шаг
+    data["f_htx_process_0_title"] = ["Aussuchen"]
+    data["f_tr_htx_process_0_title_ru"] = ["Подобрать"]
+    with translation.override("de"):
+        _resp, msgs = b.post(**data)
+    assert block_i18n.window_skipped_note() in msgs
+
+
+def test_window_put_with_dict_overlay_keeps_it():
+    """D4: испорченный оверлей `i18n.<язык>.team` (словарь) — окно его не роняет и не теряет."""
+    cfg = {
+        "team": [{"name": "Anna", "role": "Chefin", "photo": ""}],
+        "i18n": {"ru": {"team": {"0": {"role": "Шеф"}}}},
+    }
+    got = home_texts.put(
+        cfg, "team", {"team_text": "Anna | Inhaberin"}.get, window=True, window_tr={}
+    )
+    assert got == home_texts.WRITTEN
+    assert cfg["i18n"]["ru"]["team"] == {"0": {"role": "Шеф"}}
+    assert cfg["team"][0]["role"] == "Inhaberin"
+
+
+def test_items_with_translations_quote_legend():
+    """D5: у пункта с переводами цитата в legend есть (без необязательной группы)."""
+    b = _browser()
+    for key, legend, quote in (
+        ("process", "Schritt", "Wählen"),
+        ("team", "Mitglied", "Anna"),
+        ("testimonials", "Stimme", "Eva"),
+    ):
+        form = _form(_get(b, key))
+        assert f'{legend} 1 · <span lang="de">„{quote}“</span></legend>' in form, key
