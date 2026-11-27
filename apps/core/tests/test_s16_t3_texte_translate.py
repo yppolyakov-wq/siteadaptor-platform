@@ -18,7 +18,7 @@
 - ревью T1a A1: подпись поля перевода называет поле (`field`) и без цитаты.
 """
 
-import hashlib
+import difflib
 import re
 from collections import Counter
 from pathlib import Path
@@ -35,8 +35,9 @@ pytestmark = pytest.mark.django_db
 ROOT = Path(__file__).resolve().parents[3]
 BTN = re.compile(r"<button[^>]*data-i18n-translate[ >].*?</button>", re.S)
 NOTE = "Automatisch übersetzt – bitte prüfen"
-#: «Felder» бизнеса с de, ИИ выключен — снято на `5169ae7` (до T2) тем же `m2i5c._part`
-FELDER_DE_SHA = "a825202626c214c860d04612ac9db961941238974c740637bb60a13a4c34af76"
+#: «Felder» бизнеса с de, ИИ выключен — эталон снят на `5169ae7` (до T2) тем же `m2i5c._part`
+#: в чистой тест-БД со свежими `.mo` (ревью T3 D1: файл с читаемым диффом, не хеш)
+FELDER_DE_GOLDEN = Path(__file__).parent / "golden_fb33s16t3" / "felder_de_before_t2.html"
 
 
 @pytest.fixture(autouse=True)
@@ -241,7 +242,7 @@ def test_ai_note_visible_and_described(monkeypatch):
 # --- a11y №10: служебный текст «Ohne Übersetzung» -----------------------------------------
 
 
-def _tr(**t):
+def _tr(ctx=None, **t):
     base = {
         "loc": "ru",
         "label": "Русский",
@@ -254,7 +255,7 @@ def _tr(**t):
         "hint": "h",
     }
     with translation.override("de"):
-        return render_to_string("tenant/_bw_tr.html", {"t": {**base, **t}})
+        return render_to_string("tenant/_bw_tr.html", {**(ctx or {}), "t": {**base, **t}})
 
 
 def test_empty_ui_text_has_no_business_lang():
@@ -328,7 +329,11 @@ def test_window_aria_refs_point_to_existing_ids(monkeypatch):
 def test_felder_de_unchanged_since_before_t2(monkeypatch):
     m2i5c._ai(monkeypatch, on=False)
     _html, part = m2i5c._part(m2i5c._b())
-    assert hashlib.sha256(part.encode()).hexdigest() == FELDER_DE_SHA
+    want = FELDER_DE_GOLDEN.read_text(encoding="utf-8")
+    diff = difflib.unified_diff(
+        want.splitlines(), part.splitlines(), "5169ae7", "HEAD", lineterm="", n=1
+    )
+    assert part == want, "\n".join(list(diff)[:60])
 
 
 # --- ревью T1a A1: подпись поля перевода называет поле ------------------------------------
@@ -366,3 +371,75 @@ def test_usp_translation_labels_differ_for_empty_item():
     assert len(labels) == 2 and labels[0] != labels[1], labels
     assert _name(labels[0]) == "Titel – Übersetzung (English)"
     assert _name(labels[1]) == "Text – Übersetzung (English)"
+
+
+# --- ревью T3 A1/A2: язык в подписи поля перевода -----------------------------------------
+
+
+def _label(doc):
+    return re.search(r"<label[^>]*>(.*?)</label>", doc, flags=re.S).group(1)
+
+
+@pytest.mark.xfail(strict=True, reason="ревью T3: правка следующим коммитом")
+@pytest.mark.parametrize("biz", ["ru", "tr"])
+def test_label_ui_what_has_no_business_lang(biz):
+    """Строка интерфейса («Überschrift», «Frage 1») — без `lang` языка бизнеса."""
+    label = _label(_tr({"what": "Frage 1"}, empty_lang=biz, loc="en", label="English"))
+    assert "„Frage 1“" in label
+    assert f'lang="{biz}"' not in label, label
+
+
+def test_label_content_what_keeps_business_lang():
+    """Текст бизнеса (пункт USP: `field` + `what`) — с `lang` языка бизнеса."""
+    label = _label(_tr({"what": "Бесплатно", "field": "Titel"}, empty_lang="ru", loc="en"))
+    assert '<span lang="ru">„Бесплатно“</span>' in label, label
+
+
+@pytest.mark.xfail(strict=True, reason="ревью T3: правка следующим коммитом")
+@pytest.mark.parametrize("ctx", [{}, {"what": "Frage 1"}, {"what": "X", "field": "Titel"}])
+def test_label_endonym_has_own_lang(ctx):
+    label = _label(_tr(ctx))
+    assert '<span lang="ru">Русский</span>' in label, label
+    assert _name(label).endswith("Übersetzung (Русский)")
+
+
+@pytest.mark.xfail(strict=True, reason="ревью T3: правка следующим коммитом")
+def test_label_endonym_escaped():
+    label = _label(_tr(label="<b>x</b>", loc='ru"x'))
+    assert "<b>" not in label and "&lt;b&gt;" in label and 'lang="ru&quot;x"' in label
+
+
+# --- ревью T3 A3: пометка ИИ читается один раз --------------------------------------------
+
+
+@pytest.mark.xfail(strict=True, reason="ревью T3: правка следующим коммитом")
+def test_visible_ai_mark_hidden_from_reader(monkeypatch):
+    """Видимая копия — `aria-hidden`; для чтения — sr-only `data-note` по `aria-describedby`."""
+    m2i5c._ai(monkeypatch)
+    _panel_html, form = _texte("fields")
+    marks = re.findall(r"<p[^>]*data-ai-mark[^>]*>", form)
+    assert marks
+    for mk in marks:
+        assert 'aria-hidden="true"' in mk and "id=" not in mk, mk
+    note = re.search(r'data-note="([^"]+)"', _btn(form)).group(1)
+    assert re.search(rf'<span class="sr-only" id="{note}">{NOTE}</span>', form)
+
+
+# --- ревью T3 A6: id живой области при двух блоках языков ---------------------------------
+
+
+def test_status_ids_unique_with_two_lang_blocks():
+    tr = {"url": "/t/", "result": "/r/", "screen": "s", "base": "de"}
+    locs = [{"code": "ru", "label": "Русский", "shown": True}]
+    with translation.override("de"):
+        doc = "".join(
+            render_to_string("tenant/_bw_tr_note.html", {"tr": tr, "ns": ns, "locales": locs})
+            for ns in ("", "usp", "seo")
+        )
+    ids = Counter(re.findall(r'\bid="([^"]+)"', doc))
+    assert [i for i, n in ids.items() if n > 1] == [], ids
+    assert doc.count('role="status"') == 3
+    for btn in BTN.findall(doc):
+        for attr in ("data-status", "data-note"):
+            ref = re.search(rf'{attr}="([^"]+)"', btn).group(1)
+            assert ids[ref] == 1, (attr, ref)
