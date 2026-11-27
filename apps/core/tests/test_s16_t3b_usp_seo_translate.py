@@ -122,12 +122,12 @@ def test_translation_inputs_point_to_form_fields(monkeypatch, part):
     m2i5c._ai(monkeypatch)
     _panel_html, form = _window(part)
     controls = re.findall(r"<(?:input|textarea|select)\b[^>]*>", form)
+    # ревью T3b LOW (T6): источник «Übersetzen» — имя поля формы (`f_…`) у всех видов, не id
     known = set()
     for el in controls:
-        for attr in ("name", "id"):
-            m = re.search(rf'\b{attr}="([^"]+)"', el)
-            if m:
-                known.add(m.group(1))
+        m = re.search(r'\bname="([^"]+)"', el)
+        if m:
+            known.add(m.group(1))
     fields = re.findall(r"<(?:input|textarea)[^>]*\blang=\"(?:ru|en)\"[^>]*>", form)
     assert fields
     for el in fields:

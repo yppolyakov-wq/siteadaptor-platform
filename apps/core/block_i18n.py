@@ -1165,7 +1165,9 @@ def decorate(
                 hint=f"{SEO_NS}-lang-hint",
             )
             for t in seo[f"tr_{field}"]:
-                t["of"] = f"schema-f-{name}"  # источник текста для «Übersetzen» (T3)
+                t["of"] = (
+                    f"f_{name}"  # имя немецкого поля — источник «Übersetzen» (T3; ревью T3b LOW)
+                )
                 t["max_id"] = f"{t['id']}-max"
                 t["hint"] = f"{t['hint']} {t['max_id']}"  # «Höchstens N Zeichen.» (артборд)
         part = "seo"
