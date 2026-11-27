@@ -559,6 +559,9 @@ def test_translation_only_lands_by_key_after_studio_reorder():
         (["A", "B", "C"], ["C", "A"]),
         (["A", "A", "B"], ["B", "A", "A"]),
         (["A", "B"], ["X", "Y"]),
+        ([], ["A"]),
+        (["A", "B"], []),
+        (["A", "A"], ["A", "X"]),
     ],
 )
 def test_window_and_studio_match_items_alike(old, new):
@@ -619,3 +622,31 @@ def test_items_with_translations_quote_legend():
     ):
         form = _form(_get(b, key))
         assert f'{legend} 1 · <span lang="de">„{quote}“</span></legend>' in form, key
+
+
+def _process_draft_with_tr(b):
+    _post(b, "process", f_tr_htx_process_1_text_ru="В магазине")
+    return copy.deepcopy(b.session[aufbau_draft.SESSION_KEY]["home"])
+
+
+def test_old_format_btr_base_no_false_conflict():
+    """Ревью T6 круг 2: черновик до ключей пунктов (`btr_base` без `keys`) — без ложного
+    конфликта при неизменённом конфиге (новый ключ отпечатка не ломает открытые черновики)."""
+    b = _browser(ru=False)
+    draft = _process_draft_with_tr(b)
+    for ref, base in draft["btr_base"].items():
+        assert "keys" in base
+        # формула отпечатка до ключей пунктов (черновик, открытый до деплоя)
+        tr = block_i18n.saved_for(_saved(b), draft, ref)
+        old = block_i18n.fingerprint({"tr": tr, "faq": base["faq"], "obj": base["obj"]})
+        draft["btr_base"][ref] = {"all": old, "faq": base["faq"], "obj": base["obj"]}
+    assert block_i18n.conflict(_saved(b), draft) is False
+
+
+def test_new_format_btr_base_conflicts_after_studio_reorder():
+    b = _browser(ru=False)
+    draft = _process_draft_with_tr(b)
+    cfg = _saved(b)
+    assert block_i18n.conflict(cfg, draft) is False
+    cfg["process"] = list(reversed(cfg["process"]))
+    assert block_i18n.conflict(cfg, draft) is True
