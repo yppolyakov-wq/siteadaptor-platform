@@ -645,13 +645,72 @@ def object_blocks(context, kind, obj, part="after"):
     return page_blocks(context, host)
 
 
+def _shown_raw(request):
+    """Показываемый сырой конфиг: черновик в превью (`page_settings.raw_config`, «Vorschau»
+    окна видит перевод до «Speichern»), иначе сохранённый."""
+    from apps.core import page_settings
+
+    tenant = getattr(request, "tenant", None)
+    try:
+        return page_settings.raw_config(request)
+    except Exception:  # noqa: BLE001 — превью не должно ронять витрину
+        logger.warning("siteui: raw_config failed, using saved config", exc_info=True)
+        return getattr(tenant, "site_config", None) or {}
+
+
 @register.simple_tag(takes_context=True)
 def page_seo(context, host):
-    """FB-27 «Seiten»: свои заголовок, описание и noindex текстовой страницы (`{}` — нет)."""
+    """FB-27 «Seiten»: свои заголовок, описание и noindex текстовой страницы (`{}` — нет).
+    Стопка 16 T1b: заголовок и описание — на языке посетителя (перевод окна по полю, без
+    него — немецкое), `noindex` — из базы; в превью — из черновика."""
+    from django.utils.translation import get_language
+
     from apps.core import content_pages
 
     request = context.get("request")
-    return content_pages.page_seo(getattr(request, "tenant", None), host or "")
+    if request is None:
+        return {}
+    # ревью D2: тег стоит в трёх блоках шаблона (title, description, robots) — одно чтение
+    # (и одно предупреждение о битом оверлее) на запрос; копия — шаблон не правит запись
+    key = (host or "", get_language() or "")
+    memo = getattr(request, "_page_seo_memo", None)
+    if memo is None:
+        memo = {}
+        request._page_seo_memo = memo
+    if key not in memo:
+        memo[key] = content_pages.page_seo(
+            getattr(request, "tenant", None), key[0], locale=key[1], config=_shown_raw(request)
+        )
+    return dict(memo[key])
+
+
+@register.simple_tag(takes_context=True)
+def usp_lang(context, index, field="label"):
+    """Стопка 16 T1b (долг T1a, a11y №14, WCAG 3.1.2): у пункта полосы доверия без перевода на
+    язык посетителя — ` lang="de"` (показан немецкий), с переводом — пусто."""
+    from django.conf import settings
+    from django.utils.html import format_html
+    from django.utils.translation import get_language
+
+    from apps.tenants import siteconfig
+
+    base = settings.LANGUAGE_CODE[:2]
+    loc = (get_language() or base)[:2]
+    request = context.get("request")
+    if loc == base or request is None:
+        return ""
+    raw = _shown_raw(request)
+    root = raw.get("i18n") if isinstance(raw, dict) else None
+    node = root.get(loc) if isinstance(root, dict) else None
+    rows = node.get("usp_bar") if isinstance(node, dict) else None
+    try:
+        entry = rows[int(index)] if isinstance(rows, list) else None
+    except (IndexError, TypeError, ValueError):
+        entry = None
+    text = entry.get(field) if isinstance(entry, dict) else None
+    if isinstance(text, str) and text.strip() and loc in siteconfig.overlay_locales():
+        return ""
+    return format_html(' lang="{}"', base)
 
 
 @register.filter

@@ -5,6 +5,7 @@ A.3 (T-B): полоса доверия под hero — пункты {icon, label
 emoji по токену (USP_ICONS, без внешних ресурсов). Пусто → секция не рендерится.
 ST-7b: стили — "" карточка-полоса | plain — без карточки | cards — каждый пункт
 в рамке | compact — мельче и плотнее.
+Стопка 16 T1b (a11y №14): пункт без перевода на язык посетителя — с lang="de" (тег usp_lang).
 {% endcomment %}
 {% if site.usp_bar %}
 <section data-reveal class="mb-8">
@@ -13,7 +14,7 @@ ST-7b: стили — "" карточка-полоса | plain — без кар
     {% for u in site.usp_bar %}
       <li class="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2">
         <span aria-hidden="true" class="text-lg leading-none">{% usp_icon u.icon %}</span>
-        <span class="font-medium">{{ u.label }}</span>
+        <span class="font-medium"{% usp_lang forloop.counter0 %}>{{ u.label }}</span>
       </li>
     {% endfor %}
   </ul>
@@ -26,8 +27,8 @@ ST-7b: стили — "" карточка-полоса | plain — без кар
     {% for u in site.usp_bar %}
       <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
         <span aria-hidden="true" class="text-3xl leading-none">{% usp_icon u.icon %}</span>
-        <h3 class="mt-2 font-bold">{{ u.label }}</h3>
-        {% if u.text %}<p class="mt-1 text-sm text-gray-500 leading-relaxed">{{ u.text }}</p>{% endif %}
+        <h3 class="mt-2 font-bold"{% usp_lang forloop.counter0 %}>{{ u.label }}</h3>
+        {% if u.text %}<p class="mt-1 text-sm text-gray-500 leading-relaxed"{% usp_lang forloop.counter0 "text" %}>{{ u.text }}</p>{% endif %}
       </div>
     {% endfor %}
   </div>
@@ -36,7 +37,7 @@ ST-7b: стили — "" карточка-полоса | plain — без кар
     {% for u in site.usp_bar %}
       <li class="inline-flex items-center gap-1.5">
         <span aria-hidden="true" class="leading-none">{% usp_icon u.icon %}</span>
-        <span class="font-medium">{{ u.label }}</span>
+        <span class="font-medium"{% usp_lang forloop.counter0 %}>{{ u.label }}</span>
       </li>
     {% endfor %}
   </ul>
@@ -46,7 +47,7 @@ ST-7b: стили — "" карточка-полоса | plain — без кар
       {% for u in site.usp_bar %}
         <li class="inline-flex items-center gap-2">
           <span aria-hidden="true" class="text-lg leading-none">{% usp_icon u.icon %}</span>
-          <span class="font-medium">{{ u.label }}</span>
+          <span class="font-medium"{% usp_lang forloop.counter0 %}>{{ u.label }}</span>
         </li>
       {% endfor %}
     </ul>
