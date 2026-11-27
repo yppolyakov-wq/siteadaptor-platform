@@ -59,7 +59,10 @@ def test_business_language_first_and_german_marked_as_base():
     _html, form = _form(Browser(_shop(locales=("de", "en", "ru"), default="ru")))
     assert re.findall(r'name="f_sprache" value="(\w+)"', form) == ["ru", "en"]
     assert re.findall(r'value="(\w+)" lang="\w+" aria-pressed="true"', form) == ["ru"]
-    assert "Deutsch (Ausgangstext)" in form and "Ihre Seite zeigt zuerst Русский." in form
+    first = (
+        'Ihre Seite zeigt zuerst <span lang="ru">Русский</span>.'  # стопка 16 T3: эндоним с lang
+    )
+    assert "Deutsch (Ausgangstext)" in form and first in form
     _html, plain = _form(Browser(_shop()))
     assert "Deutsch (Ausgangstext)" not in plain and "Ihre Seite zeigt zuerst" not in plain
 

@@ -539,7 +539,7 @@ function aufbauSubmitCopy(form, submitter) {
       var alert = m.getAttribute("role") === "alert";
       // role=alert — только ошибки; прочее читает одна живая область окна
       if (alert) p.setAttribute("role", "alert");
-      else if (!langOwn(m.textContent)) said.push(m.textContent.trim());
+      else if (!langOwn(msgText(m))) said.push(msgText(m));
       p.setAttribute("data-bwin-relayed", "");
       p.className = alert ? "ui-bwin-alert" : "ui-bwin-note";
       p.textContent = m.textContent.trim();
@@ -647,6 +647,14 @@ function aufbauSubmitCopy(form, submitter) {
     return { box: box, said: said, prefix: (box.getAttribute("data-prefix") || "").trim() };
   }
 
+  /* Текст сообщения без узлов aria-hidden (знак «⚠» у warning в site_schema.html) — его
+     сверяют с data-said/data-prefix и пишут в живую область. */
+  function msgText(m) {
+    var c = m.cloneNode(true);
+    c.querySelectorAll('[aria-hidden="true"]').forEach(function (n) { n.remove(); });
+    return c.textContent.trim();
+  }
+
   function langOwn(text) {
     var fs = felderStatus();
     var t = String(text || "").trim();
@@ -658,7 +666,7 @@ function aufbauSubmitCopy(form, submitter) {
     if (!fs) return;
     var said = [];
     document.querySelectorAll("[data-schema-messages] > *").forEach(function (m) {
-      if (m.getAttribute("role") !== "alert" && langOwn(m.textContent)) said.push(m.textContent.trim());
+      if (m.getAttribute("role") !== "alert" && langOwn(msgText(m))) said.push(msgText(m));
     });
     fs.box.textContent = "";
     if (said.length) setTimeout(function () { fs.box.textContent = said.join(" "); }, 100);

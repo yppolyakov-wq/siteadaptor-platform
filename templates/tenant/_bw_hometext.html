@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}FB-33 стопка 15 M5e-1b (артборд M5eTexte): тексты секции главной — те же поля и тот же писатель, что в Студии (home_texts). Форма неделима (вкладка «Texte»), сентинел htx_present у полей панели; пункты списков — fieldset с legend «Schritt N» (Y2), ошибка — у поля (Y1), потолок maxlength не режет старое.{% endcomment %}{% with h=selected.home_texts %}
+{% load i18n cabinet %}{% comment %}FB-33 стопка 15 M5e-1b (артборд M5eTexte): тексты секции главной — те же поля и тот же писатель, что в Студии (home_texts). Форма неделима (вкладка «Texte»), сентинел htx_present у полей панели; пункты списков — fieldset с legend «Schritt N» (Y2), ошибка — у поля (Y1), потолок maxlength не режет старое.{% endcomment %}{% with h=selected.home_texts %}
 <form method="post" id="bw-form-hometext" class="mt-4 space-y-3" data-schema-fields>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
@@ -6,9 +6,9 @@
   <input type="hidden" name="panel_present" value="1">
   <input type="hidden" name="f_htx_present" value="1">
   <input type="hidden" name="f_htx_fp" value="{{ h.fp }}">
-  <input type="hidden" name="op_default" value="update">{% with fl=selected.field_langs %}{% if fl.part == "hometext" %}
+  <input type="hidden" name="op_default" value="update">{% if selected.field_langs.part == "hometext" %}{% i18n_translate_ctx as tr %}{% endif %}{% with fl=selected.field_langs %}{% if fl.part == "hometext" %}
   <input type="hidden" name="op" value="update"><button name="op" value="update" class="sr-only" tabindex="-1">{% trans "Übernehmen" %}</button>
-  {% include "tenant/_bw_langs.html" with locales=fl.locales title_id=fl.title_id hint_id=fl.hint_id after_tpl="tenant/_bw_tr_note.html" %}{% endif %}{% endwith %}
+  {% include "tenant/_bw_langs.html" with locales=fl.locales title_id=fl.title_id hint_id=fl.hint_id first_note=fl.first_note after_tpl="tenant/_bw_tr_note.html" %}{% endif %}{% endwith %}
   <p id="bw-htx-hint" class="text-xs text-gray-700">{% trans "Dieselben Felder wie im Studio." %}</p>
   {% for f in h.fields %}{% include "tenant/_bw_hometext_field.html" %}{% endfor %}
   {% for g in h.groups %}<fieldset class="space-y-2 rounded-lg border border-gray-200 p-3">
