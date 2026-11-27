@@ -279,3 +279,69 @@ def test_schema_error_and_view_crash_are_skipped_lines(monkeypatch):
 def test_missing_business_is_a_skipped_line():
     lines = _script().run(["nicht-da"])
     assert lines == [{"kit": "nicht-da", "code": "", "ref": "", "skipped": "нет бизнеса"}]
+
+
+# --- (г) S15-catering-302: потерянная сессия — не «пропущено: ответ 302» -----------------------
+# Причина 302 кейтеринга (стопка 16, K1): хук сессии экспортирует `REDIS_CACHE_URL=…/1` — ту же
+# базу, что у pytest без xdist (`cache.clear()` = FLUSHDB), — и запасная база стенда `/2`
+# (`config/settings/stand.py`) не включается. Сессия владельца стиралась посреди прогона.
+
+
+def test_inventory_refuses_shared_redis_db():
+    mod = _script()
+    for shared in ("redis://localhost:6379/1", "redis://127.0.0.1:6379/1/"):
+        with pytest.raises(SystemExit, match="REDIS_CACHE_URL"):
+            mod.refuse_shared_cache(shared)
+    for own in (
+        "redis://localhost:6379/9",
+        "redis://localhost:6379/2",
+        "redis://localhost:6379/11",
+    ):
+        mod.refuse_shared_cache(own)  # своя база — без отказа
+
+
+class _Resp:
+    def __init__(self, status, location=""):
+        self.status_code = status
+        self.content = b""
+        self._headers = {"Location": location} if location else {}
+
+    def get(self, name, default=None):
+        return self._headers.get(name, default)
+
+
+class _Client:
+    def __init__(self, resp):
+        self.resp = resp
+
+    def get(self, path, query):
+        return self.resp
+
+
+def test_redirect_to_login_is_a_lost_session():
+    mod = _script()
+    fetch = mod.client_fetch(_Client(_Resp(302, "/accounts/login/?next=/dashboard/site/aufbau/")))
+    with pytest.raises(mod.SessionLostError, match="сессия потеряна"):
+        fetch("home")
+    # 302 не на вход — по-прежнему ответ вьюхи (строка «пропущено: ответ 302»)
+    assert mod.client_fetch(_Client(_Resp(302, "/dashboard/")))("home")[0] == 302
+
+
+def test_lost_session_stops_the_kit_with_its_own_line(monkeypatch):
+    tenant = _tenant()
+    mod = _script()
+
+    def lost(code, ref=""):
+        raise mod.SessionLostError("сессия потеряна: 302 → вход")
+
+    with pytest.raises(mod.SessionLostError):  # не строка «пропущено» на каждую страницу
+        mod.inventory(tenant, lost, codes=CODES)
+    monkeypatch.setattr(
+        mod,
+        "owner_client",
+        lambda *a: SimpleNamespace(session=SimpleNamespace(delete=lambda: None)),
+    )
+    monkeypatch.setattr(mod, "client_fetch", lambda client: lost)
+    lines = mod.run([tenant.slug])
+    assert lines[-1]["skipped"].startswith("сессия потеряна"), lines[-1]
+    assert mod.main_exit_code(lines) == 1

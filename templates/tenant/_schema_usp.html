@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}FB-32 S2 (макет S2): пункты полосы доверия в панели — иконка кнопками, заголовок, текст; удалить, выше/ниже, «＋ Punkt»; вид — выпадающим списком со схемами. Одна форма, всё в черновик страницы; без скриптов. Стопка 16 T1a (артборд M16UspTexte): fl — кнопки языка переводов (block_i18n.decorate, ns «usp»), у пункта — поля перевода «Titel»/«Text» (_bw_tr.html); у нового пункта — после «Speichern».{% endcomment %}
+{% load i18n cabinet %}{% comment %}FB-32 S2 (макет S2): пункты полосы доверия в панели — иконка кнопками, заголовок, текст; удалить, выше/ниже, «＋ Punkt»; вид — выпадающим списком со схемами. Одна форма, всё в черновик страницы; без скриптов. Стопка 16 T1a (артборд M16UspTexte): fl — кнопки языка переводов (block_i18n.decorate, ns «usp»), у пункта — поля перевода «Titel»/«Text» (_bw_tr.html); у нового пункта — после «Speichern». Стопка 16 T3b (T3.1): при ИИ (tr — i18n_translate_ctx этой формы) блок языков рисует «🌐 Übersetzen» (вставка _bw_tr_note.html, id по ns «usp»), поля перевода несут data-i18n-of.{% endcomment %}
 <form method="post" id="bw-form-usp" class="mt-4 space-y-3" data-schema-fields data-schema-usp>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
@@ -18,7 +18,7 @@
     </details>
   </div>
   <h3 class="text-sm font-bold text-gray-900">{% trans "Punkte" %} <span class="font-normal text-gray-600">({{ usp.items|length }}/{{ usp.max }})</span></h3>
-  {% if fl.part == "usp" %}<input type="hidden" name="lang_ns" value="{{ fl.ns }}">{% include "tenant/_bw_langs.html" with locales=fl.locales ns=fl.ns after_tpl="tenant/_bw_tr_note.html" %}{% endif %}
+  {% if fl.part == "usp" %}{% i18n_translate_ctx as tr %}<input type="hidden" name="lang_ns" value="{{ fl.ns }}">{% include "tenant/_bw_langs.html" with locales=fl.locales ns=fl.ns after_tpl="tenant/_bw_tr_note.html" %}{% endif %}
   {% for it in usp.items %}
   <fieldset class="rounded-xl border border-gray-400 p-3 space-y-2" data-schema-usp-item="{{ forloop.counter0 }}">
     <legend class="px-1 text-sm font-semibold">{% blocktrans with n=forloop.counter %}Punkt {{ n }}{% endblocktrans %}</legend>
