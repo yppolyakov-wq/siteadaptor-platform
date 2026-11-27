@@ -259,5 +259,14 @@ def test_review_checklist_holds_the_stack16_questions():
     assert "не правят общие доки, `app.css`" not in skill
 
 
+def test_ci_does_not_cancel_a_running_check():
+    # T-18.2 (решение владельца 2026-11-27): правило «не перебивать» не удержалось (стопка 16:
+    # 12 отмен, 5 после 10-й минуты) — идущий прогон доигрывает, следующий ждёт в очереди.
+    ci = (mod_root() / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "cancel-in-progress: false" in ci and "cancel-in-progress: true" not in ci
+    skill = (mod_root() / ".claude/skills/sa-increment/SKILL.md").read_text(encoding="utf-8")
+    assert "доигрывает" in skill and "Каждый пуш отменяет идущий прогон" not in skill
+
+
 def mod_root():
     return _mod().ROOT
