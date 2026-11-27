@@ -615,10 +615,21 @@ def conflict(config: dict, draft: dict) -> bool:
     if not isinstance(draft.get("btr"), dict) or not isinstance(base, dict):
         return False
     return any(
-        bases(config, draft, ref)["all"] != _base_part(value, "all")
+        _base_now(config, draft, ref, value) != _base_part(value, "all")
         for ref, value in base.items()
         if ref in draft["btr"] and kinds(draft, ref)  # блока на странице нет — переводить нечего
     )
+
+
+def _base_now(config: dict, draft: dict, ref: str, stored) -> str:
+    """Отпечаток «all» сейчас — по формуле сохранённой базы: база без `keys` (черновик,
+    открытый до ключей пунктов T6) сверяется по прежней формуле, без ключей пунктов (ревью T6
+    круг 2: новый ключ отпечатка не даёт ложный `btr_conflict` открытым черновикам)."""
+    now = bases(config, draft, ref)
+    if "keys" in now and not (isinstance(stored, dict) and "keys" in stored):
+        tr = saved_for(config, draft, ref)
+        return fingerprint({"tr": tr, "faq": now["faq"], "obj": now["obj"]})
+    return now["all"]
 
 
 def drop(draft: dict, ref: str) -> None:
