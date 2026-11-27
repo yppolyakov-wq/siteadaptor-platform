@@ -716,16 +716,23 @@ def item_src(key: str, new_items, old_items) -> list:
     """Стопка 16 T6: место в сохранённом списке для каждого пункта окна (`None` — новый). Ключ
     пункта — `_ITEM_KEY` (сам переводимый текст у шага); одно правило D9
     `siteconfig._match_items`: две «Anna» — k-я ↔ k-й, переименование при той же длине — по
-    месту, добавление и удаление — только по ключу."""
+    месту, добавление и удаление — только по ключу. Окно правит пункты по шагу (стенд T6):
+    переставили, потом переименовали — место переименованного уже занято, поэтому при той же
+    длине остаток (не узнанные новые ↔ свободные старые) сопоставляется по порядку."""
     from apps.tenants import siteconfig
 
     field = _ITEM_KEY[key]
     old = old_items if isinstance(old_items, list) else []
-    return siteconfig._match_items(
-        [siteconfig._item_identity(_dict(it), field) for it in new_items or ()],
+    new = list(new_items or ())
+    src = siteconfig._match_items(
+        [siteconfig._item_identity(_dict(it), field) for it in new],
         [[siteconfig._item_identity(_dict(it), field)] for it in old],
         by_place=True,
     )
+    if len(new) == len(old):
+        free = iter(i for i in range(len(old)) if i not in src)
+        src = [s if s is not None else next(free, None) for s in src]
+    return src
 
 
 def window_items(config: dict, key: str, draft: dict | None) -> tuple[list, list]:
