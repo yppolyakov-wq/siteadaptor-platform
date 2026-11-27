@@ -287,7 +287,6 @@ def test_missing_business_is_a_skipped_line():
 # (`config/settings/stand.py`) не включается. Сессия владельца стиралась посреди прогона.
 
 
-@pytest.mark.xfail(strict=True, reason="K1: замок до правки инвентаря")
 def test_inventory_refuses_shared_redis_db():
     mod = _script()
     for shared in ("redis://localhost:6379/1", "redis://127.0.0.1:6379/1/"):
@@ -319,7 +318,6 @@ class _Client:
         return self.resp
 
 
-@pytest.mark.xfail(strict=True, reason="K1: замок до правки инвентаря")
 def test_redirect_to_login_is_a_lost_session():
     mod = _script()
     fetch = mod.client_fetch(_Client(_Resp(302, "/accounts/login/?next=/dashboard/site/aufbau/")))
@@ -329,7 +327,6 @@ def test_redirect_to_login_is_a_lost_session():
     assert mod.client_fetch(_Client(_Resp(302, "/dashboard/")))("home")[0] == 302
 
 
-@pytest.mark.xfail(strict=True, reason="K1: замок до правки инвентаря")
 def test_lost_session_stops_the_kit_with_its_own_line(monkeypatch):
     tenant = _tenant()
     mod = _script()
