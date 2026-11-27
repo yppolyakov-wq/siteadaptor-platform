@@ -84,6 +84,8 @@ realign_list_overlays, LIST_OVERLAY_KEYS, _match_items`; сопоставлен�
   владельца.
 
 ## Грабли
+- Перевод списка и `lang` в окне — до кода вопросы 36–37 `docs/review-checklist.md` (чужой пункт, пустой
+  `lang`, запасной немецкий) · посл. 2026-11-27.
 - «Строка уже есть в `.po`» — проверять парой (msgctxt, msgid) polib-ом: «Wie anordnen» есть
   только с `msgctxt "block window tab"`, `{% trans %}` без контекста — другая запись, локально
   не ловится (CI `i18n_gap`) · посл. 2026-11-22.

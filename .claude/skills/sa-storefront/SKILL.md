@@ -99,6 +99,8 @@ promo_for_product, product_promo_map, promo_for_service, stay_promo, deal_counts
 - Заводить второй слайдер (`templates/storefront/_slider_script.html`) и автопрокрутку по умолчанию.
 
 ## Грабли
+Переведённый `<title>` или мета страницы — до кода вопрос 38 `docs/review-checklist.md` (`Vary`,
+canonical, JSON-LD бизнеса) · посл. 2026-11-27.
 Сущность и карточки:
 - Правка адаптеров `SellableEntity` гейтится ВМЕСТЕ с `apps/tenants`: секции главной рендерят
   карточки через `SimpleNamespace`-стабы контракта; хелперы связей молча отдают пусто для
