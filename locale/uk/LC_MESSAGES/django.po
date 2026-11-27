@@ -40117,10 +40117,6 @@ msgid "Übersetzungen aus dem Fenster wurden nicht übernommen."
 msgstr "Переклади з вікна не застосовано."
 
 #. FB-33 M3-5c
-msgid "Deutsch (Grundtext)"
-msgstr "Німецька (основний текст)"
-
-#. FB-33 M3-5c
 #, python-format
 msgid "Ihre Seite zeigt zuerst %(lang)s."
 msgstr "Ваш сайт спершу показує мову: %(lang)s."
