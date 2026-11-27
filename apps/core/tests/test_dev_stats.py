@@ -237,5 +237,27 @@ def test_increment_skill_holds_the_stack15_rules():
         assert needle in text, needle
 
 
+def test_review_checklist_holds_the_stack16_questions():
+    # T-20: 78 находок диффа стопки 16 против 30 на плане — классы должны спрашиваться ДО кода.
+    root = mod_root()
+    checklist = (root / "docs/review-checklist.md").read_text(encoding="utf-8")
+    for needle in (
+        "## И.",
+        "при любом исходе",
+        "ровно один целевой id",
+        "_match_items",
+        "Vary",
+        "во ВСЕХ `golden_*`",
+        "снят ДО правки",
+    ):
+        assert needle in checklist, needle
+    assert "40. " in checklist and "(40 вопросов" in (
+        root / ".claude/skills/sa-increment/SKILL.md"
+    ).read_text(encoding="utf-8")
+    # одно правило про app.css в срезе, а не два противоречащих (находка стопки 16, строка 75)
+    skill = (root / ".claude/skills/sa-increment/SKILL.md").read_text(encoding="utf-8")
+    assert "не правят общие доки, `app.css`" not in skill
+
+
 def mod_root():
     return _mod().ROOT
