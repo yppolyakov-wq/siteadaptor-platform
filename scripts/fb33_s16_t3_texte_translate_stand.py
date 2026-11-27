@@ -14,6 +14,8 @@
   `MutationObserver`: на одно нажатие текст получает одна живая область (`data-form-status`);
   одно `change` → один POST в черновик; фокус — на кнопке; правка поля снимает пометку;
   «Abbrechen» окна снимает перевод ИИ, витрина ru прежняя; Esc закрывает окно.
+- ревью T3 A5: перевод (в черновике) и сразу правка немецкого — в живой области блока языков
+  последняя фраза — о снятом переводе («Übersetzung entfernt …»), не итог «Übersetzen».
 
 Запуск (стенд-БД — копия `platform_m39_stand`):
     DB_NAME=<стенд-БД> uv run python scripts/fb33_s16_t3_texte_translate_stand.py --setup
@@ -278,11 +280,39 @@ def js_part(pg, tag, part, w):
     sl.settle(pg, True)
     got = val(pg, sc, first)
     rep.check(got.startswith("RU "), f"{tag} {part}: перевод в черновике ({got!r})")
+    race(pg, tag, part, sc, first, srcs[first])
     # Esc закрывает окно
     pg.keyboard.press("Escape")
     pg.wait_for_timeout(800)
     shut = pg.evaluate("!document.querySelector('dialog.ui-bwin[open]')")
     rep.check(shut, f"{tag} {part}: Esc закрывает окно")
+
+
+def race(pg, tag, part, sc, first, de_name):
+    """Ревью T3 A5: перевод и сразу правка немецкого (перевод снят) — в общей живой области
+    последняя фраза — о снятом переводе (сообщение `aufbau.js`), не итог «Übersetzen»."""
+    tr = pg.locator(f"{sc} [name={first}]")  # окно открыто с переводом в черновике — очистить
+    tr.fill("")
+    tr.blur()
+    busy_done(pg)
+    prefix = pg.locator(f"{sc} [data-form-status]").get_attribute("data-prefix").strip()
+    pg.evaluate(SPY, sc)
+    pg.locator(f"{sc} [data-i18n-translate]").click()
+    pg.wait_for_function(
+        "(sel) => document.querySelector(sel + ' [data-ai-filled]')", arg=sc, timeout=20000
+    )
+    busy_done(pg)  # перевод в черновике (тихий POST) — иначе форма пришлёт его как «введённый»
+    de = pg.locator(f"{sc} [name={de_name}]")
+    de.fill(de.input_value() + " neu")
+    de.blur()
+    busy_done(pg)
+    pg.wait_for_timeout(600)
+    said = pg.locator(f"{sc} [data-form-status]").text_content().strip()
+    spy = pg.evaluate("window.__t3")
+    rep.check(
+        said.startswith(prefix) and spy["status"] and spy["status"][-1].startswith(prefix),
+        f"{tag} {part}: перевод и снятие подряд — последняя фраза о снятом ({said!r}, {spy})",
+    )
 
 
 def storefront(pg, tag):
