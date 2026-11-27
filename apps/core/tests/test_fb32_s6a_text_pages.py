@@ -114,7 +114,8 @@ def test_every_hideable_section_of_a_fixed_page_has_a_visibility_key():
 def test_odd_seite_hosts_have_no_sections_and_text_is_never_hidden():
     from apps.tenants import siteconfig
 
-    for host in ("seite:Foo", "seite:a:b", "seite:x/y"):
+    # стопка 16 E10: «seite:Foo» — теперь хост своей страницы (алфавит SlugField)
+    for host in ("seite:Fo o", "seite:a:b", "seite:x/y"):
         assert detail_parts.section_keys(host) == ()
     assert (
         siteconfig.detail_section_hidden({"page_detail": {"hidden": ["pagetext"]}}, "page") == set()
