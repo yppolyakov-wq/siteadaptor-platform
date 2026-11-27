@@ -272,6 +272,42 @@ def would_add(slices: list[Slice], name: str, paths: list[str], exists=on_disk) 
     ]
 
 
+# Инвентарь до плана (T-21): ловушка — строка «| Л<N> | что | file:line | проверено/вывод |».
+_TRAP = re.compile(r"^\|\s*(Л\d+)\s*\|([^|\n]*)\|([^|\n]*)\|", re.M)
+_CODE_REF = re.compile(r"[\w./-]+\.\w+:\d+")
+
+
+def recon_traps(text: str) -> list[str]:
+    return [m.group(1) for m in _TRAP.finditer(text)]
+
+
+def recon_errors(text: str) -> list[str]:
+    """Инвентарь, по которому нечего сверять, — находка, а не «ловушек нет»."""
+    rows = list(_TRAP.finditer(text))
+    if not rows:
+        return [
+            "в инвентаре ни одной ловушки («| Л<N> | что | file:line | проверено |») — сверять нечего"
+        ]
+    return [
+        f"{m.group(1)}: нет file:line — ловушка без места в коде (предпосылка без проверки)"
+        for m in rows
+        if not _CODE_REF.search(m.group(3))
+    ]
+
+
+def traps_unanswered(recon: str, plan: str) -> list[str]:
+    """Ловушки инвентаря, на которые в плане нет ответа (номер ловушки в плане не назван).
+
+    Стопка 17: план без инвентаря прошёл ревью четырёх агентов и пропустил то, что второй прогон
+    нашёл разведкой, — полное `save()` поверх нового поля, оживающий сброс, шторм задач при переносе.
+    """
+    return [
+        f"{m.group(1)} «{m.group(2).strip()[:70]}» — в плане нет ответа на ловушку инвентаря"
+        for m in _TRAP.finditer(recon)
+        if not re.search(rf"(?<![\wЛ]){m.group(1)}(?!\d)", plan)
+    ]
+
+
 def waves(slices: list[Slice]) -> list[list[str]]:
     """Волны: срезы одной волны можно вести параллельно, следующая ждёт предыдущую."""
     done: set[str] = set()
@@ -382,6 +418,9 @@ def main() -> int:
     ap.add_argument("--verify", action="store_true", help="сверить факт с планом (после кода)")
     ap.add_argument("--base", default="origin/main", help="коммит P0 или база стопки для --verify")
     ap.add_argument(
+        "--recon", metavar="ИНВЕНТАРЬ", help="план отвечает на каждую ловушку инвентаря"
+    )
+    ap.add_argument(
         "--add",
         nargs="+",
         metavar="СРЕЗ_ФАЙЛ",
@@ -408,6 +447,9 @@ def main() -> int:
         )
         return 1 if clash else 0
     found = broken + check(slices)
+    if args.recon:
+        recon = pathlib.Path(args.recon).read_text(encoding="utf-8")
+        found += recon_errors(recon) + traps_unanswered(recon, text)
     for n, wave in enumerate(waves(slices), 1):
         print(f"волна {n}: " + ", ".join(wave))
     if args.verify:
