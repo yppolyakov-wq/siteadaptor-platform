@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import logging
-import re
 
 from apps.core import detail_sections
 
@@ -58,9 +57,6 @@ SECTION_HOSTS = {
 }
 #: FB-32 S6a: хосты своих страниц «Seite» (`seite:<slug>`) — модуль разделов «page»
 PAGE_PREFIX = "seite:"
-#: тот же вид хоста, что принимает нормализация (`siteconfig._CONTENT_PAGE_HOST_RE`) — иначе
-#: черновик со строками раздела у кривого хоста принимался бы, но не сохранялся (ревью S6a)
-_PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
 #: FB-32 S6a: модули страниц без покупки и с постоянным порядком разделов
 #: страницы, где своя «Buchung»-строка не нужна (покупка ваучера — сама строка «form»)
 _FORM_PAGES = frozenset(
@@ -150,7 +146,11 @@ OBJECT_SHARED = {
 
 def module_of(host: str) -> str:
     """Модуль разделов ОБЩЕГО хоста детали (писатель порядка/видимости — только у него)."""
-    if isinstance(host, str) and _PAGE_HOST_RE.match(host):
+    from apps.tenants import siteconfig
+
+    # тот же вид хоста, что принимает нормализация (один регэксп — стопка 16 E10): иначе
+    # черновик со строками раздела у кривого хоста принимался бы, но не сохранялся (ревью S6a)
+    if siteconfig.is_content_page_host(host):
         return "page"
     return SECTION_HOSTS.get(host, "")
 

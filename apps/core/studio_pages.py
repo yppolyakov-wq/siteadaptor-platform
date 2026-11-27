@@ -846,6 +846,10 @@ def resolve_page(path: str, query: dict | None = None) -> PageContext:
 
 #: E1t: маршруты своей текстовой страницы (короткий и старый адрес) — хост `seite:<slug>`
 _CONTENT_PAGE_URLS = ("storefront-content-page", "storefront-content-page-legacy")
+#: Стопка 16 E10 (S15-versand): маршруты типа «Seite» со своим хостом блоков — тем, что
+#: рисует их вьюха (`orders.public_views._versand_flow` — хост `versand`); общий набор
+#: `info` типа (M21.11 P3) остаётся у «Über uns»
+_ROUTE_HOSTS = {"storefront-shipping": "versand"}
 
 
 def resolve_match(match, query: dict | None = None, path: str = "") -> PageContext:
@@ -890,13 +894,15 @@ def resolve_match(match, query: dict | None = None, path: str = "") -> PageConte
         from apps.tenants.siteconfig import category_host
 
         host = category_host(ref) or pt.block_host
+    if pt.code == "text":
+        host = _ROUTE_HOSTS.get(match.url_name, host)
     # FB-33 стопка 15 E1t (A6): своя текстовая страница рисует блоки СВОЕГО хоста
     # `seite:<slug>` (`content_page_views.storefront_page`), не общего `info` — иначе ⚙
-    # Студии открывал схему «Über uns». Хост — тот же разбор, что у «Seiten».
+    # Студии открывал схему «Über uns». Стопка 16 E10 (S15-versand-gear): ровно тот хост,
+    # что рисует вьюха, — и у слага системной страницы (`versand` без заказов открывается
+    # своей страницей на `/seite/versand/`); с заказами старый адрес уходит 301 на `/versand/`.
     slug = match.kwargs.get("slug")
     if pt.code == "text" and match.url_name in _CONTENT_PAGE_URLS and slug:
-        from apps.core.content_pages import schema_ref
-
-        host = schema_ref(str(slug))[0]
+        host = f"seite:{slug}"
 
     return PageContext(pt, object_ref=ref, block_host=host, path=path, query=q)

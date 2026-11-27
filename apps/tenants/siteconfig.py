@@ -1395,8 +1395,10 @@ PROMO_GROUP_HOST_PREFIX = "promo_group:"
 _PROMO_GROUP_HOST_RE = re.compile(r"^promo_group:[0-9a-f]{32}\Z")
 _MAX_PROMO_GROUP_HOSTS = 40
 #: M21.11 (решение владельца): у КАЖДОЙ своей страницы свой набор блоков — хост
-#: «seite:<slug>» (slug — тот же алфавит, что адрес страницы).
-_CONTENT_PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
+#: «seite:<slug>». Стопка 16 E10 (решение владельца 2026-11-26): алфавит — `SlugField`
+#: модели (`ContentPage.slug`, A–Z и «_» приходят из импорта и админки), адреса не меняются.
+#: ЕДИНСТВЕННЫЙ регэксп хоста своей страницы — читатели зовут `is_content_page_host`.
+CONTENT_PAGE_HOST_RE = re.compile(r"^seite:[-a-zA-Z0-9_]{1,80}\Z")
 #: FB-29.4b: СВОИ блоки объекта (товар, услуга), видимые только на его странице — хост
 #: «product:<uuid hex>» / «service:<uuid hex>». Свой потолок: объектов тысячи, а конфиг
 #: читается на каждом запросе.
@@ -1418,6 +1420,11 @@ def object_hosts_full(config, host) -> bool:
     return sum(1 for k in blocks if is_object_host(k)) >= _MAX_OBJECT_HOSTS
 
 
+def is_content_page_host(host) -> bool:
+    """Хост блоков своей текстовой страницы `seite:<slug>` (`CONTENT_PAGE_HOST_RE`)."""
+    return isinstance(host, str) and bool(CONTENT_PAGE_HOST_RE.match(host))
+
+
 def is_page_block_host(host) -> bool:
     """UC6-7 + KAT-1: допустимый хост page_blocks — фикс-страница или категория."""
     if not isinstance(host, str):
@@ -1427,7 +1434,7 @@ def is_page_block_host(host) -> bool:
     return (
         host in PAGE_BLOCK_HOSTS
         or bool(_CATEGORY_HOST_RE.match(host))
-        or bool(_CONTENT_PAGE_HOST_RE.match(host))
+        or is_content_page_host(host)
         or bool(_OBJECT_HOST_RE.match(host))
         or bool(_PROMO_GROUP_HOST_RE.match(host))
     )
@@ -5603,9 +5610,7 @@ _MAX_SEO_PAGES = 60
 
 
 def is_seo_page_host(host) -> bool:
-    return isinstance(host, str) and (
-        host in SEO_PAGE_HOSTS or bool(_CONTENT_PAGE_HOST_RE.match(host))
-    )
+    return isinstance(host, str) and (host in SEO_PAGE_HOSTS or is_content_page_host(host))
 
 
 def clean_seo_page(raw) -> dict:
