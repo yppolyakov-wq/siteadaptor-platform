@@ -25,7 +25,6 @@ from apps.core.tests import test_s16_t1b_seo_i18n as t1b
 from apps.core.tests.test_fb33_m3_window_before import _panel
 
 pytestmark = pytest.mark.django_db
-XF = pytest.mark.xfail(strict=True, reason="T3b: у USP и SEO нет tr — кнопки нет")
 BTN = re.compile(r"<button[^>]*data-i18n-translate[ >].*?</button>", re.S)
 
 
@@ -71,7 +70,6 @@ def _name(html):
     return " ".join(re.sub(r"<[^>]+>", "", html).split())
 
 
-@XF
 @pytest.mark.parametrize("part", sorted(PARTS))
 def test_ai_button_with_translations_only(monkeypatch, part):
     m2i5c._ai(monkeypatch)
@@ -91,7 +89,6 @@ def test_ai_button_with_translations_only(monkeypatch, part):
     assert one and "data-i18n-translate" not in one, "один язык"
 
 
-@XF
 @pytest.mark.parametrize("part", sorted(PARTS))
 def test_note_and_status_ids_by_ns(monkeypatch, part):
     m2i5c._ai(monkeypatch)
@@ -108,7 +105,6 @@ def test_note_and_status_ids_by_ns(monkeypatch, part):
     assert [i for i, n in ids.items() if n > 1] == [], part
 
 
-@XF
 def test_ids_unique_with_usp_and_seo_lang_blocks(monkeypatch):
     m2i5c._ai(monkeypatch)
     doc = _window("usp")[1] + _window("seo")[1]
@@ -121,7 +117,6 @@ def test_ids_unique_with_usp_and_seo_lang_blocks(monkeypatch):
             assert ids[ref] == 1, (attr, ref)
 
 
-@XF
 @pytest.mark.parametrize("part", sorted(PARTS))
 def test_translation_inputs_point_to_form_fields(monkeypatch, part):
     m2i5c._ai(monkeypatch)
@@ -143,7 +138,6 @@ def test_translation_inputs_point_to_form_fields(monkeypatch, part):
     assert "data-i18n-of" not in _window(part)[1]
 
 
-@XF
 def test_seo_translation_caps_sent_with_maxlength(monkeypatch):
     """Потолки SEO 70/200 — `maxlength` поля перевода: клиент шлёт его `max` серверу."""
     m2i5c._ai(monkeypatch)

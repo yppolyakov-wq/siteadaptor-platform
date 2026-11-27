@@ -1,5 +1,5 @@
-{% load i18n %}{% comment %}FB-33 M3-6 (M0-11): «Texte» у «Einstellungen der Seite» — свой заголовок и описание страницы для поисковиков; правка идёт в черновик страницы (запись — по «Speichern»). «Nicht in Suchmaschinen anzeigen» — на экране «Seiten». Стопка 16 T1b (артборд M16SeoTexte): fl — кнопки языка переводов (block_i18n.decorate, ns «seo»), seo.tr_title/tr_description — поля перевода (_bw_tr.html) с «Höchstens N Zeichen.»; переводы — только здесь (экран «Seiten» — немецкий).{% endcomment %}
-{% with seo=selected.seo fl=selected.field_langs %}
+{% load i18n cabinet %}{% comment %}FB-33 M3-6 (M0-11): «Texte» у «Einstellungen der Seite» — свой заголовок и описание страницы для поисковиков; правка идёт в черновик страницы (запись — по «Speichern»). «Nicht in Suchmaschinen anzeigen» — на экране «Seiten». Стопка 16 T1b (артборд M16SeoTexte): fl — кнопки языка переводов (block_i18n.decorate, ns «seo»), seo.tr_title/tr_description — поля перевода (_bw_tr.html) с «Höchstens N Zeichen.»; переводы — только здесь (экран «Seiten» — немецкий). Стопка 16 T3b (T3.1): при ИИ (tr — i18n_translate_ctx этой формы) — «🌐 Übersetzen» в блоке языков (_bw_tr_note.html, id по ns «seo»); потолки 70/200 — maxlength поля перевода (клиент шлёт их серверу, запись режет как ручной ввод).{% endcomment %}
+{% with seo=selected.seo fl=selected.field_langs %}{% if fl.part == "seo" %}{% i18n_translate_ctx as tr %}{% endif %}
 <form method="post" id="bw-form-seo" class="mt-4 space-y-3" data-schema-fields data-schema-seo>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
