@@ -22,6 +22,12 @@
   [<позиция пункта>]`; `src` — место пункта в сохранённом списке, едет с пунктом при ↑/↓/✕
   (`usp_items`); ключ пункта — не его немецкий `label` (сам переводимый текст), поле формы — по
   позиции показа (`before`), как номер вопроса FAQ;
+- пункты секций главной (стопка 16 T6): шаг `title`/`text`, команда `role`, отзыв `text`
+  (`home_texts.TR_ITEM_FIELDS`, имена не переводятся): `item.<src>.<поле>` →
+  `i18n[<язык>][<секция>][<позиция пункта>]` — тот же позиционный оверлей, что у Студии; `src` —
+  место пункта в сохранённом списке, пункт окна узнаётся по ключу (`home_texts.item_src`, правило
+  D9); поле формы — по позиции показа (снимок `htx_of`); при правке пунктов переводы окна кладёт
+  писатель текстов (`home_texts.put(window_tr=)`, `explicit_items`), без неё — `apply`;
 - SEO страницы (стопка 16 T1b, ★ текстовой страницы `siteconfig.is_seo_page_host`): поля
   `seo_title`/`seo_description` (имена `page_window.SEO_FIELDS`, не `title` — тот у
   «Seitentitel») → `i18n[<язык>]["seo"]["pages"][<хост>]["title"|"description"]`
@@ -69,9 +75,13 @@ USP_CAPS = {"label": 120, "text": 200}
 USP_NS = "usp"
 #: стопка 16 T1b: блок языков формы SEO ★-строки текстовой страницы
 SEO_NS = "seo"
-LANG_NAMESPACES = (USP_NS, SEO_NS)
+#: стопка 16 T6: блок языков «Texte» секций со списком пунктов (шаги, команда, отзывы)
+HTX_NS = {key: f"htx-{key}" for key in ("process", "team", "testimonials")}
+LANG_NAMESPACES = (USP_NS, SEO_NS, *HTX_NS.values())
 #: стопка 16 T1b: поле окна (`page_window.SEO_FIELDS`) → поле записи SEO (`seo_tr_path`)
 _SEO_TR = {"seo_title": "title", "seo_description": "description"}
+#: стопка 16 T6: поле пункта секции главной в форме окна (без «f_»): htx_<секция>_<позиция>_<поле>
+_ITEM_RE = re.compile(r"htx_(process|team|testimonials)_(\d{1,2})_([a-z]+)")
 
 
 def _locales() -> list[str]:
@@ -183,6 +193,7 @@ def german(config: dict, page: dict, ref: str) -> dict:
             out[field] = _rows_text(data.get(field)) if field == "rows" else _s(data.get(field))
     if "htx" in found:
         out.update(_htx_texts(config, page, row["key"]))
+        out.update(_item_texts(config, page, row["key"]))
     if "title" in found:
         entry = page.get("title") or {}
         for field in _TITLE_FIELDS:
@@ -283,6 +294,12 @@ def saved_for(config: dict, page: dict, ref: str) -> dict:
                 text = _at(node, _home_texts().tr_path(key, name))
                 if text:
                     mine[name] = text
+            fields = _home_texts().TR_ITEM_FIELDS.get(key, ())
+            rows = node.get(key) if fields else None
+            for j, entry in enumerate(rows if isinstance(rows, list) else ()):
+                for field in fields:
+                    if isinstance(entry, dict) and _s(entry.get(field)):
+                        mine[f"item.{j}.{field}"] = _s(entry[field])
         if "usp" in found and isinstance(node.get("usp_bar"), list):
             for s, entry in enumerate(node["usp_bar"]):
                 for field in _USP_FIELDS:
@@ -353,7 +370,17 @@ def bases(config: dict, page: dict, ref: str, obj=None) -> dict:
         okind, found_obj = _object(str(page.get("host") or ""))
         ofp = _object_fp(obj if obj is not None else found_obj, okind)
     tr = saved_for(config, page, ref)
-    return {"all": fingerprint({"tr": tr, "faq": faq, "obj": ofp}), "faq": faq, "obj": ofp}
+    keys = _item_keys(config, page, ref) if "htx" in found else None
+    if keys is None:
+        return {"all": fingerprint({"tr": tr, "faq": faq, "obj": ofp}), "faq": faq, "obj": ofp}
+    # стопка 16 T6 (ревью D1): ключи пунктов — в отпечатке (Студия переставила шаги без
+    # переводов — тоже конфликт) и в черновике (`_put_item` узнаёт свой пункт после «Trotzdem»)
+    return {
+        "all": fingerprint({"tr": tr, "faq": faq, "obj": ofp, "items": keys}),
+        "faq": faq,
+        "obj": ofp,
+        "keys": keys,
+    }
 
 
 def _base_part(value, part: str) -> str:
@@ -377,6 +404,9 @@ def _caps(page: dict, ref: str, key: str) -> int:
         )
     if key.startswith("usp."):
         return USP_CAPS.get(key.rsplit(".", 1)[-1], 200)
+    if key.startswith("item."):  # стопка 16 T6: те же потолки, что у немецких полей пункта
+        ht = _home_texts()
+        return ht.TEXT_MAX if key.endswith(".text") else ht.TITLE_MAX
     if key.startswith(("faq.", "ofaq.")):
         kind, _s_, field = key.split(".")
         if kind == "ofaq":
@@ -403,18 +433,22 @@ def _clean(key: str, value, cap: int) -> tuple[str, bool]:
     text = value.replace("\r\n", "\n").replace("\r", "\n") if isinstance(value, str) else ""
     # стопка 16 T1b: SEO — пробелы схлопнуты, как у немецкого (`clean_seo_page`)
     text = " ".join(text.split()) if key.startswith("label.") or key in _SEO_TR else text.strip()
+    if key.startswith("item."):
+        # стопка 16 T6: пункт Студии — строка «A | B»: перевод одной строкой и без «|», как
+        # немецкое поле пункта (`home_texts._item_text`)
+        text = _home_texts()._item_text(text)
     if len(text) <= cap:
         return text, False
     # стопка 16 T1b: обрезанное SEO — без пробела в хвосте (как `clean_seo_page` при чтении)
     return (text[:cap].rstrip() if key in _SEO_TR else text[:cap]), True
 
 
-def _posted(page: dict, ref: str, fields, post, before_src: dict) -> dict:
+def _posted(page: dict, ref: str, fields, post, before_src: dict, lost: list | None = None) -> dict:
     """Присланные переводы: {(язык, ключ): текст}. Поля формы — только своих ключей и языков
     платформы; номер вопроса FAQ — позиция в окне ДО правки (`before_src`)."""
     allowed_locs = set(_locales())
     out: dict = {}
-    usp_src = None
+    usp_src = item_src = None
     for name, value in (fields or {}).items():
         match = _FIELD_RE.fullmatch(str(name))
         if not match or match.group(2) not in allowed_locs:
@@ -431,6 +465,20 @@ def _posted(page: dict, ref: str, fields, post, before_src: dict) -> dict:
             s = src[i] if i < len(src) else None
             if isinstance(s, int):
                 out[(loc, f"usp.{s}.{usp.group(2)}")] = value
+            continue
+        item = _ITEM_RE.fullmatch(field)
+        if item:
+            # стопка 16 T6: позиция пункта в окне при показе → его место в сохранённом списке
+            section, i, part = item.group(1), int(item.group(2)), item.group(3)
+            if section != before_src.get("htx_key"):
+                continue
+            if item_src is None:
+                item_src = item_slot_src(before_src, fields)
+            s = item_src[i] if i < len(item_src) else None
+            if isinstance(s, int) and part in _home_texts().TR_ITEM_FIELDS.get(section, ()):
+                out[(loc, f"item.{s}.{part}")] = value
+            elif lost is not None and _s(value):
+                lost.append(field)  # ревью D3: пункт не узнан (устаревшая вкладка) — не молча
             continue
         key = f"label.{field[6:]}" if field.startswith("label_") else field
         out[(loc, key)] = value
@@ -456,6 +504,10 @@ def before(config: dict, draft: dict, ref: str) -> dict:
     if "usp" in kinds(draft, ref):
         items, usp_src = usp_items((_row(draft, ref) or {}).get("data"), config)
         src["usp"], src["usp_items"] = usp_src, items
+    key = (_row(draft, ref) or {}).get("key")
+    if "htx" in kinds(draft, ref) and key in _home_texts().TR_ITEM_FIELDS:
+        items, item_src = _home_texts().window_items(config, key, draft)
+        src["htx"], src["htx_items"], src["htx_key"] = item_src, items, key
     return {"german": german(config, draft, ref), "src": src, "draft": copy.deepcopy(draft)}
 
 
@@ -472,7 +524,8 @@ def take(
     post = getattr(request, "POST", None) or {}
     old_draft = prior.get("draft") or draft
     saved = _merged(saved_for(config, old_draft, ref), saved_for(config, draft, ref))
-    posted = _posted(old_draft, ref, fields, post, prior.get("src") or {})
+    lost: list = []
+    posted = _posted(old_draft, ref, fields, post, prior.get("src") or {}, lost)
     now = german(config, draft, ref)
     was = prior.get("german") or {}
     valid = set(now) | set(was)
@@ -507,7 +560,11 @@ def take(
     else:
         btr.pop(ref, None)
     _store(draft, btr, config, ref)
+    if lost:
+        logger.warning("block_i18n: %s item translations of a stale form skipped", len(lost))
     if notes is not None:
+        if lost:
+            notes.append(window_skipped_note())
         if capped:
             notes.append(siteconfig.cap_note())
         if removed:
@@ -558,10 +615,21 @@ def conflict(config: dict, draft: dict) -> bool:
     if not isinstance(draft.get("btr"), dict) or not isinstance(base, dict):
         return False
     return any(
-        bases(config, draft, ref)["all"] != _base_part(value, "all")
+        _base_now(config, draft, ref, value) != _base_part(value, "all")
         for ref, value in base.items()
         if ref in draft["btr"] and kinds(draft, ref)  # блока на странице нет — переводить нечего
     )
+
+
+def _base_now(config: dict, draft: dict, ref: str, stored) -> str:
+    """Отпечаток «all» сейчас — по формуле сохранённой базы: база без `keys` (черновик,
+    открытый до ключей пунктов T6) сверяется по прежней формуле, без ключей пунктов (ревью T6
+    круг 2: новый ключ отпечатка не даёт ложный `btr_conflict` открытым черновикам)."""
+    now = bases(config, draft, ref)
+    if "keys" in now and not (isinstance(stored, dict) and "keys" in stored):
+        tr = saved_for(config, draft, ref)
+        return fingerprint({"tr": tr, "faq": now["faq"], "obj": now["obj"]})
+    return now["all"]
 
 
 def drop(draft: dict, ref: str) -> None:
@@ -728,6 +796,8 @@ def apply(config: dict, draft: dict, home: bool, host: str) -> None:
                         logger.warning("block_i18n: seo translation hosts full — skipped")
                         continue
                     _set_path(config, loc, _content_pages().seo_tr_path(host, _SEO_TR[key]), text)
+                elif "htx" in found and home and key.startswith("item."):
+                    _put_item(config, draft, ref, loc, key, text)
                 elif "htx" in found and home:
                     row = _row(draft, ref) or {}
                     if _htx_allowed(config, draft, row.get("key") or "", key):
@@ -1053,6 +1123,8 @@ def decorate(
                 area=f.get("kind") == "text",
             )
             part = "hometext"
+    if "htx" in found and not part.startswith("fields"):
+        part = _decorate_items(htx, saved_config, page, texts, saved, inputs, base) or part
     faq = selected.get("faq_items") or {}
     scope = "ofaq" if faq.get("scope") == "object" else "faq"
     if (
@@ -1121,7 +1193,9 @@ def decorate(
                 hint=f"{SEO_NS}-lang-hint",
             )
             for t in seo[f"tr_{field}"]:
-                t["of"] = f"schema-f-{name}"  # источник текста для «Übersetzen» (T3)
+                t["of"] = (
+                    f"f_{name}"  # имя немецкого поля — источник «Übersetzen» (T3; ревью T3b LOW)
+                )
                 t["max_id"] = f"{t['id']}-max"
                 t["hint"] = f"{t['hint']} {t['max_id']}"  # «Höchstens N Zeichen.» (артборд)
         part = "seo"
@@ -1138,12 +1212,65 @@ def decorate(
         "base_note": rule["base_note"],
         "first_note": rule["first_note"],
     }
-    if part in ("usp", "seo"):
+    item_ns = HTX_NS.get(htx.get("key")) if part == "hometext" else None
+    if part in ("usp", "seo") or item_ns:
         # стопка 16 T1a/T1b (a11y №4): блок языков формы USP и SEO — своё пространство id
-        ns = USP_NS if part == "usp" else SEO_NS
+        # (T6: и «Texte» секций с пунктами — `htx-<секция>`)
+        ns = item_ns or (USP_NS if part == "usp" else SEO_NS)
         selected["field_langs"].update(
             ns=ns, title_id=f"{ns}-lang-title", hint_id=f"{ns}-lang-hint"
         )
+
+
+def _decorate_items(htx: dict, saved_config: dict, page: dict, texts, saved, inputs, base):
+    """Стопка 16 T6: поля перевода пунктов «Texte» (шаги, команда, отзывы) — по позиции пункта
+    в окне, ключ — его место в сохранённом списке; у нового пункта полей нет (после
+    «Speichern»), имя — «Name wird nicht übersetzt.». Возвращает "hometext" или ""."""
+    ht = _home_texts()
+    key = htx.get("key")
+    fields = ht.TR_ITEM_FIELDS.get(key)
+    if not fields:
+        return ""
+    win, src = ht.window_items(saved_config, key, page)
+    keyfield = ht._ITEM_KEY[key]
+    hint = f"{HTX_NS[key]}-lang-hint"
+    names, groups = [], []
+    for g in htx.get("groups") or ():
+        i = g.get("i")
+        s = src[i] if isinstance(i, int) and i < len(src) else None
+        if not isinstance(s, int):
+            continue  # новый пункт: переводы — после «Speichern» (решение владельца 4)
+        groups.append((g, _s(win[i].get(keyfield))))
+        for f in g["fields"]:
+            field = f["name"].rsplit("_", 1)[-1]
+            k = f"item.{s}.{field}"
+            if field not in fields:
+                if field == keyfield:
+                    names.append(f)
+                continue
+            if field != keyfield and not (texts.get(k) or any(k in v for v in saved.values())):
+                continue  # без немецкого текста переводить нечего
+            f["translations"] = inputs(
+                k,
+                lambda loc, n=f["name"]: f"f_tr_{n}_{loc}",
+                f["id"],
+                area=f.get("kind") == "text",
+                hint=hint,
+            )
+            for t in f["translations"]:
+                t["of"] = f"f_{f['name']}"  # источник текста для «Übersetzen» (T3)
+            f["tr_short"] = True  # подпись «Titel – Übersetzung (…)», пункт назван в legend
+    if not any(f.get("translations") for g, _q in groups for f in g["fields"]):
+        return ""
+    htx["of"] = items_fp(win, src)
+    for g, quote in groups:
+        g["quote"], g["quote_lang"] = quote, base
+    from django.utils.translation import gettext
+
+    for f in names:
+        f["not_tr"] = gettext("Name wird nicht übersetzt.")
+        f["described"] = " ".join(x for x in (f.get("described"), f"{f['id']}-nt") if x)
+    return "hometext"
 
 
 #: id заголовка и подсказки кнопок языка окна (одна такая форма на окно; у «Felder» — свои)
@@ -1241,3 +1368,138 @@ def _htx_allowed(config: dict, draft: dict, section: str, key: str) -> bool:
     arch = config.get("archetypes") if isinstance(config.get("archetypes"), dict) else {}
     known = set(arch) | set(ht.arch_keys_of(ht.pending(draft, "archetypes") or {}))
     return any(key == f"{p}{k}" for p in ("arch_label_", "arch_blurb_") for k in known)
+
+
+# ───────────── стопка 16 T6: пункты секций главной (шаги, команда, отзывы) ─────────────
+
+
+def _item_texts(config: dict, page: dict, key) -> dict:
+    """Немецкие тексты пунктов окна, перевод которых правится в окне: {item.<src>.<поле>}."""
+    ht = _home_texts()
+    fields = ht.TR_ITEM_FIELDS.get(key)
+    if not fields:
+        return {}
+    out = {}
+    win, src = ht.window_items(config, key, page)
+    for item, s in zip(win, src, strict=False):
+        if isinstance(s, int):
+            for field in fields:
+                out[f"item.{s}.{field}"] = _s(item.get(field))
+    return out
+
+
+def items_fp(items, src) -> str:
+    """Снимок пунктов окна при показе (`htx_of` формы)."""
+    return fingerprint({"items": items or [], "src": src or []})
+
+
+def item_slot_src(before_src: dict, fields) -> list:
+    """Место в сохранённом списке для каждой позиции пункта формы «Texte». Снимок формы
+    (`htx_of`) совпал с окном до правки — позиции те же; нет — пункты тем временем правили в
+    другой вкладке: позиция узнаёт свой пункт по присланному немецкому ключу (правило D9
+    `siteconfig._match_items`), не узнала — без перевода. Без снимка — по позиции, как прежде."""
+    from apps.tenants import siteconfig
+
+    items, src = before_src.get("htx_items") or [], before_src.get("htx") or []
+    key = before_src.get("htx_key") or ""
+    of = str((fields or {}).get("htx_of", ""))
+    if not of or of == items_fp(items, src) or key not in _home_texts().TR_ITEM_FIELDS:
+        return src
+    keyfield = _home_texts()._ITEM_KEY[key]
+    slot = re.compile(rf"htx_{key}_(\d{{1,2}})_{keyfield}")
+    n = 1 + max((int(m.group(1)) for m in map(slot.fullmatch, map(str, fields)) if m), default=-1)
+    posted = [
+        siteconfig._item_identity(
+            {keyfield: _home_texts()._item_text(fields.get(f"htx_{key}_{i}_{keyfield}"))},
+            keyfield,
+        )
+        for i in range(n)
+    ]
+    found = siteconfig._match_items(
+        posted, [[siteconfig._item_identity(it, keyfield)] for it in items]
+    )
+    return [src[j] if isinstance(j, int) and j < len(src) else None for j in found]
+
+
+def explicit_items(draft: dict, section: str) -> dict:
+    """Переводы пунктов секции из черновика ({язык: {src: {поле: текст}}}, "" — снять) — для
+    писателя текстов `home_texts.put(window_tr=)`, когда пункты секции правили в окне."""
+    out: dict = {}
+    btr = draft.get("btr") if isinstance(draft.get("btr"), dict) else {}
+    allowed = set(_locales())
+    for ref, per_loc in btr.items():
+        row = _row(draft, ref)
+        if not isinstance(row, dict) or row.get("id") or row.get("key") != section:
+            continue
+        for loc, entries in (per_loc or {}).items():
+            if loc not in allowed or not isinstance(entries, dict):
+                continue
+            for key, text in entries.items():
+                parts = str(key).split(".")
+                if len(parts) != 3 or parts[0] != "item" or not parts[1].isdigit():
+                    continue
+                if isinstance(text, str):
+                    out.setdefault(loc, {}).setdefault(int(parts[1]), {})[parts[2]] = text
+    return out
+
+
+def put_items(config: dict, section: str, src: list, tr: dict) -> None:
+    """Переводы пунктов из окна — на место пункта в записанном списке (`src` — место каждого
+    нового пункта в прежнем списке, `home_texts.item_src`); ушедший пункт — без записи."""
+    fields = _home_texts().TR_ITEM_FIELDS.get(section, ())
+    for loc, by_src in sorted((tr or {}).items()):
+        for s, entry in sorted(by_src.items()):
+            if s not in src:
+                logger.debug("block_i18n: %s item %s is gone — translation skipped", section, s)
+                continue
+            j = src.index(s)
+            for field, text in sorted(entry.items()):
+                if field in fields and isinstance(text, str):
+                    _set_path(config, loc, (section, j, field), text)
+
+
+def _put_item(config: dict, draft: dict, ref: str, loc: str, key: str, text: str) -> None:
+    """Перевод пункта, когда сами пункты секции в окне не правили: места те же, что в
+    сохранённом списке (правили — пишет `home_texts.put(window_tr=)` после выравнивания)."""
+    ht = _home_texts()
+    section = (_row(draft, ref) or {}).get("key") or ""
+    if section in ht.clean_htx(draft):
+        return
+    _kind, s, field = (key.split(".") + ["", ""])[:3]
+    if not s.isdigit() or field not in ht.TR_ITEM_FIELDS.get(section, ()):
+        return
+    rows = config.get(section)
+    j = _item_now(config, draft, ref, section, int(s))
+    if j is None:
+        logger.warning("block_i18n: %s item %s is gone — translation skipped", section, s)
+    elif isinstance(rows, list) and j < len(rows):
+        _set_path(config, loc, (section, j, field), text)
+
+
+def _item_keys(config: dict, page: dict, ref: str):
+    """Ключи сохранённых пунктов секции окна (`None` — у строки пунктов нет)."""
+    from apps.tenants import siteconfig
+
+    ht = _home_texts()
+    section = (_row(page, ref) or {}).get("key")
+    if section not in ht.TR_ITEM_FIELDS:
+        return None
+    rows = config.get(section) if isinstance(config.get(section), list) else []
+    return [siteconfig._item_identity(r, ht._ITEM_KEY[section]) for r in rows]
+
+
+def _item_now(config: dict, draft: dict, ref: str, section: str, s: int):
+    """Ревью D1: место пункта `s` (место при первой правке перевода) в списке `config` сейчас —
+    по ключу пункта из черновика (k-й дубль ↔ k-й); ключей нет (черновик до правки) — `s`."""
+    base = (
+        (draft.get("btr_base") or {}).get(ref) if isinstance(draft.get("btr_base"), dict) else None
+    )
+    keys = base.get("keys") if isinstance(base, dict) else None
+    now = _item_keys(config, draft, ref)
+    if not isinstance(keys, list) or now is None or keys == now:
+        return s
+    if s >= len(keys):
+        return None
+    occurrence = keys[:s].count(keys[s])
+    places = [j for j, k in enumerate(now) if k == keys[s]]
+    return places[occurrence] if occurrence < len(places) else None

@@ -4469,7 +4469,7 @@ def _item_identity(item, field: str) -> str:
     return "t:" + str(item.get(field, ""))
 
 
-def _match_items(new_idents, old_idents, by_place: bool = False) -> list:
+def _match_items(new_idents, old_idents, by_place: bool = False, leftover: bool = False) -> list:
     """Индекс старого элемента для каждого нового (`None` — новый элемент).
 
     `old_idents[i]` — личности i-го старого элемента (`_item_identity`). Одинаковые личности
@@ -4478,6 +4478,9 @@ def _match_items(new_idents, old_idents, by_place: bool = False) -> list:
     `by_place` (решение владельца 2026-11-26, D9): не узнанный по ключу элемент — тот, что
     стоял на этом месте, если длина списка не изменилась (переименовали сам ключ: метку,
     вопрос, заголовок шага); добавление и удаление элементов — только по ключу.
+    `leftover` (стопка 16 T6, ревью D2 — одно правило окна и Студии): при той же длине и
+    остаток — не узнанные новые ↔ свободные старые — по порядку (переставили и переименовали:
+    место переименованного уже занято).
     """
     slots: dict = {}
     for i, idents in enumerate(old_idents):
@@ -4494,6 +4497,9 @@ def _match_items(new_idents, old_idents, by_place: bool = False) -> list:
             if idx is None and j not in used:
                 out[j] = j
                 used.add(j)
+        if leftover:
+            free = iter(i for i in range(len(old_idents)) if i not in used)
+            out = [idx if idx is not None else next(free, None) for idx in out]
     return out
 
 
@@ -4536,7 +4542,7 @@ def _split_node(new, old, field: str, old_overlay=None):
             own = _item_identity(item, field)
             old_idents.append([x for x in (shown, own) if x and not (shown and x == "t:")])
         matched = _match_items(
-            [_item_identity(item, field) for item in new], old_idents, by_place=True
+            [_item_identity(item, field) for item in new], old_idents, by_place=True, leftover=True
         )
         base, ov, any_tr = [], [], False
         for item, idx in zip(new, matched, strict=True):
