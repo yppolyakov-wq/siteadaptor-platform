@@ -46,6 +46,15 @@ def _fresh_cache():
     cache.clear()
 
 
+@pytest.fixture(autouse=True)
+def _keep_language():
+    """Полный стек (`LocaleMiddleware`) оставляет активным язык последнего ответа — соседние
+    тесты читали бы сообщения не на том языке."""
+    before = translation.get_language()
+    yield
+    translation.activate(before)
+
+
 def _three_lang_shop():
     tenant = _shop(seo=DE, ru=RU)
     cfg = _cfg(tenant)
@@ -179,7 +188,6 @@ FOREIGN = {
 }
 
 
-@pytest.mark.xfail(strict=True, reason="D2: до правки")
 @pytest.mark.parametrize("case", sorted(FOREIGN))
 def test_foreign_broken_key_keeps_valid_host_translation(case, caplog):
     tenant = _shop(seo=DE)
@@ -195,7 +203,6 @@ def test_foreign_broken_key_keeps_valid_host_translation(case, caplog):
     assert len(warned) == 1, "битый чужой ключ виден в журнале — один раз на запрос"
 
 
-@pytest.mark.xfail(strict=True, reason="D2: до правки")
 def test_broken_overlay_warns_once_per_request(caplog):
     """`{% page_seo %}` стоит в трёх блоках шаблона (title, description, robots) — чтение
     одно на запрос, предупреждение одно."""
@@ -236,20 +243,27 @@ def _versand_shop(orders: bool):
     return tenant, page
 
 
+def _owner():
+    from django.contrib.auth import get_user_model
+
+    from apps.core.tests.test_m21_6_content_pages import _user
+
+    return get_user_model().objects.filter(username="owner-cp").first() or _user()
+
+
 def _seiten(tenant, page, query, method="get", data=None):
     from apps.core import content_page_views as views
-    from apps.core.tests.test_m21_6_content_pages import _req, _user
+    from apps.core.tests.test_m21_6_content_pages import _req
 
     before = getattr(connections["default"], "tenant", None)
     connections["default"].tenant = tenant
     try:
-        req = _req(f"/x/{query}", method=method, data=data, user=_user(), tenant=tenant)
+        req = _req(f"/x/{query}", method=method, data=data, user=_owner(), tenant=tenant)
         return views.page_edit(req, page.pk)
     finally:
         connections["default"].tenant = before
 
 
-@pytest.mark.xfail(strict=True, reason="V1: до правки")
 def test_versand_schema_ref_without_orders_is_own_page_host():
     tenant, _page = _versand_shop(orders=False)
     assert content_pages.schema_ref("versand", tenant) == (
@@ -260,14 +274,12 @@ def test_versand_schema_ref_without_orders_is_own_page_host():
     assert studio_pages.resolve_page("/seite/versand/").block_host == "seite:versand"
 
 
-@pytest.mark.xfail(strict=True, reason="V1: до правки")
 def test_versand_schema_ref_with_orders_stays_versand():
     tenant, _page = _versand_shop(orders=True)
     assert content_pages.schema_ref("versand", tenant) == ("versand", "text@versand")
     assert content_pages.schema_ref("ueber-uns", tenant)[0] == "info"
 
 
-@pytest.mark.xfail(strict=True, reason="V1: до правки")
 def test_versand_blocks_tab_without_orders_shows_own_page_blocks():
     tenant, page = _versand_shop(orders=False)
     html = _seiten(tenant, page, "?tab=bloecke").content.decode()
@@ -275,7 +287,6 @@ def test_versand_blocks_tab_without_orders_shows_own_page_blocks():
     assert "seite=text%40seite%3Aversand" in html
 
 
-@pytest.mark.xfail(strict=True, reason="V1: до правки")
 def test_versand_search_tab_without_orders_reads_and_writes_own_page_host():
     tenant, page = _versand_shop(orders=False)
     html = _seiten(tenant, page, "?tab=suche").content.decode()

@@ -227,8 +227,10 @@ def _prune_seo_tr(node: dict) -> None:
 def _seo_overlay(config: dict, locale: str, host: str) -> dict:
     """Перевод SEO страницы на `locale` ({title?, description?}) — с проверкой формы:
     `_clean_i18n` пропускает любой словарь, `normalize_seo` чистит только базу. Битый оверлей
-    (строка, список, чужой хост, больше `_MAX_SEO_PAGES` хостов) — пусто и одно предупреждение
-    в лог: витрина показывает немецкое, а не 500."""
+    (строка, список, больше `_MAX_SEO_PAGES` хостов, не словарь у самой страницы) — пусто:
+    витрина показывает немецкое, а не 500. Битый ЧУЖОЙ ключ (не хост SEO, не словарь) перевод
+    этой страницы не гасит (ревью D2). О любом битом — предупреждение в лог (одно на запрос:
+    `siteui.page_seo` читает раз на запрос)."""
     import logging
 
     from apps.tenants import siteconfig
@@ -240,15 +242,19 @@ def _seo_overlay(config: dict, locale: str, host: str) -> dict:
     seo = node.get("seo")
     pages = seo.get("pages") if isinstance(seo, dict) else None
     entry = pages.get(host) if isinstance(pages, dict) else None
-    if (
+    fatal = (
         not isinstance(pages, dict)
         or len(pages) > siteconfig._MAX_SEO_PAGES
-        or not all(siteconfig.is_seo_page_host(h) for h in pages)
         or (entry is not None and not isinstance(entry, dict))
-    ):
+    )
+    foreign = not fatal and any(
+        not siteconfig.is_seo_page_host(h) or not isinstance(v, dict) for h, v in pages.items()
+    )
+    if fatal or foreign:
         logging.getLogger(__name__).warning(
             "page_seo: broken seo overlay ignored (%s, %s)", locale, host
         )
+    if fatal:
         return {}
     clean = siteconfig.clean_seo_page(entry)
     return {k: v for k, v in clean.items() if k in SEO_TR_FIELDS}
@@ -691,11 +697,17 @@ def all_rows(tenant=None) -> list:
     return rows
 
 
-def schema_ref(slug: str) -> tuple[str, str]:
-    """FB-27 «Seiten»: (хост блоков, код строки «Seitenaufbau») страницы с адресом `slug`."""
+def schema_ref(slug: str, tenant=None) -> tuple[str, str]:
+    """FB-27 «Seiten»: (хост блоков, код строки «Seitenaufbau») страницы с адресом `slug`.
+    Стопка 16 (ревью V1, после E10): системный слаг без своей системной страницы («Versand»
+    без заказов) живёт своей страницей на `/seite/<slug>/` и рисует блоки и SEO хоста
+    `seite:<slug>` (`content_page_views.storefront_page`, `studio_pages.resolve_match`)."""
     from apps.core import site_schema
 
-    host = {"ueber-uns": "info", "versand": "versand"}.get(slug) or f"seite:{slug}"
+    host = {"ueber-uns": "info", "versand": "versand"}.get(slug)
+    # только «Versand» доступна не всегда (`system_url`); «Über uns» — всегда (и без urlconf)
+    if host is None or (host == "versand" and system_url(slug, tenant) is None):
+        host = f"seite:{slug}"
     return host, (site_schema.TEXT if host == "info" else f"{site_schema.TEXT}@{host}")
 
 
@@ -746,7 +758,7 @@ def _attach_blocks(rows: list, tenant) -> None:
             continue
         slug = row.key.split(":", 1)[1]
         host, code = (
-            schema_ref(slug)
+            schema_ref(slug, tenant)
             if row.kind == "system"
             else (
                 f"seite:{slug}",

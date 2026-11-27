@@ -670,12 +670,18 @@ def page_seo(context, host):
     request = context.get("request")
     if request is None:
         return {}
-    return content_pages.page_seo(
-        getattr(request, "tenant", None),
-        host or "",
-        locale=get_language() or "",
-        config=_shown_raw(request),
-    )
+    # ревью D2: тег стоит в трёх блоках шаблона (title, description, robots) — одно чтение
+    # (и одно предупреждение о битом оверлее) на запрос; копия — шаблон не правит запись
+    key = (host or "", get_language() or "")
+    memo = getattr(request, "_page_seo_memo", None)
+    if memo is None:
+        memo = {}
+        request._page_seo_memo = memo
+    if key not in memo:
+        memo[key] = content_pages.page_seo(
+            getattr(request, "tenant", None), key[0], locale=key[1], config=_shown_raw(request)
+        )
+    return dict(memo[key])
 
 
 @register.simple_tag(takes_context=True)

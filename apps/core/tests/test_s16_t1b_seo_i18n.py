@@ -202,7 +202,8 @@ def test_og_title_follows_seo_translation():
 BROKEN = {
     "str": "кафе",
     "list": [{"title": "x"}],
-    "unknown_host": {"pages": {"catalog": {"title": "Чужой"}, "info": {"title": "Не тот"}}},
+    # ревью D2: чужой ключ при валидном `info` перевод не гасит — `test_s16_t1b_review.py`
+    "unknown_host": {"pages": {"catalog": {"title": "Чужой"}}},
     "61_hosts": {
         "pages": {
             **{f"seite:p{i}": {"title": f"T{i}"} for i in range(60)},
@@ -224,7 +225,7 @@ def test_broken_seo_overlay_storefront_200(case, caplog):
     if case != "str" and case != "list":
         assert "Чужой" not in html and "Слишком" not in html and "Не тот" not in html
     warned = [r for r in caplog.records if "broken seo overlay" in r.getMessage()]
-    assert 1 <= len(warned) <= 3, "одно предупреждение на чтение (title/description/robots)"
+    assert len(warned) == 1, "одно предупреждение на запрос (ревью D2)"
 
 
 def test_seo_overlay_orphan_after_host_removed():

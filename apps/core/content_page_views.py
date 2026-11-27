@@ -107,7 +107,7 @@ def _blocks_tab(request, slug: str) -> dict:
     from apps.tenants import siteconfig
 
     tenant = getattr(request, "tenant", None)
-    host, code = content_pages.schema_ref(slug)
+    host, code = content_pages.schema_ref(slug, tenant)
     saved = siteconfig.normalize(getattr(tenant, "site_config", None) or {})
     draft = aufbau_draft.get(request, code)
     config = aufbau_draft.overlay(saved, draft) if draft else saved
@@ -161,8 +161,8 @@ def _form(request, page, *, created: bool):
     tab = tab if schema_slug and tab in PAGE_TABS else "text"
     extra = _blocks_tab(request, schema_slug) if tab == "bloecke" else {}
     if tab == "suche":
-        host = content_pages.schema_ref(schema_slug)[0]
         tenant = getattr(request, "tenant", None)
+        host = content_pages.schema_ref(schema_slug, tenant)[0]
         if request.method == "POST" and request.POST.get("seo_present") == "1":
             # стопка 16 T1b: здесь — только немецкое; переводы правятся в окне «Seitenaufbau»,
             # изменённое немецкое поле снимает их (`put_page_seo`) — об этом сообщение
