@@ -29,8 +29,6 @@ pytestmark = pytest.mark.django_db
 
 FORM = "bw-form-hometext"
 WOPEN = "openT6"
-#: замок до кода (снимается в коммите реализации)
-_T6 = pytest.mark.xfail(strict=True, reason="T6: переводы пунктов ещё не в окне")
 
 PROCESS = [{"title": "Wählen", "text": "Online"}, {"title": "Abholen", "text": "Laden"}]
 PROCESS_RU = [{"title": "Выбрать", "text": "Онлайн"}, {"title": "Забрать", "text": "В магазине"}]
@@ -122,7 +120,6 @@ def _value(form, name):
 # --- №12: перестановка ------------------------------------------------------------------------
 
 
-@_T6
 def test_item_translation_by_key_survives_move():
     b = _browser()
     _post(
@@ -148,7 +145,6 @@ def test_item_translation_by_key_survives_move():
 # --- №17: правка немецкого, новый пункт ----------------------------------------------------------
 
 
-@_T6
 def test_item_key_edit_drops_translation():
     b = _browser()
     _resp, msgs = _post(b, "process", f_htx_process_0_title="Aussuchen")
@@ -161,7 +157,6 @@ def test_item_key_edit_drops_translation():
     ], "снят только перевод изменённого поля, перевод текста шага остался (по месту, D9)"
 
 
-@_T6
 def test_new_item_has_no_translation_fields():
     b = _browser()
     form = _form(_get(b, "process"))
@@ -179,7 +174,6 @@ def test_new_item_has_no_translation_fields():
 # --- architect №3: правка немецкого и ввод перевода в одной форме --------------------------------
 
 
-@_T6
 def test_step_title_edit_keeps_typed_translation():
     b = _browser()
     _post(
@@ -200,7 +194,6 @@ def test_step_title_edit_keeps_typed_translation():
 # --- architect №4: дубли ключа -------------------------------------------------------------------
 
 
-@_T6
 def test_duplicate_name_items_no_shared_field():
     b = _browser()
     form = _form(_get(b, "team"))
@@ -216,7 +209,6 @@ def test_duplicate_name_items_no_shared_field():
     assert _ru(cfg, "team", "name", "role") == [("Anna", "Inhaberin"), ("Anna", "Пекарша")]
 
 
-@_T6
 def test_duplicate_names_realign_by_order_on_move():
     """Дубли — k-й ↔ k-й (D9), не все на первый (`realign_list_overlays` — первое вхождение)."""
     b = _browser()
@@ -248,7 +240,6 @@ def test_item_crlf_keeps_translation():
     assert _ru(cfg, "process", "text") == [("Онлайн",), ("Im Laden",)]
 
 
-@_T6
 def test_item_translation_one_line():
     """Пункт Студии — строка «A | B»: перевод без переноса строки и без «|»."""
     b = _browser()
@@ -260,7 +251,6 @@ def test_item_translation_one_line():
 # --- №10/№9: конфликт со Студией ------------------------------------------------------------
 
 
-@_T6
 def test_item_translation_conflict_with_studio():
     b = _browser()
     _post(b, "process", f_tr_htx_process_0_title_ru="Подобрать")
@@ -279,7 +269,6 @@ def test_item_translation_conflict_with_studio():
 # --- №1: один формат хранения со Студией ---------------------------------------------------------
 
 
-@_T6
 def test_studio_and_window_same_overlay():
     b = _browser()
     _post(b, "testimonials", f_tr_htx_testimonials_1_text_ru="Очень вкусно")
@@ -305,7 +294,6 @@ def test_studio_and_window_same_overlay():
 # --- a11y №11: разметка пункта -------------------------------------------------------------
 
 
-@_T6
 def test_item_translation_fieldset_legend():
     b = _browser()
     with translation.override("de"):
@@ -329,7 +317,6 @@ def test_item_translation_fieldset_legend():
 # --- a11y №13: потолки ---------------------------------------------------------------------
 
 
-@_T6
 def test_item_caps_crlf_and_focus():
     b = _browser()
     form = _form(_get(b, "process"))
@@ -348,7 +335,6 @@ def test_item_caps_crlf_and_focus():
 # --- §9 №5: имена не переводятся --------------------------------------------------------------
 
 
-@_T6
 def test_names_not_translatable():
     assert home_texts.TR_ITEM_FIELDS == {
         "process": ("title", "text"),
@@ -389,7 +375,6 @@ def test_no_duplicate_ids_across_home_parts(ref):
 # --- «Übersetzen» (T3): источник текста ---------------------------------------------------
 
 
-@_T6
 def test_translate_button_source(monkeypatch):
     from apps.core.tests import test_fb33_m2i5c_translate as m2i5c
 

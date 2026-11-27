@@ -393,14 +393,19 @@ def put(
     tenant=None,
     base_fp: str | None = None,
     stored: dict | None = None,
+    window: bool = False,
+    window_tr: dict | None = None,
 ) -> bool:
     """Записать тексты секции `key` из формы (`get(name, default)` — request.POST.get и т. п.).
 
     `base_fp` — отпечаток секции, с которым открыта форма; не совпал с `stored` (сохранённое
     на начало запроса) — секция не пишется (`STALE`). `translating` — форма на языке перевода:
     значения ложатся в поля как есть (их разложит `siteconfig.split_translation`), переводы не
-    выравниваются и не снимаются. Мутирует `config`; `WRITTEN` — секция записана, `ABSENT` —
-    её полей в присланном нет."""
+    выравниваются и не снимаются. `window` (стопка 16 T6, окно блока: показ и «Speichern»
+    черновика) — пункты списков узнаются правилом D9 (`item_src`: дубли по порядку, переименование
+    по месту), `window_tr` — переводы пунктов из окна ({язык: {место в сохранённом: {поле:
+    текст}}}), ложатся за своим пунктом. Мутирует `config`; `WRITTEN` — секция записана,
+    `ABSENT` — её полей в присланном нет."""
     from apps.tenants import siteconfig
 
     if key not in FIELDS or not isinstance(config, dict):
@@ -426,6 +431,14 @@ def put(
         config.update(new)
         return WRITTEN
     old = copy.deepcopy(config.get(key))
+    if window and not translating and key in ITEM_FIELDS:
+        src = _realign_items(config, key, old, new)
+        config[key] = new
+        if window_tr:
+            from apps.core import block_i18n
+
+            block_i18n.put_items(config, key, src, window_tr)
+        return WRITTEN
     if not translating:
         if key in siteconfig.LIST_OVERLAY_KEYS:
             if not isinstance(old, list):
@@ -594,6 +607,9 @@ ITEM_FIELDS = {
 }
 #: поле пункта, без которого пункта нет (как у Студии: строка без первой части пропадает)
 _ITEM_KEY = {"process": "title", "team": "name", "testimonials": "name"}
+#: стопка 16 T6 (решение владельца 2026-11-26): переводимые в окне поля пункта — шаг: Titel и
+#: Text, команда: Rolle, отзыв: Zitat; имена людей не переводятся (как `PROPER_NAMES` демо)
+TR_ITEM_FIELDS = {"process": ("title", "text"), "team": ("role",), "testimonials": ("text",)}
 ITEM_LEGENDS = {
     "process": gettext_lazy("Schritt %(n)s"),
     "team": gettext_lazy("Mitglied %(n)s"),
@@ -694,6 +710,70 @@ def items(key: str, entry: dict) -> list[dict]:
     from apps.tenants import siteconfig
 
     return siteconfig.parse_content_section(key, lambda n, d="": entry.get(n, d))
+
+
+def item_src(key: str, new_items, old_items) -> list:
+    """Стопка 16 T6: место в сохранённом списке для каждого пункта окна (`None` — новый). Ключ
+    пункта — `_ITEM_KEY` (сам переводимый текст у шага); одно правило D9
+    `siteconfig._match_items`: две «Anna» — k-я ↔ k-й, переименование при той же длине — по
+    месту, добавление и удаление — только по ключу."""
+    from apps.tenants import siteconfig
+
+    field = _ITEM_KEY[key]
+    old = old_items if isinstance(old_items, list) else []
+    return siteconfig._match_items(
+        [siteconfig._item_identity(_dict(it), field) for it in new_items or ()],
+        [[siteconfig._item_identity(_dict(it), field)] for it in old],
+        by_place=True,
+    )
+
+
+def window_items(config: dict, key: str, draft: dict | None) -> tuple[list, list]:
+    """Пункты секции, которые видит окно, и место каждого в сохранённом списке (`item_src`)."""
+    win = items(key, state(config, key, draft))
+    return win, item_src(key, win, config.get(key))
+
+
+def _realign_items(config: dict, key: str, old, new: list) -> list:
+    """Переводы пунктов — за своим пунктом (`item_src`), удалённый уносит свои, у нового их нет;
+    перевод поля, чей немецкий текст изменился, снимается (`drop_changed` с `aligned`)."""
+    old = old if isinstance(old, list) else []
+    src = item_src(key, new, old)
+    overlay = config.get("i18n")
+    if not isinstance(overlay, dict):
+        return src
+    for node in overlay.values():
+        if not isinstance(node, dict) or key not in node:
+            continue
+        tr = node[key]
+        if not isinstance(tr, list):
+            continue  # `drop_changed` предупредит в лог
+        node[key] = [
+            copy.deepcopy(tr[s])
+            if isinstance(s, int) and s < len(tr) and isinstance(tr[s], dict)
+            else {}
+            for s in src
+        ]
+    aligned = [
+        old[s] if isinstance(s, int) and s < len(old) and isinstance(old[s], dict) else None
+        for s in src
+    ]
+    drop_changed(config, key, old, new, aligned=aligned)
+    for node in overlay.values():
+        rows = node.get(key) if isinstance(node, dict) else None
+        if not isinstance(rows, list):
+            continue
+        while rows and rows[-1] in ({}, None):
+            rows.pop()
+        if not rows:
+            node.pop(key)
+    return src
+
+
+def _window_tr(draft: dict, key: str) -> dict:
+    from apps.core import block_i18n
+
+    return block_i18n.explicit_items(draft, key) if key in ITEM_FIELDS else {}
 
 
 def _item_text(value) -> str:
@@ -797,8 +877,10 @@ def conflicts(config: dict, draft: dict) -> list[str]:
 
 def put_shown(config: dict, draft: dict) -> None:
     """Показ черновика (окно, «Vorschau»): тем же писателем, что «Speichern»."""
+    moved = conflicts(config, draft)
     for key, entry in clean_htx(draft).items():
-        put(config, key, entry.get, tenant=arch_keys_of(entry))
+        tr = None if key in moved else _window_tr(draft, key)
+        put(config, key, entry.get, tenant=arch_keys_of(entry), window=True, window_tr=tr)
 
 
 def commit(
@@ -836,7 +918,26 @@ def commit(
             getattr(connection, "schema_name", ""),
         )
     for key, entry in htx.items():
-        put(config, key, entry.get, notes=notes, tenant=arch_keys_of(entry))
+        tr = _window_tr(draft, key)
+        if tr and key in moved:
+            # стопка 16 T6: места пунктов — от списка, который тем временем изменили
+            logger.warning(
+                "home_texts: %s changed meanwhile — window item translations skipped", key
+            )
+            if notes is not None:
+                from apps.core import block_i18n
+
+                notes.append(block_i18n.window_skipped_note())
+            tr = None
+        put(
+            config,
+            key,
+            entry.get,
+            notes=notes,
+            tenant=arch_keys_of(entry),
+            window=True,
+            window_tr=tr,
+        )
 
 
 def snapshot(proto: dict, source: dict, key: str) -> None:
@@ -908,6 +1009,7 @@ def decorate(
         for i, row in enumerate([*rows, {}]):
             groups.append(
                 {
+                    "i": i,  # стопка 16 T6: позиция пункта в окне (поля перевода — `block_i18n`)
                     # E: пустой пункт для нового — с меткой в легенде (не только пустотой)
                     "legend": str(ITEM_LEGENDS[key]) % {"n": i + 1}
                     + (
