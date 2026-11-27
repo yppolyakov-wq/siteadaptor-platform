@@ -38,7 +38,9 @@ def test_every_text_page_renders_its_own_blocks():
     assert "{% page_blocks pb_host %}" in (TEMPLATES / "content_page.html").read_text()
     assert siteconfig.is_page_block_host("versand")
     assert siteconfig.is_page_block_host("seite:zahlung-und-versand")
-    for bad in ("seite:", "seite:Bad", "seite:a/b", "seite:" + "x" * 120):
+    # стопка 16 E10: заглавные и «_» — алфавит SlugField (`seite:Bad` теперь допустим)
+    assert siteconfig.is_page_block_host("seite:Bad_1")
+    for bad in ("seite:", "seite:B d", "seite:a/b", "seite:" + "x" * 120):
         assert not siteconfig.is_page_block_host(bad), bad
 
 

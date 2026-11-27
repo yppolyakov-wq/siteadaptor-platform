@@ -379,6 +379,19 @@ def i18n_translate_ctx(context):
     }
 
 
+@register.simple_tag
+def i18n_translate_limits():
+    """FB-33 стопка 16 T4: потолки одной части перевода для клиента — из констант сервера
+    (`i18n_translate.MAX_ITEMS`, `ITEM_MAX`, `TOTAL_MAX`); второго списка чисел нет."""
+    from apps.core import i18n_translate
+
+    return {
+        "items": i18n_translate.MAX_ITEMS,
+        "item": i18n_translate.ITEM_MAX,
+        "total": i18n_translate.TOTAL_MAX,
+    }
+
+
 #: AIS-7: вид текста → поле ответа → name инпута формы (база описания товара — `<поле>_<база>`).
 _DRAFT_TARGETS = {
     "product": lambda base: {"description": f"description_{base}"},
