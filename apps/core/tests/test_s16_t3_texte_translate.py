@@ -439,3 +439,20 @@ def test_status_ids_unique_with_two_lang_blocks():
         for attr in ("data-status", "data-note"):
             ref = re.search(rf'{attr}="([^"]+)"', btn).group(1)
             assert ids[ref] == 1, (attr, ref)
+
+
+@pytest.mark.xfail(strict=True, reason="langOwn сверяет textContent вместе с «⚠» (aria-hidden)")
+def test_lang_own_ignores_aria_hidden_mark():
+    """Ревью T3 A5 (дефект с E7): перед warning-сообщением `site_schema.html` ставит
+    `<span aria-hidden="true">⚠ </span>`; `langOwn`/`langNote` в `aufbau.js` сверяют текст
+    сообщения без узлов `aria-hidden`, иначе «Übersetzung entfernt, …» (`data-prefix`) не
+    узнаётся и живая область блока языков остаётся пустой."""
+    tpl = (ROOT / "templates" / "tenant" / "site_schema.html").read_text(encoding="utf-8")
+    assert '<span aria-hidden="true">⚠ </span>{% endif %}{{ m }}' in tpl
+    js = (ROOT / "static" / "js" / "aufbau.js").read_text(encoding="utf-8")
+    m = re.search(r"function msgText\(m\) \{(.*?)\n  \}", js, re.S)
+    assert m and '[aria-hidden="true"]' in m.group(1)
+    note = re.search(r"function langNote\(\) \{(.*?)\n  \}", js, re.S).group(1)
+    assert "langOwn(m.textContent)" not in note and "msgText(m)" in note
+    relay = re.search(r"function relay\(\) \{(.*?)\n  \}", js, re.S).group(1)
+    assert "langOwn(m.textContent)" not in relay
