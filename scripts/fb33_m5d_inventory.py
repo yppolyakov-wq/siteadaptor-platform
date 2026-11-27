@@ -25,6 +25,12 @@
 Страница или окно, которые не построились (исключение, `SchemaError`, ответ не 200, панель
 без выбранного блока), — строкой «пропущено: причина», не молча.
 
+Сессия владельца — в кэше Redis (`SESSION_ENGINE` cache). S15-catering-302 (стопка 16, K1):
+хук сессии экспортирует `REDIS_CACHE_URL=…/1` — базу pytest без xdist, где тесты зовут
+`cache.clear()` (FLUSHDB), — и запасная база стенда (`config/settings/stand.py`) не включается;
+сессия стиралась посреди прогона, и каждая страница давала ложное «пропущено: ответ 302». Поэтому
+на базе кэша тестов скрипт не стартует, а 302 на вход — строкой «сессия потеряна» и конец кита.
+
 Группы плана M5d (по хосту страницы; модуль разделов —
 `detail_parts.module_of(detail_parts.shared_host(host))`, проверка сверху вниз):
 
@@ -43,7 +49,8 @@
 (INSERT/UPDATE/DELETE/…) во время прогона отбивается (`connection.execute_wrapper`) — строка
 становится «пропущено: запись в БД».
 
-    DB_NAME=platform_m5d_stand uv run python scripts/fb33_m5d_inventory.py \\
+    DB_NAME=platform_m5d_stand REDIS_CACHE_URL=redis://localhost:6379/<N> \\
+        uv run python scripts/fb33_m5d_inventory.py \\
         [--only shop,hotel] [--json out.json]
 
 `--only` — поддомены китов (shop, restaurant-demo, friseur, hotel, retreat); по умолчанию — пять
@@ -82,11 +89,28 @@ _WINDOW_DONE = 'value="window_done"'
 _SELECTED = "data-schema-done"  # «Fertig» панели — только при выбранном блоке
 #: id объекта в коде строки — как `_num_free` стенда владельца
 _ID = re.compile(r"[0-9a-f]{8}-[0-9a-f-]{27}|[0-9a-f]{32}")
+#: база Redis кэша тестов без xdist (`base.py`, хук сессии): тесты стирают её `cache.clear()`
+TEST_CACHE_DB = 1
+_REDIS_DB = re.compile(r"/(\d+)/?$")
 _WRITE_SQL = re.compile(r"^\s*(INSERT|UPDATE|DELETE|TRUNCATE|ALTER|CREATE|DROP)\b", re.I)
 
 
 class SkipError(Exception):
     """Страница или окно не построились — строка «пропущено: причина»."""
+
+
+class SessionLostError(SkipError):
+    """Ответ — 302 на вход: сессия владельца пропала из кэша. Дальше кит не считается."""
+
+
+def refuse_shared_cache(location: str) -> None:
+    """Отказ стартовать на базе кэша тестов: pytest сотрёт сессию владельца (S15-catering-302)."""
+    m = _REDIS_DB.search(location or "")
+    if m and int(m.group(1)) == TEST_CACHE_DB:
+        sys.exit(
+            f"кэш {location} — база pytest (cache.clear() стирает сессию владельца → ложные 302);"
+            " задайте свою базу: REDIS_CACHE_URL=redis://localhost:6379/<N>"
+        )
 
 
 # --- что видит владелец -------------------------------------------------------------------
@@ -205,9 +229,19 @@ def owner_client(tenant, host: str):
 def client_fetch(client):
     """fetch(code, ref) → (код ответа, html) через вьюху экрана (`site-schema`)."""
 
+    from django.conf import settings
+    from django.shortcuts import resolve_url
+
+    login = resolve_url(settings.LOGIN_URL)
+
     def fetch(code: str, ref: str = "") -> tuple[int, str]:
         query = {"seite": code, **({"block": ref} if ref else {})}
         resp = client.get(AUFBAU, query)
+        if resp.status_code in (301, 302) and (resp.get("Location") or "").startswith(login):
+            raise SessionLostError(
+                f"сессия потеряна: {resp.status_code} → вход ({login}); база Redis кэша общая"
+                " с pytest или стендом?"
+            )
         return resp.status_code, resp.content.decode("utf-8", "replace")
 
     return fetch
@@ -238,6 +272,8 @@ def inventory(tenant, fetch, kit: str = "", codes=None) -> list[dict]:
             status, _html = fetch(row.code)
             if status != 200:
                 raise SkipError(f"экран страницы: ответ {status}")
+        except SessionLostError:
+            raise
         except (SkipError, site_schema.SchemaError) as exc:
             out.append({**page, "ref": "", "key": "", "skipped": str(exc)})
             continue
@@ -251,6 +287,8 @@ def inventory(tenant, fetch, kit: str = "", codes=None) -> list[dict]:
                 if status != 200:
                     raise SkipError(f"окно: ответ {status}")
                 tabs = window_tabs(html)
+            except SessionLostError:
+                raise
             except Exception as exc:  # noqa: BLE001 — SkipError, SchemaError и сбой вьюхи
                 line["skipped"] = (
                     str(exc) if isinstance(exc, SkipError) else f"{type(exc).__name__}: {exc}"
@@ -286,6 +324,8 @@ def run(slugs) -> list[dict]:
             with connection.execute_wrapper(_block_writes):
                 client = owner_client(tenant, host)
                 lines.extend(inventory(tenant, client_fetch(client), kit=slug))
+        except SessionLostError as exc:  # дальше кит не считается: одна строка вместо сотни
+            lines.append({"kit": slug, "code": "", "ref": "", "skipped": str(exc)})
         except Exception as exc:  # noqa: BLE001 — бизнес не прошёл целиком: видно строкой
             lines.append(
                 {"kit": slug, "code": "", "ref": "", "skipped": f"{type(exc).__name__}: {exc}"}
@@ -295,6 +335,12 @@ def run(slugs) -> list[dict]:
                 client.session.delete()
             connection.set_schema_to_public()
     return lines
+
+
+def main_exit_code(lines: list[dict]) -> int:
+    """1 — какой-то кит потерял сессию (итог недостоверен), иначе 0."""
+    lost = any(str(ln.get("skipped", "")).startswith("сессия потеряна") for ln in lines)
+    return 1 if lost else 0
 
 
 # --- сводка ---------------------------------------------------------------------------------
@@ -428,6 +474,9 @@ def main(argv=None) -> int:
     import django
 
     django.setup()
+    from django.conf import settings
+
+    refuse_shared_cache(settings.CACHES["default"]["LOCATION"])
     lines = run(slugs)
     summary = summarize(lines)
     if args.json:
@@ -436,7 +485,7 @@ def main(argv=None) -> int:
             encoding="utf-8",
         )
     sys.stdout.write(markdown(summary))
-    return 0
+    return main_exit_code(lines)
 
 
 if __name__ == "__main__":
