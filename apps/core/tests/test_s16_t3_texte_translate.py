@@ -441,7 +441,6 @@ def test_status_ids_unique_with_two_lang_blocks():
             assert ids[ref] == 1, (attr, ref)
 
 
-@pytest.mark.xfail(strict=True, reason="langOwn сверяет textContent вместе с «⚠» (aria-hidden)")
 def test_lang_own_ignores_aria_hidden_mark():
     """Ревью T3 A5 (дефект с E7): перед warning-сообщением `site_schema.html` ставит
     `<span aria-hidden="true">⚠ </span>`; `langOwn`/`langNote` в `aufbau.js` сверяют текст
