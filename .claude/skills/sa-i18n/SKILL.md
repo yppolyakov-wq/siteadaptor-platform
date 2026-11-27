@@ -44,7 +44,9 @@ DynamicI18nFormMixin, OverlayI18nFormMixin, RICH_OVERLAY_FIELDS`; переклю
 
 **site_config:** что переводимо и разбор ввода — `apps/tenants/siteconfig.py::TRANSLATABLE_KEYS,
 NON_TRANSLATABLE_FIELDS, split_translation, localize, realign_block_overlays,
-realign_list_overlays`.
+realign_list_overlays, LIST_OVERLAY_KEYS, _match_items`; сопоставление пунктов списка — ОДНО
+правило `_match_items(by_place, leftover)` для Студии (`split_translation`) и окна
+(`apps/core/home_texts.py::item_src`), второе не заводить (стопка 16).
 
 **Писатели переводов (по одному на данные):**
 - тексты блока в окне «Seitenaufbau» — `apps/core/block_i18n.py::take, drop, apply, check,
@@ -147,6 +149,13 @@ realign_list_overlays`.
   · посл. 2026-11-24.
 - `polib` — только читать и собирать `.mo`: `save()` переписывает переносы всего `.po`; правки `.po`
   — текстом · посл. 2026-11-24.
+- Save Студии на языке перевода разбирает ВЕСЬ локализованный конфиг: список без `id`/`title`
+  (`usp_bar` — `label`, `before_after` — `before`) — поле пункта в `LIST_OVERLAY_KEYS`, ключ вне
+  `TRANSLATABLE_KEYS` под `i18n.<язык>` (`seo`) — мимо `localize`; иначе перевод уходит в немецкую
+  базу. Новый ключ или список — в замок `apps/tenants/tests/test_s16_d9_studio_overlay_base.py`
+  · посл. 2026-11-27.
+- Тест через полный стек `Client` оставляет активным язык последнего ответа — соседние тесты идут
+  не на том языке: фикстура `translation.activate` назад · посл. 2026-11-27.
 
 ## Что гейтить
 - `uv run python scripts/preflight.py` (шаг i18n = quickcheck + `i18n_untranslated.py --check`).

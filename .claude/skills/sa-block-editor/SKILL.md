@@ -45,6 +45,14 @@ default_op, field_meta`; части-формы — `APPLY_FORM_PARTS`. Поря�
 `block_window.py::tabs`. Части FAQ и плашек — `apps/core/window_parts.py`; строка «Seite» —
 `apps/core/page_window.py`; закреплённые правовые кнопки — `apps/core/legal_buttons.py`.
 
+**Переводы в окне (стопка 16):** языки «Felder» и «Texte» — `apps/core/i18n_input.py::window_langs`
+(язык бизнеса первым, «Deutsch (Ausgangstext)»); блок языков — `templates/tenant/_bw_langs.html`
+с `ns` (id по пространству, без дублей); виды `block_i18n.py::USP_NS, SEO_NS` и пункты главной
+`item.<место>.<поле>`; SEO по языку и из черновика — `apps/core/content_pages.py::page_seo,
+seo_tr_path`; `lang="de"` у текста без перевода — `apps/tenants/templatetags/siteui.py::usp_lang,
+item_lang`; хост своей страницы — `apps/tenants/siteconfig.py::CONTENT_PAGE_HOST_RE`. Отпечаток
+`btr_base` несёт ключи пунктов; старый формат без них сверяется прежней формулой (без ложного конфликта).
+
 **Реестры:**
 - семьи и библиотека блоков — `apps/core/block_catalog.py` (`INACTIVE_FIELDS`, `active_data` —
   любой читатель текста блока берёт `active_data`);
