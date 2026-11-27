@@ -292,6 +292,10 @@ def negative(pg, tag):
         "Wählen" in html and "Выбор товара" not in html and "Забрать" in html,
         f"{tag}: негативный контроль — шаг без перевода на ru по-немецки",
     )
+    rep.check(
+        'lang="de">Wählen' in html and 'lang="de">Забрать' not in html,
+        f'{tag}: витрина ru — у шага без перевода lang="de" (a11y №14), у переведённого нет',
+    )
 
 
 with sl.launch() as browser:
