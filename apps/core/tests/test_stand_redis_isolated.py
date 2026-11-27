@@ -42,3 +42,11 @@ def test_stand_cache_is_not_the_test_cache_db():
 
 def test_explicit_redis_cache_url_wins():
     assert _location({"REDIS_CACHE_URL": "redis://localhost:6379/9"}) == "redis://localhost:6379/9"
+
+
+def test_session_hook_does_not_pin_stand_cache_to_test_db():
+    """FB-33 стопка 16 K1: хук сессии экспортировал `REDIS_CACHE_URL=…/1` (= база кэша pytest),
+    и запасная база стенда (/2) не срабатывала — тесты стирали сессию инвентаря (302 кейтеринга).
+    База кэша по умолчанию и так /1 (`config/settings/base.py`), экспорт не нужен."""
+    hook = (ROOT / ".claude/hooks/session-start.sh").read_text(encoding="utf-8")
+    assert "export REDIS_CACHE_URL=" not in hook

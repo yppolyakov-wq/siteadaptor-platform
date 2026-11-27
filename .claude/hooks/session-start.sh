@@ -40,7 +40,6 @@ export DB_PASSWORD=platform
 export DB_HOST=localhost
 export DB_PORT=5432
 export REDIS_URL=redis://localhost:6379/0
-export REDIS_CACHE_URL=redis://localhost:6379/1
 export REDIS_RESULT_URL=redis://localhost:6379/2
 ENV
 fi
