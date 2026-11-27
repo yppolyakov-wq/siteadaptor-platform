@@ -479,7 +479,8 @@ def test_one_rule_for_window_languages():
     b = Browser(_shop(seo=DE, locales=("de", "en", "ru"), default="ru"))
     _html, form = _form(b)
     assert re.findall(r'name="f_sprache" value="(\w+)"', form) == ["ru", "en"]
-    assert "Deutsch (Ausgangstext)" in form and "Ihre Seite zeigt zuerst Русский." in form
+    first = 'Ihre Seite zeigt zuerst <span lang="ru">Русский</span>.'  # T3: эндоним с lang
+    assert "Deutsch (Ausgangstext)" in form and first in form
     rule = i18n_input.window_langs(["en", "ru"], "ru", "")
     selected = {"ref": "__page", "seo": {"title": "x", "description": ""}}
     page = {"host": "info", "items": [], "seo": {"title": "x"}}
