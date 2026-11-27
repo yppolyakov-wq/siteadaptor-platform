@@ -380,7 +380,6 @@ def _label(doc):
     return re.search(r"<label[^>]*>(.*?)</label>", doc, flags=re.S).group(1)
 
 
-@pytest.mark.xfail(strict=True, reason="ревью T3: правка следующим коммитом")
 @pytest.mark.parametrize("biz", ["ru", "tr"])
 def test_label_ui_what_has_no_business_lang(biz):
     """Строка интерфейса («Überschrift», «Frage 1») — без `lang` языка бизнеса."""
@@ -395,7 +394,6 @@ def test_label_content_what_keeps_business_lang():
     assert '<span lang="ru">„Бесплатно“</span>' in label, label
 
 
-@pytest.mark.xfail(strict=True, reason="ревью T3: правка следующим коммитом")
 @pytest.mark.parametrize("ctx", [{}, {"what": "Frage 1"}, {"what": "X", "field": "Titel"}])
 def test_label_endonym_has_own_lang(ctx):
     label = _label(_tr(ctx))
@@ -403,7 +401,6 @@ def test_label_endonym_has_own_lang(ctx):
     assert _name(label).endswith("Übersetzung (Русский)")
 
 
-@pytest.mark.xfail(strict=True, reason="ревью T3: правка следующим коммитом")
 def test_label_endonym_escaped():
     label = _label(_tr(label="<b>x</b>", loc='ru"x'))
     assert "<b>" not in label and "&lt;b&gt;" in label and 'lang="ru&quot;x"' in label
@@ -412,7 +409,6 @@ def test_label_endonym_escaped():
 # --- ревью T3 A3: пометка ИИ читается один раз --------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="ревью T3: правка следующим коммитом")
 def test_visible_ai_mark_hidden_from_reader(monkeypatch):
     """Видимая копия — `aria-hidden`; для чтения — sr-only `data-note` по `aria-describedby`."""
     m2i5c._ai(monkeypatch)

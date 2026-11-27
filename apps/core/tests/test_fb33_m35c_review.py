@@ -176,10 +176,10 @@ def _html(b, query):
 
 def test_translation_labels_name_the_field():
     html = _html(Browser(_shop(_with_ru())), "?seite=home&block=t1&tab=texte")
-    assert '<span lang="de">„Überschrift“</span> – Übersetzung (Русский)' in html
+    assert '„Überschrift“ – Übersetzung (<span lang="ru">Русский</span>)' in html
     faq = _html(Browser(_ml(faq_tenant())), "?seite=home&block=faq&tab=texte")
-    assert '<span lang="de">„Frage 1“</span> – Übersetzung (Русский)' in faq
-    assert '<span lang="de">„Antwort 1“</span> – Übersetzung (Русский)' in faq
+    assert '„Frage 1“ – Übersetzung (<span lang="ru">Русский</span>)' in faq
+    assert '„Antwort 1“ – Übersetzung (<span lang="ru">Русский</span>)' in faq
 
 
 def test_invisible_apply_button_is_not_aria_hidden():
