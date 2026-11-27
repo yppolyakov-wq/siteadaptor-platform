@@ -1,4 +1,4 @@
-{% load i18n cabinet %}{% comment %}FB-33 стопка 15 M5e-1b (артборд M5eTexte): тексты секции главной — те же поля и тот же писатель, что в Студии (home_texts). Форма неделима (вкладка «Texte»), сентинел htx_present у полей панели; пункты списков — fieldset с legend «Schritt N» (Y2), ошибка — у поля (Y1), потолок maxlength не режет старое. Стопка 16 T6 (артборд M16SchritteTeam): у пунктов — поля перевода (block_i18n), в legend — цитата немецкого ключа пункта с lang; h.of — снимок пунктов при показе (block_i18n.item_slot_src); блок языков — свой ns (htx-<секция>).{% endcomment %}{% with h=selected.home_texts %}
+{% load i18n cabinet %}{% comment %}FB-33 стопка 15 M5e-1b (артборд M5eTexte): тексты секции главной — те же поля и тот же писатель, что в Студии (home_texts). Форма неделима (вкладка «Texte»), сентинел htx_present у полей панели; пункты списков — fieldset с legend «Schritt N» (Y2), ошибка — у поля (Y1), потолок maxlength не режет старое. Стопка 16 T6 (артборд M16SchritteTeam): у пунктов — поля перевода (block_i18n), в legend — цитата немецкого ключа пункта с lang; цитата — с lang только при известном языке и не длиннее 60 знаков (ревью A2/A3); h.of — снимок пунктов при показе (block_i18n.item_slot_src); блок языков — свой ns (htx-<секция>).{% endcomment %}{% with h=selected.home_texts %}
 <form method="post" id="bw-form-hometext" class="mt-4 space-y-3" data-schema-fields>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
@@ -13,7 +13,7 @@
   <p id="bw-htx-hint" class="text-xs text-gray-700">{% trans "Dieselben Felder wie im Studio." %}</p>
   {% for f in h.fields %}{% include "tenant/_bw_hometext_field.html" %}{% endfor %}
   {% for g in h.groups %}<fieldset class="space-y-2 rounded-lg border border-gray-200 p-3">
-    <legend class="px-1 text-sm font-bold text-gray-900">{{ g.legend }}{% if g.quote %} · <span lang="{{ g.quote_lang }}">„{{ g.quote }}“</span>{% endif %}</legend>
+    <legend class="px-1 text-sm font-bold text-gray-900">{{ g.legend }}{% if g.quote %} · <span{% if g.quote_lang %} lang="{{ g.quote_lang }}"{% endif %}>„{{ g.quote|truncatechars:60 }}“</span>{% endif %}</legend>
     {% for f in g.fields %}{% include "tenant/_bw_hometext_field.html" %}{% endfor %}
   </fieldset>{% endfor %}
   <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>

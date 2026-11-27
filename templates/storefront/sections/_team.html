@@ -24,7 +24,7 @@
         </div>
         <figcaption>
           <p class="font-semibold leading-tight">{{ m.name }}</p>
-          {% if m.role %}<p class="text-sm text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+          {% if m.role %}<p class="text-sm text-gray-500 mt-0.5"{% item_lang "team" forloop.counter0 "role" %}>{{ m.role }}</p>{% endif %}
         </figcaption>
       </figure>
     {% endfor %}
@@ -42,7 +42,7 @@
         </div>
         <figcaption class="mt-2">
           <p class="font-semibold leading-tight text-sm">{{ m.name }}</p>
-          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5"{% item_lang "team" forloop.counter0 "role" %}>{{ m.role }}</p>{% endif %}
         </figcaption>
       </figure>
     {% endfor %}
@@ -60,7 +60,7 @@
         </div>
         <figcaption>
           <p class="font-semibold leading-tight">{{ m.name }}</p>
-          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5"{% item_lang "team" forloop.counter0 "role" %}>{{ m.role }}</p>{% endif %}
         </figcaption>
       </figure>
     {% endfor %}
@@ -78,7 +78,7 @@
         </div>
         <figcaption class="pt-2">
           <p class="font-semibold leading-tight text-sm">{{ m.name }}</p>
-          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5"{% item_lang "team" forloop.counter0 "role" %}>{{ m.role }}</p>{% endif %}
         </figcaption>
       </figure>
     {% endfor %}
@@ -96,7 +96,7 @@
         </div>
         <figcaption class="p-3">
           <p class="font-semibold leading-tight">{{ m.name }}</p>
-          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5"{% item_lang "team" forloop.counter0 "role" %}>{{ m.role }}</p>{% endif %}
         </figcaption>
       </figure>
     {% endfor %}

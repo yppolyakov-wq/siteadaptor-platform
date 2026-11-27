@@ -688,6 +688,14 @@ def page_seo(context, host):
 def usp_lang(context, index, field="label"):
     """Стопка 16 T1b (долг T1a, a11y №14, WCAG 3.1.2): у пункта полосы доверия без перевода на
     язык посетителя — ` lang="de"` (показан немецкий), с переводом — пусто."""
+    return item_lang(context, "usp_bar", index, field)
+
+
+@register.simple_tag(takes_context=True)
+def item_lang(context, section, index, field):
+    """Стопка 16 T6 (a11y №14): у пункта списка `section` (шаги, команда, отзывы, полоса
+    доверия) без перевода поля `field` на язык посетителя — ` lang="de"`, с переводом — пусто.
+    Одно правило с `usp_lang`: позиционный оверлей `i18n.<язык>.<секция>` показываемого конфига."""
     from django.conf import settings
     from django.utils.html import format_html
     from django.utils.translation import get_language
@@ -702,7 +710,7 @@ def usp_lang(context, index, field="label"):
     raw = _shown_raw(request)
     root = raw.get("i18n") if isinstance(raw, dict) else None
     node = root.get(loc) if isinstance(root, dict) else None
-    rows = node.get("usp_bar") if isinstance(node, dict) else None
+    rows = node.get(str(section)) if isinstance(node, dict) else None
     try:
         entry = rows[int(index)] if isinstance(rows, list) else None
     except (IndexError, TypeError, ValueError):

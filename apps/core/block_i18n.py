@@ -370,7 +370,17 @@ def bases(config: dict, page: dict, ref: str, obj=None) -> dict:
         okind, found_obj = _object(str(page.get("host") or ""))
         ofp = _object_fp(obj if obj is not None else found_obj, okind)
     tr = saved_for(config, page, ref)
-    return {"all": fingerprint({"tr": tr, "faq": faq, "obj": ofp}), "faq": faq, "obj": ofp}
+    keys = _item_keys(config, page, ref) if "htx" in found else None
+    if keys is None:
+        return {"all": fingerprint({"tr": tr, "faq": faq, "obj": ofp}), "faq": faq, "obj": ofp}
+    # стопка 16 T6 (ревью D1): ключи пунктов — в отпечатке (Студия переставила шаги без
+    # переводов — тоже конфликт) и в черновике (`_put_item` узнаёт свой пункт после «Trotzdem»)
+    return {
+        "all": fingerprint({"tr": tr, "faq": faq, "obj": ofp, "items": keys}),
+        "faq": faq,
+        "obj": ofp,
+        "keys": keys,
+    }
 
 
 def _base_part(value, part: str) -> str:
@@ -433,7 +443,7 @@ def _clean(key: str, value, cap: int) -> tuple[str, bool]:
     return (text[:cap].rstrip() if key in _SEO_TR else text[:cap]), True
 
 
-def _posted(page: dict, ref: str, fields, post, before_src: dict) -> dict:
+def _posted(page: dict, ref: str, fields, post, before_src: dict, lost: list | None = None) -> dict:
     """Присланные переводы: {(язык, ключ): текст}. Поля формы — только своих ключей и языков
     платформы; номер вопроса FAQ — позиция в окне ДО правки (`before_src`)."""
     allowed_locs = set(_locales())
@@ -467,6 +477,8 @@ def _posted(page: dict, ref: str, fields, post, before_src: dict) -> dict:
             s = item_src[i] if i < len(item_src) else None
             if isinstance(s, int) and part in _home_texts().TR_ITEM_FIELDS.get(section, ()):
                 out[(loc, f"item.{s}.{part}")] = value
+            elif lost is not None and _s(value):
+                lost.append(field)  # ревью D3: пункт не узнан (устаревшая вкладка) — не молча
             continue
         key = f"label.{field[6:]}" if field.startswith("label_") else field
         out[(loc, key)] = value
@@ -512,7 +524,8 @@ def take(
     post = getattr(request, "POST", None) or {}
     old_draft = prior.get("draft") or draft
     saved = _merged(saved_for(config, old_draft, ref), saved_for(config, draft, ref))
-    posted = _posted(old_draft, ref, fields, post, prior.get("src") or {})
+    lost: list = []
+    posted = _posted(old_draft, ref, fields, post, prior.get("src") or {}, lost)
     now = german(config, draft, ref)
     was = prior.get("german") or {}
     valid = set(now) | set(was)
@@ -547,7 +560,11 @@ def take(
     else:
         btr.pop(ref, None)
     _store(draft, btr, config, ref)
+    if lost:
+        logger.warning("block_i18n: %s item translations of a stale form skipped", len(lost))
     if notes is not None:
+        if lost:
+            notes.append(window_skipped_note())
         if capped:
             notes.append(siteconfig.cap_note())
         if removed:
@@ -1441,7 +1458,37 @@ def _put_item(config: dict, draft: dict, ref: str, loc: str, key: str, text: str
     if not s.isdigit() or field not in ht.TR_ITEM_FIELDS.get(section, ()):
         return
     rows = config.get(section)
-    if isinstance(rows, list) and int(s) < len(rows):
-        _set_path(config, loc, (section, int(s), field), text)
-    else:
-        logger.debug("block_i18n: %s item %s is gone — translation skipped", section, s)
+    j = _item_now(config, draft, ref, section, int(s))
+    if j is None:
+        logger.warning("block_i18n: %s item %s is gone — translation skipped", section, s)
+    elif isinstance(rows, list) and j < len(rows):
+        _set_path(config, loc, (section, j, field), text)
+
+
+def _item_keys(config: dict, page: dict, ref: str):
+    """Ключи сохранённых пунктов секции окна (`None` — у строки пунктов нет)."""
+    from apps.tenants import siteconfig
+
+    ht = _home_texts()
+    section = (_row(page, ref) or {}).get("key")
+    if section not in ht.TR_ITEM_FIELDS:
+        return None
+    rows = config.get(section) if isinstance(config.get(section), list) else []
+    return [siteconfig._item_identity(r, ht._ITEM_KEY[section]) for r in rows]
+
+
+def _item_now(config: dict, draft: dict, ref: str, section: str, s: int):
+    """Ревью D1: место пункта `s` (место при первой правке перевода) в списке `config` сейчас —
+    по ключу пункта из черновика (k-й дубль ↔ k-й); ключей нет (черновик до правки) — `s`."""
+    base = (
+        (draft.get("btr_base") or {}).get(ref) if isinstance(draft.get("btr_base"), dict) else None
+    )
+    keys = base.get("keys") if isinstance(base, dict) else None
+    now = _item_keys(config, draft, ref)
+    if not isinstance(keys, list) or now is None or keys == now:
+        return s
+    if s >= len(keys):
+        return None
+    occurrence = keys[:s].count(keys[s])
+    places = [j for j, k in enumerate(now) if k == keys[s]]
+    return places[occurrence] if occurrence < len(places) else None

@@ -1,6 +1,6 @@
-{% load i18n %}
+{% load i18n siteui %}
 {% comment %}Секция «Как мы работаем» (P4): шаги из site_config. UC6-6d2: 5 видов по
-section_row.style — "" карточки с кружками (текущий) | timeline | row | minimal | twocol.{% endcomment %}
+section_row.style — "" карточки с кружками (текущий) | timeline | row | minimal | twocol. Стопка 16 T6 (a11y №14): шаг без перевода на язык посетителя — с lang="de" (тег item_lang).{% endcomment %}
 {% if site.process %}
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-6">{% trans "How it works" %}</h2>
@@ -9,8 +9,8 @@ section_row.style — "" карточки с кружками (текущий) |
       {% for step in site.process %}
         <li class="pl-8 relative">
           <span class="absolute -left-4 top-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:var(--accent);">{{ forloop.counter }}</span>
-          <h3 class="font-semibold mb-1">{{ step.title }}</h3>
-          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+          <h3 class="font-semibold mb-1"{% item_lang "process" forloop.counter0 "title" %}>{{ step.title }}</h3>
+          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line"{% item_lang "process" forloop.counter0 "text" %}>{{ step.text }}</p>{% endif %}
         </li>
       {% endfor %}
     </ol>
@@ -20,8 +20,8 @@ section_row.style — "" карточки с кружками (текущий) |
         <div class="flex items-start gap-3 flex-1 min-w-[220px]">
           <span class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:var(--accent);">{{ forloop.counter }}</span>
           <div>
-            <h3 class="font-semibold">{{ step.title }}</h3>
-            {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+            <h3 class="font-semibold"{% item_lang "process" forloop.counter0 "title" %}>{{ step.title }}</h3>
+            {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line"{% item_lang "process" forloop.counter0 "text" %}>{{ step.text }}</p>{% endif %}
           </div>
         </div>
       {% endfor %}
@@ -32,8 +32,8 @@ section_row.style — "" карточки с кружками (текущий) |
         <li class="flex items-baseline gap-3">
           <span class="text-lg font-bold" style="color:var(--accent);">{{ forloop.counter }}.</span>
           <div>
-            <span class="font-semibold">{{ step.title }}</span>
-            {% if step.text %}<span class="text-sm text-gray-600"> — {{ step.text }}</span>{% endif %}
+            <span class="font-semibold"{% item_lang "process" forloop.counter0 "title" %}>{{ step.title }}</span>
+            {% if step.text %}<span class="text-sm text-gray-600"> — <span{% item_lang "process" forloop.counter0 "text" %}>{{ step.text }}</span></span>{% endif %}
           </div>
         </li>
       {% endfor %}
@@ -43,8 +43,8 @@ section_row.style — "" карточки с кружками (текущий) |
       {% for step in site.process %}
         <div class="bg-white rounded-2xl shadow-sm p-6">
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold mb-3" style="background: var(--accent);">{{ forloop.counter }}</div>
-          <h3 class="font-semibold mb-1">{{ step.title }}</h3>
-          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+          <h3 class="font-semibold mb-1"{% item_lang "process" forloop.counter0 "title" %}>{{ step.title }}</h3>
+          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line"{% item_lang "process" forloop.counter0 "text" %}>{{ step.text }}</p>{% endif %}
         </div>
       {% endfor %}
     </div>
@@ -53,8 +53,8 @@ section_row.style — "" карточки с кружками (текущий) |
       {% for step in site.process %}
         <div class="bg-white rounded-2xl shadow-sm p-6">
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold mb-3" style="background: var(--accent);">{{ forloop.counter }}</div>
-          <h3 class="font-semibold mb-1">{{ step.title }}</h3>
-          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+          <h3 class="font-semibold mb-1"{% item_lang "process" forloop.counter0 "title" %}>{{ step.title }}</h3>
+          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line"{% item_lang "process" forloop.counter0 "text" %}>{{ step.text }}</p>{% endif %}
         </div>
       {% endfor %}
     </div>

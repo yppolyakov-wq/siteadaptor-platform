@@ -422,6 +422,8 @@ def put(
     current = values(config, key, tenant)
     raw = _read(key, get, current, notes)
     if raw is None:
+        if window_tr:  # ревью T6 D4: переводы пунктов окна без самих пунктов — не молча
+            logger.warning("home_texts: %s window item translations without items — skipped", key)
         return ABSENT
     new = _build(config, key, raw, tenant)
     if key in SCALAR_KEYS:
@@ -716,23 +718,18 @@ def item_src(key: str, new_items, old_items) -> list:
     """Стопка 16 T6: место в сохранённом списке для каждого пункта окна (`None` — новый). Ключ
     пункта — `_ITEM_KEY` (сам переводимый текст у шага); одно правило D9
     `siteconfig._match_items`: две «Anna» — k-я ↔ k-й, переименование при той же длине — по
-    месту, добавление и удаление — только по ключу. Окно правит пункты по шагу (стенд T6):
-    переставили, потом переименовали — место переименованного уже занято, поэтому при той же
-    длине остаток (не узнанные новые ↔ свободные старые) сопоставляется по порядку."""
+    месту, при той же длине остаток — по порядку (`leftover`, то же правило у
+    `split_translation` Студии — ревью D2), добавление и удаление — только по ключу."""
     from apps.tenants import siteconfig
 
     field = _ITEM_KEY[key]
     old = old_items if isinstance(old_items, list) else []
-    new = list(new_items or ())
-    src = siteconfig._match_items(
-        [siteconfig._item_identity(_dict(it), field) for it in new],
+    return siteconfig._match_items(
+        [siteconfig._item_identity(_dict(it), field) for it in new_items or ()],
         [[siteconfig._item_identity(_dict(it), field)] for it in old],
         by_place=True,
+        leftover=True,
     )
-    if len(new) == len(old):
-        free = iter(i for i in range(len(old)) if i not in src)
-        src = [s if s is not None else next(free, None) for s in src]
-    return src
 
 
 def window_items(config: dict, key: str, draft: dict | None) -> tuple[list, list]:
