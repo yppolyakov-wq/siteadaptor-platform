@@ -414,3 +414,35 @@ def test_storefront_items_untranslated_lang_de(rf):
         )
     assert re.search(r'<h3[^>]*lang="de"[^>]*>Abholen', html)
     assert not re.search(r'<h3[^>]*lang="de"[^>]*>Выбрать', html)
+
+
+# --- стенд T6: перестановка, потом переименование того же шага ------------------------------
+
+
+def test_item_src_pairs_leftovers_after_move_and_rename():
+    """Шаги переставили, потом переименовали «Wählen» (уже на втором месте): по ключу он не
+    узнаётся, его место занято — остаток при той же длине сопоставляется по порядку."""
+    old = [{"title": "Wählen"}, {"title": "Abholen"}]
+    new = [{"title": "Abholen"}, {"title": "Aussuchen"}]
+    assert home_texts.item_src("process", new, old) == [1, 0]
+    assert home_texts.item_src("process", new + [{"title": "Neu"}], old) == [1, None, None]
+
+
+def test_move_then_rename_keeps_typed_and_text_translation():
+    b = _browser()
+    _post(
+        b,
+        "process",
+        f_htx_process_0_title="Abholen",
+        f_htx_process_0_text="Laden",
+        f_htx_process_1_title="Wählen",
+        f_htx_process_1_text="Online",
+    )
+    _post(b, "process", f_htx_process_1_title="Aussuchen", f_tr_htx_process_1_title_ru="Подобрать")
+    form = _form(_get(b, "process"))
+    assert _value(form, "f_tr_htx_process_1_title_ru") == "Подобрать"
+    _save(b)
+    assert _ru(_saved(b), "process", "title", "text") == [
+        ("Забрать", "В магазине"),
+        ("Подобрать", "Онлайн"),
+    ]
