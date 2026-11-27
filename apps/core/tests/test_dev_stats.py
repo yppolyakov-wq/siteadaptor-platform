@@ -251,7 +251,7 @@ def test_review_checklist_holds_the_stack16_questions():
         "снят ДО правки",
     ):
         assert needle in checklist, needle
-    assert "40. " in checklist and "(40 вопросов" in (
+    assert "40. " in checklist and "(48 вопросов" in (
         root / ".claude/skills/sa-increment/SKILL.md"
     ).read_text(encoding="utf-8")
     # одно правило про app.css в срезе, а не два противоречащих (находка стопки 16, строка 75)
@@ -266,6 +266,25 @@ def test_ci_does_not_cancel_a_running_check():
     assert "cancel-in-progress: false" in ci and "cancel-in-progress: true" not in ci
     skill = (mod_root() / ".claude/skills/sa-increment/SKILL.md").read_text(encoding="utf-8")
     assert "доигрывает" in skill and "Каждый пуш отменяет идущий прогон" not in skill
+
+
+def test_recon_before_plan_rules_are_in_the_skill_and_checklist():
+    # T-21: прогон проекта M6 с инвентарём до плана нашёл то, что план без инвентаря пропустил.
+    root = mod_root()
+    skill = (root / ".claude/skills/sa-increment/SKILL.md").read_text(encoding="utf-8")
+    for needle in ("docs/recon-template.md", "--recon", "по всем разделам плана"):
+        assert needle in skill, needle
+    checklist = (root / "docs/review-checklist.md").read_text(encoding="utf-8")
+    for needle in (
+        "## К.",
+        "48. ",
+        "полное `save()`",
+        "мимо `site_config`",
+        "одна таблица на файл",
+    ):
+        assert needle in checklist, needle
+    template = (root / "docs/stack-plan-template.md").read_text(encoding="utf-8")
+    assert "Ловушки инвентаря" in template and "Опорные факты кода" in template
 
 
 def mod_root():

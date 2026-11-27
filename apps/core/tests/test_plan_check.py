@@ -274,3 +274,49 @@ def test_review_fix_batch_is_checked_against_the_plan_table():
         "| M5e-2b | — | `apps/core/views.py` | — | 0 | — |",
     )
     assert m.would_add(clash, "M5e-2b", ["apps/core/views.py"], exists=lambda path: True)
+
+
+# --- T-21 (2026-11-27): инвентарь до плана, план отвечает на каждую ловушку -------------------
+
+RECON = (
+    "## 10. Ловушки\n\n| № | Ловушка | file:line | Проверено |\n|---|---|---|---|\n"
+    "| Л1 | полный save() формы перетирает поле | `apps/catalog/views.py:10` | проверено |\n"
+    "| Л2 | восстановление версии создаёт хосты заново | `apps/core/studio.py:5` | вывод |\n"
+    "| Л12 | потолок normalize режет блоки | `apps/tenants/siteconfig.py:9` | проверено |\n"
+)
+
+
+def test_plan_must_answer_every_trap_of_the_inventory():
+    m = _mod()
+    assert m.recon_traps(RECON) == ["Л1", "Л2", "Л12"]
+    plan = "## 17. Ловушки\n| Л1 | охрана save | §2 |\n| Л12 | потолок поднят | §3 |\n"
+    found = m.traps_unanswered(RECON, plan)
+    assert len(found) == 1 and "Л2" in found[0] and "восстановление версии" in found[0]
+    # «Л1» не должно засчитываться за «Л12» и наоборот
+    assert m.traps_unanswered(RECON, "| Л12 | ответ |\n| Л2 | ответ |\n")[0].startswith("Л1 ")
+    assert m.traps_unanswered(RECON, plan + "| Л2 | охрана в писателе | §2 |\n") == []
+
+
+def test_inventory_without_traps_or_unverified_rows_is_reported():
+    m = _mod()
+    # пустой инвентарь — не «ловушек нет», а «проверять нечего»
+    assert "ни одной ловушки" in m.recon_errors("# Инвентарь\n\nтекст\n")[0]
+    # ловушка без file:line — предпосылка без проверки по коду
+    bad = RECON + "| Л13 | кэш не сбрасывается | — | вывод |\n"
+    assert any("Л13" in e and "file:line" in e for e in m.recon_errors(bad))
+    assert m.recon_errors(RECON) == []
+
+
+def test_recon_template_is_a_valid_inventory_and_names_its_sections():
+    m = _mod()
+    text = (ROOT / "docs" / "recon-template.md").read_text(encoding="utf-8")
+    assert m.recon_errors(text) == []
+    for needle in (
+        "Писатели и читатели",
+        "Потолки",
+        "Кэш",
+        "Тесты и эталоны",
+        "проверено",
+        "вывод",
+    ):
+        assert needle in text, needle
